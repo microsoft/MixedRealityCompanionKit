@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <BinRoot>$(SolutionDir)bin\$(Platform)$(Configuration)\</BinRoot>
+    <OutDir>$(BinRoot)$(MSBuildProjectName)\</OutDir>
+    <ObjRoot>$(SolutionDir)obj\$(Platform)$(Configuration)\</ObjRoot>
+    <IntDir>$(ObjRoot)$(MSBuildProjectName)\</IntDir>
+    <OutputPath>$(OutDir)</OutputPath>
+    <IntermediateOutputPath>$(IntDir)</IntermediateOutputPath>
+  </PropertyGroup>
+</Project>
