@@ -288,8 +288,8 @@ HolographicFrame^ AppMain::Update()
     SpatialTappedEventArgs^ tapped = m_spatialInputHandler->CheckForTapped();
     if (tapped)
     {
-        // When a Pressed gesture is detected, the sample hologram will be repositioned
-        // two meters in front of the user.
+        // When the Tapped spatial input event is received, the sample hologram will be 
+        // repositioned two meters in front of the user.
         m_spinningCubeRenderer->PositionHologram(
             tapped->TryGetPointerPose(currentCoordinateSystem)
             );
