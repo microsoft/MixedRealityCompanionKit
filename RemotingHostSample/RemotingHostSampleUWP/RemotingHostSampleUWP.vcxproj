@@ -229,14 +229,14 @@
     <Import Project="$(VSINSTALLDIR)\Common7\IDE\Extensions\Microsoft\VsGraphics\ShaderGraphContentTask.targets" />
   </ImportGroup>
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.Simulation.targets" Condition="Exists('..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.Simulation.targets')" />
-    <Import Project="..\packages\Microsoft.Holographic.Remoting.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.targets" Condition="Exists('..\packages\Microsoft.Holographic.Remoting.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.targets')" />
+    <Import Project="..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0\build\native\Microsoft.Holographic.Remoting.Simulation.targets" Condition="Exists('..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0\build\native\Microsoft.Holographic.Remoting.Simulation.targets')" />
+    <Import Project="..\packages\Microsoft.Holographic.Remoting.1.0.0\build\native\Microsoft.Holographic.Remoting.targets" Condition="Exists('..\packages\Microsoft.Holographic.Remoting.1.0.0\build\native\Microsoft.Holographic.Remoting.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.Simulation.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.Simulation.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Holographic.Remoting.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Holographic.Remoting.1.0.0-ci-20160728-183938\build\native\Microsoft.Holographic.Remoting.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0\build\native\Microsoft.Holographic.Remoting.Simulation.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Holographic.Remoting.Simulation.1.0.0\build\native\Microsoft.Holographic.Remoting.Simulation.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Holographic.Remoting.1.0.0\build\native\Microsoft.Holographic.Remoting.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Holographic.Remoting.1.0.0\build\native\Microsoft.Holographic.Remoting.targets'))" />
   </Target>
 </Project>
