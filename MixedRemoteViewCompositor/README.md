@@ -18,30 +18,32 @@ There are two methods of operation:
 ## What files are included?
 **Builds** - contains compiled files (.dll, .winmd, and .unitypackage) for Win32, Universal Store(UWP), and Unity development
 
-**Samples**
+**Samples** - sample code
 
-  + LowLatencyMRC
-    + Unity - sample application that demonstrates using library to capture MRC on the HoloLens
-    + UWP - sample viewing application to view live MRC video from the HoloLens 
-    + [Learn More...](Samples/LowLatencyMRC/README.md)
+- LowLatencyMRC
+	- Unity - sample application that demonstrates using library to capture MRC on the HoloLens
+    - UWP - sample viewing application to view live MRC video from the HoloLens 
+    - [Learn More...](Samples/LowLatencyMRC/README.md)
 
-  + MRVC 
-    + Sample Unity project that will produce both the HoloLens experience applicaiton and the remote viewing application using the same codebase.
-    + Demostrates how to use the plug-in and other additional files to demonstrate serializing data to send to a remote application. 
-    + [Learn More...](Samples/MRVC/README.md)
-
-    ***Note:** the network layer code was designed for use with the media pipeline only. It's overloaded use in this sample is provided as an example to demonstrate sending scene and input state data to the remote application. Consider using a different networking framework to sync scene and input states.*
+- MRVC
+	- Sample Unity project that will produce both the HoloLens experience applicaiton and the remote viewing application using the same codebase.
+	- Demostrates how to use the plug-in and other additional files to demonstrate serializing data to send to a remote application. 
+	- [Learn More...](Samples/MRVC/README.md)
+	
+	***Note:** the network layer code was designed for use with the media pipeline only. It's overloaded use in this sample is provided as an example to demonstrate sending scene and input state data to the remote application. Consider using a different networking framework to sync scene and input states.*
 
 **Source** - Native C++ files used to build components for Win32 and UWP applications. These include the Unity plug-in wrapper, Network and Media Foundation components. [Learn More...](Source/README.md)
 
 ### Additional Resources
 Developers should already be familiar with and have previous experience with developing HoloLens and/or Unity Applications. Here are resources to get started:
-* [HoloLens Academy](https://developer.microsoft.com/en-us/windows/holographic/academy)
-* [HoloLens Documentation](https://developer.microsoft.com/en-us/windows/holographic/documentation)
-* [Develop UWP apps](https://developer.microsoft.com/en-us/windows/develop)
-* [Unity - Learn](https://unity3d.com/learn)
+
+- [HoloLens Academy](https://developer.microsoft.com/en-us/windows/holographic/academy)
+- [HoloLens Documentation](https://developer.microsoft.com/en-us/windows/holographic/documentation)
+- [Develop UWP apps](https://developer.microsoft.com/en-us/windows/develop)
+- [Unity - Learn](https://unity3d.com/learn)
 
 For more technical background on Media Foundation:
-* [Microsoft Media Foundation](https://msdn.microsoft.com/en-us/library/windows/desktop/ms694197(v=vs.85).aspx)
-* [Media Sources](https://msdn.microsoft.com/en-us/library/windows/desktop/ms697527(v=vs.85).aspx)
-* [Media Sinks](https://msdn.microsoft.com/en-us/library/windows/desktop/ms701626(v=vs.85).aspx)
+
+- [Microsoft Media Foundation](https://msdn.microsoft.com/en-us/library/windows/desktop/ms694197(v=vs.85).aspx)
+- [Media Sources](https://msdn.microsoft.com/en-us/library/windows/desktop/ms697527(v=vs.85).aspx)
+- [Media Sinks](https://msdn.microsoft.com/en-us/library/windows/desktop/ms701626(v=vs.85).aspx)
