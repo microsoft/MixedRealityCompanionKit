@@ -14,14 +14,14 @@ Load the MRVC sample to review how this sample is different and what changes wer
 
 As with the the Low Latency sample, import and add the MrvcManager to start. Below will outline the changes that were made to the core components for MRVC.
 
-![](../../images/MRVCHierarchy.png)
+![](../../images/MrvcHierarchy.png)
 
 #### Main Camera
 The main camera is used both for scene rendering and the final composite. Consider using a virtual camera to render the scene and composite its render target for the final output.
 
 ![](../../images/MainCameraProperties.png)
 
-**Raycast Controller:** this component tracks the HoloLens user’s gaze. This information is used locally within the application for the CursorManager, but is also used remotely for the input data in the mirrored application. The Layer Mask is set to include everything but the "Ignored layer". The cursor renders on the Ingored layer. 
+**Raycast Controller:** this component tracks the HoloLens userâ€™s gaze. This information is used locally within the application for the CursorManager, but is also used remotely for the input data in the mirrored application. The Layer Mask is set to include everything but the "Ignored layer". The cursor renders on the Ingored layer. 
 
 **Focus Point Controller:** As a best practice for HoloLens, applications should be setting the Focus Point to ensure stable holograms. This is a helper for the HoloLens application.
 

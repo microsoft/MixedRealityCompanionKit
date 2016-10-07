@@ -10,14 +10,17 @@ This folder contatins all source files required to compile the Win32 and UWP com
 
 ### Build Instructions
 Load the MixedRemoteViewCompositor.sln file from the MixedRemoteViewCompositor/PluginSource folder. There should be three projects listed in the Solution Explorer. 
+
 ![](../images/Solution.png)
 
 Be sure Release is selected from the Configuration Manager: 
+
 ![](../images/Build.png)
 
 From the menu, select Build > Rebuild Solution to start the build process. This will ensure a clean build and the post-build scripts are executed.
 
 Review the Output window to ensure the build was successful, and the files were copied to the folder specified in the build settings.
+
 ![](../images/Output.png)
 
 Win32 and WSA projects will compile binaries to the Build/$(Configuration)/Plugins{/WSA}/$(PlatformShortName) folder. 
