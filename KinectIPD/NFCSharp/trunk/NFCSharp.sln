@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{4A8AE888-3053-46CD-9C86-B8283F610CD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFCSharp", "NFCSharp\NFCSharp.csproj", "{F89A0967-6494-46AB-A969-615A8450E85B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{2C657B5A-5888-4C87-A731-DB0FF4FC4586}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A8AE888-3053-46CD-9C86-B8283F610CD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A8AE888-3053-46CD-9C86-B8283F610CD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A8AE888-3053-46CD-9C86-B8283F610CD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A8AE888-3053-46CD-9C86-B8283F610CD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F89A0967-6494-46AB-A969-615A8450E85B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89A0967-6494-46AB-A969-615A8450E85B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F89A0967-6494-46AB-A969-615A8450E85B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F89A0967-6494-46AB-A969-615A8450E85B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
