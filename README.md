@@ -64,7 +64,9 @@ KinectIPD is a utility to measure a person’s IPD (inter-pupillary distance) an
  - Download the project from GitHub in a ZIP file, or clone the repo to your developer PC.
  - Start Microsoft Visual Studio 2015 and select File > Open > Project/Solution.
  - In the KinectIPD folder, double click on KinectIPD_Kiosk.sln to open the sample in Visual Studio.
- - Change the build configuration to Release/x64.
+
+
+- Change the build configuration to Release/x64.
  - Press F5 to start the application.
 
 ### How to use:
@@ -99,3 +101,16 @@ KinectIPD has been tested with the following NFC components:
 - NFC Tags (25 in a package):
     http://www.amazon.com/SMARTRAC-3002981-Inlays-Circus-NTAG213/dp/B011DFAQQI/ref=sr_1_3?rps=1&ie=UTF8&qid=1453933803&sr=8-3&keywords=nfc+clear+tags&refinements=p_85%3A2470955011
 - The included 3D printable mount model (located in the 'HololensNFC_readerMount.fbx' file) has been used successfully to allow for easy alignment of the tag to the reader.   
+
+
+
+### Project Dependencies:
+KinectIPD makes use of several OSS projects:
+- EyeLike, by Tristan Hume
+ - https://github.com/trishume/eyeLike
+- NFCSharp
+ - https://nfcsharp.codeplex.com/
+- NdefLibrary
+ - https://www.nuget.org/packages/NdefLibrary
+- OpenCV 3.1
+ - http://opencv.org/
