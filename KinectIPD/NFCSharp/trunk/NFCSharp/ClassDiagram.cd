@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NFCSharp.NFCHandler">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAACAAQAAgAAAACAAAAAAAACBBAAAAA=</HashCode>
+      <FileName>NFCHandler.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="Readers" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="NFCSharp.NFCReader">
+    <Position X="3" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAAAAcAAACAIYgAACAAAAAkABADIEBAAA=</HashCode>
+      <FileName>NFCReader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NFCSharp.NFCTag">
+    <Position X="5.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>iACQAAAAACAAAAAAEAAAAAIgDIAAAAAAgAACAIEQEAA=</HashCode>
+      <FileName>NFCTag.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
