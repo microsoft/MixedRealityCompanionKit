@@ -4,8 +4,10 @@ HoloLens Companion Kit -- This is a toolkit style repo for code bits and compone
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). 
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## 1. [Holographic Remoting Host](RemotingHostSample/README.md)
+HoloLensCompanionKit contains the following feature areas:
 
-## 2. [KinectIPD](KinectIPD/README.md)
+1. [Holographic Remoting Host](RemotingHostSample/README.md)
+
+2. [KinectIPD](KinectIPD/README.md)
 
 
