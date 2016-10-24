@@ -8,12 +8,14 @@ There are two methods of operation:
 1. Low latency mixed reality capture (MRC)
     + Provides the ability to create a MRC companion app experience with lower latency (~150ms) 
     + Similar to Device Portal and Companion app experiences for [mixed reality capture](https://developer.microsoft.com/en-us/windows/holographic/mixed_reality_capture_for_developers)
+    + [Getting Started](Samples/LowLatencyMRC/README.md)
 
 2. Mixed Remote View Compositing
     + Provides the ability to composite the mixed reality capture on a remote machine, allowing the HoloLens user experience to remain at full frame rate
     + Capture HoloLens camera images (PV camera) with its transformation data and transmits data to a remote application. 
     + Using an additional network connection, synchronize scene and input state data to reflect any changes to the world objects.
     + Composite a rendered frame of the scene object with PV camera image to re-create a mixed reality image.
+    + [Getting Started](Samples/MRVC/README.md)
 
 ## What files are included?
 **Builds** - contains compiled files (.dll, .winmd, and .unitypackage) for Win32, Universal Store(UWP), and Unity development
