@@ -1,0 +1,36 @@
+LIBRARY     MixedRemoteViewCompositor.dll
+
+EXPORTS
+    DllGetActivationFactory
+    DllCanUnloadNow             PRIVATE
+    UnityPluginLoad
+    UnityPluginUnload
+    MrvcGetPluginEventFunc
+    MrvcSetStreamingAssetsPath
+    MrvcSetTime
+    MrvcListenerCreateAndStart
+    MrvcListenerStopAndClose
+    MrvcConnectorCreateAndStart
+    MrvcConnectorStopAndClose
+    MrvcConnectionAddDisconnected
+    MrvcConnectionRemoveDisconnected
+    MrvcConnectionAddReceived
+    MrvcConnectionRemoveReceived
+    MrvcConnectionClose
+    MrvcConnectionSendRawData
+    MrvcCaptureCreate
+    MrvcCaptureAddClosed
+    MrvcCaptureRemoveClosed
+    MrvcCaptureStart
+    MrvcCaptureStop
+    MrvcCaptureSetSpatial
+    MrvcCaptureClose
+    MrvcPlaybackCreate
+    MrvcPlaybackAddSizeChanged
+    MrvcPlaybackRemoveSizeChanged
+    MrvcPlaybackAddSampleUpdated
+    MrvcPlaybackRemoveSampleUpdated
+    MrvcPlaybackGetFrameData
+    MrvcPlaybackStart
+    MrvcPlaybackStop
+    MrvcPlaybackClose
