@@ -79,7 +79,7 @@ SetRateOperation::~SetRateOperation()
 
 _Use_decl_annotations_
 NetworkMediaSourceImpl::NetworkMediaSourceImpl()
-    : OpQueue<NetworkMediaSourceImpl, SourceOperation>(static_cast<ILockable*>(this))
+    : OpQueue<NetworkMediaSourceImpl, SourceOperation>(this)
     , _spConnection(nullptr)
     , _eSourceState(SourceStreamState_Invalid)
     , _flRate(1.0f)

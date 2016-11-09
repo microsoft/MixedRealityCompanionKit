@@ -526,7 +526,7 @@ HRESULT CaptureEngineImpl::StopAsync(
         [this, spThis](IAsyncAction* asyncAction) -> HRESULT
     {
         auto stopAsyncCB = Callback<IAsyncActionCompletedHandler>(
-            [this](_In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
+            [this, spThis](_In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
         {
             auto lock = _lock.Lock();
 
