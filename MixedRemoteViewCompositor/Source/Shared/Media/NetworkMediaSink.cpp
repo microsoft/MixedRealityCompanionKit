@@ -272,13 +272,15 @@ HRESULT NetworkMediaSinkImpl::RuntimeClassInitialize(
             _In_ IConnection *sender,
             _In_ IBundleReceivedArgs *args) -> HRESULT
     {
+        HRESULT hr = S_OK;
+
         PayloadType type;
-        IFR(args->get_PayloadType(&type));
+        IFC(args->get_PayloadType(&type));
 
         switch (type)
         {
         case PayloadType_RequestMediaDescription:
-            IFR(SendDescription());
+            IFC(SendDescription());
             break;
         case PayloadType_RequestMediaStart:
             // triggers the _connected state
@@ -286,13 +288,14 @@ HRESULT NetworkMediaSinkImpl::RuntimeClassInitialize(
             {
                 LOG_RESULT_MSG(_presentationClock->GetTime(&_llStartTime), L"NetworkSinkImpl - MediaStartRequested, Not able to set start time from presentation clock");
             }
-            IFR(ForEach(_streams, ConnectedFunc(true, _llStartTime)));
+            IFC(ForEach(_streams, ConnectedFunc(true, _llStartTime)));
             break;
         case PayloadType_RequestMediaStop:
-            IFR(ForEach(_streams, ConnectedFunc(false, _llStartTime)));
+            IFC(ForEach(_streams, ConnectedFunc(false, _llStartTime)));
             break;
         };
-
+    
+    done:
         return S_OK;
     });
 

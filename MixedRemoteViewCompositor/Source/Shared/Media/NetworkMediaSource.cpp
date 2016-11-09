@@ -848,17 +848,19 @@ HRESULT NetworkMediaSourceImpl::OnDataReceived(
     IConnection *sender,
     IBundleReceivedArgs *args)
 {
+    ComPtr<IBundleReceivedArgs> spArgs(args);
+
     auto lock = _lock.Lock();
 
-    IFR(CheckShutdown());
-
-    PayloadType type;
-    IFR(args->get_PayloadType(&type));
-
-    ComPtr<IDataBundle> spDataBundle;
-    IFR(args->get_DataBundle(&spDataBundle));
-
     HRESULT hr = S_OK;
+    PayloadType type;
+    ComPtr<IDataBundle> spDataBundle;
+
+    IFC(CheckShutdown());
+
+    IFC(args->get_PayloadType(&type));
+
+    IFC(args->get_DataBundle(&spDataBundle));
 
     switch (type)
     {
@@ -1090,6 +1092,7 @@ HRESULT NetworkMediaSourceImpl::ProcessMediaSample(
 {
     Log(Log_Level_Info, L"NetworkMediaSourceImpl::ProcessMediaSample()\n");
 
+    ComPtr<IDataBundle> spBundle(pBundle);
     DataBundleImpl* pBundleImpl = static_cast<DataBundleImpl*>(pBundle);
     NULL_CHK(pBundleImpl);
 

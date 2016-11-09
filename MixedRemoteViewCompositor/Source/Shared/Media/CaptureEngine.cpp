@@ -554,8 +554,6 @@ HRESULT CaptureEngineImpl::OnMediaCaptureFailed(
 
     ComPtr<ICaptureEngine> spThis(this);
     return _evtClosed.InvokeAll(spThis.Get());
-
-    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -564,8 +562,6 @@ HRESULT CaptureEngineImpl::OnRecordLimitationExceeded(
 {
     ComPtr<ICaptureEngine> spThis(this);
     return _evtClosed.InvokeAll(spThis.Get());
-
-    return S_OK;
 }
 
 
