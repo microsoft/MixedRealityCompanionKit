@@ -87,8 +87,8 @@ namespace MixedRemoteViewCompositor
             , Microsoft::WRL::ChainInterfaces<IMFMediaSource, IMFMediaEventGenerator>
             , IMFGetService
             , IMFRateControl
+            , ILockable
             , FtmBase>
-            , public ILockable
             , public OpQueue<NetworkMediaSourceImpl, SourceOperation>
             , public CBaseAttributes<>
         {

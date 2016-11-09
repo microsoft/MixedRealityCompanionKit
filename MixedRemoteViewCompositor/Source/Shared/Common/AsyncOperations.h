@@ -21,7 +21,7 @@ public:
     typedef HRESULT(T::*InvokeFn)(IMFAsyncResult* pAsyncResult);
 
     AsyncCallback(T* pParent, InvokeFn fn) 
-        : _pParent(pParent)
+        : _spParent(pParent)
         , _pInvokeFn(fn)
     {
     }
@@ -35,11 +35,11 @@ public:
 
     STDMETHODIMP Invoke(IMFAsyncResult* pAsyncResult)
     {
-        return (_pParent->*_pInvokeFn)(pAsyncResult);
+        return (_spParent.Get()->*_pInvokeFn)(pAsyncResult);
     }
 
 private:
-    T* _pParent;
+    ComPtr<T> _spParent;
     InvokeFn _pInvokeFn;
 };
 

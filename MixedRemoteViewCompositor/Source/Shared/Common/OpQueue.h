@@ -94,11 +94,15 @@ the queue.
 //-------------------------------------------------------------------
 #include "linklist.h"
 
-class ILockable
+MIDL_INTERFACE("5cff332d-d364-42b3-9c45-242a20a64330")
+ILockable
+    : public IUnknown
 {
 public:
     virtual Microsoft::WRL::Wrappers::CriticalSection::SyncLock Lock() = 0;
 };
+
+extern const __declspec(selectany) IID & IID_ILockable = __uuidof(ILockable);
 
 template <class T, class TOperation>
 class OpQueue //: public IUnknown
@@ -130,7 +134,7 @@ protected:
 
 protected:
     OpList m_OpQueue;   // Queue of operations.
-    ILockable* m_parent;
+    ComPtr<ILockable> m_parent;
     AsyncCallback<T> m_OnProcessQueue;  // ProcessQueueAsync callback.
 };
 
