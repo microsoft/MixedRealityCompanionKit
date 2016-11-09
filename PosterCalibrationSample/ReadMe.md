@@ -1,14 +1,16 @@
-// Simple Poster Alignment Sample
+## PosterCalibrationSample
 
 This sample uses an OpenCV plugin to find a specified poster texture in the PV cam view and aligns
 a transform to that poster.
 
-Step 1: Build the Plugin project (x86/Release) to create the plugin.
-Step 2: Copy the binaries from the "Release/Plugin" folder to the "Unity/Assets\Assets\Scripts\PosterAlign\Binaries"
+### Building:
+- Step 1: Build the Plugin project (x86/Release) to create the plugin.
+- Step 2: Copy the binaries from the "Release/Plugin" folder to the "Unity/Assets\Assets\Scripts\PosterAlign\Binaries"
 folder.
-Step 3: Build and deploy to the HoloLens.
+- Step 3: Build and deploy to the HoloLens.
 
-The "PosterAlign" folder has most of the code necessary for calibration, with the rest of the
+### How to use:
+The Unity "PosterAlign" folder has most of the code necessary for calibration, with the rest of the
 files serving as supporting functionality (camera/voice/control, etc).
 
 The ZoneCalibrationManager handles starting/stopping the zone calibration (via voice commands 
