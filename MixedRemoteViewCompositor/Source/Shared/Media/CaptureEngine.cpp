@@ -246,6 +246,9 @@ HRESULT CaptureEngineImpl::add_Closed(
 {
     Log(Log_Level_Info, L"CaptureEngineImpl::add_Closed()\n");
 
+    NULL_CHK(eventHandler);
+    NULL_CHK(token);
+
     auto lock = _lock.Lock();
 
     return _evtClosed.Add(eventHandler, token);
@@ -533,10 +536,16 @@ HRESULT CaptureEngineImpl::StopAsync(
             return Close();
         });
 
-        ComPtr<IAsyncAction> spStopAsync;
-        IFR(_mediaCapture->StopRecordAsync(&spStopAsync));
+        auto lock = _lock.Lock();
 
-        IFR(spStopAsync->put_Completed(stopAsyncCB.Get()));
+        if (nullptr != _mediaCapture)
+        {
+            ComPtr<IAsyncAction> spStopAsync;
+            if SUCCEEDED(_mediaCapture->StopRecordAsync(&spStopAsync))
+            {
+                LOG_RESULT(spStopAsync->put_Completed(stopAsyncCB.Get()));
+            }
+        }
 
         return S_OK;
     });
@@ -580,18 +589,16 @@ HRESULT CaptureEngineStaticsImpl::CreateAsync(
     ComPtr<IAsyncAction> spInitAsync;
     IFR(spCaptureEngine->InitAsync(enableAudio, &spInitAsync));
 
-    ComPtr<CreateCaptureEngineAsync> asyncOp = Make<CreateCaptureEngineAsync>();
-    IFR(asyncOp.CopyTo(ppAsyncOp));
+    ComPtr<CreateCaptureEngineAsync> createEngineAsyncOp = Make<CreateCaptureEngineAsync>();
+    IFR(createEngineAsyncOp.CopyTo(ppAsyncOp));
 
     ComPtr<CaptureEngineStaticsImpl> spThis(this);
     return StartAsyncThen(
         spInitAsync.Get(),
-        [this, spThis, spCaptureEngine, asyncOp](_In_ HRESULT hr, _In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
+        [this, spThis, spCaptureEngine, createEngineAsyncOp](_In_ HRESULT hr, _In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
-        CreateCaptureEngineAsync* pAsyncOp = static_cast<CreateCaptureEngineAsync*>(asyncOp.Get());
+        LOG_RESULT(createEngineAsyncOp->SetCaptureEngineComplete(hr, spCaptureEngine.Get()));
 
-        NULL_CHK_HR(pAsyncOp, E_POINTER);
-
-        return pAsyncOp->SetCaptureEngineComplete(hr, spCaptureEngine.Get());
+        return S_OK;
     });
 }

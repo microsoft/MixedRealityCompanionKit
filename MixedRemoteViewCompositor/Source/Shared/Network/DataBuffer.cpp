@@ -224,7 +224,10 @@ HRESULT DataBufferImpl::TrimRight(
 {
     NULL_CHK(dataBuffer);
 
+    *dataBuffer = nullptr;
+
     ComPtr<IDataBuffer> spResult;
+
     DWORD cbCurrentLen;
     HRESULT hr = this->get_CurrentLength(&cbCurrentLen);
 

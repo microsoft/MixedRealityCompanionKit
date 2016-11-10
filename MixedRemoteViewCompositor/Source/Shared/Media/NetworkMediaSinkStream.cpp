@@ -854,7 +854,7 @@ HRESULT NetworkMediaSinkStreamImpl::ProcessSamplesFromQueue(
             {
                 ComPtr<IMFMediaType> spMediaType;
                 IFR(spUnknown.As(&spMediaType));
-                if (!fFlush)
+                if (!fFlush && !_fGetFirstSampleTime)
                 {
                     IFR(PrepareFormatChange(spMediaType.Get(), &spDataBundle));
                 }
@@ -1229,7 +1229,7 @@ HRESULT NetworkMediaSinkStreamImpl::PrepareFormatChange(
     ComPtr<IDataBuffer> spAttr;
     IFR(FillStreamDescription(pStreamDescription, &spAttr));
 
-    // Add size of variable size attribute blob to size of the package.
+    // Add size of attribute blob to size of the package.
     pOpHeader->cbPayloadSize += pStreamDescription->AttributesBlobSize;
 
     // Set length of the buffer
@@ -1244,8 +1244,6 @@ HRESULT NetworkMediaSinkStreamImpl::PrepareFormatChange(
 
     // Add attributes
     IFR(spBundle->AddBuffer(spAttr.Get()));
-
-    NULL_CHK_HR(spBundle, E_NOT_SET);
 
     return spBundle.CopyTo(ppDataBundle);
 }
@@ -1294,13 +1292,13 @@ HRESULT NetworkMediaSinkStreamImpl::FillStreamDescription(
     IFR(spAttributes->put_CurrentLength(attributesSize));
 
     // Copy attributes to the buffer
-    BYTE* pBuffer = GetDataType<BYTE*>(spAttributes.Get());
-    IFR(MFGetAttributesAsBlob(spFilteredMediaType.Get(), static_cast<UINT8*>(pBuffer), attributesSize));
+    UINT8* pBuffer = GetDataType<UINT8*>(spAttributes.Get());
+    NULL_CHK(pBuffer);
+
+    IFR(MFGetAttributesAsBlob(spFilteredMediaType.Get(), pBuffer, attributesSize));
 
     // were good, save the valus and return
-    (*pStreamDescription).AttributesBlobSize = attributesSize;
-
-    NULL_CHK_HR(spAttributes, E_NOT_SET);
+    pStreamDescription->AttributesBlobSize = attributesSize;
 
     return spAttributes.CopyTo(ppDataBuffer);
 }

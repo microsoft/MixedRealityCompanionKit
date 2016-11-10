@@ -1235,27 +1235,36 @@ HRESULT NetworkMediaSourceImpl::ProcessMediaFormatChange(
     DataBundleImpl* pBundleImpl = static_cast<DataBundleImpl*>(pBundle);
     NULL_CHK(pBundleImpl);
 
+    ComPtr<IMFMediaType> spMediaType;
+    UINT32 bufferCount = 0;
+    HRESULT hr = S_OK;
+
+    IFC(pBundleImpl->get_BufferCount(&bufferCount));
+    if (bufferCount == 0)
+    {
+        // investigate why
+        return S_OK;
+    }
+
     if (_eSourceState != SourceStreamState_Started && _eSourceState != SourceStreamState_Shutdown)
     {
         if (FAILED(ProcessCaptureReady()))
         {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"NetworkMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
+            IFC_MSG(MF_E_INVALID_STATE_TRANSITION, L"NetworkMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
         }
     }
 
-    HRESULT hr = S_OK;
-
-    ComPtr<IMFMediaType> spMediaType;
     DWORD cbTotalLen = 0;
-    MediaTypeDescription streamDesc;
     IFC(pBundleImpl->get_TotalSize(&cbTotalLen));
-    DWORD cbTypeDescSize = sizeof(MediaTypeDescription);
+
     // Minimum size of the operation payload is size of Description structure
+    DWORD cbTypeDescSize = sizeof(MediaTypeDescription);
     if (cbTotalLen < sizeof(Network::MediaTypeDescription))
     {
         IFC(MF_E_UNSUPPORTED_FORMAT);
     }
 
+    MediaTypeDescription streamDesc;
     IFC(pBundleImpl->MoveLeft(cbTypeDescSize, &streamDesc));
 
     if (cbTotalLen != cbTypeDescSize + streamDesc.AttributesBlobSize
