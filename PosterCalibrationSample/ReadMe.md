@@ -1,7 +1,9 @@
 ## PosterCalibrationSample
 
 This sample uses an OpenCV plugin to find a specified poster texture in the PV cam view and aligns
-a transform to that poster.
+a transform to that poster.  Other objects can be anchored to that transform to align them to a known real-world location.
+The poster will be aligned to within a couple of centimeters, and then can use a manual alignment mechanism if finer alignment is needed.
+
 
 ### Building:
 - Step 1: Build the Plugin project (x86/Release) to create the plugin.
