@@ -10,4 +10,7 @@ HoloLensCompanionKit contains the following feature areas:
 
 2. [KinectIPD](KinectIPD/README.md)
 
+3. [MixedRemoteViewCompositor](MixedRemoteViewCompositor/README.md)
+
+
 

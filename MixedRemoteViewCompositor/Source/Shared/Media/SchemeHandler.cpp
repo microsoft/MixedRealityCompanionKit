@@ -39,7 +39,14 @@ HRESULT MrvcSchemeHandlerImpl::SetProperties(
     ComPtr<IConnection> spConnection;
     IFR(spMap->Lookup(Wrappers::HStringReference(L"Connection").Get(), &spConnection));
 
-    return spConnection.As(&_connection);
+    HRESULT hr = E_INVALIDARG;
+
+    if (nullptr != spConnection)
+    {
+        hr = spConnection.As(&_connection);
+    }
+
+    return hr;
 }
 
 
@@ -80,10 +87,10 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
     NULL_CHK(pwszURL);
     NULL_CHK(pCallback);
 
-    //if ((dwFlags & MF_RESOLUTION_MEDIASOURCE) == 0)
-    //{
-    //    IFR(E_INVALIDARG);
-    //}
+    if ((dwFlags & MF_RESOLUTION_MEDIASOURCE) == 0)
+    {
+        IFR(MF_E_UNSUPPORTED_BYTESTREAM_TYPE);
+    }
 
     if (nullptr != ppCancelCookie)
     {
