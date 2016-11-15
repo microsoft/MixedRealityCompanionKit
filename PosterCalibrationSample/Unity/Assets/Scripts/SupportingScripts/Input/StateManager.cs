@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Showcases.Input
+namespace PosterAlignment.InputUtilities
 {
     public class StateManager : MonoBehaviour
     {

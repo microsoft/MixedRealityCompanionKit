@@ -8,130 +8,132 @@ using System.Linq;
 using UnityEngine.Windows.Speech;
 #endif
 
-public class SpeechCommands : MonoBehaviour
+namespace PosterAlignment
 {
-    public ZoneCalibrationManager ZoneManager;
-    
-    Dictionary<string, System.Action> keywords = new Dictionary<string, System.Action>();
+    public class SpeechCommands : MonoBehaviour
+    {
+        public ZoneCalibrationManager ZoneManager;
+
+        Dictionary<string, System.Action> keywords = new Dictionary<string, System.Action>();
 
 #if NETFX_CORE
     KeywordRecognizer keywordRecognizer;
 #endif
-    
-    void Start()
-    {
-        
 
-        keywords.Add("quit application", () =>
+        void Start()
         {
-#if UNITY_WSA && !UNITY_EDITOR
+
+
+            keywords.Add("quit application", () =>
+            {
+#if NETFX_CORE
             Windows.ApplicationModel.Core.CoreApplication.Exit();
 #else
-            UnityEngine.Application.Quit();
+                UnityEngine.Application.Quit();
 #endif
         });
-        
-        keywords.Add("align poster 1", () =>
-        {
-            if (ZoneManager != null)
-            {
-                ZoneManager.AlignZone(0);
-            }
-        });
 
-        keywords.Add("align poster 2", () =>
-        {
-            if (ZoneManager != null)
+            keywords.Add("align poster 1", () =>
             {
-                ZoneManager.AlignZone(1);
-            }
-        });
+                if (ZoneManager != null)
+                {
+                    ZoneManager.AlignZone(0);
+                }
+            });
+
+            keywords.Add("align poster 2", () =>
+            {
+                if (ZoneManager != null)
+                {
+                    ZoneManager.AlignZone(1);
+                }
+            });
 
 
-        keywords.Add("lock alignment", () =>
-        {
-            if (ZoneManager != null)
+            keywords.Add("lock alignment", () =>
             {
-                ZoneManager.LockZone(true);
-            }
-        });
+                if (ZoneManager != null)
+                {
+                    ZoneManager.LockZone(true);
+                }
+            });
 
-        keywords.Add("Scale Up", () =>
-        {
-            if (ZoneManager.currentZone != null)
+            keywords.Add("Scale Up", () =>
             {
-                ZoneManager.currentZone.transform.localScale =
-                    ZoneManager.currentZone.transform.localScale +
-                    (Vector3.one * .005f);
-            }
-        });
-        keywords.Add("Scale Down", () =>
-        {
-            if (ZoneManager.currentZone != null)
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localScale =
+                        ZoneManager.currentZone.transform.localScale +
+                        (Vector3.one * .005f);
+                }
+            });
+            keywords.Add("Scale Down", () =>
             {
-                ZoneManager.currentZone.transform.localScale =
-                    ZoneManager.currentZone.transform.localScale +
-                    -(Vector3.one * .005f);
-            }
-        });
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localScale =
+                        ZoneManager.currentZone.transform.localScale +
+                        -(Vector3.one * .005f);
+                }
+            });
 
-        keywords.Add("move Z plus", () =>
-        {
-            if (ZoneManager.currentZone != null)
+            keywords.Add("move Z plus", () =>
             {
-                ZoneManager.currentZone.transform.localPosition =
-                ZoneManager.currentZone.transform.localPosition + Vector3.forward * .005f;
-            }
-        });
-        keywords.Add("move Z minus", () =>
-        {
-            if (ZoneManager.currentZone != null)
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localPosition =
+                    ZoneManager.currentZone.transform.localPosition + Vector3.forward * .005f;
+                }
+            });
+            keywords.Add("move Z minus", () =>
             {
-                ZoneManager.currentZone.transform.localPosition =
-                ZoneManager.currentZone.transform.localPosition - Vector3.forward * .005f;
-            }
-        });
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localPosition =
+                    ZoneManager.currentZone.transform.localPosition - Vector3.forward * .005f;
+                }
+            });
 
-        keywords.Add("move X plus", () =>
-        {
-            if (ZoneManager.currentZone != null)
+            keywords.Add("move X plus", () =>
             {
-                ZoneManager.currentZone.transform.localPosition =
-                ZoneManager.currentZone.transform.localPosition + Vector3.right * .005f;
-            }
-        });
-        keywords.Add("move X minus", () =>
-        {
-            if (ZoneManager.currentZone != null)
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localPosition =
+                    ZoneManager.currentZone.transform.localPosition + Vector3.right * .005f;
+                }
+            });
+            keywords.Add("move X minus", () =>
             {
-                ZoneManager.currentZone.transform.localPosition =
-                ZoneManager.currentZone.transform.localPosition - Vector3.right * .005f;
-            }
-        });
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localPosition =
+                    ZoneManager.currentZone.transform.localPosition - Vector3.right * .005f;
+                }
+            });
 
-        keywords.Add("move Y plus", () =>
-        {
-            if (ZoneManager.currentZone != null)
+            keywords.Add("move Y plus", () =>
             {
-                ZoneManager.currentZone.transform.localPosition =
-                ZoneManager.currentZone.transform.localPosition + Vector3.up * .005f;
-            }
-        });
-        keywords.Add("move Y minus", () =>
-        {
-            if (ZoneManager.currentZone != null)
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localPosition =
+                    ZoneManager.currentZone.transform.localPosition + Vector3.up * .005f;
+                }
+            });
+            keywords.Add("move Y minus", () =>
             {
-                ZoneManager.currentZone.transform.localPosition =
-                ZoneManager.currentZone.transform.localPosition - Vector3.up * .005f;
-            }
-        });
+                if (ZoneManager.currentZone != null)
+                {
+                    ZoneManager.currentZone.transform.localPosition =
+                    ZoneManager.currentZone.transform.localPosition - Vector3.up * .005f;
+                }
+            });
 
 #if NETFX_CORE
         keywordRecognizer = new KeywordRecognizer(keywords.Keys.ToArray());
         keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
         keywordRecognizer.Start();
 #endif
-    }
+        }
 
 #if NETFX_CORE
     private void KeywordRecognizer_OnPhraseRecognized(PhraseRecognizedEventArgs args)
@@ -145,8 +147,8 @@ public class SpeechCommands : MonoBehaviour
     }
 #endif
 
-    private void OnDestroy()
-    {
+        private void OnDestroy()
+        {
 #if NETFX_CORE
         if (keywordRecognizer != null)
         {
@@ -156,5 +158,6 @@ public class SpeechCommands : MonoBehaviour
             keywordRecognizer = null;
         }
 #endif
+        }
     }
 }

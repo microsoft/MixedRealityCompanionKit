@@ -4,16 +4,19 @@
 using UnityEngine;
 using System.Collections;
 
-public class AnimationSpeed : MonoBehaviour
+namespace PosterAlignment.AnimationUtilities
 {
-    public float speed = 1.0f;
-
-    // Use this for initialization
-    void Start()
+    public class AnimationSpeed : MonoBehaviour
     {
-        foreach (AnimationState state in this.gameObject.GetComponent<Animation>())
+        public float speed = 1.0f;
+
+        // Use this for initialization
+        void Start()
         {
-            state.speed = speed;
+            foreach (AnimationState state in this.gameObject.GetComponent<Animation>())
+            {
+                state.speed = speed;
+            }
         }
     }
 }

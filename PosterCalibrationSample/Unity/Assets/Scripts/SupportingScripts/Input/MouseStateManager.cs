@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using UnityEngine;
 
-namespace Showcases.Input
+namespace PosterAlignment.InputUtilities
 {
     public class MouseStateManager : StateManager
     {

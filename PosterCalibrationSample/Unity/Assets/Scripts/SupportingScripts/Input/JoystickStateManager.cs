@@ -3,7 +3,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Showcases.Input
+namespace PosterAlignment.InputUtilities
 {
     public class JoystickStateManager : StateManager
     {
@@ -55,11 +55,7 @@ namespace Showcases.Input
 
         public override Vector3 WorldDelta { get { return this.worldDelta; } }
         private Vector3 worldDelta;
-
-        private void OnEnable()
-        {
-        }
-
+        
         private void Update()
         {
             var lastScreenPosition = this.screenPosition;

@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.VR.WSA.Input;
 
-namespace Showcases.Input
+namespace PosterAlignment.InputUtilities
 {
     public class GestureStateManager : StateManager
     {

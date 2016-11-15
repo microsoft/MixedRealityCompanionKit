@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Showcases.Input
+namespace PosterAlignment.InputUtilities
 {
     [RequireComponent(typeof(MouseStateManager))]
     [RequireComponent(typeof(JoystickStateManager))]
