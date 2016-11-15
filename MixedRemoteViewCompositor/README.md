@@ -18,7 +18,7 @@ There are two methods of operation:
     + [Getting Started](Samples/MRVC/README.md)
 
 ## What files are included?
-**Builds** - This folder will be populate with the libraries built from the Source project. see **Source** for build instructions.
+**Builds** - This folder will be populated with the libraries built from the Source project. see **Source** for build instructions.
 
 **Samples** - sample code
 
