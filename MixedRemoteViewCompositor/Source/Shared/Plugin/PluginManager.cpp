@@ -560,8 +560,10 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
             _In_ IConnection *sender,
             _In_ IBundleReceivedArgs *args) -> HRESULT
     {
+        HRESULT hr = S_OK;
+
         PayloadType payloadType;
-        IFR(args->get_PayloadType(&payloadType));
+        IFC(args->get_PayloadType(&payloadType));
 
         switch (payloadType)
         {
@@ -569,13 +571,13 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
         case PayloadType_State_Input:
         {
             ComPtr<IDataBundle> dataBundle;
-            IFR(args->get_DataBundle(&dataBundle));
+            IFC(args->get_DataBundle(&dataBundle));
 
             DataBundleImpl* rawDataBundle = static_cast<DataBundleImpl*>(dataBundle.Get());
-            NULL_CHK(rawDataBundle);
+            IFC(rawDataBundle == nullptr ? E_INVALIDARG : S_OK);
 
             DWORD cbTotalLen = 0;
-            HRESULT hr = dataBundle->get_TotalSize(&cbTotalLen);
+            hr = dataBundle->get_TotalSize(&cbTotalLen);
             if (SUCCEEDED(hr))
             {
                 auto lock = _lock.Lock();
@@ -592,7 +594,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
                 {
                     callback(handle, (UINT16)payloadType, copiedBytes, _bundleData.data());
                 }
-                return hr;
+                IFC(hr);
             }
         }
         break;
@@ -603,6 +605,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
             break;
         };
 
+    done:
         return S_OK;
     });
 

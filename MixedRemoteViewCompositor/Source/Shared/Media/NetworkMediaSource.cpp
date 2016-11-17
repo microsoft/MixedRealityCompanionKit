@@ -848,17 +848,19 @@ HRESULT NetworkMediaSourceImpl::OnDataReceived(
     IConnection *sender,
     IBundleReceivedArgs *args)
 {
+    ComPtr<IBundleReceivedArgs> spArgs(args);
+
     auto lock = _lock.Lock();
 
-    IFR(CheckShutdown());
-
-    PayloadType type;
-    IFR(args->get_PayloadType(&type));
-
-    ComPtr<IDataBundle> spDataBundle;
-    IFR(args->get_DataBundle(&spDataBundle));
-
     HRESULT hr = S_OK;
+    PayloadType type;
+    ComPtr<IDataBundle> spDataBundle;
+
+    IFC(CheckShutdown());
+
+    IFC(args->get_PayloadType(&type));
+
+    IFC(args->get_DataBundle(&spDataBundle));
 
     switch (type)
     {
@@ -1090,6 +1092,7 @@ HRESULT NetworkMediaSourceImpl::ProcessMediaSample(
 {
     Log(Log_Level_Info, L"NetworkMediaSourceImpl::ProcessMediaSample()\n");
 
+    ComPtr<IDataBundle> spBundle(pBundle);
     DataBundleImpl* pBundleImpl = static_cast<DataBundleImpl*>(pBundle);
     NULL_CHK(pBundleImpl);
 
@@ -1232,27 +1235,36 @@ HRESULT NetworkMediaSourceImpl::ProcessMediaFormatChange(
     DataBundleImpl* pBundleImpl = static_cast<DataBundleImpl*>(pBundle);
     NULL_CHK(pBundleImpl);
 
+    ComPtr<IMFMediaType> spMediaType;
+    UINT32 bufferCount = 0;
+    HRESULT hr = S_OK;
+
+    IFC(pBundleImpl->get_BufferCount(&bufferCount));
+    if (bufferCount == 0)
+    {
+        // investigate why
+        return S_OK;
+    }
+
     if (_eSourceState != SourceStreamState_Started && _eSourceState != SourceStreamState_Shutdown)
     {
         if (FAILED(ProcessCaptureReady()))
         {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"NetworkMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
+            IFC_MSG(MF_E_INVALID_STATE_TRANSITION, L"NetworkMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
         }
     }
 
-    HRESULT hr = S_OK;
-
-    ComPtr<IMFMediaType> spMediaType;
     DWORD cbTotalLen = 0;
-    MediaTypeDescription streamDesc;
     IFC(pBundleImpl->get_TotalSize(&cbTotalLen));
-    DWORD cbTypeDescSize = sizeof(MediaTypeDescription);
+
     // Minimum size of the operation payload is size of Description structure
+    DWORD cbTypeDescSize = sizeof(MediaTypeDescription);
     if (cbTotalLen < sizeof(Network::MediaTypeDescription))
     {
         IFC(MF_E_UNSUPPORTED_FORMAT);
     }
 
+    MediaTypeDescription streamDesc;
     IFC(pBundleImpl->MoveLeft(cbTypeDescSize, &streamDesc));
 
     if (cbTotalLen != cbTypeDescSize + streamDesc.AttributesBlobSize

@@ -160,7 +160,7 @@ namespace MixedRemoteViewCompositor
         }
         public void Shutdown()
         {
-            if (this.captureEngine != null)
+            if (this.captureEngine != null && this.CaptureState != CaptureState.Failed)
             {
                 this.CaptureStop();
             }
@@ -388,7 +388,7 @@ namespace MixedRemoteViewCompositor
             {
                 this.ConnectionState = ConnectionState.Failed;
 
-                Shutdown();
+                this.Shutdown();
             });
         }
     }

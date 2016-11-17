@@ -525,7 +525,7 @@ HRESULT NetworkMediaSourceStreamImpl::Flush()
     _samples.Clear();
 
     _fDiscontinuity = false;
-    _eDropMode = MF_DROP_MODE_NONE;
+
     ResetDropTime();
 
     return S_OK;

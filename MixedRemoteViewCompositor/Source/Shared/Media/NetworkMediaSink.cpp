@@ -272,13 +272,15 @@ HRESULT NetworkMediaSinkImpl::RuntimeClassInitialize(
             _In_ IConnection *sender,
             _In_ IBundleReceivedArgs *args) -> HRESULT
     {
+        HRESULT hr = S_OK;
+
         PayloadType type;
-        IFR(args->get_PayloadType(&type));
+        IFC(args->get_PayloadType(&type));
 
         switch (type)
         {
         case PayloadType_RequestMediaDescription:
-            IFR(SendDescription());
+            IFC(SendDescription());
             break;
         case PayloadType_RequestMediaStart:
             // triggers the _connected state
@@ -286,13 +288,14 @@ HRESULT NetworkMediaSinkImpl::RuntimeClassInitialize(
             {
                 LOG_RESULT_MSG(_presentationClock->GetTime(&_llStartTime), L"NetworkSinkImpl - MediaStartRequested, Not able to set start time from presentation clock");
             }
-            IFR(ForEach(_streams, ConnectedFunc(true, _llStartTime)));
+            IFC(ForEach(_streams, ConnectedFunc(true, _llStartTime)));
             break;
         case PayloadType_RequestMediaStop:
-            IFR(ForEach(_streams, ConnectedFunc(false, _llStartTime)));
+            IFC(ForEach(_streams, ConnectedFunc(false, _llStartTime)));
             break;
         };
-
+    
+    done:
         return S_OK;
     });
 
@@ -621,6 +624,8 @@ HRESULT NetworkMediaSinkImpl::get_SpatialCoordinateSystem(
 {
     NULL_CHK(ppCoordinateSystem);
 
+    auto lock = _lock.Lock();
+
     if (nullptr == _spUnitySpatialCoordinateSystem.Get())
     {
         return E_NOT_SET;
@@ -633,6 +638,8 @@ _Use_decl_annotations_
 HRESULT NetworkMediaSinkImpl::put_SpatialCoordinateSystem(
     ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem* coordinateSystem)
 {
+    auto lock = _lock.Lock();
+
     _spUnitySpatialCoordinateSystem = coordinateSystem;
 
     return S_OK;
@@ -643,12 +650,19 @@ HRESULT NetworkMediaSinkImpl::add_Closed(
     IClosedEventHandler* eventHandler,
     EventRegistrationToken* token)
 {
+    NULL_CHK(eventHandler);
+    NULL_CHK(token);
+
+    auto lock = _lock.Lock();
+
     return _evtClosed.Add(eventHandler, token);
 }
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkImpl::remove_Closed(
     EventRegistrationToken token)
 {
+    auto lock = _lock.Lock();
+
     return _evtClosed.Remove(token);
 }
 
@@ -657,12 +671,19 @@ HRESULT NetworkMediaSinkImpl::add_FormatChanged(
     IFormatChangedEventHandler *eventHandler,
     EventRegistrationToken* token)
 {
+    NULL_CHK(eventHandler);
+    NULL_CHK(token);
+
+    auto lock = _lock.Lock();
+
     return _evtFormatChanged.Add(eventHandler, token);
 }
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkImpl::remove_FormatChanged(
     EventRegistrationToken token) 
 {
+    auto lock = _lock.Lock();
+
     return _evtFormatChanged.Remove(token);
 }
 
@@ -671,12 +692,19 @@ HRESULT NetworkMediaSinkImpl::add_SampleUpdated(
     ISampleUpdatedEventHandler *eventHandler,
     EventRegistrationToken* token) 
 {
+    NULL_CHK(eventHandler);
+    NULL_CHK(token);
+
+    auto lock = _lock.Lock();
+
     return _evtSampleUpdated.Add(eventHandler, token);
 }
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkImpl::remove_SampleUpdated(
     EventRegistrationToken token) 
 {
+    auto lock = _lock.Lock();
+
     return _evtSampleUpdated.Remove(token);
 }
 

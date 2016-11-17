@@ -104,9 +104,11 @@ namespace MixedRemoteViewCompositor
             // call this when ready to report the capture engine is complete
             HRESULT SetCaptureEngineComplete(HRESULT hr, ABI::MixedRemoteViewCompositor::Media::ICaptureEngine *captureEngine)
             {
+                ComPtr<ABI::MixedRemoteViewCompositor::Media::ICaptureEngine> spCaptureEngine(captureEngine);
+
                 IFC(hr);
 
-                _captureEngineResult = captureEngine;
+                IFC(spCaptureEngine.As(&_captureEngineResult));
 
             done:
                 if (FAILED(hr))

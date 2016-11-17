@@ -348,10 +348,13 @@ HRESULT PlaybackEngineImpl::OnEvent(
 // IPlaybackEgnine 
 _Use_decl_annotations_
 HRESULT PlaybackEngineImpl::add_Closed(
-    IClosedEventHandler* pEventHandler,
-    EventRegistrationToken* pToken)
+    IClosedEventHandler* delegateInterface,
+    EventRegistrationToken* token)
 {
-    return _evtClosed.Add(pEventHandler, pToken);
+    NULL_CHK(delegateInterface);
+    NULL_CHK(token);
+
+    return _evtClosed.Add(delegateInterface, token);
 }
 _Use_decl_annotations_
 HRESULT PlaybackEngineImpl::remove_Closed(

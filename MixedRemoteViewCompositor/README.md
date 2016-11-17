@@ -18,7 +18,7 @@ There are two methods of operation:
     + [Getting Started](Samples/MRVC/README.md)
 
 ## What files are included?
-**Builds** - contains compiled files (.dll, .winmd, and .unitypackage) for Win32, Universal Store(UWP), and Unity development
+**Builds** - This folder will be populated with the libraries built from the Source project. see **Source** for build instructions.
 
 **Samples** - sample code
 
