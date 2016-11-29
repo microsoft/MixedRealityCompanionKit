@@ -1,0 +1,62 @@
+﻿<ContentDialog
+    x:Class="HoloLensCommander.GetAppInstallFilesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HoloLensCommander"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Select installation files"
+    PrimaryButtonText="Ok"
+    SecondaryButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_OkClick"
+    MaxHeight="350">
+    <StackPanel>
+        <Canvas 
+            Width="450" Height="40">
+            <TextBlock 
+                x:Name="deviceLabel"
+                Text="Device"
+                FontSize="16" 
+                Canvas.Top="10"/>
+            <TextBlock 
+                x:Name="deviceAddress"
+                Text="{Binding Path=DeviceAddress}"
+                ToolTipService.ToolTip="The address of the target HoloLens"
+                FontSize="16"
+                Width="388"
+                Canvas.Left="62" Canvas.Top="10"/>
+        </Canvas>
+        <TextBlock 
+            x:Name="appPackageLabel" 
+            Text="Application package" 
+            TextWrapping="NoWrap" FontSize="16"
+            Width="450"/>
+        <Canvas
+            Width="450" Height="55">
+            <TextBox
+                x:Name="appPackage"
+                Text="{Binding Path=AppPackageFile, Mode=TwoWay}"
+                ToolTipService.ToolTip="The full path to the application package file"
+                FontSize="16"
+                Width="395"
+                Canvas.Top="5"/>
+            <Button 
+                x:Name="browseForAppPackage"
+                Content="..."
+                Command="{Binding Path=BrowseForAppPackageCommand}"
+                ToolTipService.ToolTip="Browse for the application package file"
+                FontSize="16"
+                Width="50" Height="40"
+                Canvas.Left="400" Canvas.Top="1"/>
+        </Canvas>
+        <Canvas
+            Width="450" Height="80">
+            <TextBlock 
+                x:Name="appxBundleRequiredLabel"
+                Text="NOTE: HoloLens Manager requires installation packages to be .appxbundle files."
+                TextWrapping="WrapWholeWords" FontSize="16" 
+                Width="450"/>
+        </Canvas>
+    </StackPanel>
+</ContentDialog>
