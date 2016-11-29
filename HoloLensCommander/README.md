@@ -1,6 +1,6 @@
 ## HoloLens Commander
 
-HoloLens Commander is a Universal Windows application that demonstrates using the Windows Device Portal in a classroom environment. It eables observation and management of one or more HoloLens devices. This application is built upon the open source [Windows Device Portal Wrapper](https://github.com/Microsoft/WindowsDevicePortalWrapper) project and is used by the Microsoft HoloLens team in the Holographic Academy.
+HoloLens Commander is a Universal Windows application that demonstrates using the Windows Device Portal in a classroom environment. It enables observation and management of one or more HoloLens devices. This application is built upon the open source [Windows Device Portal Wrapper](https://github.com/Microsoft/WindowsDevicePortalWrapper) project and is used by the Microsoft HoloLens team in the Holographic Academy.
 
 ### Requirements
 HoloLens Commander requires:
