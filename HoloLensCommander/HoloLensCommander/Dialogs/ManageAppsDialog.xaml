@@ -1,0 +1,116 @@
+﻿<ContentDialog
+    x:Class="HoloLensCommander.ManageAppsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HoloLensCommander"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Manage Applications"
+    PrimaryButtonText="Close"
+    PrimaryButtonClick="ContentDialog_CloseClick"
+    MaxHeight="800">
+
+    <StackPanel>
+        <Canvas 
+            Width="450" Height="40">
+            <TextBlock 
+                x:Name="deviceLabel"
+                Text="Device"
+                FontSize="16" 
+                Canvas.Top="10"/>
+            <TextBlock 
+                x:Name="deviceAddress"
+                Text="{Binding Path=DeviceAddress}"
+                ToolTipService.ToolTip="The address of the target HoloLens"
+                FontSize="16"
+                Width="388"
+                Canvas.Left="62" Canvas.Top="10"/>
+        </Canvas>
+        <Canvas
+            Width="450" Height="220">
+            <TextBlock 
+                x:Name="installedAppsLabel"
+                Text="Installed Applications"
+                FontSize="16"/>
+            <ListBox 
+                x:Name="installedAppsList"
+                ItemsSource="{Binding InstalledApps}"
+                SelectedItem="{Binding SelectedInstalledApp, Mode=TwoWay}"
+                ToolTipService.ToolTip="Applications installed on the HoloLens"
+                Width="395" Height="175" 
+                BorderThickness="1" 
+                ScrollViewer.HorizontalScrollMode="Auto"
+                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                Canvas.Top="26"/>
+            <Button 
+                x:Name="refreshInstalledApps"
+                Content="&#xE1CD;"
+                Command="{Binding RefreshInstalledAppsCommand}"
+                ToolTipService.ToolTip="Refresh the list of installed apps"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="25"/>
+            <Button 
+                x:Name="runApp"
+                Content="&#xE768;"
+                Command="{Binding LaunchAppCommand}"
+                ToolTipService.ToolTip="Run the selected application"
+                IsEnabled="{Binding Path=CanRunApp}"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="70"/>
+        </Canvas>
+        <Canvas
+            Width="450" Height="215">
+            <TextBlock 
+                x:Name="runningAppsLabel"
+                Text="Running Applications"
+                FontSize="16"/>
+            <ListBox 
+                x:Name="runningAppsList"
+                ItemsSource="{Binding Path=RunningApps}"
+                SelectedItem="{Binding Path=SelectedRunningApp, Mode=TwoWay}"
+                ToolTipService.ToolTip="Applications running on the HoloLens"
+                Width="395" Height="175" 
+                BorderThickness="1" 
+                ScrollViewer.HorizontalScrollMode="Auto"
+                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                Canvas.Top="26"/>
+            <Button 
+                x:Name="refreshRunningApps"
+                Content="&#xE1CD;"
+                Command="{Binding Path=RefreshRunningAppsCommand}"
+                ToolTipService.ToolTip="Refresh the list of running apps"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="25"/>
+            <Button 
+                x:Name="stopApp"
+                Content="&#xE10A;"
+                Command="{Binding Path=CloseAppCommand}"
+                ToolTipService.ToolTip="Stop the selected application"
+                IsEnabled="{Binding Path=CanStopApp}"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="70"/>
+            <Button 
+                x:Name="stopAllApps"
+                Content="&#xEA39;"
+                Command="{Binding Path=CloseAllAppsCommand}"
+                ToolTipService.ToolTip="Stop all running applications"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="115"/>
+        </Canvas>
+        <ScrollViewer
+            Width="450" Height="75">
+            <TextBlock 
+                x:Name="status"
+                Text="{Binding Path=StatusMessage}"
+                TextWrapping="WrapWholeWords"
+                FontSize="16"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </ScrollViewer>
+    </StackPanel>
+</ContentDialog>
