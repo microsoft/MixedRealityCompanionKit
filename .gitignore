@@ -4,6 +4,7 @@ obj/
 .vs/
 *.user
 project.lock.json
+# PosterCalibrationSample specific ignores
 PosterCalibrationSample/Unity/.vs*/
 PosterCalibrationSample/Unity/Library*/
 PosterCalibrationSample/Unity/Temp*/
