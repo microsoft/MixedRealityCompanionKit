@@ -1,0 +1,190 @@
+fileFormatVersion: 2
+guid: a8c08e1141a65cf4d93481e75526aa2d
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: Bone_Head
+    100002: Bone_LWingA1
+    100004: Bone_LWingA2
+    100006: Bone_LWingA3
+    100008: Bone_LWingB1
+    100010: Bone_LWingB2
+    100012: Bone_LWingB3
+    100014: Bone_LWingC1
+    100016: Bone_LWingC2
+    100018: Bone_LWingC3
+    100020: Bone_Neck
+    100022: Bone_Root
+    100024: Bone_RWingA1
+    100026: Bone_RWingA2
+    100028: Bone_RWingA3
+    100030: Bone_RWingB1
+    100032: Bone_RWingB2
+    100034: Bone_RWingB3
+    100036: Bone_RWingC1
+    100038: Bone_RWingC2
+    100040: Bone_RWingC3
+    100042: Bone_Tail
+    100044: //RootNode
+    100046: hl_crane_paper_underworld
+    400000: Bone_Head
+    400002: Bone_LWingA1
+    400004: Bone_LWingA2
+    400006: Bone_LWingA3
+    400008: Bone_LWingB1
+    400010: Bone_LWingB2
+    400012: Bone_LWingB3
+    400014: Bone_LWingC1
+    400016: Bone_LWingC2
+    400018: Bone_LWingC3
+    400020: Bone_Neck
+    400022: Bone_Root
+    400024: Bone_RWingA1
+    400026: Bone_RWingA2
+    400028: Bone_RWingA3
+    400030: Bone_RWingB1
+    400032: Bone_RWingB2
+    400034: Bone_RWingB3
+    400036: Bone_RWingC1
+    400038: Bone_RWingC2
+    400040: Bone_RWingC3
+    400042: Bone_Tail
+    400044: //RootNode
+    400046: hl_crane_paper_underworld
+    4300000: hl_crane_paper_underworld
+    7400000: Take 001
+    9500000: //RootNode
+    13700000: hl_crane_paper_underworld
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Take 001
+      takeName: Take 001
+      firstFrame: 0
+      lastFrame: 30
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Bone_Root
+        weight: 1
+      - path: Bone_Root/Bone_LWingA1
+        weight: 1
+      - path: Bone_Root/Bone_LWingA1/Bone_LWingA2
+        weight: 1
+      - path: Bone_Root/Bone_LWingA1/Bone_LWingA2/Bone_LWingA3
+        weight: 1
+      - path: Bone_Root/Bone_LWingB1
+        weight: 1
+      - path: Bone_Root/Bone_LWingB1/Bone_LWingB2
+        weight: 1
+      - path: Bone_Root/Bone_LWingB1/Bone_LWingB2/Bone_LWingB3
+        weight: 1
+      - path: Bone_Root/Bone_LWingC1
+        weight: 1
+      - path: Bone_Root/Bone_LWingC1/Bone_LWingC2
+        weight: 1
+      - path: Bone_Root/Bone_LWingC1/Bone_LWingC2/Bone_LWingC3
+        weight: 1
+      - path: Bone_Root/Bone_Neck
+        weight: 1
+      - path: Bone_Root/Bone_Neck/Bone_Head
+        weight: 1
+      - path: Bone_Root/Bone_RWingA1
+        weight: 1
+      - path: Bone_Root/Bone_RWingA1/Bone_RWingA2
+        weight: 1
+      - path: Bone_Root/Bone_RWingA1/Bone_RWingA2/Bone_RWingA3
+        weight: 1
+      - path: Bone_Root/Bone_RWingB1
+        weight: 1
+      - path: Bone_Root/Bone_RWingB1/Bone_RWingB2
+        weight: 1
+      - path: Bone_Root/Bone_RWingB1/Bone_RWingB2/Bone_RWingB3
+        weight: 1
+      - path: Bone_Root/Bone_RWingC1
+        weight: 1
+      - path: Bone_Root/Bone_RWingC1/Bone_RWingC2
+        weight: 1
+      - path: Bone_Root/Bone_RWingC1/Bone_RWingC2/Bone_RWingC3
+        weight: 1
+      - path: Bone_Root/Bone_Tail
+        weight: 1
+      - path: hl_crane_paper_underworld
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
