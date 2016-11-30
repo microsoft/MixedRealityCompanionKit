@@ -1,0 +1,14 @@
+# git ignore file
+PosterCalibrationSample/Unity/.vs*/
+PosterCalibrationSample/Unity/Library*/
+PosterCalibrationSample/Unity/Temp*/
+PosterCalibrationSample/Unity/UWP*/
+PosterCalibrationSample/Unity/App*/
+PosterCalibrationSample/Unity/Assets/Scripts/PosterAlign/Binaries/Plugin*
+PosterCalibrationSample/Unity/Assets/Scripts/PosterAlign/Binaries/OpenCV*
+PosterCalibrationSample/Unity/Unity.CSharp.csproj
+PosterCalibrationSample/Unity/Unity.sln
+PosterCalibrationSample/Plugin/Plugin.VC.*
+PosterCalibrationSample/Plugin/Release*/
+PosterCalibrationSample/Plugin/Debug*/
+PosterCalibrationSample/Plugin/Packages*/
