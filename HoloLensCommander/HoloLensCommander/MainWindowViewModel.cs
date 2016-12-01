@@ -31,7 +31,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Name of the folder which will contain mixed reality files from the registered HoloLens devices.
         /// </summary>
-        private static readonly string MixedRealityFilesFolderName = "HoloLensManager";
+        private static readonly string MixedRealityFilesFolderName = "HoloLensCommander";
 
         /// <summary>
         /// Dispatcher used to ensure notifications happen on the correct thread.
