@@ -87,7 +87,7 @@ Stops the Mixed Reality Capture video recording.
 
 ##### Save
 
-Files created by the Start and Stop controls, along with any other Mixed Reality Capture files created on the HoloLens (via the Windows Device Portal or a Cortana voice command) will be downloaded to the Photos Library on the PC. Files will be saved to HoloLensManage\<HoloLens address|name>.
+Files created by the Start and Stop controls, along with any other Mixed Reality Capture files created on the HoloLens (via the Windows Device Portal or a Cortana voice command) will be downloaded to the Pictures Library on the PC. Files will be saved to HoloLensCommander\<HoloLens address|name>.
 
 ##### Delete files after saving
 
