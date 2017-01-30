@@ -44,6 +44,7 @@ namespace HoloLensCommander
             await portal.ConnectAsync(
                 null,
                 null,
+                updateConnection: true,
                 manualCertificate: certificate);
         }
 
