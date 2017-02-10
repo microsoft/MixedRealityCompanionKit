@@ -12,21 +12,6 @@
     PrimaryButtonClick="ContentDialog_OkClick"
     MaxHeight="350">
     <StackPanel>
-        <Canvas 
-            Width="450" Height="40">
-            <TextBlock 
-                x:Name="deviceLabel"
-                Text="Device"
-                FontSize="16" 
-                Canvas.Top="10"/>
-            <TextBlock 
-                x:Name="deviceAddress"
-                Text="{Binding Path=DeviceAddress}"
-                ToolTipService.ToolTip="The address of the target HoloLens"
-                FontSize="16"
-                Width="388"
-                Canvas.Left="62" Canvas.Top="10"/>
-        </Canvas>
         <TextBlock 
             x:Name="appPackageLabel" 
             Text="Application package" 
@@ -54,7 +39,7 @@
             Width="450" Height="80">
             <TextBlock 
                 x:Name="appxBundleRequiredLabel"
-                Text="NOTE: HoloLens Manager requires installation packages to be .appxbundle files."
+                Text="NOTE: HoloLens Commander requires installation packages to be .appxbundle files."
                 TextWrapping="WrapWholeWords" FontSize="16" 
                 Width="450"/>
         </Canvas>
