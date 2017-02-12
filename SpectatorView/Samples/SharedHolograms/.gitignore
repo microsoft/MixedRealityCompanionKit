@@ -1,0 +1,24 @@
+*.db
+*.opendb
+*.sln
+*.csproj
+*.pfx
+*.pfx.meta
+
+Library/*
+UWP/*
+ipch/*
+App/*
+WindowsStoreApp/*
+
+# dlls
+Assets/Addons/HolographicCameraRig/Plugins/WSA/x64/*.dll
+Assets/Addons/HolographicCameraRig/Plugins/WSA/x64/*.pdb
+Assets/Addons/HolographicCameraRig/Plugins/WSA/x86/*.dll
+Assets/Addons/HolographicCameraRig/Plugins/WSA/x86/*.pdb
+
+Assets/Addons/HolographicCameraRig/Plugins/x64/*.dll
+Assets/Addons/HolographicCameraRig/Plugins/x64/*.pdb
+
+Assets/Addons/HolographicCameraRig/Plugins/x86/*.dll
+Assets/Addons/HolographicCameraRig/Plugins/x86/*.pdb
