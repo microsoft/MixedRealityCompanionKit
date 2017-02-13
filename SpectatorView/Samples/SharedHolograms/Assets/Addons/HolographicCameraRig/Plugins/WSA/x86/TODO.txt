@@ -1,0 +1,5 @@
+Copy the DLLs you build from the compositor to this directory.
+
+If you have multiple architectures of the same plugin, either:
+1. Download the meta files for the plugins from GitHub, or
+2. Update each DLL's target platform and settings in the Inspector.

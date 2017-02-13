@@ -14,5 +14,7 @@ HoloLensCompanionKit contains the following feature areas:
 
 4. [MixedRemoteViewCompositor](MixedRemoteViewCompositor/README.md)
 
+5. [SpectatorView](SpectatorView/README.md)
+
 
 

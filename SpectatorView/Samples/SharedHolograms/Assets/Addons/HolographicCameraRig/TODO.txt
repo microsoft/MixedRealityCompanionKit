@@ -1,0 +1,14 @@
+1. Import the latest HoloToolit from https://github.com/Microsoft/HoloToolkit-Unity
+2. Ensure you have External and mcs.rsp included from the HoloToolkit as well.
+3. Build Compositor.sln from the spectator view repository and run CopyDLL with an argument of your project's 'Assets' directory.
+3a. Build the entire sln for the architecture of your Unity exe.
+3b. Build SpatialPerceptionHelper for x86.
+3c. If there are any DLL collisions, download the checked in meta files for these DLLs or manually update their targets in the Inspector.
+3d. Restart Unity if it was running while you were copying DLLs to your project.
+4. Replace CalibrationData.txt with your own calibration file from the Calibration sln.
+5. Add SpectatorViewManager to your scene.
+6. Update the IPs in SpectatorViewManager.
+7. Build and deploy to your spectator view HoloLens.
+8. Launch 'HoloToolkit\ Sharing Service\ Launch Sharing Service'.
+9. Launch 'Spectator View\ Compositor'.
+10. Press Play in Unity.
