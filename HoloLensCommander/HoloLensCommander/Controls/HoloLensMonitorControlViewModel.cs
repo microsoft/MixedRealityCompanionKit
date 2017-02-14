@@ -362,7 +362,7 @@ namespace HoloLensCommander
             UserInformation userInfo = new UserInformation();
             float.TryParse(this.Ipd, out userInfo.Ipd);
 
-            ContentDialog dialog = new SetIpdDialog(userInfo); // BUGBUG this.holoLensMonitor.Address
+            ContentDialog dialog = new SetIpdDialog(userInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
 
             // Primary button == "Set"
@@ -388,7 +388,6 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task ShowDeviceInfoAsync()
         {
-            // BUGBUG
             ContentDialog dialog = new HoloLensInformationDialog(this.holoLensMonitor);
             await dialog.ShowAsync().AsTask<ContentDialogResult>();
         }
@@ -445,30 +444,14 @@ namespace HoloLensCommander
         {
             TagInformation tagInfo = new TagInformation();
             tagInfo.Name = this.Name;
-            // BUGBUG - move to IPD dialog
-            //float.TryParse(this.Ipd, out tagInfo.Ipd);
 
-            ContentDialog dialog = new TagHoloLensDialog(tagInfo); // BUGBUG this.holoLensMonitor.Address
+            ContentDialog dialog = new TagHoloLensDialog(tagInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
 
             // Primary button == "Ok"
             if (result == ContentDialogResult.Primary)
             {
                 this.Name = tagInfo.Name;
-
-                // BUGBUG - move to IPD dialog
-                //// Update the IPD on the HoloLens
-                //try
-                //{
-                //    await this.holoLensMonitor.SetIpd(tagInfo.Ipd);
-                //}
-                //catch(Exception e)
-                //{
-                //    this.StatusMessage = string.Format(
-                //        "Unable to update the IPD - {0}",
-                //        e.Message);
-                //}
-
                 this.holoLensMonitorControl.NotifyTagChanged();
             }
         }
