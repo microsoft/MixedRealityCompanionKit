@@ -54,8 +54,19 @@
                     x:Name="name"
                     Text="{Binding Path=Name}" 
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Width="155" 
+                    Width="124" 
                     Canvas.Left="60" Canvas.Top="20"/>
+                <Button 
+                    x:Name="setTagButton" 
+                    Content="&#xEB7E;" 
+                    Command="{Binding Path=SetTagCommand}"
+                    FontFamily="Segoe MDL2 Assets" FontSize="10"
+                    Width="32" Height="22" 
+                    Canvas.Left="186" Canvas.Top="24">
+                    <Button.RenderTransform>
+                        <CompositeTransform ScaleX="1.0" ScaleY=".8"/>
+                    </Button.RenderTransform>
+                </Button>
             </Canvas>
             <Button 
                 x:Name="showContextMenu" 
@@ -71,7 +82,7 @@
             </Button>
             <Canvas
                 x:Name="infoCanvas"
-                Width="130" Height="40" 
+                Width="161" Height="40" 
                 Canvas.Left="321" Canvas.Top="1">
                 <TextBlock 
                     x:Name="isOnAcPowerIndicator"
@@ -93,32 +104,42 @@
                     TextWrapping="NoWrap" 
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Canvas.Left="2" Canvas.Top="20"/>
-                <!-- TODO: Support setting the IPD -->
                 <TextBlock
                     x:Name="interpupilaryDistance" 
                     Text="{Binding Path=Ipd}"
                     ToolTipService.ToolTip="Interpupilary distance"
                     TextWrapping="NoWrap" 
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="60"
+                    Width="50"
                     Canvas.Left="37" Canvas.Top="20"/>
+                <Button 
+                    x:Name="setIpdButton" 
+                    Content="&#xEB7E;" 
+                    Command="{Binding Path=SetIpdCommand}"
+                    FontFamily="Segoe MDL2 Assets"  FontSize="10"
+                    Height="22" Width="32"
+                    Canvas.Left="89" Canvas.Top="24" >
+                    <Button.RenderTransform>
+                        <CompositeTransform ScaleX="1.0" ScaleY="0.8"/>
+                    </Button.RenderTransform>
+                </Button>
                 <TextBlock 
                     x:Name="thermalLabel" 
                     Text="á" 
                     FontFamily="WebDings" FontSize="30"
                     Visibility="{Binding Path=ThermalStatus}"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Canvas.Left="102" Canvas.Top="4"/>
+                    Canvas.Left="131" Canvas.Top="4"/>
             </Canvas>
             <ScrollViewer
-                Width="290" Height="40"
-                HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="460" Canvas.Top="1">
+                Width="262" Height="40"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="488" Canvas.Top="1">
                 <TextBlock 
                     x:Name="status" 
                     Text="{Binding Path=StatusMessage}"
                     TextWrapping="Wrap" FontSize="16"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                    Width="290"/>
+                    Width="262"/>
             </ScrollViewer>
         </Canvas>
     </Grid>

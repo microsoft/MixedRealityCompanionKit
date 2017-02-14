@@ -19,7 +19,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="TagHoloLensDialog" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor that is responsible for communication with the HoloLens.</param>
+        /// <param name="tagInfo">TagInformation object containing information associated with the HoloLens.</param>
         public TagHoloLensDialog(TagInformation tagInfo)
         {
             this.tagInformation = tagInfo;
