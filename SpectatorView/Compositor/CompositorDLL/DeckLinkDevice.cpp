@@ -142,34 +142,40 @@ ULONG STDMETHODCALLTYPE DeckLinkDevice::Release(void)
 
 bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture, bool useCPU, bool passthroughOutput)
 {
-    IDeckLinkAttributes*            deckLinkAttributes = NULL;
-    IDeckLinkDisplayModeIterator*   displayModeIterator = NULL;
-    IDeckLinkDisplayMode*           displayMode = NULL;
-    BSTR                            deviceNameBSTR = NULL;
+	IDeckLinkAttributes*            deckLinkAttributes = NULL;
+	IDeckLinkDisplayModeIterator*   displayModeIterator = NULL;
+	IDeckLinkDisplayMode*           displayMode = NULL;
+	BSTR                            deviceNameBSTR = NULL;
 
-    ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
-    ZeroMemory(cachedBuffer, FRAME_BUFSIZE);
-    ZeroMemory(latestBuffer, FRAME_BUFSIZE);
-    ZeroMemory(outputBuffer, FRAME_BUFSIZE);
-    ZeroMemory(outputBufferRaw, FRAME_BUFSIZE_RAW);
+	ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
+	ZeroMemory(cachedBuffer, FRAME_BUFSIZE);
+	ZeroMemory(latestBuffer, FRAME_BUFSIZE);
+	ZeroMemory(outputBuffer, FRAME_BUFSIZE);
+	ZeroMemory(outputBufferRaw, FRAME_BUFSIZE_RAW);
 
-    _useCPU = useCPU;
-    _passthroughOutput = passthroughOutput;
+	_useCPU = useCPU;
+	_passthroughOutput = passthroughOutput;
 
-    _colorSRV = colorSRV;
-    _outputTexture = outputTexture;
+	_colorSRV = colorSRV;
+	_outputTexture = outputTexture;
 
-    if (colorSRV != nullptr)
-    {
-        colorSRV->GetDevice(&device);
-    }
+	if (colorSRV != nullptr)
+	{
+		colorSRV->GetDevice(&device);
+	}
 
-    // Get input interface
-    if (m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**) &m_deckLinkInput) != S_OK)
-        return false;
+	// Get input interface
+	if (m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_deckLinkInput) != S_OK)
+		return false;
 
-    if (m_deckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&m_deckLinkOutput) != S_OK)
-        return false;
+	if (m_deckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&m_deckLinkOutput) != S_OK)
+	{
+		supportsOutput = false;
+		// Returning false here prevent the rest of the init function executing
+		// But we can still continue without an output interface
+		// return false;
+	}
+	
 
     // Check if input mode detection is supported.
     if (m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes) == S_OK)
@@ -212,16 +218,16 @@ bool DeckLinkDevice::StartCapture(BMDDisplayMode videoDisplayMode)
         return false;
     }
 
-    if (m_deckLinkOutput->EnableVideoOutput(videoDisplayMode, videoOutputFlags) != S_OK)
+    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(videoDisplayMode, videoOutputFlags) != S_OK)
     {
         OutputDebugString(L"Unable to set video output.\n");
         supportsOutput = false;
     }
 
-    if (supportsOutput && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
+    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
     {
         OutputDebugString(L"Unable to start output playback.\n");
-        return false;
+		supportsOutput = false;
     }
 
     // Start the capture
@@ -306,7 +312,7 @@ HRESULT DeckLinkDevice::VideoInputFormatChanged (/* in */ BMDVideoInputFormatCha
     m_deckLinkInput->StopStreams();
     m_deckLinkInput->FlushStreams();
 
-    if (supportsOutput)
+	if (supportsOutput && m_deckLinkOutput != NULL)
     {
         m_deckLinkOutput->StopScheduledPlayback(0, NULL, 0);
         m_deckLinkOutput->DisableVideoOutput();
@@ -326,13 +332,13 @@ HRESULT DeckLinkDevice::VideoInputFormatChanged (/* in */ BMDVideoInputFormatCha
         goto bail;
     }
 
-    if (m_deckLinkOutput->EnableVideoOutput(newMode->GetDisplayMode(), bmdVideoOutputFlagDefault) != S_OK)
+    if (m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(newMode->GetDisplayMode(), bmdVideoOutputFlagDefault) != S_OK)
     {
         OutputDebugString(L"Unable to set video output.\n");
         supportsOutput = false;
     }
 
-    if (supportsOutput && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
+    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
     {
         OutputDebugString(L"Unable to start output playback.\n");
         supportsOutput = false;
@@ -407,7 +413,10 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived (/* in */ IDeckLinkVideoInputFram
     {
         BMDTimeValue bmd_time, bmd_duration;
         frame->GetStreamTime(&bmd_time, &bmd_duration, m_playbackTimeScale);
-        m_deckLinkOutput->ScheduleVideoFrame(frame, bmd_time, bmd_duration, m_playbackTimeScale);
+		if (supportsOutput && m_deckLinkOutput != NULL) 
+		{
+			m_deckLinkOutput->ScheduleVideoFrame(frame, bmd_time, bmd_duration, m_playbackTimeScale);
+		}
     }
     else if (supportsOutput && _outputTexture != nullptr && device != nullptr)
     {
@@ -423,7 +432,10 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived (/* in */ IDeckLinkVideoInputFram
             memcpy(localFrameBuffer, outputBuffer, FRAME_BUFSIZE);
         }
 
-        m_deckLinkOutput->ScheduleVideoFrame(frame, bmd_time, bmd_duration, m_playbackTimeScale);
+		if (supportsOutput && m_deckLinkOutput != NULL)
+		{
+			m_deckLinkOutput->ScheduleVideoFrame(frame, bmd_time, bmd_duration, m_playbackTimeScale);
+		}
     }
 
     LeaveCriticalSection(&m_captureCardCriticalSection);
