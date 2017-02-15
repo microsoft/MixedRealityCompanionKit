@@ -35,8 +35,15 @@ namespace HoloLensCommander
             DevicePortal portal = new DevicePortal(this.devicePortalConnection);
             portal.ConnectionStatus += DevicePortal_ConnectionStatus;
 
-            // We are physically connected to the device.
-            // We can safely accept the device's root certificate.
+            // If the address is localhost (127.0.0.1), we are physically connected
+            // to the HoloLens. This allows us to implicitly trust the device
+            // certificate.
+            //
+            // !! NOTE: UWP applications are not allowed to connect to localhost
+            // unless explicitly configured. 
+            // * Development - Visual Studio performs this configuration automatically.
+            // * Side-loading - Please see README.md for more details.
+            // * Store submissions - Use only non-loopback connections.
             Certificate certificate = await portal.GetRootDeviceCertificateAsync(true);
 
             // Establish the connection to the device.
@@ -106,6 +113,15 @@ namespace HoloLensCommander
         public async Task<AppPackages> GetInstalledApplicationsAsync()
         {
             return await this.devicePortal.GetInstalledAppPackagesAsync();
+        }
+
+        /// <summary>
+        /// Gets the name of the HoloLens.
+        /// </summary>
+        /// <returns>The HoloLens' name.</returns>
+        public async Task<string> GetMachineNameAsync()
+        {
+            return await this.devicePortal.GetDeviceNameAsync();
         }
 
         /// <summary>

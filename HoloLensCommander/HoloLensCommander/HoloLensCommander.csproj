@@ -112,11 +112,21 @@
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModel.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelCommands.cs" />
+    <Compile Include="Dialogs\HoloLensInformationDialog.xaml.cs">
+      <DependentUpon>HoloLensInformationDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\HoloLensInformationDialogViewModel.cs" />
+    <Compile Include="Dialogs\HoloLensInformationDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModel.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelCommands.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModel.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\SetIpdDialog.xaml.cs">
+      <DependentUpon>SetIpdDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\SetIpdDialogViewModel.cs" />
+    <Compile Include="Dialogs\SetIpdDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\TagHoloLensDialogViewModel.cs" />
     <Compile Include="Dialogs\TagHoloLensDialogViewModelProperties.cs" />
     <Compile Include="HoloLens\HoloLensMonitorCommands.cs" />
@@ -145,6 +155,7 @@
     <Compile Include="Utilities\Command.cs" />
     <Compile Include="Dialogs\YesNoMessageDialog.cs" />
     <Compile Include="Utilities\TagInformation.cs" />
+    <Compile Include="Utilities\UserInformation.cs" />
     <Compile Include="Utilities\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +185,14 @@
     <Page Include="Dialogs\GetAppInstallFilesDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\HoloLensInformationDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\SetIpdDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>

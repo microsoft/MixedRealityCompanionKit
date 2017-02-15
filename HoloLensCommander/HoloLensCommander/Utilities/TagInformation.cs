@@ -9,11 +9,6 @@ namespace HoloLensCommander
     public class TagInformation
     {
         /// <summary>
-        /// The user's interpupilary distance.
-        /// </summary>
-        public float Ipd;
-
-        /// <summary>
         /// A descriptive name assigned to the HoloLens.
         /// </summary>
         public string Name;
@@ -22,8 +17,7 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="TagInformation" /> class.
         /// </summary>
         public TagInformation() : this(
-            string.Empty,
-            0f)
+            string.Empty)
         {
         }
 
@@ -31,13 +25,10 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="TagInformation" /> class.
         /// </summary>
         /// <param name="name">The descriptive name associated with the HoloLens.</param>
-        /// <param name="ipd">The interpupilary distance to be sent to the HoloLens.</param>
         public TagInformation(
-            string name,
-            float ipd)
-            {
-                this.Name = name;
-                this.Ipd = ipd;
-            }
+            string name)
+        {
+            this.Name = name;
+        }
     }
 }

@@ -354,6 +354,45 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Displays the set IPD dialog.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task SetIpdAsync()
+        {
+            UserInformation userInfo = new UserInformation();
+            float.TryParse(this.Ipd, out userInfo.Ipd);
+
+            ContentDialog dialog = new SetIpdDialog(userInfo);
+            ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
+
+            // Primary button == "Set"
+            if (result == ContentDialogResult.Primary)
+            {
+                // Update the IPD on the HoloLens
+                try
+                {
+                    await this.holoLensMonitor.SetIpd(userInfo.Ipd);
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format(
+                        "Unable to update the IPD - {0}",
+                        e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Displays the device information dialog.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task ShowDeviceInfoAsync()
+        {
+            ContentDialog dialog = new HoloLensInformationDialog(this.holoLensMonitor);
+            await dialog.ShowAsync().AsTask<ContentDialogResult>();
+        }
+
+        /// <summary>
         /// Shuts down this HoloLens.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -405,7 +444,6 @@ namespace HoloLensCommander
         {
             TagInformation tagInfo = new TagInformation();
             tagInfo.Name = this.Name;
-            float.TryParse(this.Ipd, out tagInfo.Ipd);
 
             ContentDialog dialog = new TagHoloLensDialog(tagInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
@@ -414,19 +452,6 @@ namespace HoloLensCommander
             if (result == ContentDialogResult.Primary)
             {
                 this.Name = tagInfo.Name;
-
-                // Update the IPD on the HoloLens
-                try
-                {
-                    await this.holoLensMonitor.SetIpd(tagInfo.Ipd);
-                }
-                catch(Exception e)
-                {
-                    this.StatusMessage = string.Format(
-                        "Unable to update the IPD - {0}",
-                        e.Message);
-                }
-
                 this.holoLensMonitorControl.NotifyTagChanged();
             }
         }
@@ -577,6 +602,18 @@ namespace HoloLensCommander
                 (parameter) =>
                 {
                     this.Disconnect();
+                });
+
+            this.SetIpdCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.SetIpdAsync();
+                });
+
+            this.SetTagCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.TagHoloLensAsync();
                 });
 
             this.ShowContextMenuCommand = new Command(

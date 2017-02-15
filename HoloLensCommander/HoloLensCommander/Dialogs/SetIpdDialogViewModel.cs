@@ -5,10 +5,7 @@ using System.ComponentModel;
 
 namespace HoloLensCommander
 {
-    /// <summary>
-    /// The view model for the TagHoloLensDialog object.
-    /// </summary>
-    partial class TagHoloLensDialogViewModel : INotifyPropertyChanged
+    public partial class SetIpdDialogViewModel : INotifyPropertyChanged
     {
         /// <summary>
         /// Event that is notified when a property value has changed.
@@ -16,12 +13,12 @@ namespace HoloLensCommander
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagHoloLensDialogViewModel" /> class.
+        /// Initializes a new instance of the <see cref="SetIpdDialogViewModel" /> class.
         /// </summary>
         /// <param name="tagInfo">Information that has been associated with this HoloLens.</param>
-        public TagHoloLensDialogViewModel(TagInformation tagInfo)
+        public SetIpdDialogViewModel(UserInformation userInfo)
         {
-            this.Name = tagInfo.Name;
+            this.Ipd = userInfo.Ipd.ToString();
         }
 
         /// <summary>
@@ -35,13 +32,12 @@ namespace HoloLensCommander
                 new PropertyChangedEventArgs(propertyName));
         }
 
-        /// <summary>
-        /// Update's the user selected install files data.
-        /// </summary>
-        /// <param name="tagInfo">The information which is to be associated with the HoloLens.</param>
-        internal void UpdateUserData(TagInformation tagInfo)
+        internal void UpdateUserData(UserInformation userInfo)
         {
-            tagInfo.Name = this.Name;
+            // NOTE: The SetIpdDialogViewModel.Ipd property is a string. The
+            // SetIpdDialogViewModel.ipd field is a float. We return the float
+            // value as that is what is expected of the caller.
+            userInfo.Ipd = this.ipd;
         }
     }
 }

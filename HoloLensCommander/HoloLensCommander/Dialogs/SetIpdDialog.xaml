@@ -1,0 +1,31 @@
+﻿<ContentDialog
+    x:Class="HoloLensCommander.SetIpdDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HoloLensCommander"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Interpupilary Distance"
+    PrimaryButtonText="Set"
+    SecondaryButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_OkClick"
+    MaxHeight="350">
+
+    <StackPanel>
+        <Canvas
+            Width="450" Height="50">
+            <TextBlock
+                x:Name="ipdLabel"
+                Text="IPD"
+                FontSize="16"
+                Canvas.Top="16" Canvas.Left="21"/>
+            <TextBox 
+                x:Name="ipd"
+                Text="{Binding Path=Ipd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                ToolTipService.ToolTip="Interpupilary Distance (HoloLens will be updated)"
+                Width="90" 
+                Canvas.Left="50" Canvas.Top="10"/>
+        </Canvas>
+    </StackPanel>
+</ContentDialog>

@@ -10,7 +10,7 @@
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
-    MaxHeight="600">
+    MaxHeight="350">
 
     <StackPanel>
         <Canvas 
@@ -26,20 +26,6 @@
                 ToolTipService.ToolTip="Descriptive name for the HoloLens (HoloLens will not be updated)"
                 Canvas.Left="50" Width="400" 
                 Canvas.Top="10"/>
-        </Canvas>
-        <Canvas
-            Width="450" Height="50">
-            <TextBlock
-                x:Name="ipdLabel"
-                Text="IPD"
-                FontSize="16"
-                Canvas.Top="16" Canvas.Left="21"/>
-            <TextBox 
-                x:Name="ipd"
-                Text="{Binding Path=Ipd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                ToolTipService.ToolTip="Interpupilary Distance (HoloLens will be updated)"
-                Width="90" 
-                Canvas.Left="50" Canvas.Top="10"/>
         </Canvas>
     </StackPanel>
 </ContentDialog>

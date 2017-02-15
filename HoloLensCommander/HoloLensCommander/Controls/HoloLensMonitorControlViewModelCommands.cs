@@ -20,7 +20,7 @@ namespace HoloLensCommander
         /// </summary>
         private enum MonitorContextMenuCommandIds
         {
-            Tag = 0,
+            DeviceInfo = 0,
             ManageApps,
             MixedRealityView,
             DevicePortal,
@@ -53,6 +53,12 @@ namespace HoloLensCommander
             await this.holoLensMonitor.RebootAsync();
         }
 
+        public ICommand SetIpdCommand
+        { get; private set; }
+
+        public ICommand SetTagCommand
+        { get; private set; }
+
         /// <summary>
         /// Command used to display the context menu.
         /// </summary>
@@ -68,9 +74,9 @@ namespace HoloLensCommander
             PopupMenu contextMenu = new PopupMenu();
 
             contextMenu.Commands.Add(new UICommand(
-                "Tag / IPD",
+                "HoloLens Information",
                 ContextMenuCommandHandler,
-                MonitorContextMenuCommandIds.Tag));
+                MonitorContextMenuCommandIds.DeviceInfo));
             contextMenu.Commands.Add(new UICommand(
                 "Manage apps", 
                 ContextMenuCommandHandler,
@@ -104,8 +110,8 @@ namespace HoloLensCommander
 
             switch((MonitorContextMenuCommandIds)command.Id)
             {
-                case MonitorContextMenuCommandIds.Tag:
-                    t = this.TagHoloLensAsync();
+                case MonitorContextMenuCommandIds.DeviceInfo:
+                    t = this.ShowDeviceInfoAsync();
                     break;
 
                 case MonitorContextMenuCommandIds.ManageApps:

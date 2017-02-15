@@ -23,7 +23,9 @@ Note: The first time you start HoloLens Commander on your PC, you will need to e
 
 ##### Connect
 
-Connects to the HoloLens that is connected to the PC via a USB connection.
+Connects to the specified HoloLens.
+
+NOTE: The current connection implementation uses a USB connection between the PC and the HoloLens. This is for **development** and **side-load** scenarios only. By default Windows Store applications are not allowed to make loopback connections. At development time, Visual Studio enables loopback for your application automatically for debugging purposes. When side-loaded, you will need to explicity allow loopback connections as described in the [documentation](http://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx).
 
 ##### Additional connection commands
 
