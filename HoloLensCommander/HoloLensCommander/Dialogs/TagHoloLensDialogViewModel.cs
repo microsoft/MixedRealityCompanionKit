@@ -18,9 +18,13 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="TagHoloLensDialogViewModel" /> class.
         /// </summary>
-        /// <param name="tagInfo">Information that has been associated with this HoloLens.</param>
-        public TagHoloLensDialogViewModel(TagInformation tagInfo)
+        /// <param name="address">The address of the HoloLens.</param>
+        /// <param name="tagInfo">TagInformation object containing information associated with the HoloLens.</param>
+        public TagHoloLensDialogViewModel(
+            string address,
+            TagInformation tagInfo)
         {
+            this.DeviceAddress = address;
             this.Name = tagInfo.Name;
         }
 

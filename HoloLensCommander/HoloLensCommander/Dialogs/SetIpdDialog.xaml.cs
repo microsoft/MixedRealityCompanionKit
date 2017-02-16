@@ -18,12 +18,17 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="SetIpdDialog" /> class.
         /// </summary>
-        /// <param name="userInfo">TagInformation object containing information associated with the HoloLens.</param>
-        public SetIpdDialog(UserInformation userInfo)
+        /// <param name="address">The address of the HoloLens.</param>
+        /// <param name="userInfo">UserInformation object containing information associated with the HoloLens.</param>
+        public SetIpdDialog(
+            string address,
+            UserInformation userInfo)
         {
             this.userInformation = userInfo;
 
-            this.DataContext = new SetIpdDialogViewModel(userInfo);
+            this.DataContext = new SetIpdDialogViewModel(
+                address,
+                userInfo);
             this.InitializeComponent();
         }
 

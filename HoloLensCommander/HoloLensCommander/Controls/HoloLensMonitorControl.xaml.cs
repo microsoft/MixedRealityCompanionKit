@@ -11,6 +11,18 @@ using Windows.UI.Xaml.Controls;
 namespace HoloLensCommander
 {
     /// <summary>
+    /// Delegate defining the method signature for handling the AppInstalled event.
+    /// </summary>
+    /// <param name="sender">The object sending the event.</param>
+    public delegate void AppInstalledEventHandler(HoloLensMonitorControl sender);
+
+    /// <summary>
+    /// Delegate defining the method signature for handling the AppUninstalled event.
+    /// </summary>
+    /// <param name="sender">The object sending the event.</param>
+    public delegate void AppUninstalledEventHandler(HoloLensMonitorControl sender);
+
+    /// <summary>
     /// Delegate defining the method signature for handling the HoloLensDisconnected event.
     /// </summary>
     /// <param name="sender">The object sending the event.</param>
@@ -27,6 +39,16 @@ namespace HoloLensCommander
     /// </summary>
     public sealed partial class HoloLensMonitorControl : Page, IDisposable
     {
+        /// <summary>
+        /// Event that is sent when an application install has completed.
+        /// </summary>
+        public event AppInstalledEventHandler AppInstalled;
+
+        /// <summary>
+        /// Event that is sent when an application uninstall has completed.
+        /// </summary>
+        public event AppUninstalledEventHandler AppUninstalled;
+
         /// <summary>
         /// Event that is sent when the HoloLens has been disconnected.
         /// </summary>
@@ -130,11 +152,11 @@ namespace HoloLensCommander
         /// <summary>
         /// Installs an application on this HoloLens.
         /// </summary>
-        /// <param name="appPackage">The fully qualified path to the application package.</param>
+        /// <param name="installFiles">Object describing the file(s) required to install an application.</param>
         /// <returns>Task object used for tracking method completion.</returns>
-        internal async Task InstallAppAsync(string appPackage)
+        internal async Task InstallAppAsync(AppInstallFiles installFiles)
         {
-            await this.ViewModel.InstallAppAsync(appPackage);
+            await this.ViewModel.InstallAppAsync(installFiles.AppPackageFileName);
         }
 
         /// <summary>
@@ -148,6 +170,22 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Sends the AppIninstalled event to registered handlers.
+        /// </summary>
+        internal void NotifyAppInstall() // BUGBUG - appName, status
+        {
+            this.AppInstalled?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Sends the AppUninstalled event to registered handlers.
+        /// </summary>
+        internal void NotifyAppUninstall() // BUGBUG - appName, status
+        {
+            this.AppUninstalled?.Invoke(this);
+        }
+
+        /// <summary>
         /// Sends the Disconnected event to registered handlers.
         /// </summary>
         internal void NotifyDisconnected()
@@ -156,7 +194,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Sends the TagChanbged event to registered handlers.
+        /// Sends the TagChanged event to registered handlers.
         /// </summary>
         internal void NotifyTagChanged()
         {
