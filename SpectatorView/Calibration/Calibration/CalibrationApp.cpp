@@ -93,6 +93,9 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
         DXGI_FORMAT_R8G8B8A8_UNORM);
     srv = DirectXHelper::CreateShaderResourceView(deviceResources->GetD3DDevice(), colorTexture);
 
+#if USE_ELGATO
+    frameProvider = new ElgatoFrameProvider(true);
+#endif
 #if USE_DECKLINK
     frameProvider = new DeckLinkManager(true, true);
 #endif

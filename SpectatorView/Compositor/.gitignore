@@ -42,6 +42,10 @@ UnityCompositorInterface/DeckLinkAPI_h.h
 UnityCompositorInterface/DeckLinkAPI_i.c
 
 
+# Elgato
+CompositorDLL/IVideoCaptureFilter*
+
+
 # OpenCV
 CompositorDLL/opencv*.dll
 UnityCompositorInterface/opencv*.dll

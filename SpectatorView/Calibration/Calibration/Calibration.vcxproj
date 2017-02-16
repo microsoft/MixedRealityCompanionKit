@@ -83,7 +83,8 @@
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>if EXIST "$(decklink_inc)" xcopy /y "$(decklink_inc)"
-xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
+xcopy /y "$(OpenCV_vc14)\bin\*.dll"
+if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\CompositorDLL\</Command>
     </PreBuildEvent>
     <PreLinkEvent>
       <Command>
@@ -121,7 +122,8 @@ xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>if EXIST "$(decklink_inc)" xcopy /y "$(decklink_inc)"
-xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
+xcopy /y "$(OpenCV_vc14)\bin\*.dll"
+if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\CompositorDLL\</Command>
     </PreBuildEvent>
     <PreLinkEvent>
       <Command>
@@ -135,6 +137,8 @@ xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
     <ClInclude Include="..\..\Compositor\CompositorDLL\DeckLinkDevice.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\DeckLinkManager.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\DirectoryHelper.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\IFrameProvider.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\OpenCVFrameProvider.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\StringHelper.h" />
@@ -142,6 +146,11 @@ xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StepTimer.h" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(Elgato_Filter)')">
+    <ClInclude Include="..\..\Compositor\CompositorDLL\IVideoCaptureFilter.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\IVideoCaptureFilterTypes.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\qedit.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Compositor\CompositorDLL\DeckLinkDevice.cpp">
@@ -153,6 +162,8 @@ xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="..\..\Compositor\CompositorDLL\DirectoryHelper.cpp" />
+    <ClCompile Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.cpp" />
+    <ClCompile Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.cpp" />
     <ClCompile Include="..\..\Compositor\CompositorDLL\OpenCVFrameProvider.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
