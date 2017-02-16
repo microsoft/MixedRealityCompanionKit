@@ -172,7 +172,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Sends the AppIninstalled event to registered handlers.
         /// </summary>
-        internal void NotifyAppInstall() // BUGBUG - appName, status
+        internal void NotifyAppInstall()
         {
             this.AppInstalled?.Invoke(this);
         }
@@ -180,7 +180,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Sends the AppUninstalled event to registered handlers.
         /// </summary>
-        internal void NotifyAppUninstall() // BUGBUG - appName, status
+        internal void NotifyAppUninstall()
         {
             this.AppUninstalled?.Invoke(this);
         }
