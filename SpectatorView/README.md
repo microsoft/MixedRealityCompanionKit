@@ -50,8 +50,8 @@ Make sure the materials you get are compatible with your existing camera.
     + If you are using a Canon camera and have access to the Canon EDSDK, you can tether your camera to your PC to take higher resolution images.
 + [Unity3D](https://unity3d.com/unity/beta/)
 + [Visual Studio 2015 Update 3](https://developer.microsoft.com/en-us/windows/downloads)
-    
-    
+
+
 ## Dependencies
 The following dependencies require a manual download and a Visual Studio user macro.
 
