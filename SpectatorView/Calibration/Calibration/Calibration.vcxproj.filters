@@ -36,6 +36,17 @@
       <Filter>FrameProviders</Filter>
     </ClInclude>
     <ClInclude Include="DeckLinkAPI_h.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.h">
+      <Filter>FrameProviders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compositor\CompositorDLL\IVideoCaptureFilter.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\IVideoCaptureFilterTypes.h" />
+    <ClInclude Include="..\..\Compositor\CompositorDLL\qedit.h">
+      <Filter>FrameProviders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.h">
+      <Filter>FrameProviders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -55,6 +66,12 @@
       <Filter>FrameProviders</Filter>
     </ClCompile>
     <ClCompile Include="DeckLinkAPI_i.c" />
+    <ClCompile Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.cpp">
+      <Filter>FrameProviders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.cpp">
+      <Filter>FrameProviders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

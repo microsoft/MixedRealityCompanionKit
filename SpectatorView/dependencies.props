@@ -8,6 +8,8 @@
     <DeckLink_inc>C:\BlackMagic\Blackmagic DeckLink SDK 10.8.3\Win\include</DeckLink_inc>
     <!-- From: https://www.usa.canon.com/internet/portal/us/home/explore/solutions-services/digital-camera-sdk-information -->
     <Canon_SDK>C:\CanonSDK\Windows\EDSDK_64</Canon_SDK>
+    <!-- From: https://github.com/elgatosf/gamecapture -->
+    <Elgato_Filter>C:\gamecapture-master\VideoCaptureFilter</Elgato_Filter>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />

@@ -19,6 +19,7 @@
 #include "IFrameProvider.h"
 #include "OpenCVFrameProvider.h"
 #include "DeckLinkManager.h"
+#include "ElgatoFrameProvider.h"
 
 namespace DX
 {

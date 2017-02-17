@@ -27,6 +27,9 @@
 
 // FrameProviders:
 #include "IFrameProvider.h"
+#if USE_ELGATO
+#include "ElgatoFrameProvider.h"
+#endif
 #if USE_DECKLINK
 #include "DeckLinkManager.h"
 #endif

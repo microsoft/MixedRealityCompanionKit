@@ -21,6 +21,9 @@ CompositorInterface::CompositorInterface()
     InitializeCriticalSection(&canonLock);
 #endif
 
+#if USE_ELGATO
+    frameProvider = new ElgatoFrameProvider();
+#endif
 #if USE_DECKLINK
     frameProvider = new DeckLinkManager();
 #endif
