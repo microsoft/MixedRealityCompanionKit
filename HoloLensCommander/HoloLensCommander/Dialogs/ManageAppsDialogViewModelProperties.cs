@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the ManageAppsDialog fsobject.
+    /// The view model for the ManageAppsDialog object.
     /// </summary>
     partial class ManageAppsDialogViewModel
     {

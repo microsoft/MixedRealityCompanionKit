@@ -3,8 +3,17 @@
 
 namespace HoloLensCommander
 {
+    /// <summary>
+    /// The view model for the SetIpdDialog object.
+    /// </summary>
     public partial class SetIpdDialogViewModel
     {
+        /// <summary>
+        /// Gets the address of the HoloLens being viewed.
+        /// </summary>
+        public string DeviceAddress
+        { get; private set; }
+
         /// <summary>
         /// Gets or sets the interpupilary distance
         /// </summary>

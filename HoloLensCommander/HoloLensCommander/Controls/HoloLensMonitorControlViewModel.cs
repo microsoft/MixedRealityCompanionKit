@@ -362,7 +362,9 @@ namespace HoloLensCommander
             UserInformation userInfo = new UserInformation();
             float.TryParse(this.Ipd, out userInfo.Ipd);
 
-            ContentDialog dialog = new SetIpdDialog(userInfo);
+            ContentDialog dialog = new SetIpdDialog(
+                this.holoLensMonitor.Address, 
+                userInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
 
             // Primary button == "Set"
@@ -445,7 +447,9 @@ namespace HoloLensCommander
             TagInformation tagInfo = new TagInformation();
             tagInfo.Name = this.Name;
 
-            ContentDialog dialog = new TagHoloLensDialog(tagInfo);
+            ContentDialog dialog = new TagHoloLensDialog(
+                this.holoLensMonitor.Address,
+                tagInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
 
             // Primary button == "Ok"
@@ -490,6 +494,8 @@ namespace HoloLensCommander
                         appName,
                         e.Message);
                 }
+
+                this.holoLensMonitorControl.NotifyAppUninstall();
             }
         }
 

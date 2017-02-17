@@ -40,7 +40,7 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task CloseAppAsync()
         {
-            string selectedApp = this.SelectedRunningApp;
+            string selectedApp = this.SelectedRunningApp as string;
 
             // The running apps display includes the packgage name in 
             // parenthesis, this is what we need to be able to close the app.
@@ -120,6 +120,24 @@ namespace HoloLensCommander
 
             appNames.Sort();
             this.UpdateRunningApps(appNames);   
+        }
+
+        /// <summary>
+        /// Command used to uninstall a single application on this HoloLens.
+        /// </summary>
+        public ICommand UninstallAppCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the uninstall application command.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        private async Task UninstallAppAsync()
+        {
+            string appName = this.SelectedInstalledApp as string;
+
+            await this.holoLensMonitorControl.UninstallAppAsync(appName);
+            await this.RefreshInstalledAppsAsync();
         }
 
         /// <summary>

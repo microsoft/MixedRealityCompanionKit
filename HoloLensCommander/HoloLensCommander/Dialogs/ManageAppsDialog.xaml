@@ -60,6 +60,15 @@
                 FontFamily="Segoe MDL2 Assets" FontSize="24" 
                 Width="50" Height="40" 
                 Canvas.Left="400" Canvas.Top="70"/>
+            <Button 
+                x:Name="UninstallApp"
+                Content="&#xE108;"
+                Command="{Binding Path=UninstallAppCommand}"
+                IsEnabled="{Binding Path=CanRunApp}"
+                ToolTipService.ToolTip="Uninstall the selected application"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="115"/>
         </Canvas>
         <Canvas
             Width="450" Height="215">

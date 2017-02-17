@@ -7,12 +7,27 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="Interpupilary Distance"
-    PrimaryButtonText="Set"
+    PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
     MaxHeight="350">
 
     <StackPanel>
+        <Canvas 
+            Width="450" Height="40">
+            <TextBlock 
+                x:Name="deviceLabel"
+                Text="Device"
+                FontSize="16" 
+                Canvas.Top="10"/>
+            <TextBlock 
+                x:Name="deviceAddress"
+                Text="{Binding Path=DeviceAddress}"
+                ToolTipService.ToolTip="The address of the target HoloLens"
+                FontSize="16"
+                Width="388"
+                Canvas.Left="62" Canvas.Top="10"/>
+        </Canvas>
         <Canvas
             Width="450" Height="50">
             <TextBlock

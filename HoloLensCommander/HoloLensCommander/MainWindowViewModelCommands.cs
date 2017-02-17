@@ -186,10 +186,10 @@ namespace HoloLensCommander
 
             foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                await monitor.InstallAppAsync(installFiles.AppPackageFileName);
+                // Assigning the return value of InstallAppAsync to a Task object to avoid 
+                // warning 4014 (call is not awaited).
+                Task t = monitor.InstallAppAsync(installFiles);
             }
-
-            await this.RefreshCommonAppsAsync();
         }
 
         /// <summary>
@@ -476,12 +476,10 @@ namespace HoloLensCommander
 
             foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                await monitor.UninstallAppAsync(appName);
+                // Assigning the return value of UninstallAppAsync to a Task object to avoid 
+                // warning 4014 (call is not awaited).
+                Task t = monitor.UninstallAppAsync(appName);
             }
-
-            // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
-            // warning 4014 (call is not awaited).
-            Task t= this.RefreshCommonAppsAsync();
         }
 
         /// <summary>
@@ -515,6 +513,28 @@ namespace HoloLensCommander
                         (int)command.Id));
                     break;
             }
+        }
+
+        /// <summary>
+        /// Handles the AppInstalled event.
+        /// </summary>
+        /// <param name="sender">The object which sent this event.</param>
+        private void HoloLensMonitorControl_AppInstalled(HoloLensMonitorControl sender)
+        {
+            // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.RefreshCommonAppsAsync();
+        }
+
+        /// <summary>
+        /// Handles the AppUninstalled event.
+        /// </summary>
+        /// <param name="sender">The object which sent this event.</param>
+        private void HoloLensMonitorControl_AppUninstalled(HoloLensMonitorControl sender)
+        {
+            // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.RefreshCommonAppsAsync();
         }
 
         /// <summary>
@@ -580,6 +600,8 @@ namespace HoloLensCommander
             string name)
         {
             HoloLensMonitorControl holoLensMonitorControl = new HoloLensMonitorControl(monitor);
+            holoLensMonitorControl.AppInstalled += HoloLensMonitorControl_AppInstalled;
+            holoLensMonitorControl.AppUninstalled += HoloLensMonitorControl_AppUninstalled;
             holoLensMonitorControl.Disconnected += HoloLensMonitorControl_Disconnected;
             holoLensMonitorControl.TagChanged += HoloLensMonitorControl_TagChanged;
 
