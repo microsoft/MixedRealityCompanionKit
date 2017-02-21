@@ -18,32 +18,22 @@ namespace HoloLensCommander
     public partial class HoloLensMonitor
     {
         /// <summary>
-        /// Connects to a HoloLens using the provided credentials.
+        /// Connects to a HoloLens.
         /// </summary>
-        /// <param name="userName"></param>
-        /// <param name="password"></param>
+        /// <param name="connectOptions">Options that specify how the connection is to be established.</param>
         /// <returns></returns>
         public async Task ConnectAsync(
-            string address,
-            string userName,
-            string password)
+            ConnectOptions connectOptions)
         {
             this.devicePortalConnection = new HoloLensDevicePortalConnection(
-                    address,
-                    userName, 
-                    password);
+                    connectOptions.Address,
+                    connectOptions.UserName, 
+                    connectOptions.Password);
             DevicePortal portal = new DevicePortal(this.devicePortalConnection);
             portal.ConnectionStatus += DevicePortal_ConnectionStatus;
 
-            // If the address is localhost (127.0.0.1), we are physically connected
-            // to the HoloLens. This allows us to implicitly trust the device
-            // certificate.
-            //
-            // !! NOTE: UWP applications are not allowed to connect to localhost
-            // unless explicitly configured. 
-            // * Development - Visual Studio performs this configuration automatically.
-            // * Side-loading - Please see README.md for more details.
-            // * Store submissions - Use only non-loopback connections.
+            // We are physically connected to the device.
+            // We can safely accept the device's root certificate.
             Certificate certificate = await portal.GetRootDeviceCertificateAsync(true);
 
             // Establish the connection to the device.
@@ -51,7 +41,7 @@ namespace HoloLensCommander
             await portal.ConnectAsync(
                 null,
                 null,
-                updateConnection: true,
+                updateConnection: connectOptions.UpdateConnection,
                 manualCertificate: certificate);
         }
 

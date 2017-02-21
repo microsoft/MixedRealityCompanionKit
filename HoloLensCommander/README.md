@@ -25,7 +25,11 @@ Note: The first time you start HoloLens Commander on your PC, you will need to e
 
 Connects to the specified HoloLens.
 
-NOTE: The current connection implementation uses a USB connection between the PC and the HoloLens. This is for **development** and **side-load** scenarios only. By default Windows Store applications are not allowed to make loopback connections. At development time, Visual Studio enables loopback for your application automatically for debugging purposes. When side-loaded, you will need to explicity allow loopback connections as described in the [documentation](http://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx).
+![Connect to HoloLens dialog](ReadmeImages/ConnectDialog.png)
+
+NOTE: Leaving the address field blank, in the Connect to HoloLens dialog, will use a USB connection between the PC and the HoloLens. This is for **development** and **side-load** scenarios only. By default Windows Store applications are not allowed to make loopback connections. At development time, Visual Studio enables loopback for your application automatically for debugging purposes. When side-loaded, you will need to explicity allow loopback connections as described in the [documentation](http://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx).
+
+When the Update Connection option is checked, HoloLens Commander will attempt to change the IP address used for communicating with the HoloLens after the inital connection is established. This is most useful when connecting via USB.
 
 ##### Additional connection commands
 
@@ -67,9 +71,6 @@ Runs the application selected in the common applications list on the selected Ho
 
 ##### Close All
 Stops all applications that are currently running on the selected HoloLens devices.
-
-##### install
-Installs an application on each of the selected HoloLens devices.
 
 ##### Uninstall
 Uninstalls the application selected in the common applications list from each of the selected HoloLens devices.
@@ -123,17 +124,31 @@ Unchecking this box will prevent this HoloLens from responding to commands other
 
 The address is the IP address of the HoloLens on your WiFi network. The name is a HoloLens Commander only value that is not transmitted to the HoloLens.
 
+- Set Tag button
+
+The button to the right of where the device name is displayed allows you to set the name mentioned previously.
+
+![Tag HoloLens Dialog](ReadmeImages/TagDialog.png)
+
 - Battery information and IPD (InterPupilary Distance)
 
 Battery information includes the remaining capacity and an indication as to whether or not the HoloLens is plugged in.
 
+- Set IPD button
+
+The button to the right of where the IPD is displayed allows you to set update the IPD value stored on the HoloLens.
+
+![Set IPD Dialog](ReadmeImages/IpdDialog.png)
+
 - Status message
 
 ##### Additonal commands
-##### Tag / IPD
-![Tag HoloLens Dialog](ReadmeImages/TagDialog.png)
+##### HoloLens Information
+![HoloLens Information Dialog](ReadmeImages/HoloLensInfoDialog.png)
 
-The Tag / IPD dialog allows you to attach a descriptive name to your HoloLens that is not sent to the device. This enables the user of HoloLens Commander to assign the location, for example, without changing settings on the HoloLens.  This dialog also allows you to set the interpupliary distance on the HoloLens. The IPD value is sent to the HoloLens when you click Ok. It will be updated in the HoloLens Summary view with the next status check (aka heartbeat).
+The HoloLens Information dialog displays information about the operating system installed on a HoloLens.
+
+Also displayed is the name of the HoloLens. This name is not the name from the Tag HoloLens dialog and is not updated by the HoloLens Commander.
 
 ##### Manage apps
 ![Manage Apps Dialog](ReadmeImages/ManageAppsDialog.png)

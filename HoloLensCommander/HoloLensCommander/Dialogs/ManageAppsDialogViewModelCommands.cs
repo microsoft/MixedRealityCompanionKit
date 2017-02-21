@@ -147,7 +147,7 @@ namespace HoloLensCommander
         private void UpdateInstalledApps(List<string> appNames)
         {
             // Get the currently selected application.
-            string currentSelection = this.SelectedInstalledApp as string;
+            string currentSelection = this.SelectedInstalledApp;
 
             this.InstalledApps.Clear();
             foreach (string name in appNames)
