@@ -51,7 +51,7 @@ For the best quality calibration, you will need a checkerboard mounted to a flat
     + 2_66_grid_FULL.png is the full board and must be printed on a printer that supports larger pages.
 
 ### Code Changes
-In pch.h in the Calibration project:
+In stdafx.h in the Calibration project:
 + Change **HOLOLENS_USER** and **HOLOLENS_PW** to the credentials of your device's developer portal.
 + Change **CHESS_SQUARE_SIZE** to match the width (in meters) of the squares on the chessboard you are using to calibrate with.
 + Change **GRID_CELLS_X** and **GRID_CELLS_Y** to match the number of columns and rows (respectively) in your chessboard.
@@ -60,7 +60,7 @@ In pch.h in the Calibration project:
 In CompositorShared.h in the SharedHeaders project, change **FRAME_WIDTH** and **FRAME_HEIGHT** to match the resolution you are recording.
 
 #### If your HoloLens is not plugged into your PC:
-In pch.h in the Calibration project, change **HOLOLENS_ADDRESS** to L"https://%hololens_ip%/"
+In stdafx.h in the Calibration project, change **HOLOLENS_ADDRESS** to L"https://%hololens_ip%/"
 
 #### If you are using a different capture card that does not run on BlackMagic's DeckLink SDK:
 + First try using the OpenCV FrameProvider:
