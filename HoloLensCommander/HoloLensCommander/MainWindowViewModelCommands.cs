@@ -60,20 +60,39 @@ namespace HoloLensCommander
         /// <summary>
         /// Implementation of the connect to device command.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
+        /// <param name="connectOptions">Options used when connecting to the HoloLens.</param>
         /// <param name="name">Descriptive name to assign to the HoloLens.</param>
+        /// <param name="suppressDialog">True causes the connection dialog to not be shown./param>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ConnectToDeviceAsync(
-            string address,
-            string name)
+            ConnectOptions connectOptions,
+            string name,
+            bool suppressDialog = false)
         {
+            this.StatusMessage = string.Empty;
+
+            if (!suppressDialog)
+            {
+                ContentDialog dialog = new ConnectToDeviceDialog(connectOptions);
+                ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();
+
+                // Primary button == "Ok"
+                if (result != ContentDialogResult.Primary)
+                {
+                    // The user decided not to connect.
+                    return;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(connectOptions.Address))
+            {
+                connectOptions.Address = DefaultConnectionAddress;
+            }
+
             HoloLensMonitor monitor = new HoloLensMonitor(this.dispatcher);
             try
             {
-                await monitor.ConnectAsync(
-                    address,
-                    this.UserName,
-                    this.Password); 
+                await monitor.ConnectAsync(connectOptions); 
 
                 await this.RegisterHoloLensAsync(
                     monitor, 
@@ -87,8 +106,8 @@ namespace HoloLensCommander
             }
             catch
             {
-                string addr = address;
-                if (address == "localhost:10080")
+                string addr = connectOptions.Address;
+                if (connectOptions.Address == "localhost:10080")
                 {
                     addr = "the attached HoloLens";
                 }
@@ -309,9 +328,16 @@ namespace HoloLensCommander
 
             foreach (ConnectionInformation connectionInfo in connections)
             {
-                await this.ConnectToDeviceAsync(
+                ConnectOptions connectOptions = new ConnectOptions(
                     connectionInfo.Address,
-                    connectionInfo.Name);
+                    this.UserName,
+                    this.Password,
+                    false);
+
+                await this.ConnectToDeviceAsync(
+                    connectOptions,
+                    connectionInfo.Name,
+                    true); // Do not show the connect dialog on re-connect.
             }
 
             this.suppressSave = false;

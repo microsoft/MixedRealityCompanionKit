@@ -6,9 +6,9 @@ using System.ComponentModel;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the TagHoloLensDialog object.
+    /// The view model for the ConnectToDeviceDialog object.
     /// </summary>
-    partial class TagHoloLensDialogViewModel : INotifyPropertyChanged
+    public partial class ConnectToDeviceDialogViewModel : INotifyPropertyChanged
     {
         /// <summary>
         /// Event that is notified when a property value has changed.
@@ -16,16 +16,12 @@ namespace HoloLensCommander
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagHoloLensDialogViewModel" /> class.
+        /// Initializes a new instance of the <see cref="ConnectToDeviceDialogViewModel" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="tagInfo">TagInformation object containing information associated with the HoloLens.</param>
-        public TagHoloLensDialogViewModel(
-            string address,
-            TagInformation tagInfo)
+        public ConnectToDeviceDialogViewModel(ConnectOptions options)
         {
-            this.DeviceAddress = address;
-            this.Name = tagInfo.Name;
+            this.Address = options.Address;
+            this.UpdateConnection = options.UpdateConnection;
         }
 
         /// <summary>
@@ -35,17 +31,18 @@ namespace HoloLensCommander
         private void NotifyPropertyChanged(string propertyName)
         {
             this.PropertyChanged?.Invoke(
-                this, 
+                this,
                 new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>
         /// Update's the user selected data.
         /// </summary>
-        /// <param name="tagInfo">The information which is to be associated with the HoloLens.</param>
-        internal void UpdateUserData(TagInformation tagInfo)
+        /// <param name="connectOptions">The options to be used when connecting to the HoloLens.</param>
+        internal void UpdateUserData(ConnectOptions connectOptions)
         {
-            tagInfo.Name = this.Name;
+            connectOptions.Address = this.Address;
+            connectOptions.UpdateConnection = this.UpdateConnection;
         }
     }
 }
