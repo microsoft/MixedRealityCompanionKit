@@ -10,6 +10,7 @@ UWP/*
 ipch/*
 App/*
 WindowsStoreApp/*
+Temp/*
 
 # dlls
 Assets/Addons/HolographicCameraRig/Plugins/WSA/x64/*.dll
