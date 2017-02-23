@@ -141,6 +141,33 @@ This section assumes you are using the included HoloLens bracket.  Alternative m
 + Attach the bracket with 4 1/4" nuts and bolts using the 7/16 nut driver.
 
 
+## Alternate Spectator View Rig Setup
+The spectator view rig assembly can be made without any custom hardware.
+
+![Alternate Assembly](./DocumentationImages/alternate_mount.png)
+
+### Material List
++ [1 Hotshoe Fastener](https://www.amazon.com/gp/product/B00HPAPFNU/ref=oh_aui_detailpage_o03_s01?ie=UTF8&psc=1)
++ [1 Dual Flash Bracket](https://www.amazon.com/gp/product/B01LZKI0BQ/ref=oh_aui_detailpage_o03_s01?ie=UTF8&psc=1)
++ [1 Washer](https://www.amazon.com/gp/product/B009OJIH7G/ref=oh_aui_search_detailpage?ie=UTF8&psc=1)
++ [2 Clamps](https://www.amazon.com/gp/product/B012ZYK3FA/ref=oh_aui_detailpage_o02_s01?ie=UTF8&psc=1)
++ [2 6/32 Bolts](https://www.amazon.com/gp/product/B00HYK8O84/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1)
++ [2 6/32 Nuts](https://www.amazon.com/gp/product/B00HYK8MPO/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1)
++ Cardboard or stiff foam
+
+### Assembly
++ Attach the hotshoe fastener to the camera's hotshoe using one of the included nuts.
++ Place a washer on the hotshoe fastener above the nut.
++ Attach the dual flash bracket to the hotshoe fastener.
+    + The washer should guarantee that the bracket is perpendicular to the lens.
++ Remove the included thumbscrews from the dual flash bracket.
++ Attach the clamps to each side of the dual flash bracket with the 6/32 nuts and bolts.
+    + Ensure the arms of the HoloLens will be able to fit in the clamps with the visor centered on the camera's lens.
++ Place each HoloLens arm in the open clamps.
++ Place some cardboard or stiff foam in between the headband and the arms to act as a buffer against the clamp's tension.
++ Without overtightening, tighten the clamps to keep the HoloLens in place.
+
+
 ## Recommended PC Specs
 Any PC that can run the HoloLens emulator can run spectator view.
 
@@ -166,6 +193,23 @@ Any PC that can run the HoloLens emulator can run spectator view.
 + USE_OPENCV is TRUE to fallback to any other camera.
 
 Each capture card has required software dependencies including runtimes and SDK's. See the **Software** section above.
+
+
+## Adding Spectator View Support to Your Unity App
++ If your application does not use the HoloToolkit, you must first **add the HoloToolkit**.
+    + This can be done from the UnityPackage directory for a minimum set of the HoloToolkit for spectator view compatibility.
+    + Find the largest number subdirectory for the latest official release.
+    + Import the **HoloToolkit_Min_%number%.unitypackage**
++ Import the **SpectatorView_%number%.unitypackage** to add the spectator view code to your project.
++ Unzip the **External_%number%.zip** archive adjacent to your project's Assets directory.
+    + Ensure the unzipped directory is titled "External" and does not have another "External" subdirectory.
++ Add the **"Addons\HolographicCameraRig\Prefabs\SpectatorViewManager"** prefab to your Hierarchy.
++ Build **"Compositor\Compositor.sln"** and run **CopyDLL.cmd** with the Assets directory of your project as the only parameter.
+    + For more information and build configuration options, read the [compositor README](Compositor/README.md).
++ For more information, read the [sample README](Samples/README.md).
+
+
+**NOTE:** You can alternatively use the latest HoloToolkit from the [github repository](https://github.com/Microsoft/HoloToolkit-Unity) - The sample project is kept up to date with breaking changes before official drops are made, but this code is constantly changing so additional work may be required to ensure compatibility.  If you are using this HoloToolkit, you can use the spectator view UnityPackage in "UnityPackage\HoloToolkit_master".
 
 
 ##Documentation

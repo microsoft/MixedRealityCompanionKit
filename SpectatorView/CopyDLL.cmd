@@ -14,7 +14,7 @@ Setlocal EnableDelayedExpansion
 
 set /a returnValue=0
 
-if [%~1] NEQ [] (
+if "%~1" NEQ "" (
     call :CopyDLL "%~1"
 )
 
@@ -46,7 +46,7 @@ ECHO.
 ECHO ===================================================
 ECHO Copy DLL's to %~1
 
-IF EXIST %~1\Addons\HolographicCameraRig (
+IF EXIST "%~1\Addons\HolographicCameraRig" (
     REM Copy UnityCompositorInterface
     ECHO.
     ECHO Copy UnityCompositorInterface files:
@@ -117,6 +117,15 @@ IF EXIST %~1\Addons\HolographicCameraRig (
     ECHO Copy OpenCV:
     copy /y "%~dp0\Compositor\x64\Release\OpenCV*.dll" "%~1\Addons\HolographicCameraRig\Plugins\x64\"
     if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
+    
+    
+    REM Copy GitIgnore
+    ECHO.
+    ECHO ---------------------------------------------------
+    ECHO Copy GitIgnore:
+    copy /y "%~dp0\Compositor\PluginGitIgnore\*" "%~1\Addons\HolographicCameraRig\Plugins\"
+    if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
+    
     
 ) ELSE (
     ECHO.
