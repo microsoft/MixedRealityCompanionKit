@@ -76,23 +76,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\..\EDSDK\Header</IncludePath>
-    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(Canon_SDK)\Library;$(KINECTSDK20_DIR)\lib\x86</LibraryPath>
+    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\EDSDK\Header</IncludePath>
+    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(Canon_SDK)\EDSDK\Library;$(KINECTSDK20_DIR)\lib\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\..\EDSDK\Header</IncludePath>
-    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(Canon_SDK)\..\EDSDK_64\Library;$(KINECTSDK20_DIR)\lib\x64</LibraryPath>
+    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\EDSDK\Header</IncludePath>
+    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(Canon_SDK)\EDSDK_64\Library;$(KINECTSDK20_DIR)\lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\..\EDSDK\Header</IncludePath>
-    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(Canon_SDK)\Library;$(KINECTSDK20_DIR)\lib\x86</LibraryPath>
+    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\EDSDK\Header</IncludePath>
+    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(Canon_SDK)\EDSDK\Library;$(KINECTSDK20_DIR)\lib\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\..\EDSDK\Header</IncludePath>
-    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(Canon_SDK)\..\EDSDK_64\Library;$(KINECTSDK20_DIR)\lib\x64</LibraryPath>
+    <IncludePath>$(OpenCV_vc14)\..\..\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;$(Canon_SDK)\EDSDK\Header</IncludePath>
+    <LibraryPath>$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(Canon_SDK)\EDSDK_64\Library;$(KINECTSDK20_DIR)\lib\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,7 +107,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>if EXIST "$(Canon_SDK)\Dll" xcopy /s /y "$(Canon_SDK)\Dll" "$(OutDir)"
+      <Command>if EXIST "$(Canon_SDK)\EDSDK\Dll" xcopy /s /y "$(Canon_SDK)\EDSDK\Dll" "$(OutDir)"
 if EXIST "$(OpenCV_vc14)" xcopy /y "$(OpenCV_vc14)\bin\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
@@ -129,7 +129,7 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>if EXIST "$(Canon_SDK)\Dll" xcopy /s /y "$(Canon_SDK)\Dll" "$(OutDir)"
+      <Command>if EXIST "$(Canon_SDK)\EDSDK_64\Dll" xcopy /s /y "$(Canon_SDK)\EDSDK_64\Dll" "$(OutDir)"
 if EXIST "$(OpenCV_vc14)" xcopy /y "$(OpenCV_vc14)\bin\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
@@ -155,7 +155,7 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>if EXIST "$(Canon_SDK)\Dll" xcopy /s /y "$(Canon_SDK)\Dll" "$(OutDir)"
+      <Command>if EXIST "$(Canon_SDK)\EDSDK\Dll" xcopy /s /y "$(Canon_SDK)\EDSDK\Dll" "$(OutDir)"
 if EXIST "$(OpenCV_vc14)" xcopy /y "$(OpenCV_vc14)\bin\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
@@ -181,7 +181,7 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>if EXIST "$(Canon_SDK)\Dll" xcopy /s /y "$(Canon_SDK)\Dll" "$(OutDir)"
+      <Command>if EXIST "$(Canon_SDK)\EDSDK_64\Dll" xcopy /s /y "$(Canon_SDK)\EDSDK_64\Dll" "$(OutDir)"
 if EXIST "$(OpenCV_vc14)" xcopy /y "$(OpenCV_vc14)\bin\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
