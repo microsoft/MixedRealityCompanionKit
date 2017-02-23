@@ -171,12 +171,12 @@ Prefab:
     - target: {fileID: 114198603613783790, guid: 1a5c3b12e0673024bb9beea1e7b5b616,
         type: 2}
       propertyPath: SpectatorViewIP
-      value: 10.89.160.205
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 114198603613783790, guid: 1a5c3b12e0673024bb9beea1e7b5b616,
         type: 2}
       propertyPath: SharingServiceIP
-      value: 10.124.206.94
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1012395230765410, guid: 1a5c3b12e0673024bb9beea1e7b5b616, type: 2}
       propertyPath: m_IsActive
