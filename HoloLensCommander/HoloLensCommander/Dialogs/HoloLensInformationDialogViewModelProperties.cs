@@ -28,10 +28,7 @@ namespace HoloLensCommander
         {
             get 
             {
-                Task<string> t = this.holoLensMonitor.GetMachineNameAsync();
-                t.ConfigureAwait(false);
-                t.Wait();
-                return t.Result;
+                return this.holoLensMonitor.MachineName;
             }
         }
 

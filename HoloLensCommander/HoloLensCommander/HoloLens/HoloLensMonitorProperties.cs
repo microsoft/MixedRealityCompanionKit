@@ -81,6 +81,18 @@ namespace HoloLensCommander
         public float Ipd
         { get; private set; }
 
+
+        /// <summary>
+        /// Returns the name of the connected device.
+        /// </summary>
+        public string MachineName
+        {
+            get
+            {
+                return this.devicePortalConnection.OsInfo.Name;
+            }
+        }
+
         /// <summary>
         /// Returns the version of the operating system.
         /// </summary>
