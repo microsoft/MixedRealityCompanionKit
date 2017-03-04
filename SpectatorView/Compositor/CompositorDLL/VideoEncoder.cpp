@@ -15,7 +15,7 @@ VideoEncoder::VideoEncoder(UINT frameWidth, UINT frameHeight, UINT frameStride, 
     audioChannels(audioChannels),
     audioBPS(audioBPS),
     fps(fps),
-    bitRate(frameWidth * frameHeight * 8),
+    bitRate(frameWidth * frameHeight * fps * 4),
     videoEncodingFormat(MFVideoFormat_H264),
 #if HARDWARE_ENCODE_VIDEO
     inputFormat(MFVideoFormat_NV12),

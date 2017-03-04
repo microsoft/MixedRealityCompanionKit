@@ -57,7 +57,29 @@ HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Te
                 {
                     // Note: this will use the resolution that the camera is outputting.  Ensure you set the camera to the settings you want.
                     // The capture card will detect when camera display settings are changed, and update accordingly.
-                    deckLinkDevice->StartCapture(bmdModeHD1080i5994);
+
+                    //TODO: The DeckLink device must have a valid starting format to autodetect the actual format.
+                    //      However, if you select a valid format that is less than your output format, your frames will be downsized.
+                    //      Update the videoDisplayMode if your camera's output does not meet this selection criteria.
+                    BMDDisplayMode videoDisplayMode;
+                    if (FRAME_HEIGHT < 1080)
+                    {
+                        videoDisplayMode = bmdModeHD720p5994;
+                    }
+                    else if (FRAME_HEIGHT >= 1080 && FRAME_HEIGHT < 2160)
+                    {
+                        videoDisplayMode = bmdModeHD1080p5994;
+                    }
+                    else if (FRAME_HEIGHT == 2160)
+                    {
+                        videoDisplayMode = bmdMode4K2160p5994;
+                    }
+                    else if (FRAME_HEIGHT > 2160)
+                    {
+                        videoDisplayMode = bmdMode4kDCI2398;
+                    }
+
+                    deckLinkDevice->StartCapture(videoDisplayMode);
                     return S_OK;
                 }
             }
