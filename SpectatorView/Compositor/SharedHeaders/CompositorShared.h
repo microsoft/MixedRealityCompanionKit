@@ -50,7 +50,7 @@ static_assert((USE_ELGATO + USE_DECKLINK + USE_OPENCV == 1),
 #define AUDIO_SAMPLE_RATE   48000
 // Output audio resolution - Average bytes per second.
 // This must be: 12000, 16000, 20000, or 24000.
-#define AUDIO_BPS           20000
+#define AUDIO_BPS           24000
 
 #define AUDIO_BUFSIZE (AUDIO_CHANNEL_SIZE * AUDIO_CHANNELS)
 

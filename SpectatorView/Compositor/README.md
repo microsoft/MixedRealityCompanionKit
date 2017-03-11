@@ -33,10 +33,11 @@ If you are not using a black magic capture card, you will need to install Open C
 #### If you are shooting at a resolution other than 1080P:
 + In CompositorShared.h in the SharedHeaders project, change **FRAME_WIDTH** and **FRAME_HEIGHT** to match the resolution you are recording.
 + Build UnityCompositorInterface for x64 and x86 and run CopyDLL.cmd
++ The DeckLinkManager will attempt to find the appropriate frame format based on your frame dimensions.  If your frame dimensions are not being picked up, you may need to modify the call to StartCapture in DeckLinkManager.cpp.
 
 #### If you are using a different capture card that does not run on BlackMagic's DeckLink SDK:
 + First try using the OpenCV FrameProvider:
-	+ **NOTE:** This will require an x64 build of Unity unless you built your own x86 OpenCV 3.1 binaries
+    + **NOTE:** This will require an x64 build of Unity unless you built your own x86 OpenCV 3.1 binaries
     + In CompositorShared.h in the SharedHeaders project, change **USE_OPENCV** to TRUE, change the other FrameProvider preprocessor definitions to FALSE.
     + In OpenCVFrameProvider.h, change **CAMERA_ID** to be the index of the capture device you are using.
 + If that did not work and your capture card has an SDK, use that:
@@ -52,7 +53,7 @@ If you are not using a black magic capture card, you will need to install Open C
 
 ## Application
 + When you have made all of the above code changes, build the entire solution for Release x86 and Release x64 (depending on what Unity architecture you are using).
-	+ Ensure SpationPerceptionHelper is built for x86 since it will be run on the HoloLens.
+    + Ensure SpationPerceptionHelper is built for x86 since it will be run on the HoloLens.
 
 ![Build](../DocumentationImages/compositor_build.png)
 
@@ -62,21 +63,21 @@ If you are not using a black magic capture card, you will need to install Open C
 + Press Play in Unity.
 + Ensure the Unity Game window is visible and "edit/ project settings/ player/ Run in Background" is checked for WSA and standalone.
 
-	![Run In Background](../DocumentationImages/Unity/run_in_bg.png)
+    ![Run In Background](../DocumentationImages/Unity/run_in_bg.png)
 
 + See sample project for more details about instrumenting your Unity project for spectator view.
 
-	![Compositor](../DocumentationImages/Unity/Compositor.png)
+    ![Compositor](../DocumentationImages/Unity/Compositor.png)
 
 + If you see a black screen: ensure your camera is on, lens cap is off, live view is on, and HDMI mirroring is on.
 + The spectator view Compositor window allows you to:
-	+ Start recording video
-	+ Take a picture
-	+ Change hologram opacity
-	+ Change the frame offset (which adjusts the color timestamp to account for capture card latency)
-	+ Open the directory the captures are saved to
-	+ Request spatial mapping data from the spectator view camera (if a SpatialMappingManager exists in your project)
-	+ Visualize the scene's composite view as well as color, holograms, and alpha channel individually.
+    + Start recording video
+    + Take a picture
+    + Change hologram opacity
+    + Change the frame offset (which adjusts the color timestamp to account for capture card latency)
+    + Open the directory the captures are saved to
+    + Request spatial mapping data from the spectator view camera (if a SpatialMappingManager exists in your project)
+    + Visualize the scene's composite view as well as color, holograms, and alpha channel individually.
 + If you take a picture or video, the file will be saved in "My Documents\HologramCapture\"
 + Holograms will not move with the camera until you follow the instructions in the sample project.
 + If you have followed all of the steps in the sample project: as you move the camera around, the composite image will show the holograms where they should be with respect to your HoloLens.

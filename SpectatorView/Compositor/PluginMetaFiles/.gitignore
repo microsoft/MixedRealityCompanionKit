@@ -1,11 +1,5 @@
 # dlls
-WSA/x64/*.dll
-WSA/x64/*.pdb
-WSA/x86/*.dll
-WSA/x86/*.pdb
-
-x64/*.dll
-x64/*.pdb
-
-x86/*.dll
-x86/*.pdb
+WSA/x64/*
+WSA/x86/*
+x64/*
+x86/*
