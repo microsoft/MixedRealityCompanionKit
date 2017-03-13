@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.Storage;
@@ -26,11 +28,21 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task BrowseForAppPackageAsync()
         {
-            FileOpenPicker filePicker = new FileOpenPicker();
-            filePicker.FileTypeFilter.Add(".appxbundle");
-            filePicker.CommitButtonText = "Select";
+            FolderPicker folderPicker = new FolderPicker();
+            folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+            folderPicker.FileTypeFilter.Add("*");
 
-            StorageFile file = await filePicker.PickSingleFileAsync();
+            StorageFolder folder = await folderPicker.PickSingleFolderAsync();
+            if (folder == null)
+            {
+                return;
+            }
+
+            Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("AppxFolderToken", folder);
+
+            IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
+            StorageFile file = files.FirstOrDefault(f => f.Name.EndsWith(".appxbundle"));
+
             if (file != null)
             {
                 this.AppPackageFile = file.Path;
