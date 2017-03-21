@@ -12,7 +12,7 @@ HoloLensCompanionKit contains the following feature areas:
 
 3. [MixedRemoteViewCompositor](MixedRemoteViewCompositor/README.md)
 
-54 [SpectatorView](SpectatorView/README.md)
+4. [SpectatorView](SpectatorView/README.md)
 
 5. [Windows Mixed Reality Commander](HoloLensCommander/README.md) (Formerly, HoloLens Commander)
 
