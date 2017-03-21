@@ -15,19 +15,37 @@ namespace HoloLensCommander
     /// <summary>
     /// Class that provides the relevant functionality of the Windows Device Portal.
     /// </summary>
-    public partial class HoloLensMonitor
+    public partial class DeviceMonitor
     {
         /// <summary>
-        /// Connects to a HoloLens.
+        /// Connects to a device.
         /// </summary>
         /// <param name="connectOptions">Options that specify how the connection is to be established.</param>
         /// <returns></returns>
         public async Task ConnectAsync(
             ConnectOptions connectOptions)
         {
-            this.devicePortalConnection = new HoloLensDevicePortalConnection(
-                    connectOptions.Address,
-                    connectOptions.UserName, 
+            string address = connectOptions.Address.ToLower();
+
+            if (!address.StartsWith("http"))
+            {
+                string scheme = "https";
+
+                if ((address == DefaultConnectionAddress) ||
+                    (address == DefaultConnectionAddressAsIp))
+                {
+                    scheme = "http";   
+                }
+
+                address = string.Format(
+                    "{0}://{1}", 
+                    scheme, 
+                    address);
+            }
+
+            this.devicePortalConnection = new DefaultDevicePortalConnection(
+                    address,
+                    connectOptions.UserName,
                     connectOptions.Password);
             DevicePortal portal = new DevicePortal(this.devicePortalConnection);
             portal.ConnectionStatus += DevicePortal_ConnectionStatus;
@@ -37,10 +55,9 @@ namespace HoloLensCommander
             Certificate certificate = await portal.GetRootDeviceCertificateAsync(true);
 
             // Establish the connection to the device.
-            // TODO: Add support for optionally setting the SSID and key.
             await portal.ConnectAsync(
-                null,
-                null,
+                connectOptions.Ssid,
+                connectOptions.NetworkKey,
                 updateConnection: connectOptions.UpdateConnection,
                 manualCertificate: certificate);
         }
@@ -76,7 +93,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Deletes a mixed reality file from the HoloLens.
+        /// Deletes a mixed reality file from the device.
         /// </summary>
         /// <param name="fileName">The name of the file to be deleted./param>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -106,9 +123,9 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the name of the HoloLens.
+        /// Gets the name of the device.
         /// </summary>
-        /// <returns>The HoloLens' name.</returns>
+        /// <returns>The device's name.</returns>
         public async Task<string> GetMachineNameAsync()
         {
             return await this.devicePortal.GetDeviceNameAsync();
@@ -158,24 +175,25 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Installs an application on this HoloLens.
+        /// Installs an application on this device.
         /// </summary>
-        /// <param name="appPackage">The full path to the application package.</param>
+        /// <param name="installFiles">Object describing the file(s) required to install an application.</param>
         /// <returns>Task object used for tracking method completion.</returns>
-        public async Task InstallApplicationAsync(string appPackage)
+        public async Task InstallApplicationAsync(AppInstallFiles installFiles)
         {
             await Task.Run(
                 async () =>
                 {
                     await this.devicePortal.InstallApplicationAsync(
                         null,
-                        appPackage,
-                        new List<string>());
+                        installFiles.AppPackageFile,
+                        installFiles.AppDependencyFiles,
+                        installFiles.AppCertificateFile);
                 });
         }
 
         /// <summary>
-        /// Launches an application on this HoloLens.
+        /// Launches an application on this device.
         /// </summary>
         /// <param name="appId">The application identifier.</param>
         /// <param name="packageName">The name of the application package.</param>
@@ -190,7 +208,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Reboots this HoloLens.
+        /// Reboots this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task RebootAsync()
@@ -199,7 +217,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Updates the interpupilary distance on the HoloLens.
+        /// Updates the interpupilary distance on the device.
         /// </summary>
         /// <param name="ipd">The value to set as the user's interpupilary distance.</param>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -209,7 +227,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Shuts down this HoloLens.
+        /// Shuts down this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task ShutdownAsync()
@@ -218,7 +236,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Starts a mixed reality recording on this HoloLens.
+        /// Starts a mixed reality recording on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task StartMixedRealityRecordingAsync()
@@ -231,7 +249,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stops the mixed reality recording on this HoloLens.
+        /// Stops the mixed reality recording on this devcie.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task StopMixedRealityRecordingAsync()
@@ -240,7 +258,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stops all running applications on this HoloLens.
+        /// Stops all running applications on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task TerminateAllApplicationsAsync()
@@ -263,7 +281,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stops a single application on this HoloLens.
+        /// Stops a single application on this device.
         /// </summary>
         /// <param name="packageName">Package name of the application to stop.</param>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -273,7 +291,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Uninstalls an applicaiton on this HoloLens.
+        /// Uninstalls an applicaiton on this device.
         /// </summary>
         /// <param name="packageName">Package name of the application to uninstall.</param>
         /// <returns>Task object used for tracking method completion.</returns>

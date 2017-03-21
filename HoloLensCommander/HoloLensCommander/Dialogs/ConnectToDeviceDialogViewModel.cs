@@ -38,10 +38,12 @@ namespace HoloLensCommander
         /// <summary>
         /// Update's the user selected data.
         /// </summary>
-        /// <param name="connectOptions">The options to be used when connecting to the HoloLens.</param>
+        /// <param name="connectOptions">The options to be used when connecting to the device.</param>
         internal void UpdateUserData(ConnectOptions connectOptions)
         {
             connectOptions.Address = this.Address;
+            connectOptions.Ssid = this.Ssid;
+            connectOptions.NetworkKey = this.NetworkKey;
             connectOptions.UpdateConnection = this.UpdateConnection;
         }
     }

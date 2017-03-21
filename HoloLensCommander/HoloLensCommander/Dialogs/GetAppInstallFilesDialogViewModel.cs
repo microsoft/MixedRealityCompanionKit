@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 namespace HoloLensCommander
 {
@@ -21,6 +24,9 @@ namespace HoloLensCommander
         /// </summary>
         public GetAppInstallFilesDialogViewModel()
         {
+            this.DependencyFiles = new Dictionary<string, StorageFile>();
+            this.DependencyFileNames = new ObservableCollection<string>();
+
             this.RegisterCommands();
         }
 
@@ -30,7 +36,9 @@ namespace HoloLensCommander
         /// <param name="installFiles">The application install files.</param>
         internal void UpdateUserData(AppInstallFiles installFiles)
         {
-            installFiles.AppPackageFileName = AppPackageFile;
+            installFiles.AppPackageFile = AppPackageFile;
+            installFiles.AppDependencyFiles.AddRange(DependencyFiles.Values);
+            installFiles.AppCertificateFile = AppCertificateFile;
         }
 
         /// <summary>
@@ -51,12 +59,34 @@ namespace HoloLensCommander
         {
             Task t;
 
+            this.AddDependencyFileCommand = new Command(
+                (parameter) =>
+                {
+                    // Assigning the return value of AddAppDependencyFileAsync to a Task object to avoid 
+                    // warning 4014 (call is not awaited).
+                    t = this.AddAppDependencyFileAsync();
+                });
+
+            this.BrowseForAppCertFileCommand = new Command(
+                (parameter) =>
+                {
+                    // Assigning the return value of BrowseForAppCertFileAsync to a Task object to avoid 
+                    // warning 4014 (call is not awaited).
+                    t = this.BrowseForAppCertFileAsync();
+                });
+
             this.BrowseForAppPackageCommand = new Command(
                 (parameter) =>
                 {
                     // Assigning the return value of BrowseForAppPackagesAsync to a Task object to avoid 
                     // warning 4014 (call is not awaited).
                     t = this.BrowseForAppPackageAsync();
+                });
+
+            this.RemoveDependencyFileCommand = new Command(
+                (parameter) =>
+                {
+                    this.RemoveAppDependencyFile();
                 });
         }
     }

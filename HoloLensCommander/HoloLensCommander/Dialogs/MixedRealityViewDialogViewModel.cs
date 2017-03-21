@@ -11,9 +11,9 @@ namespace HoloLensCommander
     /// </summary>
     partial class MixedRealityViewDialogViewModel : INotifyPropertyChanged
     {
-        /// The HoloLensMonitor object responsible for communication with this HoloLens.
+        /// The DeviceMonitor object responsible for communication with this device.
         /// </summary>
-        private HoloLensMonitor holoLensMonitor;
+        private DeviceMonitor deviceMonitor;
 
         /// <summary>
         /// Event that is notified when a property value has changed.
@@ -23,11 +23,11 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="MixedRealityViewDialogViewModel" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor responsible for communication with this HoloLens.</param>
+        /// <param name="monitor">The DeviceMonitor responsible for communication with this device.</param>
         public MixedRealityViewDialogViewModel(
-            HoloLensMonitor monitor)
+            DeviceMonitor monitor)
         {
-            this.holoLensMonitor = monitor;
+            this.deviceMonitor = monitor;
 
             this.StartLiveView();
         }
@@ -52,7 +52,7 @@ namespace HoloLensCommander
             // To conserve bandwidth, we will use the low resolution feed
             try
             {
-                this.LiveViewSource = this.holoLensMonitor.GetMixedRealityViewUri();
+                this.LiveViewSource = this.deviceMonitor.GetMixedRealityViewUri();
                 
                 this.CanStartLiveView = false;
                 this.CanStopLiveView = true;

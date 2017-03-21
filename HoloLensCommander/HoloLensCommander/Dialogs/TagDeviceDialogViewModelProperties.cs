@@ -4,18 +4,18 @@
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the TagHoloLensDialog object.
+    /// The view model for the TagDeviceDialog object.
     /// </summary>
-    partial class TagHoloLensDialogViewModel
+    partial class TagDeviceDialogViewModel
     {
         /// <summary>
-        /// Gets the address of the HoloLens being viewed.
+        /// Gets the address of the device being viewed.
         /// </summary>
         public string DeviceAddress
         { get; private set; }
 
         /// <summary>
-        /// Gets or sets the descriptive name of this HoloLens
+        /// Gets or sets the descriptive name of this device
         /// </summary>
         private string name = string.Empty;
         public string Name

@@ -8,13 +8,13 @@ HoloLensCompanionKit contains the following feature areas:
 
 1. [Holographic Remoting Host](RemotingHostSample/README.md)
 
-2. [HoloLens Commander](HoloLensCommander/README.md)
+2. [KinectIPD](KinectIPD/README.md)
 
-3. [KinectIPD](KinectIPD/README.md)
+3. [MixedRemoteViewCompositor](MixedRemoteViewCompositor/README.md)
 
-4. [MixedRemoteViewCompositor](MixedRemoteViewCompositor/README.md)
+54 [SpectatorView](SpectatorView/README.md)
 
-5. [SpectatorView](SpectatorView/README.md)
+5. [Windows Mixed Reality Commander](HoloLensCommander/README.md) (Formerly, HoloLens Commander)
 
 
 

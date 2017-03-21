@@ -4,12 +4,12 @@
 namespace HoloLensCommander
 {
     /// <summary>
-    /// Object encapsulating information associated (tagged) with a specific HoloLens.
+    /// Object encapsulating information associated (tagged) with a specific device.
     /// </summary>
     public class TagInformation
     {
         /// <summary>
-        /// A descriptive name assigned to the HoloLens.
+        /// A descriptive name assigned to the device.
         /// </summary>
         public string Name;
 
@@ -24,7 +24,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="TagInformation" /> class.
         /// </summary>
-        /// <param name="name">The descriptive name associated with the HoloLens.</param>
+        /// <param name="name">The descriptive name associated with the device.</param>
         public TagInformation(
             string name)
         {

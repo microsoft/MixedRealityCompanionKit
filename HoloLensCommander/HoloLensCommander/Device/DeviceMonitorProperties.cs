@@ -10,7 +10,7 @@ namespace HoloLensCommander
     /// <summary>
     /// Class that provides the relevant functionality of the Windows Device Portal.
     /// </summary>
-    public partial class HoloLensMonitor
+    public partial class DeviceMonitor
     {
         /// <summary>
         /// Returns the address (and port if explicitly specified) used to communicate with the device.
@@ -80,7 +80,6 @@ namespace HoloLensCommander
         /// </summary>
         public float Ipd
         { get; private set; }
-
 
         /// <summary>
         /// Returns the name of the connected device.

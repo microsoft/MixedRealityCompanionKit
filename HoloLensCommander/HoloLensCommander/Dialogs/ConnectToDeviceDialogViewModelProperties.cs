@@ -11,7 +11,7 @@ namespace HoloLensCommander
     public partial class ConnectToDeviceDialogViewModel
     {
         /// <summary>
-        /// Gets or sets the address to be used to make the connection to the HoloLens
+        /// Gets or sets the address to be used to make the connection to the device
         /// </summary>
         private string address = string.Empty;
         public string Address
@@ -26,12 +26,48 @@ namespace HoloLensCommander
                 if (this.address != value)
                 {
                     this.address = value;
-                    NotifyPropertyChanged("Address");
+                    this.NotifyPropertyChanged("Address");
                 }
             }
         }
 
-        private bool updateConnection = true;
+        private string networkKey = "";
+        public string NetworkKey
+        {
+            get
+            {
+                return this.networkKey;
+            }
+
+            set
+            {
+                if (this.networkKey != value)
+                {
+                    this.networkKey = value;
+                    this.NotifyPropertyChanged("NetworkKey");
+                }
+            }
+        }
+
+        private string ssid = "";
+        public string Ssid
+        {
+            get
+            {
+                return this.ssid;
+            }
+
+            set
+            {
+                if (this.ssid != value)
+                {
+                    this.ssid = value;
+                    this.NotifyPropertyChanged("Ssid");
+                }
+            }
+        }
+
+        private bool updateConnection = false;
         public bool UpdateConnection
         {
             get 
@@ -44,7 +80,7 @@ namespace HoloLensCommander
                 if (this.updateConnection != value)
                 {
                     this.updateConnection = value;
-                    NotifyPropertyChanged("UpdateConnection");
+                    this.NotifyPropertyChanged("UpdateConnection");
                 }
             }
         }

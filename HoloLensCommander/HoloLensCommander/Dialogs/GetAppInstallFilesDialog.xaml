@@ -10,21 +10,22 @@
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
-    MaxHeight="350">
+    MaxHeight="500" MaxWidth="650">
     <StackPanel>
         <TextBlock 
             x:Name="appPackageLabel" 
             Text="Application package" 
             TextWrapping="NoWrap" FontSize="16"
-            Width="450"/>
+            Width="600"/>
         <Canvas
-            Width="450" Height="55">
+            Width="600" Height="50">
             <TextBox
                 x:Name="appPackage"
-                Text="{Binding Path=AppPackageFile, Mode=TwoWay}"
-                ToolTipService.ToolTip="The full path to the application package file"
+                Text="{Binding Path=AppPackageFileName}"
+                ToolTipService.ToolTip="The application package file"
                 FontSize="16"
-                Width="395"
+                IsReadOnly="True"
+                Width="545"
                 Canvas.Top="5"/>
             <Button 
                 x:Name="browseForAppPackage"
@@ -33,15 +34,67 @@
                 ToolTipService.ToolTip="Browse for the application package file"
                 FontSize="16"
                 Width="50" Height="40"
-                Canvas.Left="400" Canvas.Top="1"/>
+                Canvas.Left="550"/>
         </Canvas>
+        <TextBlock 
+            x:Name="certFileLabel" 
+            Text="Application certificate" 
+            TextWrapping="NoWrap" FontSize="16"
+            Width="600"/>
         <Canvas
-            Width="450" Height="80">
-            <TextBlock 
-                x:Name="appxBundleRequiredLabel"
-                Text="NOTE: HoloLens Commander requires installation packages to be .appxbundle files."
-                TextWrapping="WrapWholeWords" FontSize="16" 
-                Width="450"/>
+            Width="600" Height="50">
+            <TextBox
+                x:Name="certFileName"
+                Text="{Binding Path=AppCertificateFileName}"
+                ToolTipService.ToolTip="The application certificate file"
+                FontSize="16"
+                IsReadOnly="True"
+                Width="545"
+                Canvas.Top="5"/>
+            <Button 
+                x:Name="browseForCertFile"
+                Content="..."
+                Command="{Binding Path=BrowseForAppCertFileCommand}"
+                ToolTipService.ToolTip="Browse for the application certificate file"
+                FontSize="16"
+                Width="50" Height="40"
+                Canvas.Left="550" Canvas.Top="1"/>
+        </Canvas>
+        <TextBlock 
+            x:Name="dependencyFilesLabel" 
+            Text="Dependency files" 
+            TextWrapping="NoWrap" FontSize="16"
+            Width="600"/>
+        <Canvas
+            Width="600" Height="115">
+            <ListBox 
+                x:Name="dependencyList" 
+                ItemsSource="{Binding Path=DependencyFileNames}"
+                SelectedItem="{Binding Path=SelectedDependencyFile, Mode=TwoWay}"
+                ToolTipService.ToolTip="Collection of dependency files"
+                FontSize="16"
+                Width="545" Height="100" 
+                BorderThickness="1"
+                ScrollViewer.HorizontalScrollMode="Enabled"
+                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                Canvas.Top="5"/>
+            <Button 
+                x:Name="addDependencyFile"
+                Content="&#xE109;"
+                Command="{Binding Path=AddDependencyFileCommand}"
+                ToolTipService.ToolTip="Add one or more dependency files"
+                FontFamily="Segoe MDL2 Assets" FontSize="16"
+                Width="50" Height="40"
+                Canvas.Left="550" Canvas.Top="1"/>
+            <Button 
+                x:Name="removeDependencyFile"
+                Content="&#xE108;"
+                Command="{Binding Path=RemoveDependencyFileCommand}"
+                IsEnabled="{Binding Path=CanRemoveDependencyFile}"
+                ToolTipService.ToolTip="Remove the selected dependency file"
+                FontFamily="Segoe MDL2 Assets" FontSize="16"
+                Width="50" Height="40"
+                Canvas.Left="550" Canvas.Top="46"/>
         </Canvas>
     </StackPanel>
 </ContentDialog>

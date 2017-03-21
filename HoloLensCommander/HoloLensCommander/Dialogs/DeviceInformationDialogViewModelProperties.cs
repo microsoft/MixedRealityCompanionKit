@@ -6,51 +6,51 @@ using System.Threading.Tasks;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensInformationDialog object.
+    /// The view model for the DeviceInformationDialog object.
     /// </summary>
-    public partial class HoloLensInformationDialogViewModel
+    public partial class DeviceInformationDialogViewModel
     {
         /// <summary>
-        /// Gets the address of the HoloLens.
+        /// Gets the address of the device.
         /// </summary>
         public string DeviceAddress
         {
             get
             {
-                return this.holoLensMonitor.Address;
+                return this.deviceMonitor.Address;
             }
         }
         
         /// <summary>
-        /// Gets the machine name of the HoloLens.
+        /// Gets the machine name of the device.
         /// </summary>
         public string MachineName
         {
             get 
             {
-                return this.holoLensMonitor.MachineName;
+                return this.deviceMonitor.MachineName;
             }
         }
 
         /// <summary>
-        /// Gets the operating system platform installed on the HoloLens.
+        /// Gets the operating system platform installed on the device.
         /// </summary>
-        public string OsPlatformName
+        public string OsPlatform
         {
             get 
             {
-                return this.holoLensMonitor.PlatformName;
+                return this.deviceMonitor.PlatformName;
             }
         }
 
         /// <summary>
-        /// Gets the operating system version installed on the HoloLens.
+        /// Gets the operating system version installed on the device.
         /// </summary>
         public string OsVersion
         {
             get 
             {
-                return this.holoLensMonitor.OperatingSystemVersion;
+                return this.deviceMonitor.OperatingSystemVersion;
             }
         }
     }

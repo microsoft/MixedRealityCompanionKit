@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage;
@@ -19,27 +20,6 @@ namespace HoloLensCommander
     static class Utilities
     {
         /// <summary>
-        /// Determines if a file exists.
-        /// </summary>
-        /// <param name="filePath">The full path to the file.</param>
-        /// <returns>True if the file exists, false if not.</returns>
-        public static async Task<bool> FileExists(string filePath)
-        {
-            bool exists = false;
-            try
-            {
-                StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
-
-                exists = true;
-            }
-            catch(FileNotFoundException)
-            {
-            }
-
-            return exists;
-        }
-
-        /// <summary>
         /// Gets the collection of application names from a list of PackageInfo objects.
         /// </summary>
         /// <param name="packages">List of PackageInfo.</param>
@@ -53,8 +33,9 @@ namespace HoloLensCommander
 
             foreach (PackageInfo packageInfo in packages)
             {
-                // TODO: - make this more 'generic'
-                if (packageInfo.Name != "Sign In")
+                if (!string.IsNullOrWhiteSpace(packageInfo.Name) &&
+                    !packageInfo.Name.StartsWith("@{")           &&
+                    !appNames.Contains(packageInfo.Name))
                 {
                     appNames.Add(packageInfo.Name);
                 }
@@ -67,7 +48,6 @@ namespace HoloLensCommander
 
             return appNames;
         }
-
 
         /// <summary>
         /// Gets the rectangle that encloses an element.
