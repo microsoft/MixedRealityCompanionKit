@@ -39,7 +39,7 @@ namespace HoloLensCommander
     public partial class DeviceMonitor : IDisposable
     {
         /// <summary>
-        /// The default address used when connecting to a devuce. This address assumes
+        /// The default address used when connecting to a device. This address assumes
         /// a USB connection.
         /// </summary>
         public static readonly string DefaultConnectionAddress = "localhost:10080";

@@ -174,7 +174,7 @@
                     <Button 
                         x:Name="startMrcRecording"
                         Content="Start"
-                        ToolTipService.ToolTip="StMixed Reality recording on selected devices"
+                        ToolTipService.ToolTip="Start Mixed Reality recording on the selected devices"
                         Command="{Binding StartMixedRealityRecordingCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
@@ -182,7 +182,7 @@
                     <Button 
                         x:Name="stopMrcRecording"
                         Content="Stop"
-                        ToolTipService.ToolTip="Stop Mixed Reality recording on selected devices"
+                        ToolTipService.ToolTip="Stop Mixed Reality recording on the selected devices"
                         Command="{Binding StopMixedRealityRecordingCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"

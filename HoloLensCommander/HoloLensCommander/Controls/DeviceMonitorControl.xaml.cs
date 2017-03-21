@@ -175,7 +175,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Launches an applicaiton on this device.
+        /// Launches an application on this device.
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
         /// <returns>The process identifier of the running application.</returns>

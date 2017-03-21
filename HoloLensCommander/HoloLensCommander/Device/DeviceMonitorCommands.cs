@@ -249,7 +249,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stops the mixed reality recording on this devcie.
+        /// Stops the mixed reality recording on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task StopMixedRealityRecordingAsync()
