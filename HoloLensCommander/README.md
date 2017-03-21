@@ -121,6 +121,8 @@ Note: All devices will be disconnected and will not be restorable via the Reconn
 #### Registered devices list
 The right side of the Windows Mixed Reality Commander interface contains the list of connected devices along with controls to manage device selection. Each entry provides the ability to select/deselect the specific device, view summary information related to the HoloLens (battery level, etc.) as well as access to functionality specific to that device.
 
+![Device Selection Controls](ReadmeImages/SelectionControls.png)
+
 Summary view for HoloLens.
 
 ![HoloLens Summary View](ReadmeImages/HoloLensSummaryView.png)
