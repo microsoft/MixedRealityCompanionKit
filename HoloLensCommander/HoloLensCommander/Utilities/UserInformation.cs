@@ -4,7 +4,7 @@
 namespace HoloLensCommander
 {
     /// <summary>
-    /// Object encapsulating user based information associated with a specific HoloLens.
+    /// Object encapsulating user based information associated with a specific device.
     /// </summary>
     public class UserInformation
     {

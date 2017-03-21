@@ -6,12 +6,13 @@ using Windows.UI.Xaml;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensMonitorControl object.
+    /// The view model for the DeviceMonitorControl object.
     /// </summary>
-    partial class HoloLensMonitorControlViewModel
+    partial class DeviceMonitorControlViewModel
     {
+        
         /// <summary>
-        /// Gets the address of this HoloLens.
+        /// Gets the address of this device.
         /// </summary>
         private string address;
         public string Address
@@ -32,10 +33,9 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the battery level of this HoloLens, as a percentage remaining.
+        /// Gets the battery level of this device, as a percentage remaining.
         /// </summary>
-        /// <remarks>The returned string is formatted to two significant decimal places. If there is no device
-        /// connected, the returned value will be "--"</remarks>
+        /// <remarks>The returned string is formatted to two significant decimal places.</remarks>
         private string batteryLevel = "";
         public string BatteryLevel
         {
@@ -55,7 +55,72 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets or sets a value specifying whether or not a connection has been established to this HoloLens.
+        /// Gets the device type label for this device.
+        /// </summary>
+        private string deviceTypeLabel = DeviceIsUnknownLabel;
+        public string DeviceTypeLabel
+        {
+            get
+            {
+                return this.deviceTypeLabel;
+            }
+
+            private set
+            {
+                if (this.deviceTypeLabel != value)
+                {
+                    this.deviceTypeLabel = value;
+                    this.NotifyPropertyChanged("DeviceTypeLabel");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Specifies the type of device this control is managing.
+        /// </summary>
+        public readonly DeviceFilters Filter;
+        
+        /// <summary>
+        /// Gets or sets a string representation of the interpuplliary distance recorded on this device.
+        /// </summary>
+        private string ipd = "";
+        public string Ipd
+        {
+            get
+            {
+                return this.ipd;
+            }
+
+            set
+            {
+                if (this.ipd != value)
+                {
+                    this.ipd = value;
+                    this.NotifyPropertyChanged("Ipd");
+                }
+            }
+        }
+
+        private Visibility ipdVisibility = Visibility.Visible;
+        public Visibility IpdVisibility
+        {
+            get
+            {
+                return this.ipdVisibility;
+            }
+
+            private set 
+            { 
+                if (this.ipdVisibility != value)
+                {
+                    this.ipdVisibility = value;
+                    this.NotifyPropertyChanged("IpdVisibility");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value specifying whether or not a connection has been established to this device.
         /// </summary>
         /// <remarks>This value is based on a periodic heartbeat. Loss or reestablishment of the connection
         /// may not be immediately reflected in this value.</remarks>
@@ -78,7 +143,29 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets or sets the user specified name associated with this HoloLens.
+        /// Gets or sets a value specifying whether or not the monitor control is selected in the UI.
+        /// </summary>
+        private bool isSelected = false;
+        public bool IsSelected
+        {
+            get
+            { 
+                return this.isSelected;
+            }
+
+            set
+            {
+                if (this.isSelected != value)
+                {
+                    this.isSelected = value;
+                    this.NotifyPropertyChanged("IsSelected");
+                    this.deviceMonitorControl.NotifySelectedChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the user specified name associated with this device.
         /// </summary>
         private string name;
         public string Name
@@ -99,7 +186,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets a value specifying whether or not this HoloLens is connected to an AC power source.
+        /// Gets a value specifying whether or not this device is connected to an AC power source.
         /// </summary>
         private string powerIndicator = OnBatteryLabel;
         public string PowerIndicator
@@ -115,48 +202,6 @@ namespace HoloLensCommander
                 {
                     this.powerIndicator = value;
                     this.NotifyPropertyChanged("PowerIndicator");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a string representation of the interpupliary distance recorded on this HoloLens.
-        /// </summary>
-        private string ipd = "";
-        public string Ipd
-        {
-            get
-            {
-                return this.ipd;
-            }
-
-            set
-            {
-                if (this.ipd != value)
-                {
-                    this.ipd = value;
-                    this.NotifyPropertyChanged("Ipd");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value specifying whether or not the monitor control is selected in the UI.
-        /// </summary>
-        private bool isSelected = false;
-        public bool IsSelected
-        {
-            get
-            { 
-                return this.isSelected;
-            }
-
-            set
-            {
-                if (this.isSelected != value)
-                {
-                    this.isSelected = value;
-                    this.NotifyPropertyChanged("IsSelected");
                 }
             }
         }

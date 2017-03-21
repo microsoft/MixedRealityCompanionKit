@@ -21,15 +21,11 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="YesNoMessageDialog" /> class.
         /// </summary>
         /// <param name="message">The message to display.</param>
-        /// <param name="title">The title of the message dialog.</param>
         public YesNoMessageDialog(
-            string message,
-            string title)
+            string message)
         {
-
             this.messageDialog = new MessageDialog(
-                message,
-                title);
+                message);
             this.messageDialog.Commands.Add(
                 new UICommand
                 { Label = "Yes", Id = MessageDialogButtonId.Yes });

@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
+using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
 
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensMonitorControl object.
+    /// The view model for the DeviceMonitorControl object.
     /// </summary>
-    partial class HoloLensMonitorControlViewModel
+    partial class DeviceMonitorControlViewModel
     {
         /// <summary>
         /// The identifiers of the context menu commands.
@@ -29,7 +30,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to disconnect from the HoloLens.
+        /// Command used to disconnect from the device.
         /// </summary>
         public ICommand DisconnectCommand
         { get; private set; }
@@ -39,9 +40,9 @@ namespace HoloLensCommander
         /// </summary>
         internal void Disconnect()
         {
-            this.holoLensMonitor.Disconnect();
+            this.deviceMonitor.Disconnect();
             this.IsConnected = false;
-            this.holoLensMonitorControl.NotifyDisconnected();
+            this.deviceMonitorControl.NotifyDisconnected();
         }
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task Reboot()
         {
-            await this.holoLensMonitor.RebootAsync();
+            await this.deviceMonitor.RebootAsync();
         }
 
         public ICommand SetIpdCommand
@@ -74,17 +75,20 @@ namespace HoloLensCommander
             PopupMenu contextMenu = new PopupMenu();
 
             contextMenu.Commands.Add(new UICommand(
-                "HoloLens Information",
+                "Device Information",
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.DeviceInfo));
             contextMenu.Commands.Add(new UICommand(
                 "Manage apps", 
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.ManageApps));
-            contextMenu.Commands.Add(new UICommand(
-                "Mixed Reality view",
-                ContextMenuCommandHandler,
-                MonitorContextMenuCommandIds.MixedRealityView));
+            if (this.deviceMonitor.Platform == DevicePortalPlatforms.HoloLens)
+            {
+                contextMenu.Commands.Add(new UICommand(
+                    "Mixed Reality view",
+                    ContextMenuCommandHandler,
+                    MonitorContextMenuCommandIds.MixedRealityView));
+            }
             contextMenu.Commands.Add(new UICommand(
                 "Show Device Portal",
                 ContextMenuCommandHandler,

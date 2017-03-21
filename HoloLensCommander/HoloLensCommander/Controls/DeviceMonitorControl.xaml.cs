@@ -14,30 +14,36 @@ namespace HoloLensCommander
     /// Delegate defining the method signature for handling the AppInstalled event.
     /// </summary>
     /// <param name="sender">The object sending the event.</param>
-    public delegate void AppInstalledEventHandler(HoloLensMonitorControl sender);
+    public delegate void AppInstalledEventHandler(DeviceMonitorControl sender);
 
     /// <summary>
     /// Delegate defining the method signature for handling the AppUninstalled event.
     /// </summary>
     /// <param name="sender">The object sending the event.</param>
-    public delegate void AppUninstalledEventHandler(HoloLensMonitorControl sender);
+    public delegate void AppUninstalledEventHandler(DeviceMonitorControl sender);
 
     /// <summary>
-    /// Delegate defining the method signature for handling the HoloLensDisconnected event.
+    /// Delegate defining the method signature for handling the DeviceDisconnected event.
     /// </summary>
     /// <param name="sender">The object sending the event.</param>
-    public delegate void HoloLensDisconnectedEventHandler(HoloLensMonitorControl sender);
+    public delegate void DeviceDisconnectedEventHandler(DeviceMonitorControl sender);
     
     /// <summary>
-    /// Delegate defining the method signature for handling the HoloLensTagChanged event.
+    /// Delegate defining the method signature for handling the IsSelectedChanged event.
     /// </summary>
     /// <param name="sender">The object sending the event.</param>
-    public delegate void HoloLensTagChangedEventHandler(HoloLensMonitorControl sender);
+    public delegate void IsSelectionChangedEventHander(DeviceMonitorControl sender);
 
     /// <summary>
-    /// The class that implements the custom xaml control used to monitor a connected HoloLens.
+    /// Delegate defining the method signature for handling the TagChanged event.
     /// </summary>
-    public sealed partial class HoloLensMonitorControl : Page, IDisposable
+    /// <param name="sender">The object sending the event.</param>
+    public delegate void TagChangedEventHandler(DeviceMonitorControl sender);
+
+    /// <summary>
+    /// The class that implements the custom xaml control used to monitor a connected device.
+    /// </summary>
+    public sealed partial class DeviceMonitorControl : Page, IDisposable
     {
         /// <summary>
         /// Event that is sent when an application install has completed.
@@ -50,34 +56,39 @@ namespace HoloLensCommander
         public event AppUninstalledEventHandler AppUninstalled;
 
         /// <summary>
-        /// Event that is sent when the HoloLens has been disconnected.
+        /// Event that is sent when the device has been disconnected.
         /// </summary>
-        public event HoloLensDisconnectedEventHandler Disconnected;
+        public event DeviceDisconnectedEventHandler DeviceDisconnected;
 
         /// <summary>
-        /// Event that is sent when the data tagged on the HoloLens has been changed.
+        /// Event that is sent when the device's selection state has been changed.
         /// </summary>
-        public event HoloLensTagChangedEventHandler TagChanged;
+        public event IsSelectionChangedEventHander SelectedChanged;
+
+        /// <summary>
+        /// Event that is sent when the data tagged to the device has been changed.
+        /// </summary>
+        public event TagChangedEventHandler TagChanged;
 
         /// <summary>
         /// Gets this page's DataContext as the underlying object's type.
         /// </summary>
-        internal HoloLensMonitorControlViewModel ViewModel
+        internal DeviceMonitorControlViewModel ViewModel
         {
             get
             {
-                return this.DataContext as HoloLensMonitorControlViewModel;
+                return this.DataContext as DeviceMonitorControlViewModel;
             }
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoloLensMonitorControl" /> class.
+        /// Initializes a new instance of the <see cref="DeviceMonitorControl" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor that is responsible for communication with the HoloLens.</param>
-        public HoloLensMonitorControl(
-            HoloLensMonitor monitor)
+        /// <param name="monitor">The DeviceMonitor that is responsible for communication with the device.</param>
+        public DeviceMonitorControl(
+            DeviceMonitor monitor)
         {
-            this.DataContext = new HoloLensMonitorControlViewModel(
+            this.DataContext = new DeviceMonitorControlViewModel(
                 this,
                 monitor);
             this.InitializeComponent();
@@ -87,14 +98,13 @@ namespace HoloLensCommander
         /// Finalizer so that we are assured we clean up all encapsulated resources.
         /// </summary>
         /// <remarks>Call Dispose on this object to avoid running the finalizer.</remarks>
-        ~HoloLensMonitorControl()
+        ~DeviceMonitorControl()
         {
-            Debug.WriteLine("[~HoloLensMonitorControl]");
             this.Dispose();
         }
 
         /// <summary>
-        /// Cleans up objects managed by the HoloLensMonitorControl.
+        /// Cleans up objects managed by the DeviceMonitorControl.
         /// </summary>
         /// <remarks>
         /// Failure to call this method will result in the object not being collected until
@@ -102,7 +112,6 @@ namespace HoloLensCommander
         /// </remarks>
         public void Dispose()
         {
-            Debug.WriteLine("[HoloLensMonitorControl.Dispose]");
             try
             {
                 this.ViewModel.Dispose();
@@ -115,7 +124,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Closes all applications running on this HoloLens.
+        /// Closes all applications running on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task CloseAllAppsAsync()
@@ -124,7 +133,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Disconnect from this HoloLens.
+        /// Disconnect from this device.
         /// </summary>
         internal void Disconnect()
         {
@@ -132,7 +141,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Queries the HoloLens for the names of all installed applications.
+        /// Queries the device for the names of all installed applications.
         /// </summary>
         /// <returns>List of application names.</returns>
         internal async Task<List<string>> GetInstalledAppNamesAsync()
@@ -140,6 +149,12 @@ namespace HoloLensCommander
             return await this.ViewModel.GetInstalledAppNamesAsync();
         }
 
+        /// <summary>
+        /// Downloads the mixed reality capture files on the device.
+        /// </summary>
+        /// <param name="parentFolder">The name of the folder in which to download the files.</param>
+        /// <param name="deleteAfterDownload">True to remove the downloaded files from the device.</param>
+        /// <returns>Task object used for tracking method completion.</returns>
         internal async Task GetMixedRealityFilesAsync(
             StorageFolder parentFolder,
             bool deleteAfterDownload)
@@ -150,17 +165,17 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Installs an application on this HoloLens.
+        /// Installs an application on this device.
         /// </summary>
         /// <param name="installFiles">Object describing the file(s) required to install an application.</param>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task InstallAppAsync(AppInstallFiles installFiles)
         {
-            await this.ViewModel.InstallAppAsync(installFiles.AppPackageFileName);
+            await this.ViewModel.InstallAppAsync(installFiles);
         }
 
         /// <summary>
-        /// Launches an applicaiton on this HoloLens.
+        /// Launches an application on this device.
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
         /// <returns>The process identifier of the running application.</returns>
@@ -190,7 +205,15 @@ namespace HoloLensCommander
         /// </summary>
         internal void NotifyDisconnected()
         {
-            this.Disconnected?.Invoke(this);
+            this.DeviceDisconnected?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Sends the SelectedChanged event to registered handlers.
+        /// </summary>
+        internal void NotifySelectedChanged()
+        {
+            this.SelectedChanged?.Invoke(this);
         }
 
         /// <summary>
@@ -202,7 +225,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Reboots this HoloLens.
+        /// Reboots this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task RebootAsync()
@@ -211,7 +234,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Shuts down this HoloLens.
+        /// Shuts down this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task ShutdownAsync()
@@ -220,7 +243,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Starts recording a mixed reality video on this HoloLens.
+        /// Starts recording a mixed reality video on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task StartMixedRealityRecordingAsync()
@@ -229,7 +252,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stops thea mixed reality recording on this HoloLens.
+        /// Stops thea mixed reality recording on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task StopMixedRealityRecordingAsync()
@@ -238,7 +261,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Uninstalls an application on this HoloLens.
+        /// Uninstalls an application on this device.
         /// </summary>
         /// <param name="appName">The name of the application to uninstall.</param>
         /// <returns>Task object used for tracking method completion.</returns>

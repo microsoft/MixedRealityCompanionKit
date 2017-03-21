@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="Connect to HoloLens"
+    Title="Connect to your device"
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
@@ -22,18 +22,44 @@
             <TextBox 
                 x:Name="address" 
                 Text="{Binding Path=Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                ToolTipService.ToolTip="The address on which to connect to the HoloLens"
+                ToolTipService.ToolTip="The address on which to connect to the device"
                 TextWrapping="NoWrap" 
                 Width="200"
                 Canvas.Left="67" Canvas.Top="5" />
         </Canvas>
-        <!-- TODO add user name and password? -->
+        <Canvas 
+            Width="450" Height="80">
+            <TextBlock 
+                x:Name="ssidLabel"
+                Text="SSID"
+                FontSize="16" 
+                Canvas.Top="10"/>
+            <TextBox 
+                x:Name="ssid" 
+                Text="{Binding Path=Ssid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                ToolTipService.ToolTip="The SSID on which to configure the device"
+                TextWrapping="NoWrap" 
+                Width="383"
+                Canvas.Left="67" Canvas.Top="5" />
+            <TextBlock 
+                x:Name="keyLabel"
+                Text="Key"
+                FontSize="16" 
+                Canvas.Top="50"/>
+            <PasswordBox 
+                x:Name="key" 
+                Password="{Binding Path=NetworkKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                ToolTipService.ToolTip="The network key for the specified SSID"
+                Width="383"
+                PasswordRevealMode="Peek"
+                Canvas.Left="67" Canvas.Top="45" />
+        </Canvas>
         <Canvas 
             Width="450" Height="40">
             <CheckBox 
                 x:Name="updateConnection" 
                 Content="Update Connection" 
-                ToolTipService.ToolTip="Should post-connect communications use the discovered WiFi address of the HoloLens?"
+                ToolTipService.ToolTip="Should post-connect communications use the discovered WiFi address of your device?"
                 IsChecked="{Binding Path=UpdateConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                 Canvas.Top="5"/>
         </Canvas>

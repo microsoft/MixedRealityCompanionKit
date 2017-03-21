@@ -53,13 +53,13 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the address of the HoloLens being viewed.
+        /// Gets the address of the device being viewed.
         /// </summary>
         public string DeviceAddress
         {
             get
             {
-                return this.holoLensMonitor.Address;
+                return this.deviceMonitor.Address;
             }
         }
 

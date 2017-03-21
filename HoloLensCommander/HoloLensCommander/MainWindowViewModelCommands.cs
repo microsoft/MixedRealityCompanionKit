@@ -12,6 +12,7 @@ using Windows.Storage;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Microsoft.Tools.WindowsDevicePortal;
 
 namespace HoloLensCommander
 {
@@ -31,7 +32,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to close all applications on the selected HoloLens devices.
+        /// Command used to close all applications on the selected devices.
         /// </summary>
         public ICommand CloseAllAppsCommand
         { get; private set; }
@@ -41,7 +42,7 @@ namespace HoloLensCommander
         /// </summary>
         private void CloseAllApps()
         {
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 // Assigning the return value of CloseAllAppsAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
@@ -52,7 +53,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to connect to a HoloLens.
+        /// Command used to connect to a device.
         /// </summary>
         public ICommand ConnectToDeviceCommand
         { get; private set; }
@@ -60,8 +61,8 @@ namespace HoloLensCommander
         /// <summary>
         /// Implementation of the connect to device command.
         /// </summary>
-        /// <param name="connectOptions">Options used when connecting to the HoloLens.</param>
-        /// <param name="name">Descriptive name to assign to the HoloLens.</param>
+        /// <param name="connectOptions">Options used when connecting to the device.</param>
+        /// <param name="name">Descriptive name to assign to the device.</param>
         /// <param name="suppressDialog">True causes the connection dialog to not be shown./param>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ConnectToDeviceAsync(
@@ -86,30 +87,32 @@ namespace HoloLensCommander
 
             if (string.IsNullOrWhiteSpace(connectOptions.Address))
             {
-                connectOptions.Address = DefaultConnectionAddress;
+                connectOptions.Address = DeviceMonitor.DefaultConnectionAddress;
             }
 
-            HoloLensMonitor monitor = new HoloLensMonitor(this.dispatcher);
+            DeviceMonitor monitor = new DeviceMonitor(this.dispatcher);
             try
             {
+                this.StatusMessage = string.Format(
+                    "Connecting to the device at {0}",
+                    connectOptions.Address);
+
                 await monitor.ConnectAsync(connectOptions); 
 
-                await this.RegisterHoloLensAsync(
+                await this.RegisterDeviceAsync(
                     monitor, 
                     name);
 
                 await this.RefreshCommonAppsAsync();
 
-                this.StatusMessage = string.Format(
-                    "Connected to the HoloLens at {0}", 
-                    monitor.Address);
+                this.StatusMessage = "";
             }
             catch
             {
                 string addr = connectOptions.Address;
-                if (connectOptions.Address == "localhost:10080")
+                if (connectOptions.Address == DeviceMonitor.DefaultConnectionAddress)
                 {
-                    addr = "the attached HoloLens";
+                    addr = "the attached device";
                 }
 
                 this.StatusMessage = string.Format(
@@ -119,7 +122,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to deselect all of the registered HoloLens devices.
+        /// Command used to deselect all of the registered devices.
         /// </summary>
         public ICommand DeselectAllDevicesCommand
         { get; private set; }
@@ -129,15 +132,28 @@ namespace HoloLensCommander
         /// </summary>
         private void DeselectAllDevices()
         {
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            // Suppress the refresh call that occurs in the SelectionChanged event handler.
+            this.suppressRefreshCommonApps = true;
+
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                HoloLensMonitorControlViewModel monitorViewModel = monitor.ViewModel;
-                monitorViewModel.IsSelected = false;
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
+                if ((monitorViewModel.Filter & this.SelectionFilter) == monitorViewModel.Filter)
+                {
+                    monitorViewModel.IsSelected = false;
+                }
             }
+
+            // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.RefreshCommonAppsAsync();
+
+            // Restore the nominal behavior of the SelectionChanged event handler.
+            this.suppressRefreshCommonApps = false;
         }
 
         /// <summary>
-        /// Command used to forget all of the registered HoloLens devices.
+        /// Command used to forget all of the registered devices.
         /// </summary>
         public ICommand ForgetConnectionsCommand
         { get; private set; }
@@ -149,8 +165,7 @@ namespace HoloLensCommander
         private async Task ForgetAllConnectionsAsync()
         {
             YesNoMessageDialog messageDialog = new YesNoMessageDialog(
-                "Are you sure you want to remove all connected HoloLens devices?",
-                "HoloLens Commander");
+                "Are you sure you want to remove all connected devices?");
             if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
             {
                 return;
@@ -158,7 +173,7 @@ namespace HoloLensCommander
 
             this.suppressSave = true;
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 monitor.Disconnect();
             }
@@ -173,7 +188,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to install an application on the selected HoloLens devices.
+        /// Command used to install an application on the selected devices.
         /// </summary>
         public ICommand InstallAppCommand
         { get; private set; }
@@ -189,22 +204,16 @@ namespace HoloLensCommander
             ContentDialog dialog = new GetAppInstallFilesDialog(installFiles);
             await dialog.ShowAsync();
             
-            if (string.IsNullOrWhiteSpace(installFiles.AppPackageFileName))
+            if (installFiles.AppPackageFile == null)
             {
                 return;
             }
 
-            // Validate the file exists.
-            if (!(await Utilities.FileExists(installFiles.AppPackageFileName)))
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                this.StatusMessage = string.Format(
-                    "Could not find {0}",
-                    installFiles.AppPackageFileName);
-                return;
-            }
+                DeviceMonitorControlViewModel viewModel = monitor.ViewModel;
+                if (!viewModel.IsSelected) { continue; }
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
-            {
                 // Assigning the return value of InstallAppAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
                 Task t = monitor.InstallAppAsync(installFiles);
@@ -212,7 +221,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to launch an application on the selected HoloLens devices.
+        /// Command used to launch an application on the selected devices.
         /// </summary>
         public ICommand LaunchAppCommand
         { get; private set; }
@@ -224,7 +233,7 @@ namespace HoloLensCommander
         {
             string appName = this.SelectedApp as string;
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 // Assigning the return value of LaunchAppAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
@@ -233,7 +242,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to reboot the selected HoloLens devices.
+        /// Command used to reboot the selected devices.
         /// </summary>
         public ICommand RebootDevicesCommand
         { get; private set; }
@@ -245,14 +254,13 @@ namespace HoloLensCommander
         private async Task RebootDevicesAsync()
         {
             YesNoMessageDialog messageDialog = new YesNoMessageDialog(
-                "Are you sure you want to reboot the selected HoloLens devices?",
-                "HoloLens Commander");
+                "Are you sure you want to reboot the selected devices?");
             if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
             {
                 return;
             }
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 // Assigning the return value of RebootAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
@@ -261,7 +269,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to refresh the list of applications that are installed on all of on the selected HoloLens devices.
+        /// Command used to refresh the list of applications that are installed on all of on the selected devices.
         /// </summary>
         public ICommand RefreshCommonAppsCommand
         { get; private set; }
@@ -272,10 +280,15 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task RefreshCommonAppsAsync()
         {
+            this.StatusMessage = "Refreshing common applications";
+
             List<string> commonAppNames = new List<string>();
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
+                DeviceMonitorControlViewModel viewModel = monitor.ViewModel;
+                if (!viewModel.IsSelected) { continue; }
+
                 List<string> deviceAppNames = await monitor.GetInstalledAppNamesAsync();
 
                 // If this is the first device queried...
@@ -296,7 +309,7 @@ namespace HoloLensCommander
                             appNamesToRemove.Add(name);
                         }
                     }
-
+                    
                     foreach (string name in appNamesToRemove)
                     {
                         commonAppNames.Remove(name);
@@ -305,10 +318,12 @@ namespace HoloLensCommander
             }
 
             this.UpdateCommonAppsCollection(commonAppNames);
+
+            this.StatusMessage = "";
         }
 
         /// <summary>
-        /// Command used to reconnect to HoloLens devices from the previous session.
+        /// Command used to reconnect to devices from the previous session.
         /// </summary>
         public ICommand ReconnectToDevicesCommand
         { get; private set; }
@@ -362,16 +377,21 @@ namespace HoloLensCommander
                 MixedRealityFilesFolderName,
                 CreationCollisionOption.OpenIfExists);
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                await monitor.GetMixedRealityFilesAsync(
-                    folder,
-                    this.DeleteMixedRealityFilesAfterSave);
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
+
+                if ((monitorViewModel.Filter & DeviceFilters.HoloLens) == DeviceFilters.HoloLens)
+                {
+                    await monitor.GetMixedRealityFilesAsync(
+                        folder,
+                        this.DeleteMixedRealityFilesAfterSave);
+                }
             }
         }
 
         /// <summary>
-        /// Command used to select all of the the registered HoloLens devices.
+        /// Command used to select all of the the registered devices.
         /// </summary>
         public ICommand SelectAllDevicesCommand
         { get; private set; }
@@ -381,12 +401,31 @@ namespace HoloLensCommander
         /// </summary>
         private void SelectAllDevices()
         {
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            // Suppress the refresh call that occurs in the SelectionChanged event handler.
+            this.suppressRefreshCommonApps = true;
+
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                HoloLensMonitorControlViewModel monitorViewModel = monitor.ViewModel;
-                monitorViewModel.IsSelected = true;
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
+                if ((monitorViewModel.Filter & this.SelectionFilter) == monitorViewModel.Filter)
+                {
+                    monitorViewModel.IsSelected = true;
+                }
             }
+
+            // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.RefreshCommonAppsAsync();
+
+            // Restore the nominal behavior of the SelectionChanged event handler.
+            this.suppressRefreshCommonApps = false;
         }
+
+        /// <summary>
+        /// Command used to send a message to the admiral account.
+        /// </summary>
+        public ICommand SendMessageToAdmiralCommand
+        { get; private set; }
 
         /// <summary>
         /// Command used to display the connect context menu.
@@ -424,7 +463,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to shutdown the selected HoloLens devices.
+        /// Command used to shutdown the selected devices.
         /// </summary>
         public ICommand ShutdownDevicesCommand
         { get; private set; }
@@ -435,14 +474,13 @@ namespace HoloLensCommander
         private async Task ShutdownDevicesAsync()
         {
             YesNoMessageDialog messageDialog = new YesNoMessageDialog(
-                "Are you sure you want to shutdown the selected HoloLens devices?",
-                "HoloLens Commander");
+                "Are you sure you want to shutdown the selected devices?");
             if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
             {
                 return;
             }
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 // Assigning the return value of ShutdownAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
@@ -451,7 +489,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to start recording a mixed reality video on the selected HoloLens devices.
+        /// Command used to start recording a mixed reality video on the selected devices.
         /// </summary>
         public ICommand StartMixedRealityRecordingCommand
         { get; private set; }
@@ -460,16 +498,23 @@ namespace HoloLensCommander
         /// Implementation of the start mixed reality recording command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task StartMixedRealityRecording()
+        private void StartMixedRealityRecording()
         {
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                await monitor.StartMixedRealityRecordingAsync();
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
+
+                if ((monitorViewModel.Filter & DeviceFilters.HoloLens) == DeviceFilters.HoloLens)
+                {
+                    // Assigning the return value of StartMixedRealityRecordingAsync 
+                    // to a Task object to avoid warning 4014 (call is not awaited).
+                    Task t = monitor.StartMixedRealityRecordingAsync();
+                }
             }
         }
 
         /// <summary>
-        /// Command used to stop the mixed reality recording on the selected HoloLens devices.
+        /// Command used to stop the mixed reality recording on the selected devices.
         /// </summary>
         public ICommand StopMixedRealityRecordingCommand
         { get; private set; }
@@ -477,17 +522,22 @@ namespace HoloLensCommander
         /// <summary>
         /// Implementation of the stop mixed reality recording command.
         /// </summary>
-        /// <returns>Task object used for tracking method completion.</returns>
-        private async Task StopMixedRealityRecording()
+        private void StopMixedRealityRecording()
         {
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                await monitor.StopMixedRealityRecordingAsync();
-            }
-        }
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
 
+                if ((monitorViewModel.Filter & DeviceFilters.HoloLens) == DeviceFilters.HoloLens)
+                {
+                    // Assigning the return value of StopMixedRealityRecordingAsync 
+                    // to a Task object to avoid warning 4014 (call is not awaited).
+                    Task t = monitor.StopMixedRealityRecordingAsync();
+                }                
+            }
+        }       
         /// <summary>
-        /// Command used to uninstall an application on the selected HoloLens devices.
+        /// Command used to uninstall an application on the selected devices.
         /// </summary>
         public ICommand UninstallAppCommand
         { get; private set; }
@@ -496,17 +546,35 @@ namespace HoloLensCommander
         /// Implementation of the uninstall application command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task UninstallApp()
+        private void UninstallApp()
         {
             string appName = this.SelectedApp as string;
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 // Assigning the return value of UninstallAppAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
                 Task t = monitor.UninstallAppAsync(appName);
             }
         }
+
+        /// <summary>
+        /// Command indicating that the select all/none buttons should use the all devices filter.
+        /// </summary>
+        public ICommand UseAllDevicesFilterCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Command indicating that the select all/none buttons should use the desktop filter.
+        /// </summary>
+        public ICommand UseDesktopFilterCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Command indicating that the select all/none buttons should use the HoloLens filter.
+        /// </summary>
+        public ICommand UseHoloLensFilterCommand
+        { get; private set; }
 
         /// <summary>
         /// Handles connect context menu command selection.
@@ -545,7 +613,7 @@ namespace HoloLensCommander
         /// Handles the AppInstalled event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
-        private void HoloLensMonitorControl_AppInstalled(HoloLensMonitorControl sender)
+        private void DeviceMonitorControl_AppInstalled(DeviceMonitorControl sender)
         {
             // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
             // warning 4014 (call is not awaited).
@@ -556,7 +624,7 @@ namespace HoloLensCommander
         /// Handles the AppUninstalled event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
-        private void HoloLensMonitorControl_AppUninstalled(HoloLensMonitorControl sender)
+        private void DeviceMonitorControl_AppUninstalled(DeviceMonitorControl sender)
         {
             // Assigning the return value of RefreshCommonAppsAsync to a Task object to avoid 
             // warning 4014 (call is not awaited).
@@ -567,18 +635,31 @@ namespace HoloLensCommander
         /// Handles the Disconnected event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
-        private void HoloLensMonitorControl_Disconnected(HoloLensMonitorControl sender)
+        private void DeviceMonitorControl_Disconnected(DeviceMonitorControl sender)
         {
-            // Assigning the return value of UnregisterHoloLensAsync to a Task object to avoid 
+            // Assigning the return value of UnregisterDeviceAsync to a Task object to avoid 
             // warning 4014 (call is not awaited).
-            Task t = this.UnregisterHoloLensAsync(sender);
+            Task t = this.UnregisterDeviceAsync(sender);
+        }
+
+        /// <summary>
+        /// Handles the SelectedChanged event.
+        /// </summary>
+        /// <param name="sender">The object which sent this event.</param>
+        private void DeviceMonitorControl_SelectedChanged(DeviceMonitorControl sender)
+        {
+            if (this.suppressRefreshCommonApps) { return; }
+
+            // Assigning the return value of UnregisterDeviceAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.RefreshCommonAppsAsync();
         }
 
         /// <summary>
         /// Handles the TagChanged event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
-        private void HoloLensMonitorControl_TagChanged(HoloLensMonitorControl sender)
+        private void DeviceMonitorControl_TagChanged(DeviceMonitorControl sender)
         {
             // Assigning the return value of SaveConnectionsAsync to a Task object to avoid 
             // warning 4014 (call is not awaited).
@@ -586,7 +667,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Read saved HoloLens connections from disk.
+        /// Read saved device connections from disk.
         /// </summary>
         /// <returns>List of connection information (address, name, etc).</returns>
         private async Task<List<ConnectionInformation>> LoadConnectionsAsync()
@@ -616,25 +697,26 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Registers the HoloLensMonitor with the application.
+        /// Registers the DeviceMonitor with the application.
         /// </summary>
-        /// <param name="monitor">HoloLens to register.</param>
-        /// <param name="name">Descriptive name of the HoloLens.</param>
+        /// <param name="monitor">Device to register.</param>
+        /// <param name="name">Descriptive name of the device.</param>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task RegisterHoloLensAsync(
-            HoloLensMonitor monitor,
+        private async Task RegisterDeviceAsync(
+            DeviceMonitor monitor,
             string name)
         {
-            HoloLensMonitorControl holoLensMonitorControl = new HoloLensMonitorControl(monitor);
-            holoLensMonitorControl.AppInstalled += HoloLensMonitorControl_AppInstalled;
-            holoLensMonitorControl.AppUninstalled += HoloLensMonitorControl_AppUninstalled;
-            holoLensMonitorControl.Disconnected += HoloLensMonitorControl_Disconnected;
-            holoLensMonitorControl.TagChanged += HoloLensMonitorControl_TagChanged;
+            DeviceMonitorControl deviceMonitorControl = new DeviceMonitorControl(monitor);
+            deviceMonitorControl.AppInstalled += DeviceMonitorControl_AppInstalled;
+            deviceMonitorControl.AppUninstalled += DeviceMonitorControl_AppUninstalled;
+            deviceMonitorControl.DeviceDisconnected += DeviceMonitorControl_Disconnected;
+            deviceMonitorControl.SelectedChanged += DeviceMonitorControl_SelectedChanged;
+            deviceMonitorControl.TagChanged += DeviceMonitorControl_TagChanged;
 
-            HoloLensMonitorControlViewModel viewModel = holoLensMonitorControl.DataContext as HoloLensMonitorControlViewModel;
+            DeviceMonitorControlViewModel viewModel = deviceMonitorControl.DataContext as DeviceMonitorControlViewModel;
             viewModel.Name = name;
 
-            this.RegisteredDevices.Add(holoLensMonitorControl);
+            this.RegisteredDevices.Add(deviceMonitorControl);
             if (this.RegisteredDevices.Count > 0)
             {
                 this.HaveRegisteredDevices = true;
@@ -644,7 +726,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Saves HoloLens connections to disk.
+        /// Saves device connections to disk.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task SaveConnectionsAsync()
@@ -656,9 +738,9 @@ namespace HoloLensCommander
 
             List<ConnectionInformation> connections = new List<ConnectionInformation>();
 
-            foreach (HoloLensMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                HoloLensMonitorControlViewModel monitorViewModel = monitor.ViewModel;
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
 
                 connections.Add(new ConnectionInformation(
                     monitorViewModel.Address,
@@ -685,7 +767,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stores a set of credentials to be used as the default when connecting to a HoloLens.
+        /// Stores a set of credentials to be used as the default when connecting to a device.
         /// </summary>
         private void SetDefaultCredentials()
         {
@@ -694,11 +776,11 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Removes the specified HoloLens from monitoring.
+        /// Removes the specified device from monitoring.
         /// </summary>
-        /// <param name="monitorControl">The HoloLensMonitorControl tracking the HoloLens to be removed.</param>
+        /// <param name="monitorControl">The DeviceMonitorControl tracking the device to be removed.</param>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task UnregisterHoloLensAsync(HoloLensMonitorControl monitorControl)
+        private async Task UnregisterDeviceAsync(DeviceMonitorControl monitorControl)
         {
             this.RegisteredDevices.Remove(monitorControl);
             if (this.RegisteredDevices.Count == 0)
@@ -710,13 +792,12 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Updates the current credentials uses when connecting to a HoloLens to the previously stored default.
+        /// Updates the current credentials uses when connecting to a device to the previously stored default.
         /// </summary>
         private void UseDefaultCredentials()
         {
             this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
             this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
         }
-
     }
 }

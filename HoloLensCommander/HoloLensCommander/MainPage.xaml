@@ -7,6 +7,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <Style TargetType="RadioButton">
+            <Setter Property="MinWidth" Value="0"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="310"/>
@@ -32,7 +38,7 @@
                     <Button
                         x:Name="connectToDevice"
                         Content="Connect" 
-                        ToolTipService.ToolTip="Connect to the attached HoloLens"
+                        ToolTipService.ToolTip="Connect to your device"
                         Command="{Binding ConnectToDeviceCommand}" 
                         IsEnabled="{Binding CredentialsSet}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
@@ -94,7 +100,7 @@
                         Canvas.Left="10" Canvas.Top="10"/>
                     <ComboBox 
                         x:Name="commonAppsList"
-                        ToolTipService.ToolTip="Applications installed on all connected HoloLens devices"
+                        ToolTipService.ToolTip="Applications installed on all connected devices"
                         ItemsSource="{Binding Path=CommonDeviceApps}"
                         SelectedItem="{Binding Path=SelectedApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
@@ -113,7 +119,7 @@
                     <Button 
                         x:Name="launchApp" 
                         Content="Run"
-                        ToolTipService.ToolTip="Run the selected app on the selected HoloLens devices"
+                        ToolTipService.ToolTip="Run the selected app on the selected devices"
                         Command="{Binding LaunchAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
@@ -123,7 +129,7 @@
                     <Button
                         x:Name="closeAllApps"
                         Content="Close All"
-                        ToolTipService.ToolTip="Stops all applications on the selected HoloLens devices"
+                        ToolTipService.ToolTip="Stops all applications on the selected devices"
                         Command="{Binding CloseAllAppsCommand}" 
                         IsEnabled="{Binding HaveRegisteredDevices}"
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
@@ -133,7 +139,7 @@
                     <Button 
                         x:Name="installApp" 
                         Content="Install"
-                        ToolTipService.ToolTip="Install an app on the selected HoloLens devices"
+                        ToolTipService.ToolTip="Install an app on the selected devices"
                         Command="{Binding InstallAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
@@ -143,7 +149,7 @@
                     <Button 
                         x:Name="uninstallApp" 
                         Content="Uninstall"
-                        ToolTipService.ToolTip="Uninstalls the selected app on the selected HoloLens devices"
+                        ToolTipService.ToolTip="Uninstalls the selected app on the selected devices"
                         Command="{Binding UninstallAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
@@ -168,7 +174,7 @@
                     <Button 
                         x:Name="startMrcRecording"
                         Content="Start"
-                        ToolTipService.ToolTip="StMixed Reality recording on selected HoloLens devices"
+                        ToolTipService.ToolTip="Start Mixed Reality recording on the selected devices"
                         Command="{Binding StartMixedRealityRecordingCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
@@ -176,7 +182,7 @@
                     <Button 
                         x:Name="stopMrcRecording"
                         Content="Stop"
-                        ToolTipService.ToolTip="Stop Mixed Reality recording on selected HoloLens devices"
+                        ToolTipService.ToolTip="Stop Mixed Reality recording on the selected devices"
                         Command="{Binding StopMixedRealityRecordingCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
@@ -184,7 +190,7 @@
                     <Button 
                         x:Name="saveMrcFiles"
                         Content="Save"
-                        ToolTipService.ToolTip="Save Mixed Reality files from the selected HoloLens devices"
+                        ToolTipService.ToolTip="Save Mixed Reality files from the selected devices"
                         Command="{Binding SaveMixedRealityFilesCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
@@ -192,7 +198,7 @@
                     <CheckBox 
                         x:Name="deleteOnSave" 
                         Content="Delete files after saving" 
-                        ToolTipService.ToolTip="Delete Mixed Reality files from the selected HoloLens devices after they have been saved?"
+                        ToolTipService.ToolTip="Delete Mixed Reality files from the selected devices after they have been saved?"
                         IsChecked="{Binding Path=DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="18"
@@ -214,7 +220,7 @@
                     <Button
                         x:Name="rebootDevices"
                         Content="&#xEA6A;"
-                        ToolTipService.ToolTip="Reboot the selected HoloLens devices"
+                        ToolTipService.ToolTip="Reboot the selected devices"
                         Command="{Binding Path=RebootDevicesCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
@@ -224,7 +230,7 @@
                     <Button
                         x:Name="shutdownDevices"
                         Content="&#xE7BA;"
-                        ToolTipService.ToolTip="Shutdown the selected HoloLens devices"
+                        ToolTipService.ToolTip="Shutdown the selected devices"
                         Command="{Binding Path=ShutdownDevicesCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -234,7 +240,7 @@
                     <Button
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
-                        ToolTipService.ToolTip="Remove all connected HoloLens devices"
+                        ToolTipService.ToolTip="Remove all connected devices"
                         Command="{Binding ForgetConnectionsCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -253,7 +259,7 @@
                 <Button 
                     x:Name="selectAll"
                     Content="Select All"
-                    ToolTipService.ToolTip="Selects all connected HoloLens devices"
+                    ToolTipService.ToolTip="Selects all connected devices"
                     Command="{Binding Path=SelectAllDevicesCommand}" 
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
@@ -262,12 +268,34 @@
                 <Button 
                     x:Name="selectNone"
                     Content="Select None"
-                    ToolTipService.ToolTip="Deselects all connected HoloLens devices"
+                    ToolTipService.ToolTip="Deselects all connected devices"
                     Command="{Binding Path=DeselectAllDevicesCommand}" 
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="30" 
                     Canvas.Left="120" Canvas.Top="5"/>
+                <RadioButton 
+                    x:Name="allDevices" 
+                    GroupName="deviceTypeFilters"
+                    Content="All"
+                    Command="{Binding Path=UseAllDevicesFilterCommand}"
+                    IsChecked="True"
+                    HorizontalAlignment="Left" Width="60" 
+                    Canvas.Left="240" Canvas.Top="5"/>
+                <RadioButton 
+                    x:Name="holoLensDevices" 
+                    GroupName="deviceTypeFilters"
+                    Content="HoloLens" 
+                    Command="{Binding Path=UseHoloLensFilterCommand}"
+                    HorizontalAlignment="Left" Width="110" 
+                    Canvas.Left="310" Canvas.Top="5"/>
+                <RadioButton 
+                    x:Name="desktopDevices" 
+                    GroupName="deviceTypeFilters"
+                    Content="Windows PC" 
+                    Command="{Binding Path=UseDesktopFilterCommand}"
+                    HorizontalAlignment="Left" Width="130" 
+                    Canvas.Left="420" Canvas.Top="5"/>
             </Canvas>
             <ListBox 
                 x:Name="listBox" 
@@ -275,12 +303,11 @@
                 Padding="0"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Auto"/>
         </StackPanel>
-
         <TextBlock Grid.Row="1" Grid.Column="1"
-            x:Name="textBlock" 
+            x:Name="statusMessage" 
             Text="{Binding Path=StatusMessage}"
             TextWrapping="NoWrap" FontSize="16"
-            HorizontalAlignment="Stretch" VerticalAlignment="Top"
-            Margin="10,10,10,10"  />
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            Margin="0,5,0,5"/>
     </Grid>
 </Page>

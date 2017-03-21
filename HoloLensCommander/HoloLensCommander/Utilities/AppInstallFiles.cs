@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
+using Windows.Storage;
 
 namespace HoloLensCommander
 {
@@ -10,29 +11,24 @@ namespace HoloLensCommander
     /// </summary>
     public class AppInstallFiles
     {
-        /// <summary>
-        /// Gets or sets the full path to the application package file.
-        /// </summary>
-        public string AppPackageFileName
-        {
-            get; set;
-        }
+        public StorageFile AppPackageFile
+        { get; set; }
 
-        /// <summary>
-        /// List of full paths to required dependency files.
-        /// </summary>
-        public List<string> AppDependencyFileNames
-        {
-            get; private set;
-        }
+        public List<StorageFile> AppDependencyFiles
+        { get; private set;  }
+
+        public StorageFile AppCertificateFile
+        { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppInstallFiles" /> class.
         /// </summary>
         public AppInstallFiles()
         {
-            this.AppPackageFileName = null;
-            this.AppDependencyFileNames = new List<string>();
+            this.AppPackageFile = null;
+            this.AppDependencyFiles = new List<StorageFile>();
+            this.AppCertificateFile = null;
         }
     }
 }
+    

@@ -9,19 +9,19 @@ using Microsoft.Tools.WindowsDevicePortal;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the ManageAppsDialog fsobject.
+    /// The view model for the ManageAppsDialog object.
     /// </summary>
     partial class ManageAppsDialogViewModel : INotifyPropertyChanged
     {
         /// <summary>
-        /// The HoloLensMonitor object responsible for communication with this HoloLens.
+        /// The DeviceMonitor object responsible for communication with this device.
         /// </summary>
-        private HoloLensMonitor holoLensMonitor;
+        private DeviceMonitor deviceMonitor;
 
         /// <summary>
-        /// The HoloLensMonitorControl object that launched this dialog.
+        /// The DeviceMonitorControl object that launched this dialog.
         /// </summary>
-        private HoloLensMonitorControl holoLensMonitorControl;
+        private DeviceMonitorControl deviceMonitorControl;
 
         /// <summary>
         /// Event that is notified when a property value has changed.
@@ -31,15 +31,15 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="ManageAppsDialogViewModel" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor responsible for communication with this HoloLens.</param>
+        /// <param name="monitor">The DeviceMonitor responsible for communication with this device.</param>
         /// <param name="monitorControl">Instance of the control that launched this dialog.</param>
         public ManageAppsDialogViewModel(
-            HoloLensMonitor monitor,
-            HoloLensMonitorControl monitorControl)
+            DeviceMonitor monitor,
+            DeviceMonitorControl monitorControl)
         {
-            this.holoLensMonitor = monitor;
-            this.holoLensMonitorControl = monitorControl;
-            this.holoLensMonitor.AppInstallStatus += HoloLensMonitor_AppInstallStatus;
+            this.deviceMonitor = monitor;
+            this.deviceMonitorControl = monitorControl;
+            this.deviceMonitor.AppInstallStatus += DeviceMonitor_AppInstallStatus;
 
             this.InstalledApps = new ObservableCollection<string>();
             this.RunningApps = new ObservableCollection<string>();
@@ -57,7 +57,7 @@ namespace HoloLensCommander
         /// </summary>
         internal void Closing()
         {
-            this.holoLensMonitor.AppInstallStatus -= HoloLensMonitor_AppInstallStatus;
+            this.deviceMonitor.AppInstallStatus -= DeviceMonitor_AppInstallStatus;
         }
 
         /// <summary>
@@ -65,8 +65,8 @@ namespace HoloLensCommander
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
         /// <param name="args">Event arguments.</param>
-        private void HoloLensMonitor_AppInstallStatus(
-            HoloLensMonitor sender, 
+        private void DeviceMonitor_AppInstallStatus(
+            DeviceMonitor sender, 
             ApplicationInstallStatusEventArgs args)
         {
             if (args.Status == ApplicationInstallStatus.Completed)

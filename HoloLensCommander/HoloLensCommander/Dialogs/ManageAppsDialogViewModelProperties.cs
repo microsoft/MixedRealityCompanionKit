@@ -53,13 +53,13 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the address of the HoloLens on which applications are being managed.
+        /// Gets the address of the device on which applications are being managed.
         /// </summary>
         public string DeviceAddress
         {
             get
             {
-                return this.holoLensMonitor.Address;
+                return this.deviceMonitor.Address;
             }
         }
 

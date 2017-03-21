@@ -1,31 +1,34 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the TagHoloLensDialog object.
+    /// The view model for the DeviceInformationDialog object.
     /// </summary>
-    partial class TagHoloLensDialogViewModel : INotifyPropertyChanged
+    public partial class DeviceInformationDialogViewModel : INotifyPropertyChanged
     {
+        /// <summary>
+        /// The DeviceMonitor object responsible for communication with this device.
+        /// </summary>
+        private DeviceMonitor deviceMonitor;
+
         /// <summary>
         /// Event that is notified when a property value has changed.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagHoloLensDialogViewModel" /> class.
+        /// Initializes a new instance of the <see cref="DeviceInformationDialogViewModel" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="tagInfo">TagInformation object containing information associated with the HoloLens.</param>
-        public TagHoloLensDialogViewModel(
-            string address,
-            TagInformation tagInfo)
+        /// <param name="monitor">The DeviceMonitor responsible for communication with this device.</param>
+        public DeviceInformationDialogViewModel(
+            DeviceMonitor monitor)
         {
-            this.DeviceAddress = address;
-            this.Name = tagInfo.Name;
+            this.deviceMonitor = monitor;
         }
 
         /// <summary>
@@ -37,15 +40,6 @@ namespace HoloLensCommander
             this.PropertyChanged?.Invoke(
                 this, 
                 new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// Update's the user selected data.
-        /// </summary>
-        /// <param name="tagInfo">The information which is to be associated with the HoloLens.</param>
-        internal void UpdateUserData(TagInformation tagInfo)
-        {
-            tagInfo.Name = this.Name;
         }
     }
 }

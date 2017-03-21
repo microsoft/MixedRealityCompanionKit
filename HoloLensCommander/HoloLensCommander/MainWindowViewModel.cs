@@ -23,13 +23,7 @@ namespace HoloLensCommander
         private static readonly string DefaultPasswordKey = "defaultPassword";
 
         /// <summary>
-        /// The default address used when connecting to a HoloLens. This address assumes
-        /// a USB connection.
-        /// </summary>
-        private static readonly string DefaultConnectionAddress = "localhost:10080";
-
-        /// <summary>
-        /// Name of the folder which will contain mixed reality files from the registered HoloLens devices.
+        /// Name of the folder which will contain mixed reality files from the registered devices.
         /// </summary>
         private static readonly string MixedRealityFilesFolderName = "HoloLensCommander";
 
@@ -44,9 +38,14 @@ namespace HoloLensCommander
         private ApplicationDataContainer appSettings;
 
         /// <summary>
-        /// Value indicating whether or not we have attempted to reconnect to previous HoloLens devices.
+        /// Value indicating whether or not we have attempted to reconnect to previous devices.
         /// </summary>
         private bool reconnected;
+
+        /// <summary>
+        /// Value indicating whether or not the common apps list should be refreshed.
+        /// </summary>
+        private bool suppressRefreshCommonApps;
 
         /// <summary>
         /// Value indicating whether or not connection changes are to be saved.
@@ -71,12 +70,15 @@ namespace HoloLensCommander
             this.dispatcher = coreDispatcher;
 
             this.reconnected = false;
+            this.suppressRefreshCommonApps = false;
             this.suppressSave = false;
 
             this.CommonDeviceApps = new ObservableCollection<string>();
-            this.RegisteredDevices = new ObservableCollection<HoloLensMonitorControl>();
+            this.RegisteredDevices = new ObservableCollection<DeviceMonitorControl>();
 
             this.localFolder = ApplicationData.Current.LocalFolder;
+
+            this.SelectionFilter = DeviceFilters.All;
 
             // Fetch stored settings.
             this.appSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -93,7 +95,6 @@ namespace HoloLensCommander
         /// <remarks>Call Dispose on this object to avoid running the finalizer.</remarks>
         ~MainWindowViewModel()
         {
-            Debug.WriteLine("[~MainWindowViewModel]");
             this.Dispose();
         }
 
@@ -106,20 +107,18 @@ namespace HoloLensCommander
         /// </remarks>
         public void Dispose()
         {
-            Debug.WriteLine("[MainWindowViewModel.Dispose]");
-
             this.ClearRegisteredDevices();
             GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Bulk removes HoloLens devices from application management.
+        /// Bulk removes devices from application management.
         /// </summary>
         private void ClearRegisteredDevices()
         {
-            List<HoloLensMonitorControl> monitors = GetCopyOfRegisteredDevices();
+            List<DeviceMonitorControl> monitors = GetCopyOfRegisteredDevices();
 
-            foreach (HoloLensMonitorControl monitor in monitors)
+            foreach (DeviceMonitorControl monitor in monitors)
             {
                 monitor.Dispose();
             }
@@ -130,12 +129,12 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Get a copy of the registerd HoloLens devices.
+        /// Get a copy of the registered device controls collection.
         /// </summary>
-        /// <returns>List of HoloLensMonitorControl objects.</returns>
-        private List<HoloLensMonitorControl> GetCopyOfRegisteredDevices()
+        /// <returns>List of DeviceMonitorControl objects.</returns>
+        private List<DeviceMonitorControl> GetCopyOfRegisteredDevices()
         {
-            List<HoloLensMonitorControl> registeredDevicesCopy = new List<HoloLensMonitorControl>();
+            List<DeviceMonitorControl> registeredDevicesCopy = new List<DeviceMonitorControl>();
 
             registeredDevicesCopy.AddRange(this.RegisteredDevices);
 
@@ -172,7 +171,7 @@ namespace HoloLensCommander
                         string.Empty,
                         this.UserName,
                         this.Password,
-                        true);
+                        false);
 
                     await this.ConnectToDeviceAsync(
                         connectOptions,
@@ -246,26 +245,44 @@ namespace HoloLensCommander
                 });
 
             this.StartMixedRealityRecordingCommand = new Command(
-                async (parameter) =>
+                (parameter) =>
                 {
-                    await this.StartMixedRealityRecording();
+                    this.StartMixedRealityRecording();
                 });
 
             this.StopMixedRealityRecordingCommand = new Command(
-                async (parameter) =>
+                (parameter) =>
                 {
-                    await this.StopMixedRealityRecording();
+                    this.StopMixedRealityRecording();
                 });
 
             this.UninstallAppCommand = new Command(
-                async (parameter) =>
+                (parameter) =>
                 {
-                    await this.UninstallApp();
+                    this.UninstallApp();
+                });
+
+            this.UseAllDevicesFilterCommand = new Command(
+                (parameter) =>
+                {
+                    this.SelectionFilter = DeviceFilters.All;
+                });
+
+            this.UseDesktopFilterCommand = new Command(
+                (parameter) =>
+                {
+                    this.SelectionFilter = DeviceFilters.Desktop;
+                });
+
+            this.UseHoloLensFilterCommand = new Command(
+                (parameter) =>
+                {
+                    this.SelectionFilter = DeviceFilters.HoloLens;
                 });
         }
 
         /// <summary>
-        /// Updates the UI with the list of applications installed on all registered HoloLens devices.
+        /// Updates the UI with the list of applications installed on all registered devices.
         /// </summary>
         /// <param name="appNames">List of application names.</param>
         private void UpdateCommonAppsCollection(List<string> appNames)

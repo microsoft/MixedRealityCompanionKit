@@ -13,8 +13,8 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="MixedRealityViewDialog" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor that is responsible for communication with the HoloLens.</param>
-        public MixedRealityViewDialog(HoloLensMonitor monitor)
+        /// <param name="monitor">The DeviceMonitor that is responsible for communication with the device.</param>
+        public MixedRealityViewDialog(DeviceMonitor monitor)
         {
             this.DataContext = new MixedRealityViewDialogViewModel(
                 monitor);

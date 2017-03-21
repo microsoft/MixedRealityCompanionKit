@@ -1,34 +1,31 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensInformationDialog object.
+    /// The view model for the TagDeviceDialog object.
     /// </summary>
-    public partial class HoloLensInformationDialogViewModel : INotifyPropertyChanged
+    partial class TagDeviceDialogViewModel : INotifyPropertyChanged
     {
-        /// <summary>
-        /// The HoloLensMonitor object responsible for communication with this HoloLens.
-        /// </summary>
-        private HoloLensMonitor holoLensMonitor;
-
         /// <summary>
         /// Event that is notified when a property value has changed.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoloLensInformationDialogViewModel" /> class.
+        /// Initializes a new instance of the <see cref="TagDeviceDialogViewModel" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor responsible for communication with this HoloLens.</param>
-        public HoloLensInformationDialogViewModel(
-            HoloLensMonitor monitor)
+        /// <param name="address">The address of the device.</param>
+        /// <param name="tagInfo">TagInformation object containing information associated with the device.</param>
+        public TagDeviceDialogViewModel(
+            string address,
+            TagInformation tagInfo)
         {
-            this.holoLensMonitor = monitor;
+            this.DeviceAddress = address;
+            this.Name = tagInfo.Name;
         }
 
         /// <summary>
@@ -40,6 +37,15 @@ namespace HoloLensCommander
             this.PropertyChanged?.Invoke(
                 this, 
                 new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// Update's the user selected data.
+        /// </summary>
+        /// <param name="tagInfo">The information which is to be associated with the device.</param>
+        internal void UpdateUserData(TagInformation tagInfo)
+        {
+            tagInfo.Name = this.Name;
         }
     }
 }

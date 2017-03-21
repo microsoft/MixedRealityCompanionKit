@@ -15,8 +15,8 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="SetIpdDialogViewModel" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="userInfo">UserInformation object containing information associated with the HoloLens.</param>
+        /// <param name="address">The address of the device.</param>
+        /// <param name="userInfo">UserInformation object containing information associated with the device.</param>
         public SetIpdDialogViewModel(
             string address,
             UserInformation userInfo)
