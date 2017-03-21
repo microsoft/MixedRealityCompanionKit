@@ -6,8 +6,7 @@ Windows Mixed Reality Commander is a Universal Windows application that demonstr
 
 ### Requirements
 Windows Mixed Reality Commander requires:
-- A Windows 10 Device
- - Currently tested on x86 and x64.
+- A Windows 10 Device (Currently tested on x86 and x64)
 - A HoloLens or Windows PC (In developer mode with the [Windows Device Portal](https://developer.microsoft.com/en-us/windows/holographic/using_the_windows_device_portal#setting_up_hololens_to_use_windows_device_portal) enabled and configured)
 
 ### Building
