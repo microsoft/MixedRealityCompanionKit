@@ -638,6 +638,9 @@ namespace HoloLensCommander
                 });
         }
 
+        /// <summary>
+        /// Determine the correct setting for the Filter property.
+        /// </summary>
         private void SetFilter()
         {
             switch (this.deviceMonitor.Platform)
