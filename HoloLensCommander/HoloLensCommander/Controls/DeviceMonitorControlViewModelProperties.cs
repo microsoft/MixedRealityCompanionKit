@@ -76,12 +76,28 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Specifies the type of device this control is managing.
+        /// Specifies the type of device this control is mananging.
         /// </summary>
-        public readonly DeviceFilters Filter;
+        private DeviceFilters deviceFilter = DeviceFilters.None;
+        public DeviceFilters Filter
+        {
+            get
+            {
+                return this.deviceFilter;
+            }
+
+            private set
+            {
+                if (this.deviceFilter != value)
+                {
+                    this.deviceFilter = value;
+                    this.NotifyPropertyChanged("Filter");
+                }
+            }
+        }
         
         /// <summary>
-        /// Gets or sets a string representation of the interpuplliary distance recorded on this device.
+        /// Gets or sets a string representation of the interpupliary distance recorded on this device.
         /// </summary>
         private string ipd = "";
         public string Ipd
