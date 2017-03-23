@@ -240,4 +240,17 @@ This will allow you to set a descriptive name for the device.
 ![Tag Device Dialog](ReadmeImages/TagDialog.png)
 
 
+### Project dependencies
+Windows Mixed Reality Commander depends on:
+- Windows Device Portal
+The device must be in developer mode with the Windows Device Portal enabled and paired.
+- Windows Device Portal Wrapper
+ - https://github.com/Microsoft/WindowsDevicePortalWrapper
+
+
+### Contributing
+We welcome and encourage contributions to the Windows Mixed Reality Commander project. We look forward to evolving this tool with the community!
+
+
+
 
