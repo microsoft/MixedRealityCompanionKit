@@ -205,7 +205,7 @@ When an application is running on a device, you will see "Waiting for Applicatio
 
 ![Waiting for Application Exit](ReadmeImages/WaitingForAppExit.png)
 
-When the application has been closed, by the user or via Windows Mixed Reality Commander, the message will change to "Application has exoted".
+When the application has been closed, by the user or via Windows Mixed Reality Commander, the message will change to "Application has exited".
 
 #### Assisting Users
 
@@ -225,7 +225,7 @@ To turn on Mixed Reality view, click the additional options (…) button for the d
 
 ![Mixed Reality View](ReadmeImages/MixedRealityViewDialog.png)
 
-This will cause the user to see a red "REC" indication, in the upper left of the Holographic Frame. It is recommended that you tell your user to expect to see this. The indicator will turn off when you close the Mixed Reality view dialog.\
+This will cause the user to see a red "REC" indication, in the upper left of the Holographic Frame. It is recommended that you tell your user to expect to see this. The indicator will turn off when you close the Mixed Reality view dialog.
 
 #### Keeping Track of Devices
 
