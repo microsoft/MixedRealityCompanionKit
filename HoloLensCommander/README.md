@@ -64,7 +64,8 @@ This option allows you to reconnect to the devices that were connected in a prev
 For this to be successful, devices need to have been connected using a common set of credentials and the credentials must be set in the User name and Password fields before selecting this option.
 
 ```
-Note: Reconnect to previous session will not appear in the additional options menu after a reconnection has been attempted or the Connect button has been used one or more times.
+Note: Reconnect to previous session will not appear in the additional options menu after 
+a reconnection has been attempted or the Connect button has been used one or more times.
 ```
 
 **Set credentials as new default**
@@ -88,11 +89,16 @@ Users of the Windows Device Portal are aware of the ability to connect to an att
 To take advantage of this feature, Windows Mixed Reality Commander will default to this loopback address if the Connect dialog’s Address field is left blank.
 
 ```
-Note: By default, UWP applications are subject to network isolation. For development and side-load scenarios, your PC can be configured to allow an application to make loopback connections.
+Note: By default, UWP applications are subject to network isolation. For development and 
+side-load scenarios, your PC can be configured to allow an application to establish
+loopback connections.
 
-Building Windows Mixed Reality Commander using Visual Studio, on the PC on which it will be run, will automatically configure to allow loopback connections.
+Building Windows Mixed Reality Commander using Visual Studio, on the PC on which it will
+be run, will automatically configure to allow loopback connections.
 
-For side-load scenarios, please refer to the documentation describing network isolation troubleshooting (the application container name for Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”).
+For side-load scenarios, please refer to the documentation describing network isolation
+troubleshooting (the application container name, at the time of this writing, for 
+Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”).
 ```
 
 #### Common Applications
