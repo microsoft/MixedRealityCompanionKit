@@ -82,6 +82,9 @@ namespace HoloLensCommander
                 "Manage apps", 
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.ManageApps));
+            // Virtual Machines do not support Mixed Reality, base the decision
+            // on whether or not to show the Mixed Reality view item on the platform
+            // rather than the filter.
             if (this.deviceMonitor.Platform == DevicePortalPlatforms.HoloLens)
             {
                 contextMenu.Commands.Add(new UICommand(

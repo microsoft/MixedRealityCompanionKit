@@ -71,27 +71,6 @@ namespace HoloLensCommander
             DeviceMonitor monitor)
         {
             this.deviceMonitorControl = control;
-            switch (monitor.Platform)
-            {
-                case DevicePortalPlatforms.HoloLens:
-                    this.Filter = DeviceFilters.HoloLens;
-                    this.DeviceTypeLabel = DeviceIsHoloLensLabel;
-                    this.IpdVisibility = Visibility.Visible;
-                    break;
-
-                case DevicePortalPlatforms.Windows:
-                    this.Filter = DeviceFilters.Desktop;
-                    this.DeviceTypeLabel = DeviceIsPCLabel;
-                    this.IpdVisibility = Visibility.Collapsed;
-                    break;
-
-                default:
-                    Debug.Assert(false, "Unknown device platform.");
-                    this.Filter = DeviceFilters.None;
-                    this.DeviceTypeLabel = DeviceIsUnknownLabel;
-                    this.IpdVisibility = Visibility.Collapsed;
-                    break;
-            }
 
             this.RegisterCommands();
 
@@ -100,10 +79,13 @@ namespace HoloLensCommander
             this.deviceMonitor.HeartbeatReceived += Device_HeartbeatReceived;
             this.deviceMonitor.AppInstallStatus += DeviceMonitor_AppInstallStatus;
 
+            this.SetFilter();
+
             this.IsConnected = true;
 
             this.Address = deviceMonitor.Address;
             this.IsSelected = true;
+
         }
 
         /// <summary>
@@ -655,6 +637,59 @@ namespace HoloLensCommander
                     await this.ShowContextMenuAsync(parameter);
                 });
         }
+
+        /// <summary>
+        /// Determine the correct setting for the Filter property.
+        /// </summary>
+        private void SetFilter()
+        {
+            switch (this.deviceMonitor.Platform)
+            {
+                case DevicePortalPlatforms.HoloLens:
+                    this.Filter = DeviceFilters.HoloLens;
+                    this.DeviceTypeLabel = DeviceIsHoloLensLabel;
+                    this.IpdVisibility = Visibility.Visible;
+                    break;
+
+                case DevicePortalPlatforms.Windows:
+                    this.Filter = DeviceFilters.Desktop;
+                    this.DeviceTypeLabel = DeviceIsPCLabel;
+                    this.IpdVisibility = Visibility.Collapsed;
+                    break;
+
+                case DevicePortalPlatforms.VirtualMachine:
+                    switch (this.deviceMonitor.DeviceFamily)
+                    {
+                        case "Windows.Desktop":
+                            this.Filter = DeviceFilters.Desktop;
+                            this.DeviceTypeLabel = DeviceIsPCLabel;
+                            this.IpdVisibility = Visibility.Collapsed;
+                            break;
+
+                        case "Windows.Holographic":
+                            this.Filter = DeviceFilters.HoloLens;
+                            this.DeviceTypeLabel = DeviceIsHoloLensLabel;
+                            this.IpdVisibility = Visibility.Visible;
+                            break;
+
+                        default:
+                            Debug.Assert(false, "Virtual Machine: Unknown device family.");
+                            this.Filter = DeviceFilters.None;
+                            this.DeviceTypeLabel = DeviceIsUnknownLabel;
+                            this.IpdVisibility = Visibility.Collapsed;
+                            break;
+                    }
+                    break;
+
+                default:
+                    Debug.Assert(false, "Unknown device platform.");
+                    this.Filter = DeviceFilters.None;
+                    this.DeviceTypeLabel = DeviceIsUnknownLabel;
+                    this.IpdVisibility = Visibility.Collapsed;
+                    break;
+            }
+        }
+
 
         /// <summary>
         /// Monitors running processes and when the specified id is no longer running, update's the status message ui.
