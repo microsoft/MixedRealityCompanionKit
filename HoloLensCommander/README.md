@@ -53,7 +53,7 @@ Checking Update Connection instructs Windows Mixed Reality Commander to query th
 
 If you specified an SSID, this value may change, and the connection update may fail. Please retry the connection again without setting the SSID and verify the correct network configuration in the Settings application.
 
-##### Addional Options
+##### Additional Options
 
 The additional options (…) button displays a menu that provide less common connection related functionality.
 
