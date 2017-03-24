@@ -12,7 +12,7 @@ Windows Mixed Reality Commander requires:
 * A HoloLens or Windows PC (In developer mode with the [Windows Device Portal](https://developer.microsoft.com/en-us/windows/holographic/using_the_windows_device_portal#setting_up_hololens_to_use_windows_device_portal) enabled and configured)
 
 ### Building
-Building Windows Mixed Reality Commander requires [Visual Studio 2015 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2015 Professional and Enterise are also supported.
+Building Windows Mixed Reality Commander requires [Visual Studio 2015 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2015 Professional and Enterprise are also supported.
 * Load HoloLensCommander.sln
 * Build and deploy the solution.
 
