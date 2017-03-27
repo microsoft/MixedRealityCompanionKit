@@ -96,8 +96,8 @@ loopback connections.
 Building Windows Mixed Reality Commander using Visual Studio, on the PC on which it will
 be run, will automatically configure to allow loopback connections.
 
-For side-load scenarios, please refer to the documentation describing [network isolation
-troubleshooting](https://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx). The application container name, at the time of this writing, for 
+For side-load scenarios, please refer to the documentation describing network isolation
+troubleshooting (https://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx). The application container name, at the time of this writing, for 
 Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”.
 ```
 
