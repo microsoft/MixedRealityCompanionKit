@@ -80,7 +80,7 @@ Note: This data is stored in clear text and should not be considered secure stor
 
 If you have persisted the device credentials, you can use the Use default credentials to instruct Windows Mixed Reality Commander in the case where they may have been overridden for a specific device.
 
-##### Connection Shortcut for Development Machiens and Side-Loading
+##### Connection Shortcut for Development Machines and Side-Loading
 
 Getting the IP address from your HoloLens can be a more time-consuming process than getting it from your Windows PC (ex: ipconfig).
 
