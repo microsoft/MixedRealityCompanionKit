@@ -9,7 +9,7 @@ This application is built upon the open source [Windows Device Portal Wrapper](h
 ### Requirements
 Windows Mixed Reality Commander requires:
 * A Windows 10 Device (Currently tested on x86 and x64)
-* A HoloLens or Windows PC (In developer mode with the [Windows Device Portal](https://developer.microsoft.com/en-us/windows/holographic/using_the_windows_device_portal#setting_up_hololens_to_use_windows_device_portal) enabled and configured)
+* A HoloLens or Windows PC (In developer mode with the [Windows Device Portal](https://docs.microsoft.com/en-us/windows/uwp/debug-test-perf/device-portal-hololens#set-up-device-portal-on-hololens) enabled and configured)
 
 ### Building
 Building Windows Mixed Reality Commander requires [Visual Studio 2015 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2015 Professional and Enterprise are also supported.
