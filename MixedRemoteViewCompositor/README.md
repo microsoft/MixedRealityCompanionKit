@@ -7,7 +7,7 @@ There are two methods of operation:
 
 1. Low latency mixed reality capture (MRC)
     + Provides the ability to create a MRC companion app experience with lower latency (~150ms) 
-    + Similar to Device Portal and Companion app experiences for [mixed reality capture](https://developer.microsoft.com/en-us/windows/holographic/mixed_reality_capture_for_developers)
+    + Similar to Device Portal and Companion app experiences for [mixed reality capture](https://developer.microsoft.com/en-us/windows/mixed-reality/mixed_reality_capture_for_developers)
     + [Getting Started](Samples/LowLatencyMRC/README.md)
 
 2. Mixed Remote View Compositing
@@ -39,8 +39,8 @@ There are two methods of operation:
 ### Additional Resources
 Developers should already be familiar with and have previous experience with developing HoloLens and/or Unity Applications. Here are resources to get started:
 
-- [HoloLens Academy](https://developer.microsoft.com/en-us/windows/holographic/academy)
-- [HoloLens Documentation](https://developer.microsoft.com/en-us/windows/holographic/documentation)
+- [HoloLens Academy](https://developer.microsoft.com/en-us/windows/mixed-reality/academy)
+- [HoloLens Documentation](https://developer.microsoft.com/en-us/windows/mixed-reality/documentation)
 - [Develop UWP apps](https://developer.microsoft.com/en-us/windows/develop)
 - [Unity - Learn](https://unity3d.com/learn)
 
