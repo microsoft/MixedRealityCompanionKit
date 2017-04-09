@@ -52,10 +52,11 @@ public class PreviewWindow : EditorWindow
             {
                 dim = new Vector2(Screen.currentResolution.width, Screen.currentResolution.height);
             }
+
             window = ScriptableObject.CreateInstance<PreviewWindow>();
             window.maxSize = new Vector2(6000, 4000);
             window.position = new Rect(pos, dim.Value);
-            window.ShowPopup();
+            window.ShowAsDropDown(new Rect(), dim.Value);
         }
         else
         {
