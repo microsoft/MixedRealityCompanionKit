@@ -10,6 +10,11 @@
 #include "CompositorInterface.h"
 #include "HologramQueue.h"
 
+#include "PluginAPI\IUnityInterface.h"
+#include "PluginAPI\IUnityGraphics.h"
+#include "PluginAPI\IUnityGraphicsD3D11.h"
+
+
 #define UNITYDLL EXTERN_C __declspec(dllexport)
 
 static CompositorInterface* ci = NULL;
@@ -58,53 +63,45 @@ static bool takeHiResPicture = false;
 
 static CRITICAL_SECTION lock;
 
-// https://docs.unity3d.com/430/Documentation/Manual/NativePluginInterface.html
-enum GfxDeviceRenderer {
-    kGfxRendererOpenGL = 0,              // OpenGL
-    kGfxRendererD3D9 = 1,                // Direct3D 9
-    kGfxRendererD3D11 = 2,               // Direct3D 11
-    kGfxRendererGCM = 3,                 // Sony PlayStation 3 GCM
-    kGfxRendererNull = 4,                // "null" device (used in batch mode)
-    kGfxRendererHollywood = 5,           // Nintendo Wii
-    kGfxRendererXenon = 6,               // Xbox 360
-    kGfxRendererOpenGLES = 7,            // OpenGL ES 1.1
-    kGfxRendererOpenGLES20Mobile = 8,    // OpenGL ES 2.0 mobile variant
-    kGfxRendererMolehill = 9,            // Flash 11 Stage3D
-    kGfxRendererOpenGLES20Desktop = 10,  // OpenGL ES 2.0 desktop variant (i.e. NaCl)
-};
+static IUnityInterfaces *s_UnityInterfaces = nullptr;
+static IUnityGraphics *s_Graphics = nullptr;
 
-enum GfxDeviceEventType {
-    kGfxDeviceEventInitialize = 0,
-    kGfxDeviceEventShutdown = 1,
-    kGfxDeviceEventBeforeReset = 2,
-    kGfxDeviceEventAfterReset = 3,
-};
-
-// Certain Unity APIs (GL.IssuePluginEvent, CommandBuffer.IssuePluginEvent) can callback into native plugins.
-// Provide them with an address to a function of this signature.
-typedef void(_stdcall * UnityRenderingEvent)(int eventId);
-
-// Get the GraphicsDevice so we can get texture data.
-UNITYDLL void UnitySetGraphicsDevice(void* device, int deviceType, int eventType)
+static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
 {
-    if (g_pD3D11Device != NULL)
+    switch (eventType)
     {
-        return;
+    case kUnityGfxDeviceEventInitialize:
+    {
+        IUnityGraphicsD3D11* d3d11 = s_UnityInterfaces->Get<IUnityGraphicsD3D11>();
+        if (d3d11 != nullptr)
+        {
+            g_pD3D11Device = d3d11->GetDevice();
+        }
     }
+    break;
+    case kUnityGfxDeviceEventShutdown:
+        g_pD3D11Device = NULL;
+        break;
+    }
+}
 
-    if (deviceType == GfxDeviceRenderer::kGfxRendererD3D11)
-    {
-        if (eventType == GfxDeviceEventType::kGfxDeviceEventInitialize)
-        {
-            g_pD3D11Device = (ID3D11Device*)device;
-            InitializeCriticalSection(&lock);
-        }
-        else if (eventType == GfxDeviceEventType::kGfxDeviceEventShutdown)
-        {
-            g_pD3D11Device = NULL;
-            DeleteCriticalSection(&lock);
-        }
-    }
+void UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces *unityInterfaces)
+{
+    InitializeCriticalSection(&lock);
+
+    s_UnityInterfaces = unityInterfaces;
+    s_Graphics = s_UnityInterfaces->Get<IUnityGraphics>();
+    s_Graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent);
+
+    OnGraphicsDeviceEvent(kUnityGfxDeviceEventInitialize);
+}
+
+void UNITY_INTERFACE_API UnityPluginUnload()
+{
+    s_Graphics->UnregisterDeviceEventCallback(OnGraphicsDeviceEvent);
+    OnGraphicsDeviceEvent(kUnityGfxDeviceEventShutdown);
+
+    DeleteCriticalSection(&lock);
 }
 
 UNITYDLL void UpdateCompositor()
@@ -572,7 +569,7 @@ UNITYDLL bool SetOutputRenderTexture(ID3D11Texture2D* tex)
 
 UNITYDLL bool CreateUnityColorTexture(ID3D11ShaderResourceView*& srv)
 {
-    if (g_UnityColorSRV == nullptr)
+    if (g_UnityColorSRV == nullptr && g_pD3D11Device != nullptr)
     {
         g_colorTexture = DirectXHelper::CreateTexture(g_pD3D11Device, colorBytes, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BPP);
 
@@ -594,7 +591,7 @@ UNITYDLL bool CreateUnityColorTexture(ID3D11ShaderResourceView*& srv)
 
 UNITYDLL bool CreateUnityHoloTexture(ID3D11ShaderResourceView*& srv)
 {
-    if (g_UnityHoloSRV == nullptr)
+    if (g_UnityHoloSRV == nullptr && g_pD3D11Device != nullptr)
     {
         g_holoTexture = DirectXHelper::CreateTexture(g_pD3D11Device, holoBytes, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BPP);
 
