@@ -207,6 +207,9 @@ if EXIST "$(OpenCV_vc14)" xcopy /y "$(OpenCV_vc14)\bin\*.dll"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="PluginAPI\IUnityGraphics.h" />
+    <ClInclude Include="PluginAPI\IUnityGraphicsD3D11.h" />
+    <ClInclude Include="PluginAPI\IUnityInterface.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

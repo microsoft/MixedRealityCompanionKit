@@ -440,7 +440,9 @@ namespace SpectatorView
         {
             if (colorTexture == null)
             {
-                if (CreateUnityColorTexture(out colorSRV))
+                // Unity 5.6 workaround:
+                // Creating textures on the graphics device on the first frame deadlocks Unity 5.6.
+                if (Time.frameCount > 1 && CreateUnityColorTexture(out colorSRV))
                 {
                     colorTexture = Texture2D.CreateExternalTexture(GetFrameWidth(), GetFrameHeight(), TextureFormat.ARGB32, false, false, colorSRV);
                     colorTexture.filterMode = FilterMode.Point;
@@ -453,7 +455,9 @@ namespace SpectatorView
         {
             if (holoTexture == null)
             {
-                if (CreateUnityHoloTexture(out holoSRV))
+                // Unity 5.6 workaround:
+                // Creating textures on the graphics device on the first frame deadlocks Unity 5.6.
+                if (Time.frameCount > 1 && CreateUnityHoloTexture(out holoSRV))
                 {
                     holoTexture = Texture2D.CreateExternalTexture(GetFrameWidth(), GetFrameHeight(), TextureFormat.ARGB32, false, false, holoSRV);
                 }
