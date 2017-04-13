@@ -56,6 +56,11 @@ public:
     // Create a texture with the given bytes.
     static ID3D11Texture2D* CreateTexture(ID3D11Device* device, const byte* bytes, int width, int height, int bpp, DXGI_FORMAT textureFormat = DXGI_FORMAT_R8G8B8A8_UNORM)
     {
+        if (device == nullptr)
+        {
+            return nullptr;
+        }
+
         ID3D11Texture2D* tex;
 
         D3D11_TEXTURE2D_DESC tdesc;
