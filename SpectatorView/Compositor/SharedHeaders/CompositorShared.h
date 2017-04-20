@@ -20,11 +20,11 @@
 
 // FrameProvider type - Exactly 1 of these should be true:
 //TODO: Set this to true if using a BlackMagic DeckLink capture card.
-#define USE_DECKLINK   FALSE
+#define USE_DECKLINK   TRUE
 //TODO: Set this to true if using an Elgato capture card.
 #define USE_ELGATO     FALSE
 //TODO: Set this to true if using OpenCV to get frames from a camera or capture card.
-#define USE_OPENCV     TRUE
+#define USE_OPENCV     FALSE
 
 static_assert((USE_ELGATO + USE_DECKLINK + USE_OPENCV == 1),
     "Exactly 1 FrameProvider must be set");
