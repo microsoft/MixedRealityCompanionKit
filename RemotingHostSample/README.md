@@ -14,7 +14,7 @@ This code sample demonstrates the following features that are required for a hol
   * Renders content in a virtual holographic view
   * Streams content frames back to the HoloLens in real-time
 
-For more info, see the [holographic remoting documentation](http://developer.microsoft.com/windows/holographic/Add_holographic_remoting).
+For more info, see the [holographic remoting documentation](http://developer.microsoft.com/windows/mixed-reality/Add_holographic_remoting).
 
 ### Build the sample
 

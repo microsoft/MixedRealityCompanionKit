@@ -91,7 +91,7 @@ Calibrates the HoloLens to the external camera.  Uses a checkerboard pattern to 
 ### Compositor
 Unity Editor window that renders holograms from Unity over a color frame from a capture card.  Outputs photo and video of the scene.  This must be built and copied to your Unity project using CopyDLL.cmd.
 ### Samples\SharedHolograms
-Sample demonstrating how to add the HolographicCameraRig to an app that is already a shared experience.  In this case, it is the Holographic Academy [Holograms 240](https://developer.microsoft.com/en-us/windows/holographic/holograms_240) course.
+Sample demonstrating how to add the HolographicCameraRig to an app that is already a shared experience.  In this case, it is the Holographic Academy [Holograms 240](https://developer.microsoft.com/en-us/windows/mixed-reality/holograms_240) course.
 ### CopyDLL.cmd
 If you have changed any #define in CompositorShared.h, run this cmd to copy DLL's that depend on those definitions to your Unity projects.  Include the Assets path to your own project to copy there.
 
