@@ -278,5 +278,14 @@ namespace HoloLensCommander
         {
             await this.ViewModel.WipeCameraRollAsync();
         }
+
+		/// <summary>
+        /// Uninstalls all side loaded applications of this device.
+        /// </summary>
+        /// <returns></returns>
+        internal async Task UninstallAllAppsAsync()
+        {
+            await this.ViewModel.UninstallAllAppsAsync();
+        }
     }
 }

@@ -132,6 +132,13 @@ namespace HoloLensCommander
                     await this.UninstallAppAsync();
                     await this.RefreshInstalledAppsAsync();
                 });
+
+            this.UninstallAllAppsCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.UninstallAllAppsAsync();
+                    await this.RefreshInstalledAppsAsync();
+                });
         }
     }
 }
