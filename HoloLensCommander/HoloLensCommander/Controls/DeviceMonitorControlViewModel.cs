@@ -261,6 +261,31 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Wipes camera roll contents on this device.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task WipeCameraRollAsync()
+        {
+            if (this.IsConnected && this.IsSelected)
+            {
+                try
+                {
+                    MrcFileList fileList = await this.deviceMonitor.GetMixedRealityFileListAsync();
+
+                    foreach (MrcFileInformation fileInfo in fileList.Files)
+                    {
+                        await this.deviceMonitor.DeleteMixedRealityFile(fileInfo.FileName);
+                    }
+                    this.StatusMessage = "Camera roll wiped successfully.";
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format("Unable to delete all camera roll files. {0} ", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
         /// Launches an applicaiton on this device.
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
