@@ -291,7 +291,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Uninstalls an applicaiton on this device.
+        /// Uninstalls an application on this device.
         /// </summary>
         /// <param name="packageName">Package name of the application to uninstall.</param>
         /// <returns>Task object used for tracking method completion.</returns>

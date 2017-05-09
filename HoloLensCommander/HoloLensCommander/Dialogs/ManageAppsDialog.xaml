@@ -65,7 +65,7 @@
                 Content="&#xE108;"
                 Command="{Binding Path=UninstallAppCommand}"
                 IsEnabled="{Binding Path=CanRunApp}"
-                ToolTipService.ToolTip="Uninstall the selected application"
+                ToolTipService.ToolTip="Uninstall the selected store or sideloaded app"
                 FontFamily="Segoe MDL2 Assets" FontSize="24" 
                 Width="50" Height="40" 
                 Canvas.Left="400" Canvas.Top="115"/>
