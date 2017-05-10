@@ -211,7 +211,17 @@
                     Width="280" Height="115" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="105"/>
+                        Width="280" Height="177">
+                    </Border>
+                    <Button
+                            x:Name="wipeCameraRoll"
+                            Content="&#xE74D;"
+                            ToolTipService.ToolTip="Wipe camera roll"
+                            Command="{Binding WipeCameraRollCommand}" 
+                            IsEnabled="{Binding HaveRegisteredDevices}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" 
+                            Width="260" Height="50" 
+                            FontFamily="Segoe MDL2 Assets" FontSize="20" Canvas.Left="10" Canvas.Top="109"/>
                     <TextBlock 
                         x:Name="deviceControl"
                         Text="Device Control"

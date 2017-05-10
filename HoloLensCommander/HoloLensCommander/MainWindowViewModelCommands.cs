@@ -577,6 +577,28 @@ namespace HoloLensCommander
         { get; private set; }
 
         /// <summary>
+        /// Command that wipes all camera roll content on selected devices
+        /// </summary>
+        public ICommand WipeCameraRollCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of wipe camera roll command
+        /// </summary>
+        private async void WipeCameraRoll()
+        {
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            {
+                DeviceMonitorControlViewModel monitorViewModel = monitor.ViewModel;
+
+                if ((monitorViewModel.Filter & DeviceFilters.HoloLens) == DeviceFilters.HoloLens)
+                {
+                    await monitor.WipeCameraRollAsync();
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles connect context menu command selection.
         /// </summary>
         /// <param name="command">The command which was selected from the context menu</param>
