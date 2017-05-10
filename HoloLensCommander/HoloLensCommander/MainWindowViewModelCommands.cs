@@ -559,6 +559,23 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to uninstall all side loaded applications on selected devices
+        /// </summary>
+        public ICommand UninstallAllAppsCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of uninstall all apps command.
+        /// </summary>
+        private void UninstallAllApps()
+        {
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            {
+                Task t = monitor.UninstallAllAppsAsync();
+            }
+        }
+
+        /// <summary>
         /// Command indicating that the select all/none buttons should use the all devices filter.
         /// </summary>
         public ICommand UseAllDevicesFilterCommand

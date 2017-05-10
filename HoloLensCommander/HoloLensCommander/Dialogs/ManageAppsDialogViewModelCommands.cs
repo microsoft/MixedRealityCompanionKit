@@ -140,6 +140,15 @@ namespace HoloLensCommander
             await this.RefreshInstalledAppsAsync();
         }
 
+        public ICommand UninstallAllAppsCommand
+        { get; private set; }
+
+        private async Task UninstallAllAppsAsync()
+        {
+            await this.deviceMonitorControl.UninstallAllAppsAsync();
+            await this.RefreshInstalledAppsAsync();
+        }
+
         /// <summary>
         /// Updates the backing collection of installed applications.
         /// </summary>

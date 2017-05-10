@@ -534,6 +534,35 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Uninstalls all side-loaded apps on selected devices
+        /// </summary>
+        /// <returns></returns>
+        internal async Task UninstallAllAppsAsync()
+        {
+            if (this.IsConnected && this.IsSelected)
+            {
+                try
+                {
+                    AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
+                    foreach (PackageInfo packageInfo in installedApps.Packages)
+                    {
+                        if (packageInfo.IsSideloaded())
+                        {
+                            await this.deviceMonitor.UninstallApplicationAsync(packageInfo.FullName);
+                        }
+                    }
+                    this.StatusMessage = "Successfully uninstalled all apps.";
+
+                    this.deviceMonitorControl.NotifyAppUninstall();
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format("Failed to uninstall all apps. {0} ", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles the ApplicationInstallStatus event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
