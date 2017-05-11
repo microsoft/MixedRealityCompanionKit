@@ -27,7 +27,7 @@
         <ScrollViewer Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <StackPanel
-                Background="White">
+                Background="White" Height="Auto">
                 <Canvas
                     x:Name="connectionControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -89,7 +89,7 @@
                 <Canvas
                     x:Name="applicationControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="235" Margin="10,0,0,0">
+                    Width="280" Height="315" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
                         Width="280" Height="305"/>
@@ -167,61 +167,59 @@
                         Width="260" Height="50"
                         Canvas.Left="10" Canvas.Top="235"/>
                 </Canvas>
-
                 <Canvas
                     x:Name="mixedRealityControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Width="280" Height="160" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="150" Canvas.Top="80">
-                    </Border>
+                        Width="280" Height="150"/>
                     <TextBlock 
                         x:Name="mixedRealityLabel"
                         Text="Mixed Reality Capture"
                         FontSize="20"
-                        Canvas.Left="10" Canvas.Top="90"/>
+                        Canvas.Left="10" Canvas.Top="10"/>
                     <Button 
                         x:Name="startMrcRecording"
                         Content="Start"
                         ToolTipService.ToolTip="Start Mixed Reality recording on the selected devices"
                         Command="{Binding StartMixedRealityRecordingCommand}" 
-                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                        IsEnabled="{Binding HaveRegisteredDevices}"
                         FontSize="20"
-                        Width="75" Height="50" Canvas.Left="10" Canvas.Top="122"/>
+                        Width="75" Height="50" Canvas.Left="10" Canvas.Top="42"/>
                     <Button 
                         x:Name="stopMrcRecording"
                         Content="Stop"
                         ToolTipService.ToolTip="Stop Mixed Reality recording on the selected devices"
                         Command="{Binding StopMixedRealityRecordingCommand}" 
-                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                        IsEnabled="{Binding HaveRegisteredDevices}"
                         FontSize="20"
-                        Width="75" Height="50" Canvas.Left="103" Canvas.Top="122"/>
+                        Width="75" Height="50" Canvas.Left="103" Canvas.Top="42"/>
                     <Button 
                         x:Name="saveMrcFiles"
                         Content="Save"
                         ToolTipService.ToolTip="Save Mixed Reality files from the selected devices"
                         Command="{Binding SaveMixedRealityFilesCommand}" 
-                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                        IsEnabled="{Binding HaveRegisteredDevices}"
                         FontSize="20"
-                        Width="75" Height="50" Canvas.Left="195" Canvas.Top="122"/>
+                        Width="75" Height="50" Canvas.Left="195" Canvas.Top="42"/>
                     <CheckBox 
                         x:Name="deleteOnSave" 
                         Content="Delete files after saving" 
                         ToolTipService.ToolTip="Delete Mixed Reality files from the selected devices after they have been saved?"
-                        IsChecked="{Binding Path=DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                        IsChecked="{Binding DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        IsEnabled="{Binding HaveRegisteredDevices}"
                         FontSize="18"
-                        Canvas.Left="10" Canvas.Top="188"/>
+                        Canvas.Left="10" Canvas.Top="108"/>
                 </Canvas>
 
                 <Canvas
                     x:Name="deviceControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="115" Margin="10,0,0,0">
+                    Width="280" Height="190" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="177" Canvas.Top="80">
+                        Width="280" Height="177">
                     </Border>
                     <Button
                             x:Name="wipeCameraRoll"
@@ -231,12 +229,12 @@
                             IsEnabled="{Binding HaveRegisteredDevices}"
                             HorizontalAlignment="Right" VerticalAlignment="Top" 
                             Width="260" Height="50" 
-                            FontFamily="Segoe MDL2 Assets" FontSize="20" Canvas.Left="10" Canvas.Top="190"/>
+                            FontFamily="Segoe MDL2 Assets" FontSize="20" Canvas.Left="10" Canvas.Top="110"/>
                     <TextBlock 
                         x:Name="deviceControl"
                         Text="Device Control"
                         FontSize="20"
-                        Canvas.Left="10" Canvas.Top="90"/>
+                        Canvas.Left="10" Canvas.Top="10"/>
                     <Button
                         x:Name="rebootDevices"
                         Content="&#xEA6A;"
@@ -246,7 +244,7 @@
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20"
                         Width="70" Height="50" 
-                        Canvas.Left="10" Canvas.Top="122"/>
+                        Canvas.Left="10" Canvas.Top="42"/>
                     <Button
                         x:Name="shutdownDevices"
                         Content="&#xE7BA;"
@@ -256,7 +254,7 @@
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20"
                         Width="70" Height="50" 
-                        Canvas.Left="107" Canvas.Top="122"/>
+                        Canvas.Left="107" Canvas.Top="42"/>
                     <Button
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
@@ -266,13 +264,13 @@
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         Width="70" Height="50" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20" 
-                        Canvas.Left="200" Canvas.Top="122"/>
+                        Canvas.Left="200" Canvas.Top="42"/>
                 </Canvas>
             </StackPanel>
         </ScrollViewer>
         <!-- Column 1 controls -->
         <StackPanel Grid.Column="1" Grid.Row="0"
-            Background="White" Margin="5,5,-5,35" Grid.RowSpan="2">
+            Background="White" Margin="5,0,-5,0">
             <Canvas
                 HorizontalAlignment="Stretch"
                 Height="40">
