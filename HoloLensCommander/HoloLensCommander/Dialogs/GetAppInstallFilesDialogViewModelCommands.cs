@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 
 namespace HoloLensCommander
@@ -32,6 +34,12 @@ namespace HoloLensCommander
         /// </summary>
         public ICommand BrowseForAppPackageCommand
         { get; private set; }    
+
+        /// <summary>
+        /// Command used to allow the user to browse for the folder that contains installation files.
+        /// </summary>
+        public ICommand BrowseForParentFolderCommand
+        { get; private set; }
 
         /// <summary>
         /// Command used to allow the user to remove a dependency file.
@@ -92,6 +100,60 @@ namespace HoloLensCommander
             if (file != null)
             {
                 this.AppPackageFile = file;
+            }
+        }
+
+        /// <summary>
+        /// Implementation of the browse for parents folder command.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        private async Task BrowseForParentFolderAsync()
+        {
+            FolderPicker folderPicker = new FolderPicker();
+            folderPicker.ViewMode = PickerViewMode.List;
+            folderPicker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            folderPicker.CommitButtonText = "Select";
+            folderPicker.FileTypeFilter.Add("*");
+
+            StorageFolder folder = await folderPicker.PickSingleFolderAsync();
+            if (folder!=null)
+            {
+                string appxFolderToken = StorageApplicationPermissions.FutureAccessList.Add(folder);
+                await AutoAddInstallFiles(appxFolderToken);
+            }
+        }
+
+        private async Task AutoAddInstallFiles(string appxFolderToken)
+        {
+            StorageFolder appPackageFolder = await StorageApplicationPermissions.FutureAccessList.GetFolderAsync(appxFolderToken);
+            IReadOnlyList<StorageFile> files = await appPackageFolder.GetFilesAsync();
+
+            Func<StorageFile, bool> appxFilter = f => f.FileType.Equals(".appx") || f.FileType.Equals(".appxbundle");
+            StorageFile appxFile = files.FirstOrDefault(appxFilter);
+            if (appxFile == null)
+            {
+                return;
+            }
+
+            this.AppPackageFile = appxFile;
+
+            StorageFile certFile = files.FirstOrDefault(f => f.FileType.Equals(".cer"));
+            if (certFile == null)
+            {
+                return;
+            }
+
+            this.AppCertificateFile = certFile;
+
+            DependencyFiles.Clear();
+            DependencyFileNames.Clear();
+
+            StorageFolder dependenciesFolder = await appPackageFolder.GetFolderAsync(@"Dependencies\x86");
+            IReadOnlyList<StorageFile> dependencies = await dependenciesFolder.GetFilesAsync();
+            foreach (StorageFile dependency in dependencies.Where(appxFilter))
+            {
+                this.DependencyFiles.Add(dependency.Path, dependency);
+                this.DependencyFileNames.Add(dependency.Path);
             }
         }
 
