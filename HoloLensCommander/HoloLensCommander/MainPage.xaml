@@ -29,75 +29,41 @@
                 x:Name="appControls"
                 Background="White"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-
+            <Button 
+                x:Name="connectToDevice"
+                Content="Connect"
+                ToolTipService.ToolTip="Connect to your device"
+                Command="{Binding Path=ConnectToDeviceCommand}" 
+                IsEnabled="{Binding Path=CredentialsSet}"
+                Width="75" Height="30"
+                Canvas.Top="5" Canvas.Left="10"/>
+            <Button 
+                Content="&#xE192;" 
+                ToolTipService.ToolTip="Set the connection credentials"
+                Command="{Binding Path=ShowSetCredentialsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="30"
+                Canvas.Top="5" Canvas.Left="90"/>
+            <Button 
+                Content="&#xE179;" 
+                ToolTipService.ToolTip="Reconnect to previous devices"
+                Command="{Binding Path=ReconnectPreviousSessionCommand}"
+                IsEnabled="{Binding Path=CanReconnectDevices}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="30"
+                Canvas.Top="5" Canvas.Left="145"/>
+            <!-- TODO: <Button 
+                Content="&#xE115;" 
+                ToolTipService.ToolTip="Adjust application settings"
+                Command="{Binding Path=ShowSettingsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="30" 
+                Canvas.Top="5" Canvas.Left="240"/>-->
         </Canvas>
         <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <StackPanel
                 Background="White" Height="Auto">
-                <Canvas
-                    x:Name="connectionControls"
-                    HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="205" Margin="10,0,0,0">
-                    <Border 
-                        BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="195"/>
-                    <TextBlock 
-                        x:Name="registerDeviceLabel"
-                        Text="Register Device"
-                        TextWrapping="NoWrap" FontSize="20"
-                        Canvas.Left="10" Canvas.Top="10"/>
-                    <Button
-                        x:Name="connectToDevice"
-                        Content="Connect" 
-                        ToolTipService.ToolTip="Connect to your device"
-                        Command="{Binding ConnectToDeviceCommand}" 
-                        IsEnabled="{Binding CredentialsSet}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top" 
-                        Width="171" Height="50" FontSize="20"
-                        Canvas.Left="10" Canvas.Top="43"/>
-                    <Button
-                        x:Name="showConnectContextMenu"
-                        Content="..."
-                        Command="{Binding Path=ShowConnectContextMenuCommand}" 
-                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                        ToolTipService.ToolTip="Display additional connection options."
-                        IsEnabled="{Binding CredentialsSet}"
-                        HorizontalAlignment="Left" VerticalAlignment="Top" 
-                        Width="75" Height="50" 
-                        FontSize="20" 
-                        Canvas.Left="195" Canvas.Top="43"/>
-                    <TextBlock 
-                        x:Name="userNameLabel" 
-                        Text="User name" 
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="18" TextWrapping="NoWrap"
-                        Canvas.Left="10" Canvas.Top="106"/>
-                    <TextBox
-                        x:Name="userNameBox"
-                        ToolTipService.ToolTip="Windows Device Portal user name"
-                        Text="{Binding Path=UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        TextWrapping="NoWrap"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                        FontSize="18"  
-                        Canvas.Left="127" Canvas.Top="100" Width="143"/>
-                    <TextBlock
-                        x:Name="passwordLabel" 
-                        Text="Password" 
-                        TextWrapping="NoWrap"
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="18"  
-                        Canvas.Left="21" Canvas.Top="150"/>
-                    <PasswordBox
-                        x:Name="passwordBox" 
-                        ToolTipService.ToolTip="Windows Device Portal password"
-                        Password="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                        Width="143" FontSize="18" 
-                        PasswordRevealMode="Peek" 
-                        Canvas.Left="127" Canvas.Top="144"/>
-                </Canvas>
-
                 <Canvas
                     x:Name="applicationControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"

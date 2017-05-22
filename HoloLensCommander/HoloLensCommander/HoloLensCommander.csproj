@@ -130,6 +130,8 @@
     <Compile Include="Dialogs\ManageAppsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModel.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\SetCredentialsDialogViewModel.cs" />
+    <Compile Include="Dialogs\SetCredentialsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\SetIpdDialog.xaml.cs">
       <DependentUpon>SetIpdDialog.xaml</DependentUpon>
     </Compile>
@@ -153,6 +155,9 @@
       <DependentUpon>ManageAppsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Dialogs\SetCredentialsDialog.xaml.cs">
+      <DependentUpon>SetCredentialsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\AppInstallFiles.cs" />
     <Compile Include="Utilities\ConnectionInformation.cs" />
     <Compile Include="Utilities\ConnectOptions.cs" />
@@ -216,6 +221,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\ManageAppsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\SetCredentialsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

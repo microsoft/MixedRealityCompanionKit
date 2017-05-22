@@ -214,10 +214,10 @@ namespace HoloLensCommander
                     await this.RebootDevicesAsync();
                 });
 
-            this.ReconnectToDevicesCommand= new Command(
-                async (parameter) =>
+            this.ReconnectPreviousSessionCommand = new Command(
+                (parameter) =>
                 {
-                    await this.ReconnectToDevicesAsync();
+                    this.ReconnectPreviousSession();
                 });
 
             this.SaveMixedRealityFilesCommand = new Command(
@@ -232,10 +232,10 @@ namespace HoloLensCommander
                     this.SelectAllDevices();
                 });
 
-            this.ShowConnectContextMenuCommand = new Command(
+            this.ShowSetCredentialsCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.ShowConnectContextMenuAsync(parameter);
+                    await this.ShowSetCredentials();
                 });
 
             this.ShutdownDevicesCommand = new Command(
