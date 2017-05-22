@@ -107,7 +107,7 @@
                         Width="280" Height="305"/>
                     <TextBlock 
                         x:Name="commonAppsLabel" 
-                        Text="Applications" 
+                        Text="Common Applications" 
                         TextWrapping="NoWrap" FontSize="20"
                         Canvas.Left="10" Canvas.Top="10"/>
                     <ComboBox 
@@ -182,10 +182,10 @@
                 <Canvas
                     x:Name="mixedRealityControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="160" Margin="10,0,0,0">
+                    Width="280" Height="210" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="150"/>
+                        Width="280" Height="200"/>
                     <TextBlock 
                         x:Name="mixedRealityLabel"
                         Text="Mixed Reality Capture"
@@ -222,26 +222,26 @@
                         IsChecked="{Binding DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding HaveRegisteredDevices}"
                         FontSize="18"
-                        Canvas.Left="10" Canvas.Top="108"/>
+                        Canvas.Left="10" Canvas.Top="102"/>
+                    <Button
+                            x:Name="wipeCameraRoll"
+                            Content="Clear Camera Roll"
+                            ToolTipService.ToolTip="Remove camera roll files"
+                            Command="{Binding WipeCameraRollCommand}" 
+                            IsEnabled="{Binding HaveRegisteredDevices}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" 
+                            Width="260" Height="50" 
+                            FontSize="20" Canvas.Left="10" Canvas.Top="139"/>
                 </Canvas>
 
                 <Canvas
                     x:Name="deviceControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="190" Margin="10,0,0,0">
+                    Width="280" Height="115" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="177">
+                        Width="280" Height="105">
                     </Border>
-                    <Button
-                            x:Name="wipeCameraRoll"
-                            Content="&#xE74D;"
-                            ToolTipService.ToolTip="Wipe camera roll"
-                            Command="{Binding WipeCameraRollCommand}" 
-                            IsEnabled="{Binding HaveRegisteredDevices}"
-                            HorizontalAlignment="Right" VerticalAlignment="Top" 
-                            Width="260" Height="50" 
-                            FontFamily="Segoe MDL2 Assets" FontSize="20" Canvas.Left="10" Canvas.Top="110"/>
                     <TextBlock 
                         x:Name="deviceControl"
                         Text="Device Control"
@@ -270,7 +270,7 @@
                     <Button
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
-                        ToolTipService.ToolTip="Remove all connected devices"
+                        ToolTipService.ToolTip="Unregister ALL connected devices"
                         Command="{Binding ForgetConnectionsCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
