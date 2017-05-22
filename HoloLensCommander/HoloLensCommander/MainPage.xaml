@@ -19,22 +19,34 @@
             <ColumnDefinition Width="600*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <!-- Column 0 controls -->
-        <ScrollViewer Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+        <Canvas Grid.Column="0" Grid.Row="0"
+                x:Name="appControls"
+                Background="White"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+        </Canvas>
+        <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <StackPanel
                 Background="White" Height="Auto">
                 <Canvas
                     x:Name="connectionControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="175" Margin="10,0,0,0">
+                    Width="280" Height="205" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="165"/>
+                        Width="280" Height="195"/>
+                    <TextBlock 
+                        x:Name="registerDeviceLabel"
+                        Text="Register Device"
+                        TextWrapping="NoWrap" FontSize="20"
+                        Canvas.Left="10" Canvas.Top="10"/>
                     <Button
                         x:Name="connectToDevice"
                         Content="Connect" 
@@ -43,7 +55,7 @@
                         IsEnabled="{Binding CredentialsSet}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         Width="171" Height="50" FontSize="20"
-                        Canvas.Left="10" Canvas.Top="10"/>
+                        Canvas.Left="10" Canvas.Top="43"/>
                     <Button
                         x:Name="showConnectContextMenu"
                         Content="..."
@@ -54,13 +66,13 @@
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
                         Width="75" Height="50" 
                         FontSize="20" 
-                        Canvas.Left="195" Canvas.Top="10"/>
+                        Canvas.Left="195" Canvas.Top="43"/>
                     <TextBlock 
                         x:Name="userNameLabel" 
                         Text="User name" 
                         HorizontalAlignment="Left" VerticalAlignment="Top"
                         FontSize="18" TextWrapping="NoWrap"
-                        Canvas.Left="10" Canvas.Top="73"/>
+                        Canvas.Left="10" Canvas.Top="106"/>
                     <TextBox
                         x:Name="userNameBox"
                         ToolTipService.ToolTip="Windows Device Portal user name"
@@ -68,14 +80,14 @@
                         TextWrapping="NoWrap"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top"
                         FontSize="18"  
-                        Canvas.Left="127" Canvas.Top="73" Width="143"/>
+                        Canvas.Left="127" Canvas.Top="100" Width="143"/>
                     <TextBlock
                         x:Name="passwordLabel" 
                         Text="Password" 
                         TextWrapping="NoWrap"
                         HorizontalAlignment="Left" VerticalAlignment="Top"
                         FontSize="18"  
-                        Canvas.Left="21" Canvas.Top="120"/>
+                        Canvas.Left="21" Canvas.Top="150"/>
                     <PasswordBox
                         x:Name="passwordBox" 
                         ToolTipService.ToolTip="Windows Device Portal password"
@@ -83,7 +95,7 @@
                         HorizontalAlignment="Stretch" VerticalAlignment="Top"
                         Width="143" FontSize="18" 
                         PasswordRevealMode="Peek" 
-                        Canvas.Left="127" Canvas.Top="117"/>
+                        Canvas.Left="127" Canvas.Top="144"/>
                 </Canvas>
 
                 <Canvas
@@ -268,13 +280,13 @@
                 </Canvas>
             </StackPanel>
         </ScrollViewer>
+
         <!-- Column 1 controls -->
-        <StackPanel Grid.Column="1" Grid.Row="0"
-            Background="White" Margin="5,0,-5,0">
-            <Canvas
+        <Canvas Grid.Column="1" Grid.Row="0"
                 HorizontalAlignment="Stretch"
+                Background="White"
                 Height="40">
-                <Button 
+            <Button 
                     x:Name="selectAll"
                     Content="Select All"
                     ToolTipService.ToolTip="Selects all connected devices"
@@ -283,7 +295,7 @@
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="30" 
                     Canvas.Left="5" Canvas.Top="5"/>
-                <Button 
+            <Button 
                     x:Name="selectNone"
                     Content="Select None"
                     ToolTipService.ToolTip="Deselects all connected devices"
@@ -292,7 +304,7 @@
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="30" 
                     Canvas.Left="120" Canvas.Top="5"/>
-                <RadioButton 
+            <RadioButton 
                     x:Name="allDevices" 
                     GroupName="deviceTypeFilters"
                     Content="All"
@@ -300,32 +312,34 @@
                     IsChecked="True"
                     HorizontalAlignment="Left" Width="60" 
                     Canvas.Left="240" Canvas.Top="5"/>
-                <RadioButton 
+            <RadioButton 
                     x:Name="holoLensDevices" 
                     GroupName="deviceTypeFilters"
                     Content="HoloLens" 
                     Command="{Binding Path=UseHoloLensFilterCommand}"
                     HorizontalAlignment="Left" Width="110" 
                     Canvas.Left="310" Canvas.Top="5"/>
-                <RadioButton 
+            <RadioButton 
                     x:Name="desktopDevices" 
                     GroupName="deviceTypeFilters"
                     Content="Windows PC" 
                     Command="{Binding Path=UseDesktopFilterCommand}"
                     HorizontalAlignment="Left" Width="130" 
                     Canvas.Left="420" Canvas.Top="5"/>
-            </Canvas>
+        </Canvas>
+        <ScrollViewer Grid.Column="1" Grid.Row="1"
+            VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <ListBox 
                 x:Name="listBox" 
                 ItemsSource="{Binding Path=RegisteredDevices}"
                 Padding="0"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Auto"/>
-        </StackPanel>
-        <TextBlock Grid.Row="1" Grid.Column="1"
+        </ScrollViewer>
+        <TextBlock Grid.Row="2" Grid.Column="1"
             x:Name="statusMessage" 
             Text="{Binding Path=StatusMessage}"
             TextWrapping="NoWrap" FontSize="16"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Margin="0,5,0,5"/>
+            Margin="5,0,0,5"/>
     </Grid>
 </Page>
