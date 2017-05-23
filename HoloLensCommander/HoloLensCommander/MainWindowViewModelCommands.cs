@@ -458,7 +458,35 @@ namespace HoloLensCommander
             {
                 this.UserName = credentials.UserName;
                 this.Password = credentials.Password;
-                this.SetDefaultCredentials();
+                this.SaveApplicationSettings();
+            }
+        }
+
+        /// <summary>
+        /// Command used to display the settings dialog.
+        /// </summary>
+        public ICommand ShowSettingsCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the show settings command.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        private async Task ShowSettings()
+        {
+            Settings settings = new Settings(
+                this.autoReconnect,
+                this.heartbeatInterval);
+
+            SettingsDialog settingsDialog = new SettingsDialog(settings);
+            ContentDialogResult dialogResult = await settingsDialog.ShowAsync();
+
+            // Was the Ok button clicked?
+            if (dialogResult == ContentDialogResult.Primary)
+            {
+                this.autoReconnect = settings.AutoReconnect;
+                this.heartbeatInterval = settings.HeartbeatInterval;
+                this.SaveApplicationSettings();
             }
         }
 
@@ -703,6 +731,30 @@ namespace HoloLensCommander
             return connections;
         }
 
+
+        /// <summary>
+        /// Raads the application settings.
+        /// </summary>
+        private void LoadApplicationSettings()
+        {
+            this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
+            this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
+
+            if (!bool.TryParse(
+                this.appSettings.Values[AutoReconnectKey] as string, 
+                out this.autoReconnect))
+            {
+                this.autoReconnect = false;
+            }
+
+            if (!int.TryParse(
+                this.appSettings.Values[HeartbeatIntervalKey] as string,
+                out this.heartbeatInterval))
+            {
+                this.heartbeatInterval = Settings.DefaultHeartbeatInterval;
+            }
+        }
+
         /// <summary>
         /// Registers the DeviceMonitor with the application.
         /// </summary>
@@ -730,6 +782,18 @@ namespace HoloLensCommander
             }
 
             await this.SaveConnectionsAsync();
+        }
+
+        /// <summary>
+        /// Saves the application settings.
+        /// </summary>
+        private void SaveApplicationSettings()
+        {
+            this.appSettings.Values[DefaultUserNameKey] = this.UserName;
+            this.appSettings.Values[DefaultPasswordKey] = this.Password;
+
+            this.appSettings.Values[AutoReconnectKey] = this.autoReconnect.ToString();
+            this.appSettings.Values[HeartbeatIntervalKey] = this.heartbeatInterval.ToString();
         }
 
         /// <summary>
@@ -774,15 +838,6 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stores a set of credentials to be used as the default when connecting to a device.
-        /// </summary>
-        private void SetDefaultCredentials()
-        {
-            this.appSettings.Values[DefaultUserNameKey] = this.UserName;
-            this.appSettings.Values[DefaultPasswordKey] = this.Password;
-        }
-
-        /// <summary>
         /// Removes the specified device from monitoring.
         /// </summary>
         /// <param name="monitorControl">The DeviceMonitorControl tracking the device to be removed.</param>
@@ -796,15 +851,6 @@ namespace HoloLensCommander
             }
 
             await this.SaveConnectionsAsync();
-        }
-
-        /// <summary>
-        /// Updates the current credentials uses when connecting to a device to the previously stored default.
-        /// </summary>
-        private void UseDefaultCredentials()
-        {
-            this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
-            this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
         }
     }
 }
