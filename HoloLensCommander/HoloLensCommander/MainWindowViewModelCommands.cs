@@ -88,34 +88,17 @@ namespace HoloLensCommander
             }
 
             DeviceMonitor monitor = new DeviceMonitor(this.dispatcher);
-            try
-            {
-                this.StatusMessage = string.Format(
-                    "Connecting to the device at {0}",
-                    connectOptions.Address);
 
-                await monitor.ConnectAsync(connectOptions); 
+            this.StatusMessage = string.Format(
+                "Connecting to the device at {0}",
+                connectOptions.Address);
 
-                await this.RegisterDeviceAsync(
-                    monitor, 
-                    name);
+            await monitor.ConnectAsync(connectOptions);
+            this.StatusMessage = "";
 
-                await this.RefreshCommonAppsAsync();
-
-                this.StatusMessage = "";
-            }
-            catch
-            {
-                string addr = connectOptions.Address;
-                if (connectOptions.Address == DeviceMonitor.DefaultConnectionAddress)
-                {
-                    addr = "the attached device";
-                }
-
-                this.StatusMessage = string.Format(
-                    "Failed to connect to {0}. Is it powered on? Paired with the Windows Device Portal?",
-                    addr);
-            }
+            await this.RegisterDeviceAsync(
+                monitor, 
+                name);
         }
 
         /// <summary>
@@ -728,11 +711,23 @@ namespace HoloLensCommander
             DeviceMonitorControlViewModel viewModel = deviceMonitorControl.DataContext as DeviceMonitorControlViewModel;
             viewModel.Name = name;
 
-            this.RegisteredDevices.Add(deviceMonitorControl);
+            // We want a sorted list of devices.
+            List<DeviceMonitorControl> currentDevices = this.GetCopyOfRegisteredDevices();
+            currentDevices.Add(deviceMonitorControl);
+            currentDevices.Sort(new DeviceMonitorControlComparer());
+
+            this.RegisteredDevices.Clear();
+            foreach (DeviceMonitorControl monitorControl in currentDevices)
+            {
+                this.RegisteredDevices.Add(monitorControl);
+            }
             if (this.RegisteredDevices.Count > 0)
             {
                 this.HaveRegisteredDevices = true;
             }
+
+            currentDevices.Clear();
+            currentDevices = null;
 
             await this.SaveConnectionsAsync();
         }
