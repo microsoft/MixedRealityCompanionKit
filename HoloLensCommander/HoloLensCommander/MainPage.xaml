@@ -19,73 +19,51 @@
             <ColumnDefinition Width="600*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <!-- Column 0 controls -->
-        <ScrollViewer Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+        <Canvas Grid.Column="0" Grid.Row="0"
+                x:Name="appControls"
+                Background="White"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Button 
+                x:Name="connectToDevice"
+                Content="Connect"
+                ToolTipService.ToolTip="Connect to your device"
+                Command="{Binding Path=ConnectToDeviceCommand}" 
+                IsEnabled="{Binding Path=CredentialsSet}"
+                Width="75" Height="30"
+                Canvas.Top="5" Canvas.Left="10"/>
+            <Button 
+                Content="&#xE192;" 
+                ToolTipService.ToolTip="Set the connection credentials"
+                Command="{Binding Path=ShowSetCredentialsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="30"
+                Canvas.Top="5" Canvas.Left="90"/>
+            <Button 
+                Content="&#xE179;" 
+                ToolTipService.ToolTip="Reconnect to previous devices"
+                Command="{Binding Path=ReconnectPreviousSessionCommand}"
+                IsEnabled="{Binding Path=CanReconnectDevices}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="30"
+                Canvas.Top="5" Canvas.Left="145"/>
+            <!-- TODO: <Button 
+                Content="&#xE115;" 
+                ToolTipService.ToolTip="Adjust application settings"
+                Command="{Binding Path=ShowSettingsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="30" 
+                Canvas.Top="5" Canvas.Left="240"/>-->
+        </Canvas>
+        <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <StackPanel
                 Background="White" Height="Auto">
-                <Canvas
-                    x:Name="connectionControls"
-                    HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="175" Margin="10,0,0,0">
-                    <Border 
-                        BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="165"/>
-                    <Button
-                        x:Name="connectToDevice"
-                        Content="Connect" 
-                        ToolTipService.ToolTip="Connect to your device"
-                        Command="{Binding ConnectToDeviceCommand}" 
-                        IsEnabled="{Binding CredentialsSet}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top" 
-                        Width="171" Height="50" FontSize="20"
-                        Canvas.Left="10" Canvas.Top="10"/>
-                    <Button
-                        x:Name="showConnectContextMenu"
-                        Content="..."
-                        Command="{Binding Path=ShowConnectContextMenuCommand}" 
-                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                        ToolTipService.ToolTip="Display additional connection options."
-                        IsEnabled="{Binding CredentialsSet}"
-                        HorizontalAlignment="Left" VerticalAlignment="Top" 
-                        Width="75" Height="50" 
-                        FontSize="20" 
-                        Canvas.Left="195" Canvas.Top="10"/>
-                    <TextBlock 
-                        x:Name="userNameLabel" 
-                        Text="User name" 
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="18" TextWrapping="NoWrap"
-                        Canvas.Left="10" Canvas.Top="73"/>
-                    <TextBox
-                        x:Name="userNameBox"
-                        ToolTipService.ToolTip="Windows Device Portal user name"
-                        Text="{Binding Path=UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        TextWrapping="NoWrap"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                        FontSize="18"  
-                        Canvas.Left="127" Canvas.Top="73" Width="143"/>
-                    <TextBlock
-                        x:Name="passwordLabel" 
-                        Text="Password" 
-                        TextWrapping="NoWrap"
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="18"  
-                        Canvas.Left="21" Canvas.Top="120"/>
-                    <PasswordBox
-                        x:Name="passwordBox" 
-                        ToolTipService.ToolTip="Windows Device Portal password"
-                        Password="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                        Width="143" FontSize="18" 
-                        PasswordRevealMode="Peek" 
-                        Canvas.Left="127" Canvas.Top="117"/>
-                </Canvas>
-
                 <Canvas
                     x:Name="applicationControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -95,7 +73,7 @@
                         Width="280" Height="305"/>
                     <TextBlock 
                         x:Name="commonAppsLabel" 
-                        Text="Applications" 
+                        Text="Common Applications" 
                         TextWrapping="NoWrap" FontSize="20"
                         Canvas.Left="10" Canvas.Top="10"/>
                     <ComboBox 
@@ -170,10 +148,10 @@
                 <Canvas
                     x:Name="mixedRealityControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="160" Margin="10,0,0,0">
+                    Width="280" Height="210" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="150"/>
+                        Width="280" Height="200"/>
                     <TextBlock 
                         x:Name="mixedRealityLabel"
                         Text="Mixed Reality Capture"
@@ -210,26 +188,26 @@
                         IsChecked="{Binding DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding HaveRegisteredDevices}"
                         FontSize="18"
-                        Canvas.Left="10" Canvas.Top="108"/>
+                        Canvas.Left="10" Canvas.Top="102"/>
+                    <Button
+                            x:Name="wipeCameraRoll"
+                            Content="Clear Camera Roll"
+                            ToolTipService.ToolTip="Remove camera roll files"
+                            Command="{Binding WipeCameraRollCommand}" 
+                            IsEnabled="{Binding HaveRegisteredDevices}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" 
+                            Width="260" Height="50" 
+                            FontSize="20" Canvas.Left="10" Canvas.Top="139"/>
                 </Canvas>
 
                 <Canvas
                     x:Name="deviceControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="190" Margin="10,0,0,0">
+                    Width="280" Height="115" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="177">
+                        Width="280" Height="105">
                     </Border>
-                    <Button
-                            x:Name="wipeCameraRoll"
-                            Content="&#xE74D;"
-                            ToolTipService.ToolTip="Wipe camera roll"
-                            Command="{Binding WipeCameraRollCommand}" 
-                            IsEnabled="{Binding HaveRegisteredDevices}"
-                            HorizontalAlignment="Right" VerticalAlignment="Top" 
-                            Width="260" Height="50" 
-                            FontFamily="Segoe MDL2 Assets" FontSize="20" Canvas.Left="10" Canvas.Top="110"/>
                     <TextBlock 
                         x:Name="deviceControl"
                         Text="Device Control"
@@ -258,7 +236,7 @@
                     <Button
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
-                        ToolTipService.ToolTip="Remove all connected devices"
+                        ToolTipService.ToolTip="Unregister ALL connected devices"
                         Command="{Binding ForgetConnectionsCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -268,13 +246,13 @@
                 </Canvas>
             </StackPanel>
         </ScrollViewer>
+
         <!-- Column 1 controls -->
-        <StackPanel Grid.Column="1" Grid.Row="0"
-            Background="White" Margin="5,0,-5,0">
-            <Canvas
+        <Canvas Grid.Column="1" Grid.Row="0"
                 HorizontalAlignment="Stretch"
+                Background="White"
                 Height="40">
-                <Button 
+            <Button 
                     x:Name="selectAll"
                     Content="Select All"
                     ToolTipService.ToolTip="Selects all connected devices"
@@ -283,7 +261,7 @@
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="30" 
                     Canvas.Left="5" Canvas.Top="5"/>
-                <Button 
+            <Button 
                     x:Name="selectNone"
                     Content="Select None"
                     ToolTipService.ToolTip="Deselects all connected devices"
@@ -292,7 +270,7 @@
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="30" 
                     Canvas.Left="120" Canvas.Top="5"/>
-                <RadioButton 
+            <RadioButton 
                     x:Name="allDevices" 
                     GroupName="deviceTypeFilters"
                     Content="All"
@@ -300,32 +278,34 @@
                     IsChecked="True"
                     HorizontalAlignment="Left" Width="60" 
                     Canvas.Left="240" Canvas.Top="5"/>
-                <RadioButton 
+            <RadioButton 
                     x:Name="holoLensDevices" 
                     GroupName="deviceTypeFilters"
                     Content="HoloLens" 
                     Command="{Binding Path=UseHoloLensFilterCommand}"
                     HorizontalAlignment="Left" Width="110" 
                     Canvas.Left="310" Canvas.Top="5"/>
-                <RadioButton 
+            <RadioButton 
                     x:Name="desktopDevices" 
                     GroupName="deviceTypeFilters"
                     Content="Windows PC" 
                     Command="{Binding Path=UseDesktopFilterCommand}"
                     HorizontalAlignment="Left" Width="130" 
                     Canvas.Left="420" Canvas.Top="5"/>
-            </Canvas>
+        </Canvas>
+        <ScrollViewer Grid.Column="1" Grid.Row="1"
+            VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <ListBox 
                 x:Name="listBox" 
                 ItemsSource="{Binding Path=RegisteredDevices}"
                 Padding="0"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Auto"/>
-        </StackPanel>
-        <TextBlock Grid.Row="1" Grid.Column="1"
+        </ScrollViewer>
+        <TextBlock Grid.Row="2" Grid.Column="1"
             x:Name="statusMessage" 
             Text="{Binding Path=StatusMessage}"
             TextWrapping="NoWrap" FontSize="16"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Margin="0,5,0,5"/>
+            Margin="5,0,0,5"/>
     </Grid>
 </Page>

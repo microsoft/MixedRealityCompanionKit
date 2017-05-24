@@ -161,7 +161,6 @@ namespace HoloLensCommander
                 if (this.password != value)
                 {
                     this.password = value;
-                    this.NotifyPropertyChanged("Password");
                     this.UpdateCredentialsSet();
                 }
             }
@@ -192,7 +191,6 @@ namespace HoloLensCommander
                 if (this.userName != value)
                 {
                     this.userName = value;
-                    this.NotifyPropertyChanged("UserName");
                     this.UpdateCredentialsSet();
                 }
             }

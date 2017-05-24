@@ -3,16 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Xml.Serialization;
 using Windows.Storage;
-using Windows.UI.Popups;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Microsoft.Tools.WindowsDevicePortal;
 
 namespace HoloLensCommander
 {
@@ -360,6 +357,22 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to restore device connections from a previous application session.
+        /// </summary>
+        public ICommand ReconnectPreviousSessionCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the reconnect previous session command.
+        /// </summary>
+        private void ReconnectPreviousSession()
+        {
+            // Assigning the return value of ReconnectToDevicesAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = ReconnectToDevicesAsync();
+        }
+
+        /// <summary>
         /// Command used to save mixed reality files.
         /// </summary>
         public ICommand SaveMixedRealityFilesCommand
@@ -422,44 +435,31 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to send a message to the admiral account.
+        /// Command used to display the set credentials dialog.
         /// </summary>
-        public ICommand SendMessageToAdmiralCommand
+        public ICommand ShowSetCredentialsCommand
         { get; private set; }
 
         /// <summary>
-        /// Command used to display the connect context menu.
-        /// </summary>
-        public ICommand ShowConnectContextMenuCommand
-        { get; private set; }
-
-        /// <summary>
-        /// Implementation of the show connect context menu command
+        /// Implementation of the show set credentials command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task ShowConnectContextMenuAsync(object sender)
+        private async Task ShowSetCredentials()
         {
-            PopupMenu contextMenu = new PopupMenu();
+            NetworkCredential credentials = new NetworkCredential(
+                this.UserName, 
+                this.Password);
 
-            // The reconnect command is only shown when CanReconnectDevices is true.
-            if (this.CanReconnectDevices)
+            SetCredentialsDialog credsDialogs = new SetCredentialsDialog(credentials);
+            ContentDialogResult dialogResult = await credsDialogs.ShowAsync();
+            
+            // Was the Ok button clicked?
+            if (dialogResult == ContentDialogResult.Primary)
             {
-                contextMenu.Commands.Add(new UICommand(
-                    "Reconnect to previous session",
-                    ConnectContextMenuCommandHandler,
-                    ConnectContextMenuCommandIds.ReconnectPreviousSession));
+                this.UserName = credentials.UserName;
+                this.Password = credentials.Password;
+                this.SetDefaultCredentials();
             }
-            contextMenu.Commands.Add(new UICommand(
-                "Set credentials as new default",
-                ConnectContextMenuCommandHandler,
-                ConnectContextMenuCommandIds.SetDefaultCredentials));
-            contextMenu.Commands.Add(new UICommand(
-                "Use default credentials",
-                ConnectContextMenuCommandHandler,
-                ConnectContextMenuCommandIds.UseDefaultCredentials));
-
-            await contextMenu.ShowForSelectionAsync(
-                Utilities.GetFrameworkElementRect((FrameworkElement)sender));
         }
 
         /// <summary>
@@ -535,7 +535,8 @@ namespace HoloLensCommander
                     Task t = monitor.StopMixedRealityRecordingAsync();
                 }                
             }
-        }       
+        }   
+            
         /// <summary>
         /// Command used to uninstall an application on the selected devices.
         /// </summary>
@@ -612,39 +613,6 @@ namespace HoloLensCommander
                 {
                     await monitor.WipeCameraRollAsync();
                 }
-            }
-        }
-
-        /// <summary>
-        /// Handles connect context menu command selection.
-        /// </summary>
-        /// <param name="command">The command which was selected from the context menu</param>
-        private void ConnectContextMenuCommandHandler(IUICommand command)
-        {
-            // Assigning the return value of the async commands to a Task object to avoid 
-            // warning 4014 (call is not awaited).
-            Task t;
-
-            switch((ConnectContextMenuCommandIds)command.Id)
-            {
-                case ConnectContextMenuCommandIds.ReconnectPreviousSession:
-                    t = this.ReconnectToDevicesAsync();
-                    break;
-
-                case ConnectContextMenuCommandIds.SetDefaultCredentials:
-                    this.SetDefaultCredentials();
-                    break;
-
-                case ConnectContextMenuCommandIds.UseDefaultCredentials:
-                    this.UseDefaultCredentials();
-                    break;
-
-                default:
-                    Debug.Assert(false,
-                        string.Format(
-                        "Unrecognized context menu command id: {0}",
-                        (int)command.Id));
-                    break;
             }
         }
 
