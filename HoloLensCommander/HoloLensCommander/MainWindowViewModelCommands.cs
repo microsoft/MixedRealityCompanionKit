@@ -487,6 +487,13 @@ namespace HoloLensCommander
                 this.autoReconnect = settings.AutoReconnect;
                 this.heartbeatInterval = settings.HeartbeatInterval;
                 this.SaveApplicationSettings();
+
+                // Update the device monitors with the new heartbeat interval.
+                List<DeviceMonitorControl> registeredDevices = this.GetCopyOfRegisteredDevices();
+                foreach (DeviceMonitorControl monitor in registeredDevices)
+                {
+                    ((DeviceMonitorControlViewModel)monitor.DataContext).SetHeartbeatInterval(this.heartbeatInterval);
+                }
             }
         }
 
@@ -747,7 +754,7 @@ namespace HoloLensCommander
                 this.autoReconnect = false;
             }
 
-            if (!int.TryParse(
+            if (!float.TryParse(
                 this.appSettings.Values[HeartbeatIntervalKey] as string,
                 out this.heartbeatInterval))
             {

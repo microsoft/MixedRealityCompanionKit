@@ -47,7 +47,7 @@ namespace HoloLensCommander
         /// <summary>
         /// The time, in seconds, between a device's heartbeat check.
         /// </summary>
-        private int heartbeatInterval;
+        private float heartbeatInterval;
 
         /// <summary>
         /// Value indicating whether or not we have attempted to reconnect to previous devices.
@@ -96,9 +96,14 @@ namespace HoloLensCommander
             this.appSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
             this.LoadApplicationSettings();
             
+            if (this.autoReconnect)
+            {
+                this.ReconnectPreviousSession();    
+            }
             this.UpdateCanReconnect();
 
             this.RegisterCommands();
+
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace HoloLensCommander
             }
         }
 
-        private int heartbeatInterval = Settings.DefaultHeartbeatInterval;
+        private float heartbeatInterval = Settings.DefaultHeartbeatInterval;
         public string HeartbeatInterval
         {
             get 
@@ -36,10 +36,10 @@ namespace HoloLensCommander
 
             set 
             {
-                int i = 0;
-                if (int.TryParse(value, out i))
+                float f = 0f;
+                if (float.TryParse(value, out f))
                 {
-                    this.heartbeatInterval = i;
+                    this.heartbeatInterval = f;
                     this.NotifyPropertyChanged("HeartbeatInterval");    
                 }
             }

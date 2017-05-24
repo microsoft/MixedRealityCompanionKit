@@ -9,9 +9,9 @@ namespace HoloLensCommander
     public class Settings
     {
         // Constants used to set interval bounds and the default value
-        public static readonly int DefaultHeartbeatInterval = 5;
-        public static readonly int MaxHeartbeatInterval = 15;
-        public static readonly int MinHeartbeatInterval = 1;
+        public static readonly float DefaultHeartbeatInterval = 5.0f;
+        public static readonly float MaxHeartbeatInterval = 60.0f;
+        public static readonly float MinHeartbeatInterval = 1.0f;
 
         /// <summary>
         /// Indicates whether or not the application should reconnect to the previous
@@ -22,8 +22,8 @@ namespace HoloLensCommander
         /// <summary>
         /// The time, in seconds, beteen heartbeat checks.
         /// </summary>
-        private int heartbeatInterval;
-        public int HeartbeatInterval
+        private float heartbeatInterval;
+        public float HeartbeatInterval
         {
             get 
             {
@@ -60,7 +60,7 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="Settings" /> class.
         /// </summary>
         /// <param name="interval">Seconds between heartbeat checks.</param>
-        public Settings(int interval) : 
+        public Settings(float interval) : 
             this(false, interval)
         { }
 
@@ -71,7 +71,7 @@ namespace HoloLensCommander
         /// <param name="interval">Seconds between heartbeat checks.</param>
         public Settings(
             bool autoReconnect,
-            int interval)
+            float interval)
         {
             this.AutoReconnect = autoReconnect;
             this.HeartbeatInterval = interval;
