@@ -114,6 +114,7 @@
     </Compile>
     <Compile Include="Dialogs\ConnectToDeviceDialogViewModel.cs" />
     <Compile Include="Dialogs\ConnectToDeviceDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\ConnectToDeviceDialogViewModelCommands.cs" />
     <Compile Include="Dialogs\DeviceInformationDialog.xaml.cs">
       <DependentUpon>DeviceInformationDialog.xaml</DependentUpon>
     </Compile>

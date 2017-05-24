@@ -14,6 +14,21 @@ namespace HoloLensCommander
         public string Address;
 
         /// <summary>
+        /// Are we attempting to connect to a Desktop PC?
+        /// </summary>
+        public bool ConnectingToDesktopPC;
+
+        /// <summary>
+        /// Should the device be renamed at connection time?
+        /// </summary>
+        public bool DeployNameToDevice;
+
+        /// <summary>
+        /// Optional name for the device.
+        /// </summary>
+        public string Name;
+
+        /// <summary>
         /// The key used to connect to the network access point.
         /// </summary>
         public string NetworkKey;
