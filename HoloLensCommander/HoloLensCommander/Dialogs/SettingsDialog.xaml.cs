@@ -1,17 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 namespace HoloLensCommander
 {
@@ -47,11 +35,14 @@ namespace HoloLensCommander
             {
                 // Return the data
                 ((SettingsDialogViewModel)this.DataContext).UpdateUserData(this.appSettings);
+                this.appSettings.SettingsUpdated = true;
+                this.appSettings.StatusMessage = "";
             }
             catch(Exception e)
             {
-                // Display a message indicating that settings were not changed.
-                // TODO
+                // Inform the user that the settings have not been changed.
+                this.appSettings.SettingsUpdated = false;
+                this.appSettings.StatusMessage = e.Message;
             }
         }
     }

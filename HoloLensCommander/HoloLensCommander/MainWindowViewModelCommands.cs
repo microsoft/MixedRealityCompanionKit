@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Xml.Serialization;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 
 namespace HoloLensCommander
@@ -222,6 +223,30 @@ namespace HoloLensCommander
             }
         }
 
+        public ICommand LoadSessionFileCommand
+        { get; private set; }
+
+        private async Task LoadSessionFileAsync()
+        {
+            List<ConnectionInformation> devices = new List<ConnectionInformation>();
+
+            FileOpenPicker filePicker = new FileOpenPicker();
+            filePicker.FileTypeFilter.Add(".xml");
+            filePicker.CommitButtonText = "Select";
+
+            StorageFile file = await filePicker.PickSingleFileAsync();
+
+            this.StatusMessage = string.Format(
+                "Loading session file: {0}",
+                file.Path);
+
+            this.RegisteredDevices.Clear();
+
+            // Assigning the return value of ReconnectToDevicesAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.ReconnectToDevicesAsync(file);
+        }
+
         /// <summary>
         /// Command used to reboot the selected devices.
         /// </summary>
@@ -253,7 +278,8 @@ namespace HoloLensCommander
         /// Implementation of the reconnect to devices command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task ReconnectToDevicesAsync()
+        private async Task ReconnectToDevicesAsync(
+            StorageFile sessionFile = null)
         {
             // TODO: allow the user to cancel this if it is taking too long
 
@@ -262,8 +288,8 @@ namespace HoloLensCommander
 
             // Defer updating common apps until all devices have reconnected
             this.suppressRefreshCommonApps = true;
-            
-            List<ConnectionInformation> connections = await this.LoadConnectionsAsync();
+
+            List<ConnectionInformation> connections = await this.ReadSessionFileAync(sessionFile);
 
             foreach (ConnectionInformation connectionInfo in connections)
             {
@@ -415,8 +441,6 @@ namespace HoloLensCommander
                 StorageFile file = await savePicker.PickSaveFileAsync();
                 if (file == null) { return; }
 
-
-                // TODO: persist a data format containing device platform
                 List<ConnectionInformation> sessionDevices = new List<ConnectionInformation>();
                 foreach (DeviceMonitorControl monitorControl in this.GetCopyOfRegisteredDevices())
                 {
@@ -534,6 +558,16 @@ namespace HoloLensCommander
             // Was the Ok button clicked?
             if (dialogResult == ContentDialogResult.Primary)
             {
+                if (!settings.SettingsUpdated)
+                {
+                    MessageDialog errorMessage = new MessageDialog(
+                        string.Format(
+                        "An error occurred updating settings:\r\n\r\n{0}",
+                        settings.StatusMessage));
+                    await errorMessage.ShowAsync();
+                    return;
+                }
+
                 this.autoReconnect = settings.AutoReconnect;
                 this.heartbeatInterval = settings.HeartbeatInterval;
                 this.SaveApplicationSettings();
@@ -759,37 +793,6 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Read saved device connections from disk.
-        /// </summary>
-        /// <returns>List of connection information (address, name, etc).</returns>
-        private async Task<List<ConnectionInformation>> LoadConnectionsAsync()
-        {
-            // NOTE: When we load a connection, we assume that we are to use the
-            // default credentials. If our connection fails, we will skip it.
-
-            List<ConnectionInformation> connections = null;
-
-            try
-            {
-                StorageFile connectionsFile = await this.localFolder.GetFileAsync(
-                    MainPage.ConnectionsFileName);
-
-                using (Stream stream = await connectionsFile.OpenStreamForReadAsync())
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(List<ConnectionInformation>));
-                    connections = serializer.Deserialize(stream) as List<ConnectionInformation>;
-                }
-            }
-            catch 
-            {
-                connections = new List<ConnectionInformation>();
-            }
-
-            return connections;
-        }
-
-
-        /// <summary>
         /// Raads the application settings.
         /// </summary>
         private void LoadApplicationSettings()
@@ -810,6 +813,41 @@ namespace HoloLensCommander
             {
                 this.heartbeatInterval = Settings.DefaultHeartbeatInterval;
             }
+        }
+
+        /// <summary>
+        /// Read saved device connections from disk.
+        /// </summary>
+        /// <param name="sessionFile">StorageFile containing the connection information.</param>
+        /// <returns>List of connection information (address, name, etc).</returns>
+        private async Task<List<ConnectionInformation>> ReadSessionFileAync(
+            StorageFile sessionFile = null)
+        {
+            // NOTE: When we load a connection, we assume that we are to use the
+            // default credentials. If our connection fails, we will skip it.
+
+            List<ConnectionInformation> connections = null;
+
+            try
+            {
+                if (sessionFile == null)
+                {
+                    sessionFile = await this.localFolder.GetFileAsync(
+                        MainPage.ConnectionsFileName);
+                }
+
+                using (Stream stream = await sessionFile.OpenStreamForReadAsync())
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(List<ConnectionInformation>));
+                    connections = serializer.Deserialize(stream) as List<ConnectionInformation>;
+                }
+            }
+            catch
+            {
+                connections = new List<ConnectionInformation>();
+            }
+
+            return connections;
         }
 
         /// <summary>

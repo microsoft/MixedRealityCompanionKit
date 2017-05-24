@@ -34,7 +34,7 @@ namespace HoloLensCommander
             // This will prevent a partial settings update.
 
             // NOTE: The SettingsDialogViewModel.HeartbeatIntervak property is a string. The
-            // SettingsDialogViewModel.heartbeatIntervak field is an unt. We return the int
+            // SettingsDialogViewModel.heartbeatInterval field is a float. We return the float
             // value as that is what is expected of the caller.
             settings.HeartbeatInterval = this.heartbeatInterval;
 

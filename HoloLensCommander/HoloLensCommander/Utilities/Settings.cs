@@ -20,6 +20,24 @@ namespace HoloLensCommander
         public bool AutoReconnect;
 
         /// <summary>
+        /// Indicates whether or not the settings were successfully updated.
+        /// </summary>
+        /// <remarks>
+        /// This value will be false if, for example, the heartbeat interval
+        /// is out of bounds.
+        /// </remarks>
+        public bool SettingsUpdated = false;
+
+        /// <summary>
+        /// A message indicating the status of the settings object.
+        /// </summary>
+        /// <remarks>
+        /// If the settings were not updated, this message should indicate why. 
+        /// For example, "HeartbeatInterval must be between x and y, inclusive."
+        /// </remarks>
+        public string StatusMessage = string.Empty;
+
+        /// <summary>
         /// The time, in seconds, beteen heartbeat checks.
         /// </summary>
         private float heartbeatInterval;
@@ -37,9 +55,9 @@ namespace HoloLensCommander
                     if ((MaxHeartbeatInterval < value) ||
                         (MinHeartbeatInterval > value))
                     {
-                        throw new ArgumentOutOfRangeException(
+                        throw new Exception(
                             string.Format(
-                            "HeartbeatInterval must be between {0} and {1}, inclusive.",
+                            "Heartbeat Interval must be between {0:F1} and {1:F1}, inclusive.",
                             MinHeartbeatInterval,
                             MaxHeartbeatInterval));
                     }

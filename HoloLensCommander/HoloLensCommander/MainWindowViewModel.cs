@@ -219,6 +219,12 @@ namespace HoloLensCommander
                     this.LaunchApp();
                 });
 
+            this.LoadSessionFileCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.LoadSessionFileAsync(); 
+                });
+
             this.RefreshCommonAppsCommand = new Command(
                 async (parameter) =>
                 {
