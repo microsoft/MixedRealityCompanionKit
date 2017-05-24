@@ -161,6 +161,7 @@
     <Compile Include="Utilities\AppInstallFiles.cs" />
     <Compile Include="Utilities\ConnectionInformation.cs" />
     <Compile Include="Utilities\ConnectOptions.cs" />
+    <Compile Include="Utilities\DeviceMonitorControlComparer.cs" />
     <Compile Include="Utilities\Enums.cs" />
     <Compile Include="Utilities\Command.cs" />
     <Compile Include="Dialogs\YesNoMessageDialog.cs" />

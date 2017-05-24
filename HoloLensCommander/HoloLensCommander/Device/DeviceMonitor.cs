@@ -58,6 +58,14 @@ namespace HoloLensCommander
         private static readonly string ShellApp = "HoloShellApp.exe";
 
         /// <summary>
+        /// Options used to connect to this device.
+        /// </summary>
+        /// <remarks>
+        /// This data is displayed until an initial connection is made to the device.
+        /// </remarks>
+        private ConnectOptions connectOptions;
+
+        /// <summary>
         /// Dispatcher that allows heartbeats to be marshaled appropriately.
         /// </summary>
         private CoreDispatcher dispatcher;
@@ -71,6 +79,11 @@ namespace HoloLensCommander
         /// Instance of the DevicePortal used to communicate with this device.
         /// </summary>
         private DevicePortal devicePortal;
+
+        /// <summary>
+        /// Has a successful heartbeat been received from the device?
+        /// </summary>
+        private bool firstContact;
 
         /// <summary>
         /// The current heartbeat interval, in seconds.
@@ -124,9 +137,9 @@ namespace HoloLensCommander
             }
 
             this.heartbeatInterval = heartbeatInterval;
+            this.firstContact = false;
 
             // Create the timer, but do not start it.
-            // It will be started when ConnectAsync is called.
             this.heartbeatTimer = new Timer(
                 HeartbeatCallback,
                 null,
@@ -170,28 +183,31 @@ namespace HoloLensCommander
         {
             try
             {
-                // Suspend the timer.
-                heartbeatTimer.Change(
-                    Timeout.Infinite, 
-                    Timeout.Infinite);
+                this.SuspendHeartbeat();
 
                 try
                 {
-                    await UpdateBatteryStatus();
-                    await UpdateIpd();
-                    await UpdateThermalStage();
+                    // Have connected to the device the first time?
+                    if (!this.firstContact)
+                    {
+                        // Try to connect now.
+                        await this.EstablishConnection();
+                    }
 
-                    NotifyHeartbeatReceived();
+                    // TODO: this.MachineName = await this.GetMachineNameAsync();
+                    await this.UpdateBatteryStatus();
+                    await this.UpdateIpd();
+                    await this.UpdateThermalStage();
+
+                    this.NotifyHeartbeatReceived();
                 }
                 catch
                 {
-                    NotifyHeartbeatLost();
+                    this.NotifyHeartbeatLost();
                 }
-                      
+
                 // Resume the timer.
-                heartbeatTimer.Change(
-                    (Int32)(heartbeatInterval * 1000.0f), 
-                    Timeout.Infinite);
+                this.StartHeartbeat();
             }
             catch
             {
@@ -253,12 +269,40 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Starts/restarts the heartbeat timer by setting a non-infinite interval
+        /// </summary>
+        internal void StartHeartbeat()
+        {
+            this.UpdateHeartbeat(
+                (int)(this.HeartbeatIntervalSeconds * 1000.0f));
+        }
+
+        /// <summary>
+        /// Suspends the heartbeat timer by setting an infinite interval
+        /// </summary>
+        internal void SuspendHeartbeat()
+        {
+            this.UpdateHeartbeat(Timeout.Infinite);
+        }
+
+        /// <summary>
         /// Updates the cached battery data.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task UpdateBatteryStatus()
         {
             this.BatteryState = await this.devicePortal.GetBatteryStateAsync();
+        }
+
+        /// <summary>
+        /// Update the heartbeat timer's due time.
+        /// </summary>
+        /// <param name="dueTimeMs">Milliseconds for the timer to wait until the next tick.</param>
+        private void UpdateHeartbeat(int dueTimeMs)
+        {
+            this.heartbeatTimer.Change(
+                dueTimeMs,
+                Timeout.Infinite);
         }
 
         /// <summary>

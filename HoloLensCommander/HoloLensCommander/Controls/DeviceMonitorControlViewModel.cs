@@ -32,9 +32,15 @@ namespace HoloLensCommander
         /// <summary>
         /// Text labels describing the type of device.
         /// </summary>
-        private static readonly string DeviceIsPCLabel = "";       // E7F4 (PC monitor)
         private static readonly string DeviceIsHoloLensLabel = "";  // no image
-        private static readonly string DeviceIsUnknownLabel = "";  // F142 (question mark)
+        private static readonly string DeviceIsPCLabel = "";       // E7F4 (PC monitor)
+        private static readonly string DeviceIsUnknownLabel = "";  // E897 (question mark)
+
+        /// <summary>
+        /// Text label indicating that an initial connection has not yet been established
+        /// with the device.
+        /// </summary>
+        private static readonly string ConnectionNotEstablishedLabel = "";  // E171 (exclamation point)
 
         /// <summary>
         /// Message to display when the heartbeat is lost.
@@ -50,6 +56,11 @@ namespace HoloLensCommander
         /// The DeviceMonitorControl object to which this view model is registered.
         /// </summary>
         private DeviceMonitorControl deviceMonitorControl;
+
+        /// <summary>
+        /// Have we received the first heartbeat.
+        /// </summary>
+        private bool firstContact;
 
         /// <summary>
         /// Indicates whether or not the monitor control was selected prior to loss of heartbeat.
@@ -74,6 +85,7 @@ namespace HoloLensCommander
 
             this.RegisterCommands();
 
+            this.firstContact = false;
             this.deviceMonitor = monitor;
             this.deviceMonitor.HeartbeatLost += Device_HeartbeatLost;
             this.deviceMonitor.HeartbeatReceived += Device_HeartbeatReceived;
@@ -621,11 +633,23 @@ namespace HoloLensCommander
                 this.oldIsSelected = false;
             }
 
-            // Update the heartbeat based UI
+            // Was this the first time we received a heartbeat?
+            if (!this.firstContact)
+            {
+                // Cause common apps to be refreshed.
+                this.deviceMonitorControl.NotifySelectedChanged();
+                this.firstContact = true;
+            }
+
+            // Update the UI
+            this.SetFilter();
             this.PowerIndicator = sender.BatteryState.IsOnAcPower ? OnAcPowerLabel : OnBatteryLabel;
             this.BatteryLevel = string.Format("{0}%", sender.BatteryState.Level.ToString("#.00"));
-            this.ThermalStatus = (sender.ThermalStage == ThermalStages.Normal) ? Visibility.Collapsed : Visibility.Visible;
-            this.Ipd = sender.Ipd.ToString();
+            if (this.deviceMonitor.Platform == DevicePortalPlatforms.HoloLens)
+            {
+                this.ThermalStatus = (sender.ThermalStage == ThermalStages.Normal) ? Visibility.Collapsed : Visibility.Visible;
+                this.Ipd = sender.Ipd.ToString();
+            }
         }
 
         /// <summary>
@@ -727,7 +751,6 @@ namespace HoloLensCommander
                             break;
 
                         default:
-                            Debug.Assert(false, "Virtual Machine: Unknown device family.");
                             this.Filter = DeviceFilters.None;
                             this.DeviceTypeLabel = DeviceIsUnknownLabel;
                             this.IpdVisibility = Visibility.Collapsed;
@@ -736,9 +759,8 @@ namespace HoloLensCommander
                     break;
 
                 default:
-                    Debug.Assert(false, "Unknown device platform.");
                     this.Filter = DeviceFilters.None;
-                    this.DeviceTypeLabel = DeviceIsUnknownLabel;
+                    this.DeviceTypeLabel = this.firstContact ? DeviceIsUnknownLabel : ConnectionNotEstablishedLabel;
                     this.IpdVisibility = Visibility.Collapsed;
                     break;
             }

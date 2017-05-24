@@ -88,34 +88,17 @@ namespace HoloLensCommander
             }
 
             DeviceMonitor monitor = new DeviceMonitor(this.dispatcher);
-            try
-            {
-                this.StatusMessage = string.Format(
-                    "Connecting to the device at {0}",
-                    connectOptions.Address);
 
-                await monitor.ConnectAsync(connectOptions); 
+            this.StatusMessage = string.Format(
+                "Connecting to the device at {0}",
+                connectOptions.Address);
 
-                await this.RegisterDeviceAsync(
-                    monitor, 
-                    name);
+            await monitor.ConnectAsync(connectOptions);
+            this.StatusMessage = "";
 
-                await this.RefreshCommonAppsAsync();
-
-                this.StatusMessage = "";
-            }
-            catch
-            {
-                string addr = connectOptions.Address;
-                if (connectOptions.Address == DeviceMonitor.DefaultConnectionAddress)
-                {
-                    addr = "the attached device";
-                }
-
-                this.StatusMessage = string.Format(
-                    "Failed to connect to {0}. Is it powered on? Paired with the Windows Device Portal?",
-                    addr);
-            }
+            await this.RegisterDeviceAsync(
+                monitor, 
+                name);
         }
 
         /// <summary>
@@ -266,6 +249,61 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Implementation of the reconnect to devices command.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        private async Task ReconnectToDevicesAsync()
+        {
+            // TODO: allow the user to cancel this if it is taking too long
+
+            this.reconnected = true;
+            this.suppressSave = true;
+
+            // Defer updating common apps until all devices have reconnected
+            this.suppressRefreshCommonApps = true;
+            
+            List<ConnectionInformation> connections = await this.LoadConnectionsAsync();
+
+            foreach (ConnectionInformation connectionInfo in connections)
+            {
+                ConnectOptions connectOptions = new ConnectOptions(
+                    connectionInfo.Address,
+                    this.UserName,
+                    this.Password,
+                    false);
+
+                await this.ConnectToDeviceAsync(
+                    connectOptions,
+                    connectionInfo.Name,
+                    true); // Do not show the connect dialog on re-connect.
+            }
+
+            this.suppressRefreshCommonApps = false;
+            this.suppressSave = false;
+
+            // All known devices have been reconnected, refresh common apps now.
+            await this.RefreshCommonAppsAsync();
+
+            this.UpdateCanReconnect();
+        }
+
+        /// <summary>
+        /// Command used to restore device connections from a previous application session.
+        /// </summary>
+        public ICommand ReconnectPreviousSessionCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the reconnect previous session command.
+        /// </summary>
+        private void ReconnectPreviousSession()
+        {
+            // Assigning the return value of ReconnectToDevicesAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = ReconnectToDevicesAsync();
+        }
+
+        /// <summary>
         /// Command used to refresh the list of applications that are installed on all of on the selected devices.
         /// </summary>
         public ICommand RefreshCommonAppsCommand
@@ -277,6 +315,9 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task RefreshCommonAppsAsync()
         {
+            // Early exit if refresh has been suppressed.
+            if (this.suppressRefreshCommonApps) { return; }
+
             this.StatusMessage = "Refreshing common applications";
 
             List<string> commonAppNames = new List<string>();
@@ -306,7 +347,7 @@ namespace HoloLensCommander
                             appNamesToRemove.Add(name);
                         }
                     }
-                    
+
                     foreach (string name in appNamesToRemove)
                     {
                         commonAppNames.Remove(name);
@@ -317,59 +358,6 @@ namespace HoloLensCommander
             this.UpdateCommonAppsCollection(commonAppNames);
 
             this.StatusMessage = "";
-        }
-
-        /// <summary>
-        /// Command used to reconnect to devices from the previous session.
-        /// </summary>
-        public ICommand ReconnectToDevicesCommand
-        { get; private set; }
-
-        /// <summary>
-        /// Implementation of the reconnect to devices command.
-        /// </summary>
-        /// <returns>Task object used for tracking method completion.</returns>
-        private async Task ReconnectToDevicesAsync()
-        {
-            // TODO: allow the user to cancel this if it is taking too long
-
-            this.reconnected = true;
-            this.suppressSave = true;
-            
-            List<ConnectionInformation> connections = await this.LoadConnectionsAsync();
-
-            foreach (ConnectionInformation connectionInfo in connections)
-            {
-                ConnectOptions connectOptions = new ConnectOptions(
-                    connectionInfo.Address,
-                    this.UserName,
-                    this.Password,
-                    false);
-
-                await this.ConnectToDeviceAsync(
-                    connectOptions,
-                    connectionInfo.Name,
-                    true); // Do not show the connect dialog on re-connect.
-            }
-
-            this.suppressSave = false;
-            this.UpdateCanReconnect();
-        }
-
-        /// <summary>
-        /// Command used to restore device connections from a previous application session.
-        /// </summary>
-        public ICommand ReconnectPreviousSessionCommand
-        { get; private set; }
-
-        /// <summary>
-        /// Implementation of the reconnect previous session command.
-        /// </summary>
-        private void ReconnectPreviousSession()
-        {
-            // Assigning the return value of ReconnectToDevicesAsync to a Task object to avoid 
-            // warning 4014 (call is not awaited).
-            Task t = ReconnectToDevicesAsync();
         }
 
         /// <summary>
@@ -723,11 +711,23 @@ namespace HoloLensCommander
             DeviceMonitorControlViewModel viewModel = deviceMonitorControl.DataContext as DeviceMonitorControlViewModel;
             viewModel.Name = name;
 
-            this.RegisteredDevices.Add(deviceMonitorControl);
+            // We want a sorted list of devices.
+            List<DeviceMonitorControl> currentDevices = this.GetCopyOfRegisteredDevices();
+            currentDevices.Add(deviceMonitorControl);
+            currentDevices.Sort(new DeviceMonitorControlComparer());
+
+            this.RegisteredDevices.Clear();
+            foreach (DeviceMonitorControl monitorControl in currentDevices)
+            {
+                this.RegisteredDevices.Add(monitorControl);
+            }
             if (this.RegisteredDevices.Count > 0)
             {
                 this.HaveRegisteredDevices = true;
             }
+
+            currentDevices.Clear();
+            currentDevices = null;
 
             await this.SaveConnectionsAsync();
         }

@@ -31,8 +31,8 @@
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Button 
                 x:Name="connectToDevice"
-                Content="Connect"
-                ToolTipService.ToolTip="Connect to your device"
+                Content="Register"
+                ToolTipService.ToolTip="Register your device"
                 Command="{Binding Path=ConnectToDeviceCommand}" 
                 IsEnabled="{Binding Path=CredentialsSet}"
                 Width="75" Height="30"
