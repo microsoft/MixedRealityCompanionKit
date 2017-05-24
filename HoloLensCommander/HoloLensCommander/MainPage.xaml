@@ -19,7 +19,7 @@
             <ColumnDefinition Width="600*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
@@ -35,22 +35,22 @@
                 ToolTipService.ToolTip="Register your device"
                 Command="{Binding Path=ConnectToDeviceCommand}" 
                 IsEnabled="{Binding Path=CredentialsSet}"
-                Width="75" Height="30"
+                Width="75" Height="40"
                 Canvas.Top="5" Canvas.Left="10"/>
             <Button 
                 Content="&#xE192;" 
                 ToolTipService.ToolTip="Set the connection credentials"
                 Command="{Binding Path=ShowSetCredentialsCommand}"
                 FontFamily="Segoe MDL2 Assets"
-                Width="50" Height="30"
+                Width="50" Height="40"
                 Canvas.Top="5" Canvas.Left="90"/>
             <Button 
                 Content="&#xE179;" 
-                ToolTipService.ToolTip="Reconnect to previous devices"
+                ToolTipService.ToolTip="Reconnect to previous device session"
                 Command="{Binding Path=ReconnectPreviousSessionCommand}"
                 IsEnabled="{Binding Path=CanReconnectDevices}"
                 FontFamily="Segoe MDL2 Assets"
-                Width="50" Height="30"
+                Width="50" Height="40"
                 Canvas.Top="5" Canvas.Left="145"/>
             <!-- TODO: <Button 
                 Content="&#xE115;" 
@@ -250,8 +250,7 @@
         <!-- Column 1 controls -->
         <Canvas Grid.Column="1" Grid.Row="0"
                 HorizontalAlignment="Stretch"
-                Background="White"
-                Height="40">
+                Background="White">
             <Button 
                     x:Name="selectAll"
                     Content="Select All"
@@ -259,7 +258,7 @@
                     Command="{Binding Path=SelectAllDevicesCommand}" 
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Width="110" Height="30" 
+                    Width="110" Height="40" 
                     Canvas.Left="5" Canvas.Top="5"/>
             <Button 
                     x:Name="selectNone"
@@ -268,7 +267,7 @@
                     Command="{Binding Path=DeselectAllDevicesCommand}" 
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Width="110" Height="30" 
+                    Width="110" Height="40" 
                     Canvas.Left="120" Canvas.Top="5"/>
             <RadioButton 
                     x:Name="allDevices" 
@@ -277,21 +276,21 @@
                     Command="{Binding Path=UseAllDevicesFilterCommand}"
                     IsChecked="True"
                     HorizontalAlignment="Left" Width="60" 
-                    Canvas.Left="240" Canvas.Top="5"/>
+                    Canvas.Left="240" Canvas.Top="8"/>
             <RadioButton 
                     x:Name="holoLensDevices" 
                     GroupName="deviceTypeFilters"
                     Content="HoloLens" 
                     Command="{Binding Path=UseHoloLensFilterCommand}"
                     HorizontalAlignment="Left" Width="110" 
-                    Canvas.Left="310" Canvas.Top="5"/>
+                    Canvas.Left="310" Canvas.Top="8"/>
             <RadioButton 
                     x:Name="desktopDevices" 
                     GroupName="deviceTypeFilters"
                     Content="Windows PC" 
                     Command="{Binding Path=UseDesktopFilterCommand}"
                     HorizontalAlignment="Left" Width="130" 
-                    Canvas.Left="420" Canvas.Top="5"/>
+                    Canvas.Left="420" Canvas.Top="8"/>
         </Canvas>
         <ScrollViewer Grid.Column="1" Grid.Row="1"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
