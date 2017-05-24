@@ -112,7 +112,7 @@ namespace HoloLensCommander
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.DevicePortal));
             contextMenu.Commands.Add(new UICommand(
-                "Disconnect",
+                "Unregister",
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.Disconnect));
 

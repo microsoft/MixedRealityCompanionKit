@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Security.Cryptography.Certificates;
@@ -20,12 +19,14 @@ namespace HoloLensCommander
         /// <summary>
         /// Connects to a device.
         /// </summary>
-        /// <param name="connectOptions">Options that specify how the connection is to be established.</param>
+        /// <param name="options">Options that specify how the connection is to be established.</param>
         /// <returns></returns>
         public async Task ConnectAsync(
-            ConnectOptions connectOptions)
+            ConnectOptions options)
         {
-            string address = connectOptions.Address.ToLower();
+            this.connectOptions = options;
+
+            string address = this.connectOptions.Address.ToLower();
 
             if (!address.StartsWith("http"))
             {
@@ -34,32 +35,59 @@ namespace HoloLensCommander
                 if ((address == DefaultConnectionAddress) ||
                     (address == DefaultConnectionAddressAsIp))
                 {
-                    scheme = "http";   
+                    scheme = "http";
                 }
 
                 address = string.Format(
-                    "{0}://{1}", 
-                    scheme, 
+                    "{0}://{1}",
+                    scheme,
                     address);
             }
 
+            // TODO: provide UI to auto-append the default PC Windows Device Portal port
+            //if (this.connectOptions.ConnectingToDesktopPC)
+            //{
+            //    string s = address.Substring(address.IndexOf("//"));
+            //    if (!s.Contains(":"))
+            //    {
+            //        // Append the default Windows Device Portal port for Desktop PC connections.
+            //        address += ":50443";
+            //    }
+            //}
+
             this.devicePortalConnection = new DefaultDevicePortalConnection(
                     address,
-                    connectOptions.UserName,
-                    connectOptions.Password);
-            DevicePortal portal = new DevicePortal(this.devicePortalConnection);
-            portal.ConnectionStatus += DevicePortal_ConnectionStatus;
+                    this.connectOptions.UserName,
+                    this.connectOptions.Password);
+            this.devicePortal = new DevicePortal(this.devicePortalConnection);
 
-            // We are physically connected to the device.
-            // We can safely accept the device's root certificate.
-            Certificate certificate = await portal.GetRootDeviceCertificateAsync(true);
+            await this.CheckHeartbeatAsync();
+        }
 
-            // Establish the connection to the device.
-            await portal.ConnectAsync(
-                connectOptions.Ssid,
-                connectOptions.NetworkKey,
-                updateConnection: connectOptions.UpdateConnection,
-                manualCertificate: certificate);
+        /// <summary>
+        /// Establish a connection to the device.
+        /// </summary>
+        /// <returns></returns>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task EstablishConnection()
+        {
+            try
+            {
+                // Get the device certificate
+                Certificate certificate = await this.devicePortal.GetRootDeviceCertificateAsync(true);
+
+                // Establish the connection to the device.
+                this.devicePortal.ConnectionStatus += DevicePortal_ConnectionStatus;
+                Task t = this.devicePortal.ConnectAsync(
+                    this.connectOptions.Ssid,
+                    this.connectOptions.NetworkKey,
+                    updateConnection: this.connectOptions.UpdateConnection,
+                    manualCertificate: certificate);
+            }
+            catch
+            {
+                this.firstContact = false;
+            }
         }
 
         /// <summary>
@@ -74,20 +102,25 @@ namespace HoloLensCommander
             if (args.Status == DeviceConnectionStatus.Connected)
             {
                 // Connection successfully established.
+                this.firstContact = true;
                 this.devicePortal = sender;
                 this.devicePortal.AppInstallStatus += DevicePortal_AppInstallStatus;
-
-                // Start the heartbeat.
-                Task t = CheckHeartbeatAsync();
-                t.Wait();
-
                 this.devicePortal.ConnectionStatus -= DevicePortal_ConnectionStatus;
+
+                //    if (this.connectOptions.DeployNameToDevice)
+                //    {
+                //        if (await this.SetDeviceNameAsync(this.connectOptions.Name))
+                //        {
+                //            await this.RebootAsync();
+                //        }
+                //    }
             }
             else if (args.Status == DeviceConnectionStatus.Failed)
             {
+                // Connection failed.
+                this.firstContact = false;
                 this.devicePortal.ConnectionStatus -= DevicePortal_ConnectionStatus;
 
-                // Connection failed.
                 throw new Exception(args.Message);
             }
         }

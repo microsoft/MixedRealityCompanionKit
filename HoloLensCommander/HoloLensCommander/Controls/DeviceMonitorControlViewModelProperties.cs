@@ -57,7 +57,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Gets the device type label for this device.
         /// </summary>
-        private string deviceTypeLabel = DeviceIsUnknownLabel;
+        private string deviceTypeLabel = ConnectionNotEstablishedLabel;
         public string DeviceTypeLabel
         {
             get
