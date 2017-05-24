@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Xml.Serialization;
 using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.UI.Xaml.Controls;
 
 namespace HoloLensCommander
@@ -400,6 +401,67 @@ namespace HoloLensCommander
                         folder,
                         this.DeleteMixedRealityFilesAfterSave);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Command used to save the current device session.
+        /// </summary>
+        public ICommand SaveSessionFileCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the save session file command.
+        /// </summary>
+        private async Task SaveSessionFile()
+        {
+            this.StatusMessage = "";
+
+            try
+            {
+                // Use the picker to select the target location.
+                FileSavePicker savePicker = new FileSavePicker();
+                savePicker.FileTypeChoices.Add("Windows Mixed Reality Commander session file", new List<String>() { ".xml" });
+                savePicker.DefaultFileExtension = ".xml";
+
+                StorageFile file = await savePicker.PickSaveFileAsync();
+                if (file == null) { return; }
+
+
+                // TODO: persist a data format containing device platform
+                List<ConnectionInformation> sessionDevices = new List<ConnectionInformation>();
+                foreach (DeviceMonitorControl monitorControl in this.GetCopyOfRegisteredDevices())
+                {
+                    DeviceMonitorControlViewModel viewModel = (DeviceMonitorControlViewModel)monitorControl.DataContext;
+                    sessionDevices.Add(
+                        new ConnectionInformation(
+                        viewModel.Address,
+                        viewModel.Name));
+                }
+
+                // Serializing to a memory stream and writing the file using the FileIO class to ensure
+                // that, if overwriting an existing file, all previous contents are removed.
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(List<ConnectionInformation>));
+                    serializer.Serialize(stream, sessionDevices);
+                    stream.Position = 0;
+
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        string data = await reader.ReadToEndAsync();
+
+                        await FileIO.WriteTextAsync(file, data);
+                    }
+                }
+
+                this.StatusMessage = string.Format(
+                    "Session file saved as {0}",
+                    file.Path);
+            }
+            catch
+            {
+                this.StatusMessage = "Failed to save the session file.";
             }
         }
 

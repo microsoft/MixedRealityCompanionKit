@@ -243,6 +243,12 @@ namespace HoloLensCommander
                     await this.SaveMixedRealityFiles();
                 });
 
+            this.SaveSessionFileCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.SaveSessionFile();
+                });
+
             this.SelectAllDevicesCommand = new Command(
                 (parameter) =>
                 {
