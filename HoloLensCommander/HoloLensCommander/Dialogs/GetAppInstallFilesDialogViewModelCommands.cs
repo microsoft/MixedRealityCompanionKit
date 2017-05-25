@@ -149,6 +149,17 @@ namespace HoloLensCommander
             DependencyFileNames.Clear();
 
             StorageFolder dependenciesFolder = await appPackageFolder.GetFolderAsync(@"Dependencies\x86");
+
+            if (this.ProcessorArchitectureValue == "x64")
+            {
+                dependenciesFolder = await appPackageFolder.GetFolderAsync(@"Dependencies\x64");
+            }
+
+            if (this.ProcessorArchitectureValue == "ARM")
+            {
+                dependenciesFolder = await appPackageFolder.GetFolderAsync(@"Dependencies\ARM");
+            }
+
             IReadOnlyList<StorageFile> dependencies = await dependenciesFolder.GetFilesAsync();
             foreach (StorageFile dependency in dependencies.Where(appxFilter))
             {
