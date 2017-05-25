@@ -104,5 +104,11 @@
                 Width="50" Height="40"
                 Canvas.Left="550" Canvas.Top="46"/>
         </Canvas>
+        <RadioButton Content="x86" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                     GroupName="Architecture" IsChecked="True" Checked="RadioButton_Checked"/>
+        <RadioButton Content="x64" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                     GroupName="Architecture" Checked="RadioButton_Checked"/>
+        <RadioButton Content="ARM" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                     GroupName="Architecture" Checked="RadioButton_Checked"/>
     </StackPanel>
 </ContentDialog>
