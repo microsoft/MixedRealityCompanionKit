@@ -235,6 +235,10 @@ namespace HoloLensCommander
             filePicker.CommitButtonText = "Select";
 
             StorageFile file = await filePicker.PickSingleFileAsync();
+            if (file == null)
+            {
+                return;
+            }
 
             this.StatusMessage = string.Format(
                 "Loading session file: {0}",
