@@ -46,6 +46,7 @@ namespace HoloLensCommander
         internal void UpdateUserData(TagInformation tagInfo)
         {
             tagInfo.Name = this.Name;
+            tagInfo.DeployNameToDevice = this.DeployNameToDevice;
         }
     }
 }

@@ -194,7 +194,7 @@ namespace HoloLensCommander
                         await this.EstablishConnection();
                     }
 
-                    // TODO: this.MachineName = await this.GetMachineNameAsync();
+                    this.MachineName = await this.GetMachineNameAsync();
                     await this.UpdateBatteryStatus();
                     await this.UpdateIpd();
                     await this.UpdateThermalStage();

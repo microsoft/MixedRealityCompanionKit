@@ -26,6 +26,12 @@
                 TextWrapping="NoWrap" 
                 Width="190"
                 Canvas.Left="80" Canvas.Top="5" />
+            <CheckBox 
+                x:Name="desktopPC"
+                Content="Desktop PC"
+                ToolTipService.ToolTip="Apply default Desktop PC connection information"
+                IsChecked="{Binding Path=ConnectingToDesktopPC, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Canvas.Left="280" Canvas.Top="5"/>
         </Canvas>
         <Canvas 
             Width="450" Height="45">
@@ -37,13 +43,14 @@
             <TextBox 
                 x:Name="name" 
                 Text="{Binding Path=Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                ToolTipService.ToolTip="Optional, local name for the device"
+                ToolTipService.ToolTip="Optional, name for the device"
                 TextWrapping="NoWrap" 
                 Width="190"
                 Canvas.Left="80" Canvas.Top="5" />
             <CheckBox 
                 x:Name="deployName"
                 Content="Update device name"
+                ToolTipService.ToolTip="Rename the device (this will restart the device)"
                 IsChecked="{Binding Path=DeployNameToDevice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Canvas.Left="280" Canvas.Top="5"/>
         </Canvas>
@@ -53,7 +60,7 @@
                 x:Name="showHideCredentials" 
                 Content="{Binding Path=ShowHideCredentialsButtonLabel}"
                 Command="{Binding Path=ShowHideCredentialsCommand}"
-                ToolTipService.ToolTip="Show / hide credentials"
+                ToolTipService.ToolTip="Show or hide the credentials"
                 FontFamily="Segoe MDL2 Assets" FontSize="16" FontWeight="Bold"
                 Width="40" Height="40"
                 BorderBrush="Black"
@@ -103,7 +110,7 @@
                 x:Name="showHideNetworkSettings" 
                 Content="{Binding Path=ShowHideNetworkSettingsButtonLabel}"
                 Command="{Binding Path=ShowHideNetworkSettingsCommand}"
-                ToolTipService.ToolTip="Show / hide network settings"
+                ToolTipService.ToolTip="Show or the hide network settings"
                 FontFamily="Segoe MDL2 Assets" FontSize="16" FontWeight="Bold"
                 Width="40" Height="40"
                 BorderBrush="Black"

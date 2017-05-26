@@ -60,6 +60,7 @@ namespace HoloLensCommander
             string.Empty,
             string.Empty,
             string.Empty,
+            string.Empty,
             false)
         {
         }
@@ -68,15 +69,18 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="ConnectOptions" /> class.
         /// </summary>
         /// <param name="address">The address to be used for the connection.</param>
+        /// <param name="name">Optional, local name for the device.</param>
         /// <param name="userName">The name to use when connecting to the device.</param>
         /// <param name="password">The password to use when connecting to the device.</param>
         /// <param name="updateConnection">Should the connection be automatically updated to the detected WiFi address?</param>
         public ConnectOptions(
             string address,
+            string name,
             string userName,
             string password,
             bool updateConnection) : this(
             address,
+            name,
             userName,
             password,
             string.Empty,
@@ -89,6 +93,7 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="ConnectOptions" /> class.
         /// </summary>
         /// <param name="address">The address to be used for the connection.</param>
+        /// <param name="name">Optional, local name for the device.</param>
         /// <param name="userName">The name to use when connecting to the device.</param>
         /// <param name="password">The password to use when connecting to the device.</param>
         /// <param name="ssid">The SSID of the network access point to which to connect the device.</param>
@@ -96,6 +101,7 @@ namespace HoloLensCommander
         /// <param name="updateConnection">Should the connection be automatically updated to the detected WiFi address?</param>
         public ConnectOptions(
             string address,
+            string name,
             string userName,
             string password,
             string ssid,
@@ -103,6 +109,7 @@ namespace HoloLensCommander
             bool updateConnection)
         {
             this.Address = address;
+            this.Name = name;
             this.UserName = userName;
             this.Password = password;
             this.Ssid = ssid;

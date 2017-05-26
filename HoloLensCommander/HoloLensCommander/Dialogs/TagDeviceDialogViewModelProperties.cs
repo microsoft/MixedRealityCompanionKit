@@ -15,6 +15,28 @@ namespace HoloLensCommander
         { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not we wish the device to be
+        /// renamed
+        /// </summary>
+        private bool deployNameToDevice = false;
+        public bool DeployNameToDevice
+        {
+            get
+            {
+                return this.deployNameToDevice;
+            }
+
+            set
+            {
+                if (this.deployNameToDevice != value)
+                {
+                    this.deployNameToDevice = value;
+                    this.NotifyPropertyChanged("DeployNameToDevice");
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the descriptive name of this device
         /// </summary>
         private string name = string.Empty;

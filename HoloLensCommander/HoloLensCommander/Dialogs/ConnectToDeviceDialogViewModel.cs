@@ -24,7 +24,7 @@ namespace HoloLensCommander
         public ConnectToDeviceDialogViewModel(ConnectOptions options)
         {
             this.Address = options.Address;
-            // TODO - connecting to desktop
+            this.ConnectingToDesktopPC = options.ConnectingToDesktopPC;
 
             this.Name = options.Name;
             this.DeployNameToDevice = options.DeployNameToDevice;
@@ -76,7 +76,7 @@ namespace HoloLensCommander
         internal void UpdateUserData(ConnectOptions connectOptions)
         {
             connectOptions.Address = this.Address;
-            // TODO connectOptions.ConnectingToDesktopPC = this.ConnectingToDesktopPC;
+            connectOptions.ConnectingToDesktopPC = this.ConnectingToDesktopPC;
 
             connectOptions.Name = this.Name;
             connectOptions.DeployNameToDevice = this.DeployNameToDevice;
