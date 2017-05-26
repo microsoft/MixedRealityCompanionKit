@@ -269,8 +269,7 @@ namespace HoloLensCommander
                     connectionInfo.Address,
                     connectionInfo.Name,
                     this.UserName,
-                    this.Password,
-                    false);
+                    this.Password);
 
                 await this.ConnectToDeviceAsync(
                     connectOptions,

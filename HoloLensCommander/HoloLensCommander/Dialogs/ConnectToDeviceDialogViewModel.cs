@@ -87,6 +87,8 @@ namespace HoloLensCommander
             connectOptions.Ssid = this.Ssid;
             connectOptions.NetworkKey = this.NetworkKey;
 
+            connectOptions.UseInstalledCertificate = this.UseInstalledCertificate;
+
             connectOptions.UpdateConnection = this.UpdateConnection;
         }
     }

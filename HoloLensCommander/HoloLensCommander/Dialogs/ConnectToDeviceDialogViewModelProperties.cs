@@ -265,6 +265,28 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not an installed device 
+        /// certificate should be used for this connection
+        /// </summary>
+        private bool useInstalledCertificate = false;
+        public bool UseInstalledCertificate
+        {
+            get
+            {
+                return this.useInstalledCertificate;
+            }
+
+            set
+            {
+                if (this.useInstalledCertificate != value)
+                {
+                    this.useInstalledCertificate = value;
+                    this.NotifyPropertyChanged("UseInstalledCertificate");
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the user name to be used to make the connection to the device
         /// </summary>
         private string userName = string.Empty;

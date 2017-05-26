@@ -49,7 +49,7 @@
                 Canvas.Left="80" Canvas.Top="5" />
             <CheckBox 
                 x:Name="deployName"
-                Content="Update device name"
+                Content="Update Device Name"
                 ToolTipService.ToolTip="Rename the device (this will restart the device)"
                 IsChecked="{Binding Path=DeployNameToDevice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Canvas.Left="280" Canvas.Top="5"/>
@@ -77,7 +77,7 @@
                 Canvas.Top="5" Canvas.Left="25"/>
         </Canvas>
         <Canvas
-            Width="450" Height="85"
+            Width="450" Height="90"
             Visibility="{Binding Path=ShowCredentials}">
             <TextBlock 
                 x:Name="userNameLabel"
@@ -127,7 +127,7 @@
                 Canvas.Top="5" Canvas.Left="25"/>
         </Canvas>
         <Canvas 
-            Width="450" Height="85"
+            Width="450" Height="90"
             Visibility="{Binding Path=ShowNetworkSettings}">
             <TextBlock 
                 x:Name="ssidLabel"
@@ -153,6 +153,15 @@
                 Width="360"
                 PasswordRevealMode="Peek"
                 Canvas.Left="80" Canvas.Top="45" />
+        </Canvas>
+        <Canvas 
+            Width="450" Height="40">
+            <CheckBox 
+                x:Name="useInstalledCertificate" 
+                Content="Use Installed Device Certificate" 
+                ToolTipService.ToolTip="Should an installed certifcate be used to connect to the device?"
+                IsChecked="{Binding Path=UseInstalledCertificate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                Canvas.Top="0"/>
         </Canvas>
         <Canvas 
             Width="450" Height="40">

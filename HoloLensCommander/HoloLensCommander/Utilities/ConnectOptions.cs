@@ -49,6 +49,12 @@ namespace HoloLensCommander
         public bool UpdateConnection;
 
         /// <summary>
+        /// Specifies whether or not an installed device certificate is to be used
+        /// for the connection.
+        /// </summary>
+        public bool UseInstalledCertificate;
+
+        /// <summary>
         /// The name of the user.
         /// </summary>
         public string UserName;
@@ -60,7 +66,27 @@ namespace HoloLensCommander
             string.Empty,
             string.Empty,
             string.Empty,
-            string.Empty,
+            string.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectOptions" /> class.
+        /// </summary>
+        /// <param name="address">The address to be used for the connection.</param>
+        /// <param name="name">Optional, local name for the device.</param>
+        /// <param name="userName">The name to use when connecting to the device.</param>
+        /// <param name="password">The password to use when connecting to the device.</param>
+        public ConnectOptions(
+            string address,
+            string name,
+            string userName,
+            string password) : this(
+            address,
+            name,
+            userName,
+            password,
+            false,
             false)
         {
         }
@@ -73,19 +99,22 @@ namespace HoloLensCommander
         /// <param name="userName">The name to use when connecting to the device.</param>
         /// <param name="password">The password to use when connecting to the device.</param>
         /// <param name="updateConnection">Should the connection be automatically updated to the detected WiFi address?</param>
+        /// <param name="useInstalledCertificate">Should an installed certificate be used to connect to the device?</param>
         public ConnectOptions(
             string address,
             string name,
             string userName,
             string password,
-            bool updateConnection) : this(
+            bool updateConnection,
+            bool useInstalledCertificate) : this(
             address,
             name,
             userName,
             password,
             string.Empty,
             string.Empty,
-            updateConnection)
+            updateConnection,
+            useInstalledCertificate)
         {
         }
 
@@ -99,6 +128,7 @@ namespace HoloLensCommander
         /// <param name="ssid">The SSID of the network access point to which to connect the device.</param>
         /// <param name="networkKey">The network key used when connecting to the access point.</param>
         /// <param name="updateConnection">Should the connection be automatically updated to the detected WiFi address?</param>
+        /// <param name="useInstalledCertificate">Should an installed certificate be used to connect to the device?</param>
         public ConnectOptions(
             string address,
             string name,
@@ -106,7 +136,8 @@ namespace HoloLensCommander
             string password,
             string ssid,
             string networkKey,
-            bool updateConnection)
+            bool updateConnection,
+            bool useInstalledCertificate)
         {
             this.Address = address;
             this.Name = name;
@@ -115,6 +146,7 @@ namespace HoloLensCommander
             this.Ssid = ssid;
             this.NetworkKey = networkKey;
             this.UpdateConnection = updateConnection;
+            this.UseInstalledCertificate = useInstalledCertificate;
         }
     }
 }

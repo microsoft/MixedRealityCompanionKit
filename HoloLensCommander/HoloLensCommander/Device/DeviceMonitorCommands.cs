@@ -72,8 +72,13 @@ namespace HoloLensCommander
         {
             try
             {
-                // Get the device certificate
-                Certificate certificate = await this.devicePortal.GetRootDeviceCertificateAsync(true);
+                Certificate certificate = null;
+
+                if (!this.connectOptions.UseInstalledCertificate)
+                {
+                    // Get the device certificate
+                    certificate = await this.devicePortal.GetRootDeviceCertificateAsync(true);
+                }
 
                 // Establish the connection to the device.
                 this.devicePortal.ConnectionStatus += DevicePortal_ConnectionStatus;
