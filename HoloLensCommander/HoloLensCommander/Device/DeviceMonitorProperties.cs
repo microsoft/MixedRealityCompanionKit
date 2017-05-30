@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.Tools.WindowsDevicePortal;
 using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
 
@@ -49,29 +50,42 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets or set the time, in seconds, between heartbeat checks.
+        /// Gets or sets the current heartbeat interval, in seconds.
         /// </summary>
-        public float HeartbeatIntervalSeconds
+        private float heartbeatInterval;
+        public float HeartbeatInterval
         {
-            get 
+            get
             {
                 return this.heartbeatInterval;
             }
 
             set
             {
-                if ((value < MinimumHeartbeatIntervalSeconds) || (value > MaximumHeartbeatIntervalSeconds))
+                if (this.heartbeatInterval != value)
                 {
-                    throw new ArgumentException(String.Format("Heartbeat inverval must be between {0} and {1}, inclusive", 
-                                                MinimumHeartbeatIntervalSeconds, MaximumHeartbeatIntervalSeconds));
-                }
+                    if ((value > Settings.MaxHeartbeatInterval) ||
+                        (value < Settings.MinHeartbeatInterval))
+                    {
+                        throw new ArgumentOutOfRangeException(
+                            string.Format(
+                            "HeartbeatInterval must be between {0} and {1}, inclusive.",
+                            Settings.MinHeartbeatInterval,
+                            Settings.MaxHeartbeatInterval));
+                    }
 
-                this.heartbeatInterval = value;
-                // TODO:
-                //if (heartbeatTimer != null)
-                //{
-                //    heartbeatTimer.Change((Int32)(_heartbeatInterval * 1000.0f), Timeout.Infinite);
-                //}
+                    this.heartbeatInterval = value;
+
+                    if (this.heartbeatTimerRunning)
+                    {
+                        // Force a heartbeat check now.
+                        // We want the new interval to take effect immediately.
+
+                        // Assigning the return value of CheckHeartbeatAsync to a Task object to avoid 
+                        // warning 4014 (call is not awaited).
+                        Task t = this.CheckHeartbeatAsync();
+                    }
+                }
             }
         }
 

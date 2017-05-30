@@ -149,7 +149,7 @@ namespace HoloLensCommander
         /// Gets or sets the password to be used when connecting to a device.
         /// </summary>
         private string password = string.Empty;
-        public string Password
+        private string Password
         {
             get
             {
@@ -179,7 +179,7 @@ namespace HoloLensCommander
         /// Gets or sets the user name to be used when connecting to a device.
         /// </summary>
         private string userName = string.Empty;
-        public string UserName
+        private string UserName
         {
             get
             {
