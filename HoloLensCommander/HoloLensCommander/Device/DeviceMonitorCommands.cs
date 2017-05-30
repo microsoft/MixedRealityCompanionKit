@@ -107,6 +107,7 @@ namespace HoloLensCommander
                 this.devicePortal.AppInstallStatus += DevicePortal_AppInstallStatus;
                 this.devicePortal.ConnectionStatus -= DevicePortal_ConnectionStatus;
 
+                // TODO:
                 //    if (this.connectOptions.DeployNameToDevice)
                 //    {
                 //        if (await this.SetDeviceNameAsync(this.connectOptions.Name))
