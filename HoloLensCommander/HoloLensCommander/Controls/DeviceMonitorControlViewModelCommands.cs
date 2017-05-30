@@ -30,6 +30,12 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to clear the application status message.
+        /// </summary>
+        public ICommand ClearStatusMessageCommand
+        { get; private set; }
+
+        /// <summary>
         /// Command used to disconnect from the device.
         /// </summary>
         public ICommand DisconnectCommand

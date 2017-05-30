@@ -83,8 +83,6 @@ namespace HoloLensCommander
         {
             this.deviceMonitorControl = control;
 
-            this.RegisterCommands();
-
             this.firstContact = false;
             this.deviceMonitor = monitor;
             this.deviceMonitor.HeartbeatLost += Device_HeartbeatLost;
@@ -98,6 +96,7 @@ namespace HoloLensCommander
             this.Address = deviceMonitor.Address;
             this.IsSelected = true;
 
+            this.RegisterCommands();
         }
 
         /// <summary>
@@ -691,6 +690,12 @@ namespace HoloLensCommander
         /// </summary>
         private void RegisterCommands()
         {
+            this.ClearStatusMessageCommand = new Command(
+                (parameter) =>
+                {
+                    this.StatusMessage = string.Empty;
+                });
+
             this.DisconnectCommand = new Command(
                 (parameter) =>
                 {
