@@ -10,6 +10,9 @@ namespace HoloLensCommander
     /// </summary>
     public partial class ConnectToDeviceDialogViewModel : INotifyPropertyChanged
     {
+        private static readonly string ExpandButtonLabel = "";     // + sign
+        private static readonly string CollapseButtonLabel = "";   // -+ sign
+
         /// <summary>
         /// Event that is notified when a property value has changed.
         /// </summary>
@@ -21,7 +24,20 @@ namespace HoloLensCommander
         public ConnectToDeviceDialogViewModel(ConnectOptions options)
         {
             this.Address = options.Address;
+            this.ConnectingToDesktopPC = options.ConnectingToDesktopPC;
+
+            this.Name = options.Name;
+            this.DeployNameToDevice = options.DeployNameToDevice;
+
+            this.UserName = options.UserName;
+            this.Password = options.Password;
+
+            this.Ssid = options.Ssid;
+            this.NetworkKey = options.NetworkKey;
+
             this.UpdateConnection = options.UpdateConnection;
+
+            this.RegisterCommands();
         }
 
         /// <summary>
@@ -36,14 +52,43 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Registers commands supported by this object.
+        /// </summary>
+        private void RegisterCommands()
+        {
+            this.ShowHideCredentialsCommand = new Command(
+                (parameter) =>  
+                {
+                    this.ShowHideCredentials();
+                });
+
+            this.ShowHideNetworkSettingsCommand = new Command(
+                (parameter) =>
+                {
+                    this.ShowHideNetworkSettings();
+                });
+        }
+
+        /// <summary>
         /// Update's the user selected data.
         /// </summary>
         /// <param name="connectOptions">The options to be used when connecting to the device.</param>
         internal void UpdateUserData(ConnectOptions connectOptions)
         {
             connectOptions.Address = this.Address;
+            connectOptions.ConnectingToDesktopPC = this.ConnectingToDesktopPC;
+
+            connectOptions.Name = this.Name;
+            connectOptions.DeployNameToDevice = this.DeployNameToDevice;
+
+            connectOptions.UserName = this.UserName;
+            connectOptions.Password = this.Password;
+
             connectOptions.Ssid = this.Ssid;
             connectOptions.NetworkKey = this.NetworkKey;
+
+            connectOptions.UseInstalledCertificate = this.UseInstalledCertificate;
+
             connectOptions.UpdateConnection = this.UpdateConnection;
         }
     }

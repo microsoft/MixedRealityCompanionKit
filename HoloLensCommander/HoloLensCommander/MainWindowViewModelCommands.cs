@@ -66,7 +66,6 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ConnectToDeviceAsync(
             ConnectOptions connectOptions,
-            string name,
             bool suppressDialog = false)
         {
             this.StatusMessage = string.Empty;
@@ -100,7 +99,7 @@ namespace HoloLensCommander
 
             await this.RegisterDeviceAsync(
                 monitor, 
-                name);
+                connectOptions.Name);
         }
 
         /// <summary>
@@ -299,13 +298,12 @@ namespace HoloLensCommander
             {
                 ConnectOptions connectOptions = new ConnectOptions(
                     connectionInfo.Address,
+                    connectionInfo.Name,
                     this.UserName,
-                    this.Password,
-                    false);
+                    this.Password);
 
                 await this.ConnectToDeviceAsync(
                     connectOptions,
-                    connectionInfo.Name,
                     true); // Do not show the connect dialog on re-connect.
             }
 

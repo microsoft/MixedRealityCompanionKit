@@ -186,13 +186,12 @@ namespace HoloLensCommander
 
                     ConnectOptions connectOptions = new ConnectOptions(
                         string.Empty,
+                        string.Empty,
                         this.UserName,
-                        this.Password,
-                        false);
+                        this.Password);
 
                     await this.ConnectToDeviceAsync(
-                        connectOptions,
-                        string.Empty);
+                        connectOptions);
                 });
 
             this.DeselectAllDevicesCommand = new Command(

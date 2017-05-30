@@ -96,13 +96,22 @@ namespace HoloLensCommander
         { get; private set; }
 
         /// <summary>
-        /// Returns the name of the connected device.
+        /// Get or set the cached name of the connected device.
         /// </summary>
+        private string machineName = "";
         public string MachineName
         {
             get
             {
-                return this.devicePortalConnection.OsInfo.Name;
+                return this.machineName;
+            }
+
+            private set
+            {
+                if (this.machineName != value)
+                {
+                    this.machineName = value;
+                }
             }
         }
 
