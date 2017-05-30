@@ -52,7 +52,7 @@ namespace HoloLensCommander
                 Task t = monitor.CloseAllAppsAsync();
             }
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace HoloLensCommander
                 connectOptions.Address);
 
             await monitor.ConnectAsync(connectOptions);
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
 
             await this.RegisterDeviceAsync(
                 monitor, 
@@ -170,7 +170,7 @@ namespace HoloLensCommander
 
             await this.SaveConnectionsAsync();
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -363,7 +363,7 @@ namespace HoloLensCommander
 
             this.UpdateCommonAppsCollection(commonAppNames);
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>

@@ -31,7 +31,7 @@ namespace HoloLensCommander
             }
         }
 
-        private string networkKey = "";
+        private string networkKey = string.Empty;
         public string NetworkKey
         {
             get
@@ -49,7 +49,7 @@ namespace HoloLensCommander
             }
         }
 
-        private string ssid = "";
+        private string ssid = string.Empty;
         public string Ssid
         {
             get

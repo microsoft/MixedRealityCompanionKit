@@ -36,7 +36,7 @@ namespace HoloLensCommander
         /// Gets the battery level of this device, as a percentage remaining.
         /// </summary>
         /// <remarks>The returned string is formatted to two significant decimal places.</remarks>
-        private string batteryLevel = "";
+        private string batteryLevel = string.Empty;
         public string BatteryLevel
         {
             get
@@ -99,7 +99,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Gets or sets a string representation of the interpuplliary distance recorded on this device.
         /// </summary>
-        private string ipd = "";
+        private string ipd = string.Empty;
         public string Ipd
         {
             get

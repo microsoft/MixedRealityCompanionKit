@@ -32,9 +32,9 @@ namespace HoloLensCommander
         /// <summary>
         /// Text labels describing the type of device.
         /// </summary>
-        private static readonly string DeviceIsHoloLensLabel = "";  // no image
-        private static readonly string DeviceIsPCLabel = "";       // E7F4 (PC monitor)
-        private static readonly string DeviceIsUnknownLabel = "";  // E897 (question mark)
+        private static readonly string DeviceIsHoloLensLabel = string.Empty;    // no image
+        private static readonly string DeviceIsPCLabel = "";                   // E7F4 (PC monitor)
+        private static readonly string DeviceIsUnknownLabel = "";              // E897 (question mark)
 
         /// <summary>
         /// Text label indicating that an initial connection has not yet been established
@@ -622,7 +622,7 @@ namespace HoloLensCommander
             // Did we recover from a heartbeat loss?
             if (this.StatusMessage == HeartbeatLostMessage)
             {
-                this.StatusMessage = "";
+                this.StatusMessage = string.Empty;
             }
 
             // Handle whether or not we were previously selected

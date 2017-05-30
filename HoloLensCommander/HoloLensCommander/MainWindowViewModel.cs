@@ -160,7 +160,7 @@ namespace HoloLensCommander
             this.ClearStatusMessageCommand = new Command(
                 (parameter) =>
                 {
-                    this.StatusMessage = "";
+                    this.StatusMessage = string.Empty;
                 });
 
             this.CloseAllAppsCommand = new Command(
