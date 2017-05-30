@@ -97,6 +97,24 @@ namespace HoloLensCommander
         { get; private set; }
 
         /// <summary>
+        /// Gets the selected processor architecture for installing dependency files
+        /// </summary>
+        private string processorArchitectureValue;
+        public string ProcessorArchitectureValue
+        {
+            get
+            {
+                return this.processorArchitectureValue;
+            }
+
+            set
+            {
+                this.processorArchitectureValue = value;
+                this.NotifyPropertyChanged("ProcessorArchitectureValue");
+            }
+        }
+
+        /// <summary>
         /// Gets the selected file in the dependency files list.
         /// </summary>
         private string selectedDependencyFile = null;
