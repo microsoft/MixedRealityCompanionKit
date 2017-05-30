@@ -83,6 +83,12 @@ namespace HoloLensCommander
                     t = this.BrowseForAppPackageAsync();
                 });
 
+            this.BrowseForParentFolderCommand = new Command(
+                (parameter) =>
+                {
+                    t = this.BrowseForParentFolderAsync();
+                });
+
             this.RemoveDependencyFileCommand = new Command(
                 (parameter) =>
                 {

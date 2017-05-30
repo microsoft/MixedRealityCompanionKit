@@ -33,7 +33,15 @@
                 Command="{Binding Path=BrowseForAppPackageCommand}"
                 ToolTipService.ToolTip="Browse for the application package file"
                 FontSize="16"
-                Width="50" Height="40"
+                Width="30" Height="40"
+                Canvas.Left="585"/>
+            <Button 
+                x:Name="browseForParentFolder"
+                Content="~"
+                Command="{Binding BrowseForParentFolderCommand}"
+                ToolTipService.ToolTip="Browse for the installation folder"
+                FontSize="16"
+                Width="30" Height="40"
                 Canvas.Left="550"/>
         </Canvas>
         <TextBlock 
@@ -96,5 +104,11 @@
                 Width="50" Height="40"
                 Canvas.Left="550" Canvas.Top="46"/>
         </Canvas>
+        <RadioButton Content="x86" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                     GroupName="Architecture" IsChecked="True" Checked="RadioButton_Checked"/>
+        <RadioButton Content="x64" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                     GroupName="Architecture" Checked="RadioButton_Checked"/>
+        <RadioButton Content="ARM" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                     GroupName="Architecture" Checked="RadioButton_Checked"/>
     </StackPanel>
 </ContentDialog>

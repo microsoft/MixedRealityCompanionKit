@@ -44,13 +44,6 @@ namespace HoloLensCommander
         /// </summary>
         public static readonly string DefaultConnectionAddress = "localhost:10080";
         public static readonly string DefaultConnectionAddressAsIp = "127.0.0.1:10080";
-
-        /// <summary>
-        /// The min, max and default heartbeat interval values, in seconds.
-        /// </summary>
-        public static readonly float MinimumHeartbeatIntervalSeconds = 1.0f;
-        public static readonly float MaximumHeartbeatIntervalSeconds = 60.0f;
-        public static readonly float DefaultHeartbeatIntervalSeconds = 5.0f;
         
         /// <summary>
         /// The executable name of the HoloLens shell application.
@@ -86,14 +79,14 @@ namespace HoloLensCommander
         private bool firstContact;
 
         /// <summary>
-        /// The current heartbeat interval, in seconds.
-        /// </summary>
-        private float heartbeatInterval;
-
-        /// <summary>
-        /// The timer used to initiate a heartbeat check.
+        /// The timer managing the heartbeat.
         /// </summary>
         private Timer heartbeatTimer;
+
+        /// <summary>
+        /// False if the heartbeat timer is currently suspended.
+        /// </summary>
+        public bool heartbeatTimerRunning;
 
         /// <summary>
         /// Event that is sent when the application install status has changed.
@@ -113,7 +106,10 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceMonitor" /> class.
         /// </summary>
-        public DeviceMonitor(CoreDispatcher dispatcher) : this(dispatcher, DefaultHeartbeatIntervalSeconds)
+        public DeviceMonitor(CoreDispatcher dispatcher) : 
+            this(
+            dispatcher, 
+            Settings.DefaultHeartbeatInterval)
         {
         }
 
@@ -121,7 +117,9 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="DeviceMonitor" /> class.
         /// </summary>
         /// <param name="heartbeatInterval">The time, in seconds, between heartbeat checks.</param>
-        public DeviceMonitor(CoreDispatcher dispatcher, float heartbeatInterval)
+        public DeviceMonitor(
+            CoreDispatcher dispatcher, 
+            float heartbeatInterval)
         {
             if (dispatcher == null)
             {
@@ -129,14 +127,8 @@ namespace HoloLensCommander
             }
 
             this.dispatcher = dispatcher;
+            this.HeartbeatInterval = heartbeatInterval;
 
-            if ((heartbeatInterval < MinimumHeartbeatIntervalSeconds) ||
-                (heartbeatInterval > MaximumHeartbeatIntervalSeconds))
-            {
-                throw new ArgumentException("The heartbeatInterval value is out of bounds");
-            }
-
-            this.heartbeatInterval = heartbeatInterval;
             this.firstContact = false;
 
             // Create the timer, but do not start it.
@@ -169,6 +161,7 @@ namespace HoloLensCommander
 
             // Release the resources we manage.
             this.heartbeatTimer?.Dispose();
+            this.heartbeatTimerRunning = false;
             this.heartbeatTimer = null;
 
             // Suppress finalization to avoid attempting to clean up twice.
@@ -233,7 +226,7 @@ namespace HoloLensCommander
         {
             if (!this.dispatcher.HasThreadAccess)
             {
-                // Assigning the return value of RunAsync a Task object to avoid 
+                // Assigning the return value of RunAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
                 Task t = this.dispatcher.RunAsync(
                     CoreDispatcherPriority.Normal,
@@ -274,7 +267,8 @@ namespace HoloLensCommander
         internal void StartHeartbeat()
         {
             this.UpdateHeartbeat(
-                (int)(this.HeartbeatIntervalSeconds * 1000.0f));
+                (int)(this.HeartbeatInterval * 1000.0f));
+            this.heartbeatTimerRunning = true;
         }
 
         /// <summary>
@@ -283,6 +277,7 @@ namespace HoloLensCommander
         internal void SuspendHeartbeat()
         {
             this.UpdateHeartbeat(Timeout.Infinite);
+            this.heartbeatTimerRunning = false;
         }
 
         /// <summary>

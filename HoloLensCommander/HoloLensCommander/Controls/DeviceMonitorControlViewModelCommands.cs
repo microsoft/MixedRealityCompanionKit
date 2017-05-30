@@ -54,9 +54,24 @@ namespace HoloLensCommander
             await this.deviceMonitor.RebootAsync();
         }
 
+        /// <summary>
+        /// Sets the underlying DeviceMonitor's heartbeat interval.
+        /// </summary>
+        /// <param name="heartbeatInterval">The time, in secondsm between heartbeat checks.</param>
+        internal void SetHeartbeatInterval(float heartbeatInterval)
+        {
+            this.deviceMonitor.HeartbeatInterval = heartbeatInterval;
+        }
+
+        /// <summary>
+        /// Command used to display the set ipd dialog.
+        /// </summary>
         public ICommand SetIpdCommand
         { get; private set; }
 
+        /// <summary>
+        /// Command used to display the set tag dialog.
+        /// </summary>
         public ICommand SetTagCommand
         { get; private set; }
 

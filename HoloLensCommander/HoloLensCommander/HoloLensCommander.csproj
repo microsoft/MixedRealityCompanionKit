@@ -138,6 +138,8 @@
     </Compile>
     <Compile Include="Dialogs\SetIpdDialogViewModel.cs" />
     <Compile Include="Dialogs\SetIpdDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\SettingsDialogViewModel.cs" />
+    <Compile Include="Dialogs\SettingsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\TagDeviceDialog.xaml.cs">
       <DependentUpon>TagDeviceDialog.xaml</DependentUpon>
     </Compile>
@@ -159,6 +161,9 @@
     <Compile Include="Dialogs\SetCredentialsDialog.xaml.cs">
       <DependentUpon>SetCredentialsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\SettingsDialog.xaml.cs">
+      <DependentUpon>SettingsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\AppInstallFiles.cs" />
     <Compile Include="Utilities\ConnectionInformation.cs" />
     <Compile Include="Utilities\ConnectOptions.cs" />
@@ -166,6 +171,7 @@
     <Compile Include="Utilities\Enums.cs" />
     <Compile Include="Utilities\Command.cs" />
     <Compile Include="Dialogs\YesNoMessageDialog.cs" />
+    <Compile Include="Utilities\Settings.cs" />
     <Compile Include="Utilities\TagInformation.cs" />
     <Compile Include="Utilities\UserInformation.cs" />
     <Compile Include="Utilities\Utilities.cs" />
@@ -227,6 +233,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\SetCredentialsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\SettingsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

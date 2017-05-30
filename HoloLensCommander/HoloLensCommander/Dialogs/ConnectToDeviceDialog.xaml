@@ -10,7 +10,7 @@
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
-    MaxHeight="480">
+    MaxHeight="600">
     <StackPanel>
         <Canvas
             Width="450" Height="40">

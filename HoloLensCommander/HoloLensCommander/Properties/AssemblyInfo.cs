@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("HoloLensCommander")]
-[assembly: AssemblyDescription("Msonitor and manage multiple Windows Mixed Reality devices.")]
+[assembly: AssemblyDescription("Monitor and manage multiple Windows Mixed Reality devices.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("HoloLensCommander")]
