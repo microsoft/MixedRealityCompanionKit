@@ -52,13 +52,13 @@
                 FontFamily="Segoe MDL2 Assets"
                 Width="50" Height="40"
                 Canvas.Top="5" Canvas.Left="145"/>
-            <!-- TODO: <Button 
+            <Button 
                 Content="&#xE115;" 
                 ToolTipService.ToolTip="Adjust application settings"
                 Command="{Binding Path=ShowSettingsCommand}"
                 FontFamily="Segoe MDL2 Assets"
-                Width="50" Height="30" 
-                Canvas.Top="5" Canvas.Left="240"/>-->
+                Width="50" Height="40" 
+                Canvas.Top="5" Canvas.Left="240"/>
         </Canvas>
         <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
@@ -88,7 +88,7 @@
                         x:Name="refreshApps" 
                         Content="&#xE777;" 
                         ToolTipService.ToolTip="Refresh the list of applications"
-                        Command="{Binding RefreshCommonAppsCommand}"
+                        Command="{Binding Path=RefreshCommonAppsCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20"
@@ -98,7 +98,7 @@
                         x:Name="launchApp" 
                         Content="Run"
                         ToolTipService.ToolTip="Run the selected app on the selected devices"
-                        Command="{Binding LaunchAppCommand}"
+                        Command="{Binding Path=LaunchAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
@@ -108,8 +108,8 @@
                         x:Name="closeAllApps"
                         Content="Close All"
                         ToolTipService.ToolTip="Stops all applications on the selected devices"
-                        Command="{Binding CloseAllAppsCommand}" 
-                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        Command="{Binding Path=CloseAllAppsCommand}" 
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
                         FontSize="20"
                         Width="122" Height="50" 
@@ -118,7 +118,7 @@
                         x:Name="installApp" 
                         Content="Install"
                         ToolTipService.ToolTip="Install an app on the selected devices"
-                        Command="{Binding InstallAppCommand}"
+                        Command="{Binding Path=InstallAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
@@ -128,7 +128,7 @@
                         x:Name="uninstallApp" 
                         Content="Uninstall"
                         ToolTipService.ToolTip="Uninstalls the selected store or sideloaded app on the selected devices"
-                        Command="{Binding UninstallAppCommand}"
+                        Command="{Binding Path=UninstallAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
@@ -138,7 +138,7 @@
                         x:Name="uninstallAllApps" 
                         Content="Remove Sideloaded Apps"
                         ToolTipService.ToolTip="Uninstalls all sideloaded apps on the selected devices"
-                        Command="{Binding UninstallAllAppsCommand}"
+                        Command="{Binding Path=UninstallAllAppsCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
@@ -161,40 +161,40 @@
                         x:Name="startMrcRecording"
                         Content="Start"
                         ToolTipService.ToolTip="Start Mixed Reality recording on the selected devices"
-                        Command="{Binding StartMixedRealityRecordingCommand}" 
-                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        Command="{Binding Path=StartMixedRealityRecordingCommand}" 
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
                         Width="75" Height="50" Canvas.Left="10" Canvas.Top="42"/>
                     <Button 
                         x:Name="stopMrcRecording"
                         Content="Stop"
                         ToolTipService.ToolTip="Stop Mixed Reality recording on the selected devices"
-                        Command="{Binding StopMixedRealityRecordingCommand}" 
-                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        Command="{Binding Path=StopMixedRealityRecordingCommand}" 
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
                         Width="75" Height="50" Canvas.Left="103" Canvas.Top="42"/>
                     <Button 
                         x:Name="saveMrcFiles"
                         Content="Save"
                         ToolTipService.ToolTip="Save Mixed Reality files from the selected devices"
-                        Command="{Binding SaveMixedRealityFilesCommand}" 
-                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        Command="{Binding Path=SaveMixedRealityFilesCommand}" 
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
                         Width="75" Height="50" Canvas.Left="195" Canvas.Top="42"/>
                     <CheckBox 
                         x:Name="deleteOnSave" 
                         Content="Delete files after saving" 
                         ToolTipService.ToolTip="Delete Mixed Reality files from the selected devices after they have been saved?"
-                        IsChecked="{Binding DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        IsChecked="{Binding Path=DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="18"
                         Canvas.Left="10" Canvas.Top="102"/>
                     <Button
                             x:Name="wipeCameraRoll"
                             Content="Clear Camera Roll"
                             ToolTipService.ToolTip="Remove camera roll files"
-                            Command="{Binding WipeCameraRollCommand}" 
-                            IsEnabled="{Binding HaveRegisteredDevices}"
+                            Command="{Binding Path=WipeCameraRollCommand}" 
+                            IsEnabled="{Binding Path=HaveRegisteredDevices}"
                             HorizontalAlignment="Right" VerticalAlignment="Top" 
                             Width="260" Height="50" 
                             FontSize="20" Canvas.Left="10" Canvas.Top="139"/>
@@ -237,7 +237,7 @@
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
                         ToolTipService.ToolTip="Unregister ALL connected devices"
-                        Command="{Binding ForgetConnectionsCommand}" 
+                        Command="{Binding Path=ForgetConnectionsCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         Width="70" Height="50" 
@@ -252,6 +252,22 @@
                 HorizontalAlignment="Stretch"
                 Background="White">
             <Button 
+                Content="&#xED43;" 
+                ToolTipService.ToolTip="Open a saved device session file"
+                Command="{Binding Path=LoadSessionFileCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5"/>
+            <!-- TODO -->
+            <Button 
+                Content="&#xE28F;" 
+                ToolTipService.ToolTip="Save device session file"
+                Command="{Binding Path=SaveSessionFileCommand}"
+                IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5" Canvas.Left="55"/>
+            <Button 
                     x:Name="selectAll"
                     Content="Select All"
                     ToolTipService.ToolTip="Selects all connected devices"
@@ -259,7 +275,7 @@
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="40" 
-                    Canvas.Left="5" Canvas.Top="5"/>
+                    Canvas.Left="130" Canvas.Top="5"/>
             <Button 
                     x:Name="selectNone"
                     Content="Select None"
@@ -268,7 +284,7 @@
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="110" Height="40" 
-                    Canvas.Left="120" Canvas.Top="5"/>
+                    Canvas.Left="245" Canvas.Top="5"/>
             <RadioButton 
                     x:Name="allDevices" 
                     GroupName="deviceTypeFilters"
@@ -276,21 +292,21 @@
                     Command="{Binding Path=UseAllDevicesFilterCommand}"
                     IsChecked="True"
                     HorizontalAlignment="Left" Width="60" 
-                    Canvas.Left="240" Canvas.Top="8"/>
+                    Canvas.Left="365" Canvas.Top="8"/>
             <RadioButton 
                     x:Name="holoLensDevices" 
                     GroupName="deviceTypeFilters"
                     Content="HoloLens" 
                     Command="{Binding Path=UseHoloLensFilterCommand}"
                     HorizontalAlignment="Left" Width="110" 
-                    Canvas.Left="310" Canvas.Top="8"/>
+                    Canvas.Left="435" Canvas.Top="8"/>
             <RadioButton 
                     x:Name="desktopDevices" 
                     GroupName="deviceTypeFilters"
                     Content="Windows PC" 
                     Command="{Binding Path=UseDesktopFilterCommand}"
                     HorizontalAlignment="Left" Width="130" 
-                    Canvas.Left="420" Canvas.Top="8"/>
+                    Canvas.Left="545" Canvas.Top="8"/>
         </Canvas>
         <ScrollViewer Grid.Column="1" Grid.Row="1"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">

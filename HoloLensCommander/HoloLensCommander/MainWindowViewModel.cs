@@ -19,8 +19,10 @@ namespace HoloLensCommander
         /// <summary>
         /// Values used to store and retrieve settings data.
         /// </summary>
+        private static readonly string AutoReconnectKey = "autoReconnect";
         private static readonly string DefaultUserNameKey = "defaultUserName";
         private static readonly string DefaultPasswordKey = "defaultPassword";
+        private static readonly string HeartbeatIntervalKey = "heartbeatInterval";
 
         /// <summary>
         /// Name of the folder which will contain mixed reality files from the registered devices.
@@ -36,6 +38,16 @@ namespace HoloLensCommander
         /// The application settings container.
         /// </summary>
         private ApplicationDataContainer appSettings;
+
+        /// <summary>
+        /// Should we automatically reconnect to the previous device session?
+        /// </summary>
+        private bool autoReconnect;
+
+        /// <summary>
+        /// The time, in seconds, between a device's heartbeat check.
+        /// </summary>
+        private float heartbeatInterval;
 
         /// <summary>
         /// Value indicating whether or not we have attempted to reconnect to previous devices.
@@ -82,11 +94,16 @@ namespace HoloLensCommander
 
             // Fetch stored settings.
             this.appSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            this.UseDefaultCredentials();
+            this.LoadApplicationSettings();
             
+            if (this.autoReconnect)
+            {
+                this.ReconnectPreviousSession();    
+            }
             this.UpdateCanReconnect();
 
             this.RegisterCommands();
+
         }
 
         /// <summary>
@@ -183,15 +200,14 @@ namespace HoloLensCommander
                 {
                     ConnectOptions connectOptions = new ConnectOptions(
                         string.Empty,
+                        string.Empty,
                         this.UserName,
-                        this.Password,
-                        false);
+                        this.Password);
                     
                     try
                     {
                         await this.ConnectToDeviceAsync(
-                            connectOptions,
-                            string.Empty);
+                            connectOptions);
                     }
                     catch (Exception e)
                     {
@@ -250,6 +266,13 @@ namespace HoloLensCommander
                             "Failed to launch the app on one or more devices ({0})",
                             e.Message);
                     }
+                    this.LaunchApp();
+                });
+
+            this.LoadSessionFileCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.LoadSessionFileAsync(); 
                 });
 
             this.RebootDevicesCommand = new Command(
@@ -312,6 +335,12 @@ namespace HoloLensCommander
                     }
                 });
 
+            this.SaveSessionFileCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.SaveSessionFile();
+                });
+
             this.SelectAllDevicesCommand = new Command(
                 (parameter) =>
                 {
@@ -322,6 +351,12 @@ namespace HoloLensCommander
                 async (parameter) =>
                 {
                     await this.ShowSetCredentials();
+                });
+
+            this.ShowSettingsCommand = new Command(
+                async (paraneter) =>
+                {
+                    await this.ShowSettings();
                 });
 
             this.ShutdownDevicesCommand = new Command(

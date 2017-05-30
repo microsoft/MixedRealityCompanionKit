@@ -501,6 +501,17 @@ namespace HoloLensCommander
             if (result == ContentDialogResult.Primary)
             {
                 this.Name = tagInfo.Name;
+
+                if (tagInfo.DeployNameToDevice)
+                {
+                    // Set the device name.
+                    if (await this.deviceMonitor.SetDeviceNameAsync(this.Name))
+                    {
+                        // Reboot the device so the name change takes effect.
+                        await this.deviceMonitor.RebootAsync();
+                    }
+                }
+
                 this.deviceMonitorControl.NotifyTagChanged();
             }
         }
