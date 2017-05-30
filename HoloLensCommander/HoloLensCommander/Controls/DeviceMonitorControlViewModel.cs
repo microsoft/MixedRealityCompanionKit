@@ -700,13 +700,31 @@ namespace HoloLensCommander
             this.SetIpdCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.SetIpdAsync();
+                    try
+                    {
+                        await this.SetIpdAsync();
+                    }
+                    catch(Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to set IPD ({0})",
+                            e.Message);
+                    }
                 });
 
             this.SetTagCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.TagDeviceAsync();
+                    try
+                    {
+                        await this.TagDeviceAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to set the device name ({0})",
+                            e.Message);
+                    }
                 });
 
             this.ShowContextMenuCommand = new Command(

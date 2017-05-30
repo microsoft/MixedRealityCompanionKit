@@ -300,11 +300,20 @@
                 Padding="0"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Auto"/>
         </ScrollViewer>
-        <TextBlock Grid.Row="2" Grid.Column="1"
-            x:Name="statusMessage" 
-            Text="{Binding Path=StatusMessage}"
-            TextWrapping="NoWrap" FontSize="16"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Margin="5,0,0,5"/>
+        <Canvas Grid.Row="2" Grid.Column="1"
+                Background="White">
+            <Button
+                x:Name="clearStatus"
+                Content="Clear"
+                Command="{Binding Path=ClearStatusMessageCommand}"
+                Width="60" Height="30"
+                Canvas.Left="0" Canvas.Top="5"/>
+            <TextBlock
+                x:Name="statusMessage" 
+                Text="{Binding Path=StatusMessage}"
+                TextWrapping="NoWrap" FontSize="16"
+                HorizontalAlignment="Stretch"
+                Canvas.Left="65" Canvas.Top="7"/>
+        </Canvas>
     </Grid>
 </Page>

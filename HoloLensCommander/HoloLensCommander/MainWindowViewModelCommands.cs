@@ -29,6 +29,12 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to clear the application status message.
+        /// </summary>
+        public ICommand ClearStatusMessageCommand
+        { get; private set; }
+
+        /// <summary>
         /// Command used to close all applications on the selected devices.
         /// </summary>
         public ICommand CloseAllAppsCommand
