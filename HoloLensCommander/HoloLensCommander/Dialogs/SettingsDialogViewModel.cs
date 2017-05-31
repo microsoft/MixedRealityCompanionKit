@@ -21,10 +21,16 @@ namespace HoloLensCommander
         public SettingsDialogViewModel(Settings settings)
         {
             this.AutoReconnect = settings.AutoReconnect;
+
             this.ExpandCredentials = settings.ExpandCredentials;
             this.ExpandNetworkSettings = settings.ExpandNetworkSettings;
+
             this.HeartbeatInterval = settings.HeartbeatInterval.ToString();
+
             this.UseInstalledCertificate = settings.UseInstalledCertificate;
+
+            this.DefaultSsid = settings.DefaultSsid;
+            this.DefaultNetworkKey = settings.DefaultNetworkKey;
         }
 
         /// <summary>
@@ -49,9 +55,13 @@ namespace HoloLensCommander
             settings.HeartbeatInterval = this.heartbeatInterval;
 
             settings.AutoReconnect = this.AutoReconnect;
+
             settings.ExpandCredentials = this.ExpandCredentials;
             settings.ExpandNetworkSettings = this.ExpandNetworkSettings;
             settings.UseInstalledCertificate = this.UseInstalledCertificate;
+
+            settings.DefaultSsid = this.DefaultSsid;
+            settings.DefaultNetworkKey = this.DefaultNetworkKey;
         }
     }
 }

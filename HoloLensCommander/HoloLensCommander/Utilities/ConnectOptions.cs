@@ -127,11 +127,11 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="ConnectOptions" /> class.
         /// </summary>
         /// <param name="address">The address to be used for the connection.</param>
-        /// <param name="name">Optional, local name for the device.</param>
-        /// 
+        /// <param name="name">Optional name for the device.</param>
+        /// <param name="expandCredentials">Should the connect dialog expand the credentials controls?</param>
         /// <param name="userName">The name to use when connecting to the device.</param>
         /// <param name="password">The password to use when connecting to the device.</param>
-        /// 
+        /// <param name="expandNetworkSettings">Should the connect dialog expand the network settings controls?</param>
         /// <param name="ssid">The SSID of the network access point to which to connect the device.</param>
         /// <param name="networkKey">The network key used when connecting to the access point.</param>
         /// <param name="updateConnection">Should the connection be automatically updated to the detected WiFi address?</param>

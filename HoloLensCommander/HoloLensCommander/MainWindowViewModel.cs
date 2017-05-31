@@ -20,8 +20,10 @@ namespace HoloLensCommander
         /// Values used to store and retrieve settings data.
         /// </summary>
         private static readonly string AutoReconnectKey = "autoReconnect";
-        private static readonly string DefaultUserNameKey = "defaultUserName";
+        private static readonly string DefaultNetworkKeyKey = "defaultNetworkKey";
         private static readonly string DefaultPasswordKey = "defaultPassword";
+        private static readonly string DefaultSsidKey = "defaultSsid";
+        private static readonly string DefaultUserNameKey = "defaultUserName";
         private static readonly string ExpandCredentialsKey = "expandCredentials";
         private static readonly string ExpandNetworkSettingsKey = "expandNetworkSettings";
         private static readonly string HeartbeatIntervalKey = "heartbeatInterval";
@@ -46,6 +48,16 @@ namespace HoloLensCommander
         /// Should we automatically reconnect to the previous device session?
         /// </summary>
         private bool autoReconnect;
+
+        /// <summary>
+        /// The network key for the default SSID.
+        /// </summary>
+        private string defaultNetworkKey;
+
+        /// <summary>
+        /// The default network access point SSID to use when connecting devices.
+        /// </summary>
+        private string defaultSsid;
 
         /// <summary>
         /// Should the connect dialog auto-expand the credentials controls?
@@ -221,9 +233,12 @@ namespace HoloLensCommander
                         string.Empty,
                         this.UserName,
                         this.Password);
+                    // TODO: use the full featured constructor
                     connectOptions.ExpandCredentials = this.expandCredentials;
                     connectOptions.ExpandNetworkSettings = this.expandNetworkSettings;
                     connectOptions.UseInstalledCertificate = this.useInstalledCertificate;
+                    connectOptions.Ssid = this.defaultSsid;
+                    connectOptions.NetworkKey = this.defaultNetworkKey;
 
                     try
                     {

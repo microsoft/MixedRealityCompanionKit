@@ -137,7 +137,7 @@
             <TextBox 
                 x:Name="ssid" 
                 Text="{Binding Path=Ssid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                ToolTipService.ToolTip="The SSID on which to configure the device"
+                ToolTipService.ToolTip="The SSID on which to configure the device (this may make the device unreachable from this network)"
                 TextWrapping="NoWrap" 
                 Width="360"
                 Canvas.Left="80" Canvas.Top="5" />

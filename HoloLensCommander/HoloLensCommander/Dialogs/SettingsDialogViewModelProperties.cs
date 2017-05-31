@@ -34,6 +34,48 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Gets or sets the default network key for device connections.
+        /// </summary>
+        private string defaultNetworkKey = string.Empty;
+        public string DefaultNetworkKey
+        {
+            get
+            {
+                return this.defaultNetworkKey;
+            }
+
+            set
+            {
+                if (this.defaultNetworkKey != value)
+                {
+                    this.defaultNetworkKey = value;
+                    this.NotifyPropertyChanged("DefaultNetworkKey");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the default SSID for device connections.
+        /// </summary>
+        private string defaultSsid = string.Empty;
+        public string DefaultSsid
+        {
+            get
+            {
+                return this.defaultSsid;
+            }
+
+            set
+            {
+                if (this.defaultSsid != value)
+                {
+                    this.defaultSsid = value;
+                    this.NotifyPropertyChanged("DefaultSsid");
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not the user
         /// wishes the connection dialog to default to the credentials
         /// controls expanded.

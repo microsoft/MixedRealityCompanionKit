@@ -311,6 +311,10 @@ namespace HoloLensCommander
                 // Since we are suppressing the UI, we do not need to provide
                 // values for ExpandCredentials or ExpandNetworkSettings.
 
+                // We assume that since we are reconnecting, the device has previously
+                // been connected to the correct network access point.
+                // Therefore, we are omitting the Ssid and NetworkKey values.
+
                 await this.ConnectToDeviceAsync(
                     connectOptions,
                     true); // Do not show the connect dialog on re-connect.
@@ -561,10 +565,12 @@ namespace HoloLensCommander
         {
             Settings settings = new Settings(
                 this.autoReconnect,
-                this.heartbeatInterval);
-            settings.ExpandCredentials = this.expandCredentials;
-            settings.ExpandNetworkSettings = this.expandNetworkSettings;
-            settings.UseInstalledCertificate = this.useInstalledCertificate;
+                this.heartbeatInterval,
+                this.expandCredentials,
+                this.expandNetworkSettings,
+                this.useInstalledCertificate,
+                this.defaultSsid,
+                this.defaultNetworkKey);
 
             SettingsDialog settingsDialog = new SettingsDialog(settings);
             ContentDialogResult dialogResult = await settingsDialog.ShowAsync();
@@ -587,6 +593,8 @@ namespace HoloLensCommander
                 this.expandNetworkSettings = settings.ExpandNetworkSettings;
                 this.heartbeatInterval = settings.HeartbeatInterval;
                 this.useInstalledCertificate = settings.UseInstalledCertificate;
+                this.defaultSsid = settings.DefaultSsid;
+                this.defaultNetworkKey = settings.DefaultNetworkKey;
                 this.SaveApplicationSettings();
 
                 // Update the device monitors with the new heartbeat interval.
@@ -817,6 +825,9 @@ namespace HoloLensCommander
             this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
             this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
 
+            this.defaultSsid = this.appSettings.Values[DefaultSsidKey] as string;
+            this.defaultNetworkKey = this.appSettings.Values[DefaultNetworkKeyKey] as string;
+
             if (!bool.TryParse(
                 this.appSettings.Values[AutoReconnectKey] as string, 
                 out this.autoReconnect))
@@ -936,6 +947,9 @@ namespace HoloLensCommander
         {
             this.appSettings.Values[DefaultUserNameKey] = this.UserName;
             this.appSettings.Values[DefaultPasswordKey] = this.Password;
+
+            this.appSettings.Values[DefaultSsidKey] = this.defaultSsid;
+            this.appSettings.Values[DefaultNetworkKeyKey] = this.defaultNetworkKey;
 
             this.appSettings.Values[AutoReconnectKey] = this.autoReconnect.ToString();
             this.appSettings.Values[ExpandCredentialsKey] = this.expandCredentials.ToString();

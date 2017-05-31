@@ -13,50 +13,65 @@
 
     <StackPanel>
         <Canvas 
-            Width="300" Height="45">
+            Width="425" Height="45">
             <CheckBox 
-                x:Name="autoReconnect"
                 Content="Auto-reconnect to the previous session"
                 IsChecked="{Binding Path=AutoReconnect, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Canvas.Top="5"/>
         </Canvas>
         <Canvas 
-            Width="300" Height="45">
+            Width="425" Height="45">
             <TextBlock 
-                x:Name="heartbeatIntervalLabel"
                 Text="Heartbeat interval"
                 TextWrapping="NoWrap"
                 Canvas.Top="11"/>
             <TextBox 
-                x:Name="heartbeatInterval"
                 Text="{Binding Path=HeartbeatInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 TextWrapping="NoWrap"
                 Canvas.Top="5" Canvas.Left="128"/>
             <TextBlock 
-                x:Name="secondsLabel"
                 Text="seconds"
                 TextWrapping="NoWrap"
                 Canvas.Top="11" Canvas.Left="200"/>
         </Canvas>
         <Canvas
-            Width="300" Height="120">
+            Width="425" Height="125">
             <TextBlock 
-                Text="Connection options"/>
+                Text="Connection options"
+                Canvas.Top="0"/>
             <CheckBox 
-                x:Name="expandCredentials"
                 Content="Expand credentials"
                 IsChecked="{Binding Path=ExpandCredentials, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Canvas.Top="25"/>
             <CheckBox 
-                x:Name="expandNetworkSettings"
                 Content="Expand network settings"
                 IsChecked="{Binding Path=ExpandNetworkSettings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Canvas.Top="55"/>
             <CheckBox 
-                x:Name="useInstalledCertificate"
                 Content="Use installed device certificate"
                 IsChecked="{Binding Path=UseInstalledCertificate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Canvas.Top="85"/>
+        </Canvas>
+        <Canvas
+            Width="425" Height="110">
+            <TextBlock 
+                Text="Default network settings"
+                Canvas.Top="0"/>
+            <TextBlock 
+                Text="SSID"
+                Canvas.Top="37"/>
+            <TextBox
+                Text="{Binding Path=DefaultSsid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                ToolTipService.ToolTip="The SSID on which device are to be configured upon connection"
+                Width="360" Canvas.Left="45" Canvas.Top="30" />
+            <TextBlock 
+                Text="Key"
+                Canvas.Top="77" />
+            <PasswordBox
+                Password="{Binding Path=DefaultNetworkKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                ToolTipService.ToolTip="The network key for the specified SSID"
+                PasswordRevealMode="Peek"
+                Width="360" Canvas.Left="45" Canvas.Top="70" />
         </Canvas>
     </StackPanel>
 </ContentDialog>

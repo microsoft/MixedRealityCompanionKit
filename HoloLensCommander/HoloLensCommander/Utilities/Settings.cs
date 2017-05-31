@@ -17,7 +17,10 @@ namespace HoloLensCommander
         /// Indicates whether or not the application should reconnect to the previous
         /// device session.
         /// </summary>
-        public bool AutoReconnect;
+        public bool AutoReconnect = false;
+
+        public string DefaultNetworkKey = string.Empty;
+        public string DefaultSsid = string.Empty;
 
         /// <summary>
         /// Indicates whether or not the settings dialog should default to
@@ -89,15 +92,23 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="Settings" /> class.
         /// </summary>
         public Settings() :
-            this(DefaultHeartbeatInterval)
+            this(
+            DefaultHeartbeatInterval)
         { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings" /> class.
         /// </summary>
         /// <param name="interval">Seconds between heartbeat checks.</param>
-        public Settings(float interval) : 
-            this(false, interval)
+        public Settings(float interval) :  
+            this(
+            false, 
+            interval,
+            false,
+            false,
+            false,
+            string.Empty,
+            string.Empty)
         { }
 
         /// <summary>
@@ -105,12 +116,25 @@ namespace HoloLensCommander
         /// </summary>
         /// <param name="autoReconnect">True to auto-reconnect, false otherwise.</param>
         /// <param name="interval">Seconds between heartbeat checks.</param>
+        /// 
         public Settings(
             bool autoReconnect,
-            float interval)
+            float interval,
+            bool expandCredentials,
+            bool expandNetworkSettings,
+            bool useInstalledCertificate,
+            string defaultSsid,
+            string defaultNetworkKey)
         {
             this.AutoReconnect = autoReconnect;
             this.HeartbeatInterval = interval;
+
+            this.ExpandCredentials = expandCredentials;
+            this.ExpandNetworkSettings = expandNetworkSettings;
+            this.UseInstalledCertificate = useInstalledCertificate;
+
+            this.DefaultSsid = defaultSsid;
+            this.DefaultNetworkKey = defaultNetworkKey;
         }
     }
 }
