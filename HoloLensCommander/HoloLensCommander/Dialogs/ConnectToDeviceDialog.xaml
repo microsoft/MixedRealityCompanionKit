@@ -127,7 +127,7 @@
                 Canvas.Top="5" Canvas.Left="25"/>
         </Canvas>
         <Canvas 
-            Width="450" Height="90"
+            Width="450" Height="95"
             Visibility="{Binding Path=ShowNetworkSettings}">
             <TextBlock 
                 x:Name="ssidLabel"
@@ -155,7 +155,7 @@
                 Canvas.Left="80" Canvas.Top="45" />
         </Canvas>
         <Canvas 
-            Width="450" Height="40">
+            Width="450" Height="35">
             <CheckBox 
                 x:Name="useInstalledCertificate" 
                 Content="Use Installed Device Certificate" 
@@ -164,7 +164,7 @@
                 Canvas.Top="0"/>
         </Canvas>
         <Canvas 
-            Width="450" Height="40">
+            Width="450" Height="35">
             <CheckBox 
                 x:Name="updateConnection" 
                 Content="Update Connection" 

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel;
+using Windows.UI.Xaml;
 
 namespace HoloLensCommander
 {
@@ -29,11 +30,15 @@ namespace HoloLensCommander
             this.Name = options.Name;
             this.DeployNameToDevice = options.DeployNameToDevice;
 
+            this.ShowCredentials = options.ExpandCredentials ? Visibility.Visible : Visibility.Collapsed;
             this.UserName = options.UserName;
             this.Password = options.Password;
 
+            this.ShowNetworkSettings = options.ExpandNetworkSettings ? Visibility.Visible : Visibility.Collapsed;
             this.Ssid = options.Ssid;
             this.NetworkKey = options.NetworkKey;
+
+            this.UseInstalledCertificate = options.UseInstalledCertificate;
 
             this.UpdateConnection = options.UpdateConnection;
 

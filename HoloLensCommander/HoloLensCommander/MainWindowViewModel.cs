@@ -22,7 +22,10 @@ namespace HoloLensCommander
         private static readonly string AutoReconnectKey = "autoReconnect";
         private static readonly string DefaultUserNameKey = "defaultUserName";
         private static readonly string DefaultPasswordKey = "defaultPassword";
+        private static readonly string ExpandCredentialsKey = "expandCredentials";
+        private static readonly string ExpandNetworkSettingsKey = "expandNetworkSettings";
         private static readonly string HeartbeatIntervalKey = "heartbeatInterval";
+        private static readonly string UseInstalledCertificateKey = "useInstalledCertificate";
 
         /// <summary>
         /// Name of the folder which will contain mixed reality files from the registered devices.
@@ -45,6 +48,16 @@ namespace HoloLensCommander
         private bool autoReconnect;
 
         /// <summary>
+        /// Should the connect dialog auto-expand the credentials controls?
+        /// </summary>
+        private bool expandCredentials;
+
+        /// <summary>
+        /// Should the connect dialog auto-expand the network settings controls?
+        /// </summary>
+        private bool expandNetworkSettings;
+
+        /// <summary>
         /// The time, in seconds, between a device's heartbeat check.
         /// </summary>
         private float heartbeatInterval;
@@ -63,6 +76,11 @@ namespace HoloLensCommander
         /// Value indicating whether or not connection changes are to be saved.
         /// </summary>
         private bool suppressSave;
+
+        /// <summary>
+        /// Should connections be established using an installed device certificate?
+        /// </summary>
+        private bool useInstalledCertificate;
 
         /// <summary>
         /// The local application folder.
@@ -203,7 +221,10 @@ namespace HoloLensCommander
                         string.Empty,
                         this.UserName,
                         this.Password);
-                    
+                    connectOptions.ExpandCredentials = this.expandCredentials;
+                    connectOptions.ExpandNetworkSettings = this.expandNetworkSettings;
+                    connectOptions.UseInstalledCertificate = this.useInstalledCertificate;
+
                     try
                     {
                         await this.ConnectToDeviceAsync(

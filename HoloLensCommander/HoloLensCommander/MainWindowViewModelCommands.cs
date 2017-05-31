@@ -307,6 +307,9 @@ namespace HoloLensCommander
                     connectionInfo.Name,
                     this.UserName,
                     this.Password);
+                connectOptions.UseInstalledCertificate = this.useInstalledCertificate;
+                // Since we are suppressing the UI, we do not need to provide
+                // values for ExpandCredentials or ExpandNetworkSettings.
 
                 await this.ConnectToDeviceAsync(
                     connectOptions,
@@ -559,6 +562,9 @@ namespace HoloLensCommander
             Settings settings = new Settings(
                 this.autoReconnect,
                 this.heartbeatInterval);
+            settings.ExpandCredentials = this.expandCredentials;
+            settings.ExpandNetworkSettings = this.expandNetworkSettings;
+            settings.UseInstalledCertificate = this.useInstalledCertificate;
 
             SettingsDialog settingsDialog = new SettingsDialog(settings);
             ContentDialogResult dialogResult = await settingsDialog.ShowAsync();
@@ -577,7 +583,10 @@ namespace HoloLensCommander
                 }
 
                 this.autoReconnect = settings.AutoReconnect;
+                this.expandCredentials = settings.ExpandCredentials;
+                this.expandNetworkSettings = settings.ExpandNetworkSettings;
                 this.heartbeatInterval = settings.HeartbeatInterval;
+                this.useInstalledCertificate = settings.UseInstalledCertificate;
                 this.SaveApplicationSettings();
 
                 // Update the device monitors with the new heartbeat interval.
@@ -815,11 +824,32 @@ namespace HoloLensCommander
                 this.autoReconnect = false;
             }
 
+            if (!bool.TryParse(
+                this.appSettings.Values[ExpandCredentialsKey] as string,
+                out this.expandCredentials))
+            {
+                this.expandCredentials = false;
+            }
+
+            if (!bool.TryParse(
+                this.appSettings.Values[ExpandNetworkSettingsKey] as string,
+                out this.expandNetworkSettings))
+            {
+                this.expandNetworkSettings = false;
+            }
+
             if (!float.TryParse(
                 this.appSettings.Values[HeartbeatIntervalKey] as string,
                 out this.heartbeatInterval))
             {
                 this.heartbeatInterval = Settings.DefaultHeartbeatInterval;
+            }
+
+            if (!bool.TryParse(
+                this.appSettings.Values[UseInstalledCertificateKey] as string,
+                out this.useInstalledCertificate))
+            {
+                this.useInstalledCertificate = false;
             }
         }
 
@@ -908,7 +938,10 @@ namespace HoloLensCommander
             this.appSettings.Values[DefaultPasswordKey] = this.Password;
 
             this.appSettings.Values[AutoReconnectKey] = this.autoReconnect.ToString();
+            this.appSettings.Values[ExpandCredentialsKey] = this.expandCredentials.ToString();
+            this.appSettings.Values[ExpandNetworkSettingsKey] = this.expandNetworkSettings.ToString();
             this.appSettings.Values[HeartbeatIntervalKey] = this.heartbeatInterval.ToString();
+            this.appSettings.Values[UseInstalledCertificateKey] = this.useInstalledCertificate.ToString();
         }
 
         /// <summary>

@@ -20,6 +20,18 @@ namespace HoloLensCommander
         public bool AutoReconnect;
 
         /// <summary>
+        /// Indicates whether or not the settings dialog should default to
+        /// displaying the credentials controls.
+        /// </summary>
+        public bool ExpandCredentials = false;
+
+        /// <summary>
+        /// Indicates whether or not the settings dialog should default to
+        /// displaying the network settings controls.
+        /// </summary>
+        public bool ExpandNetworkSettings = false;
+
+        /// <summary>
         /// Indicates whether or not the settings were successfully updated.
         /// </summary>
         /// <remarks>
@@ -36,6 +48,12 @@ namespace HoloLensCommander
         /// For example, "HeartbeatInterval must be between x and y, inclusive."
         /// </remarks>
         public string StatusMessage = string.Empty;
+
+        /// <summary>
+        /// Indicates whether or not the settings dialog should use an 
+        /// installed certificate for the connection.
+        /// </summary>
+        public bool UseInstalledCertificate = false;
 
         /// <summary>
         /// The time, in seconds, beteen heartbeat checks.

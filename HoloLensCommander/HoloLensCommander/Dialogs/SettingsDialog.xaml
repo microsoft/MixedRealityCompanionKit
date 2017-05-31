@@ -13,7 +13,7 @@
 
     <StackPanel>
         <Canvas 
-            Width="300" Height="40">
+            Width="300" Height="45">
             <CheckBox 
                 x:Name="autoReconnect"
                 Content="Auto-reconnect to the previous session"
@@ -21,7 +21,7 @@
                 Canvas.Top="5"/>
         </Canvas>
         <Canvas 
-            Width="300" Height="40">
+            Width="300" Height="45">
             <TextBlock 
                 x:Name="heartbeatIntervalLabel"
                 Text="Heartbeat interval"
@@ -37,6 +37,26 @@
                 Text="seconds"
                 TextWrapping="NoWrap"
                 Canvas.Top="11" Canvas.Left="200"/>
+        </Canvas>
+        <Canvas
+            Width="300" Height="120">
+            <TextBlock 
+                Text="Connection options"/>
+            <CheckBox 
+                x:Name="expandCredentials"
+                Content="Expand credentials"
+                IsChecked="{Binding Path=ExpandCredentials, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Canvas.Top="25"/>
+            <CheckBox 
+                x:Name="expandNetworkSettings"
+                Content="Expand network settings"
+                IsChecked="{Binding Path=ExpandNetworkSettings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Canvas.Top="55"/>
+            <CheckBox 
+                x:Name="useInstalledCertificate"
+                Content="Use installed device certificate"
+                IsChecked="{Binding Path=UseInstalledCertificate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Canvas.Top="85"/>
         </Canvas>
     </StackPanel>
 </ContentDialog>
