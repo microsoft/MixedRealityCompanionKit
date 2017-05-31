@@ -32,8 +32,8 @@ namespace HoloLensCommander
             {
                 string scheme = "https";
 
-                if ((address == DefaultConnectionAddress) ||
-                    (address == DefaultConnectionAddressAsIp))
+                if (string.Equals(address, DefaultConnectionAddress) ||
+                    string.Equals(address, DefaultConnectionAddressAsIp))
                 {
                     scheme = "http";
                 }
@@ -44,16 +44,15 @@ namespace HoloLensCommander
                     address);
             }
 
-            // TODO: provide UI to auto-append the default PC Windows Device Portal port
-            //if (this.connectOptions.ConnectingToDesktopPC)
-            //{
-            //    string s = address.Substring(address.IndexOf("//"));
-            //    if (!s.Contains(":"))
-            //    {
-            //        // Append the default Windows Device Portal port for Desktop PC connections.
-            //        address += ":50443";
-            //    }
-            //}
+            if (this.connectOptions.ConnectingToDesktopPC)
+            {
+                string s = address.Substring(address.IndexOf("//"));
+                if (!s.Contains(":"))
+                {
+                    // Append the default Windows Device Portal port for Desktop PC connections.
+                    address += ":50443";
+                }
+            }
 
             this.devicePortalConnection = new DefaultDevicePortalConnection(
                     address,
@@ -73,8 +72,13 @@ namespace HoloLensCommander
         {
             try
             {
-                // Get the device certificate
-                Certificate certificate = await this.devicePortal.GetRootDeviceCertificateAsync(true);
+                Certificate certificate = null;
+
+                if (!this.connectOptions.UseInstalledCertificate)
+                {
+                    // Get the device certificate
+                    certificate = await this.devicePortal.GetRootDeviceCertificateAsync(true);
+                }
 
                 // Establish the connection to the device.
                 this.devicePortal.ConnectionStatus += DevicePortal_ConnectionStatus;
@@ -107,14 +111,17 @@ namespace HoloLensCommander
                 this.devicePortal.AppInstallStatus += DevicePortal_AppInstallStatus;
                 this.devicePortal.ConnectionStatus -= DevicePortal_ConnectionStatus;
 
-                // TODO:
-                //    if (this.connectOptions.DeployNameToDevice)
-                //    {
-                //        if (await this.SetDeviceNameAsync(this.connectOptions.Name))
-                //        {
-                //            await this.RebootAsync();
-                //        }
-                //    }
+                if (this.connectOptions.DeployNameToDevice)
+                {
+                    Task.Run(
+                        async () =>
+                        {
+                            if (await this.SetDeviceNameAsync(this.connectOptions.Name))
+                            {
+                                await this.RebootAsync();
+                            }
+                        });
+                }
             }
             else if (args.Status == DeviceConnectionStatus.Failed)
             {
@@ -247,7 +254,27 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task RebootAsync()
         {
-            await this.devicePortal.RebootAsync();    
+            await this.devicePortal.RebootAsync();
+
+            // Force re-establishing the connection.
+            // This is needed in case the device's name has been changed.
+            this.firstContact = false;
+        }
+
+        /// <summary>
+        /// Set the name of the device.
+        /// </summary>
+        /// <param name="name">The new name for the device.</param>
+        /// <returns>Task object used for tracking method completion.</returns>
+        /// <remarks>The name change does not go into effect until the device has been rebooted.</remarks>
+        public async Task<bool> SetDeviceNameAsync(string name)
+        {
+            if (string.Equals(this.MachineName, name)) { return false; }
+
+            await this.devicePortal.SetDeviceNameAsync(name);
+            this.MachineName = name;
+
+            return true;
         }
 
         /// <summary>

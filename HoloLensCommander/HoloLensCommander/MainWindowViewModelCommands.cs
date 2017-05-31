@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Xml.Serialization;
 using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 
 namespace HoloLensCommander
@@ -64,7 +66,6 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ConnectToDeviceAsync(
             ConnectOptions connectOptions,
-            string name,
             bool suppressDialog = false)
         {
             this.StatusMessage = string.Empty;
@@ -98,7 +99,7 @@ namespace HoloLensCommander
 
             await this.RegisterDeviceAsync(
                 monitor, 
-                name);
+                connectOptions.Name);
         }
 
         /// <summary>
@@ -221,6 +222,34 @@ namespace HoloLensCommander
             }
         }
 
+        public ICommand LoadSessionFileCommand
+        { get; private set; }
+
+        private async Task LoadSessionFileAsync()
+        {
+            List<ConnectionInformation> devices = new List<ConnectionInformation>();
+
+            FileOpenPicker filePicker = new FileOpenPicker();
+            filePicker.FileTypeFilter.Add(".xml");
+            filePicker.CommitButtonText = "Select";
+
+            StorageFile file = await filePicker.PickSingleFileAsync();
+            if (file == null)
+            {
+                return;
+            }
+
+            this.StatusMessage = string.Format(
+                "Loading session file: {0}",
+                file.Path);
+
+            this.RegisteredDevices.Clear();
+
+            // Assigning the return value of ReconnectToDevicesAsync to a Task object to avoid 
+            // warning 4014 (call is not awaited).
+            Task t = this.ReconnectToDevicesAsync(file);
+        }
+
         /// <summary>
         /// Command used to reboot the selected devices.
         /// </summary>
@@ -252,7 +281,8 @@ namespace HoloLensCommander
         /// Implementation of the reconnect to devices command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task ReconnectToDevicesAsync()
+        private async Task ReconnectToDevicesAsync(
+            StorageFile sessionFile = null)
         {
             // TODO: allow the user to cancel this if it is taking too long
 
@@ -261,20 +291,19 @@ namespace HoloLensCommander
 
             // Defer updating common apps until all devices have reconnected
             this.suppressRefreshCommonApps = true;
-            
-            List<ConnectionInformation> connections = await this.LoadConnectionsAsync();
+
+            List<ConnectionInformation> connections = await this.ReadSessionFileAync(sessionFile);
 
             foreach (ConnectionInformation connectionInfo in connections)
             {
                 ConnectOptions connectOptions = new ConnectOptions(
                     connectionInfo.Address,
+                    connectionInfo.Name,
                     this.UserName,
-                    this.Password,
-                    false);
+                    this.Password);
 
                 await this.ConnectToDeviceAsync(
                     connectOptions,
-                    connectionInfo.Name,
                     true); // Do not show the connect dialog on re-connect.
             }
 
@@ -392,6 +421,65 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to save the current device session.
+        /// </summary>
+        public ICommand SaveSessionFileCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the save session file command.
+        /// </summary>
+        private async Task SaveSessionFile()
+        {
+            this.StatusMessage = "";
+
+            try
+            {
+                // Use the picker to select the target location.
+                FileSavePicker savePicker = new FileSavePicker();
+                savePicker.FileTypeChoices.Add("Windows Mixed Reality Commander session file", new List<String>() { ".xml" });
+                savePicker.DefaultFileExtension = ".xml";
+
+                StorageFile file = await savePicker.PickSaveFileAsync();
+                if (file == null) { return; }
+
+                List<ConnectionInformation> sessionDevices = new List<ConnectionInformation>();
+                foreach (DeviceMonitorControl monitorControl in this.GetCopyOfRegisteredDevices())
+                {
+                    DeviceMonitorControlViewModel viewModel = (DeviceMonitorControlViewModel)monitorControl.DataContext;
+                    sessionDevices.Add(
+                        new ConnectionInformation(
+                        viewModel.Address,
+                        viewModel.Name));
+                }
+
+                // Serializing to a memory stream and writing the file using the FileIO class to ensure
+                // that, if overwriting an existing file, all previous contents are removed.
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(List<ConnectionInformation>));
+                    serializer.Serialize(stream, sessionDevices);
+                    stream.Position = 0;
+
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        string data = await reader.ReadToEndAsync();
+
+                        await FileIO.WriteTextAsync(file, data);
+                    }
+                }
+
+                this.StatusMessage = string.Format(
+                    "Session file saved as {0}",
+                    file.Path);
+            }
+            catch
+            {
+                this.StatusMessage = "Failed to save the session file.";
+            }
+        }
+
+        /// <summary>
         /// Command used to select all of the the registered devices.
         /// </summary>
         public ICommand SelectAllDevicesCommand
@@ -446,7 +534,52 @@ namespace HoloLensCommander
             {
                 this.UserName = credentials.UserName;
                 this.Password = credentials.Password;
-                this.SetDefaultCredentials();
+                this.SaveApplicationSettings();
+            }
+        }
+
+        /// <summary>
+        /// Command used to display the settings dialog.
+        /// </summary>
+        public ICommand ShowSettingsCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the show settings command.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        private async Task ShowSettings()
+        {
+            Settings settings = new Settings(
+                this.autoReconnect,
+                this.heartbeatInterval);
+
+            SettingsDialog settingsDialog = new SettingsDialog(settings);
+            ContentDialogResult dialogResult = await settingsDialog.ShowAsync();
+
+            // Was the Ok button clicked?
+            if (dialogResult == ContentDialogResult.Primary)
+            {
+                if (!settings.SettingsUpdated)
+                {
+                    MessageDialog errorMessage = new MessageDialog(
+                        string.Format(
+                        "An error occurred updating settings:\r\n\r\n{0}",
+                        settings.StatusMessage));
+                    await errorMessage.ShowAsync();
+                    return;
+                }
+
+                this.autoReconnect = settings.AutoReconnect;
+                this.heartbeatInterval = settings.HeartbeatInterval;
+                this.SaveApplicationSettings();
+
+                // Update the device monitors with the new heartbeat interval.
+                List<DeviceMonitorControl> registeredDevices = this.GetCopyOfRegisteredDevices();
+                foreach (DeviceMonitorControl monitor in registeredDevices)
+                {
+                    ((DeviceMonitorControlViewModel)monitor.DataContext).SetHeartbeatInterval(this.heartbeatInterval);
+                }
             }
         }
 
@@ -662,10 +795,35 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Reads the application settings.
+        /// </summary>
+        private void LoadApplicationSettings()
+        {
+            this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
+            this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
+
+            if (!bool.TryParse(
+                this.appSettings.Values[AutoReconnectKey] as string, 
+                out this.autoReconnect))
+            {
+                this.autoReconnect = false;
+            }
+
+            if (!float.TryParse(
+                this.appSettings.Values[HeartbeatIntervalKey] as string,
+                out this.heartbeatInterval))
+            {
+                this.heartbeatInterval = Settings.DefaultHeartbeatInterval;
+            }
+        }
+
+        /// <summary>
         /// Read saved device connections from disk.
         /// </summary>
+        /// <param name="sessionFile">StorageFile containing the connection information.</param>
         /// <returns>List of connection information (address, name, etc).</returns>
-        private async Task<List<ConnectionInformation>> LoadConnectionsAsync()
+        private async Task<List<ConnectionInformation>> ReadSessionFileAync(
+            StorageFile sessionFile = null)
         {
             // NOTE: When we load a connection, we assume that we are to use the
             // default credentials. If our connection fails, we will skip it.
@@ -674,16 +832,19 @@ namespace HoloLensCommander
 
             try
             {
-                StorageFile connectionsFile = await this.localFolder.GetFileAsync(
-                    MainPage.ConnectionsFileName);
+                if (sessionFile == null)
+                {
+                    sessionFile = await this.localFolder.GetFileAsync(
+                        MainPage.ConnectionsFileName);
+                }
 
-                using (Stream stream = await connectionsFile.OpenStreamForReadAsync())
+                using (Stream stream = await sessionFile.OpenStreamForReadAsync())
                 {
                     XmlSerializer serializer = new XmlSerializer(typeof(List<ConnectionInformation>));
                     connections = serializer.Deserialize(stream) as List<ConnectionInformation>;
                 }
             }
-            catch 
+            catch
             {
                 connections = new List<ConnectionInformation>();
             }
@@ -733,6 +894,18 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Saves the application settings.
+        /// </summary>
+        private void SaveApplicationSettings()
+        {
+            this.appSettings.Values[DefaultUserNameKey] = this.UserName;
+            this.appSettings.Values[DefaultPasswordKey] = this.Password;
+
+            this.appSettings.Values[AutoReconnectKey] = this.autoReconnect.ToString();
+            this.appSettings.Values[HeartbeatIntervalKey] = this.heartbeatInterval.ToString();
+        }
+
+        /// <summary>
         /// Saves device connections to disk.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -774,15 +947,6 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Stores a set of credentials to be used as the default when connecting to a device.
-        /// </summary>
-        private void SetDefaultCredentials()
-        {
-            this.appSettings.Values[DefaultUserNameKey] = this.UserName;
-            this.appSettings.Values[DefaultPasswordKey] = this.Password;
-        }
-
-        /// <summary>
         /// Removes the specified device from monitoring.
         /// </summary>
         /// <param name="monitorControl">The DeviceMonitorControl tracking the device to be removed.</param>
@@ -796,15 +960,6 @@ namespace HoloLensCommander
             }
 
             await this.SaveConnectionsAsync();
-        }
-
-        /// <summary>
-        /// Updates the current credentials uses when connecting to a device to the previously stored default.
-        /// </summary>
-        private void UseDefaultCredentials()
-        {
-            this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
-            this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
         }
     }
 }
