@@ -795,7 +795,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Raads the application settings.
+        /// Reads the application settings.
         /// </summary>
         private void LoadApplicationSettings()
         {
