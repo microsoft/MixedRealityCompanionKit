@@ -32,8 +32,8 @@ namespace HoloLensCommander
             {
                 string scheme = "https";
 
-                if ((address == DefaultConnectionAddress) ||
-                    (address == DefaultConnectionAddressAsIp))
+                if (string.Equals(address, DefaultConnectionAddress) ||
+                    string.Equals(address, DefaultConnectionAddressAsIp))
                 {
                     scheme = "http";
                 }
@@ -120,7 +120,7 @@ namespace HoloLensCommander
                             {
                                 await this.RebootAsync();
                             }
-                        }); // BUGBUG - needed? .Wait();
+                        });
                 }
             }
             else if (args.Status == DeviceConnectionStatus.Failed)
@@ -269,7 +269,7 @@ namespace HoloLensCommander
         /// <remarks>The name change does not go into effect until the device has been rebooted.</remarks>
         public async Task<bool> SetDeviceNameAsync(string name)
         {
-            if (this.MachineName == name) { return false; }
+            if (string.Equals(this.MachineName, name)) { return false; }
 
             await this.devicePortal.SetDeviceNameAsync(name);
             this.MachineName = name;

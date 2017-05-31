@@ -63,7 +63,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Sets the underlying DeviceMonitor's heartbeat interval.
         /// </summary>
-        /// <param name="heartbeatInterval">The time, in secondsm between heartbeat checks.</param>
+        /// <param name="heartbeatInterval">The time, in seconds between heartbeat checks.</param>
         internal void SetHeartbeatInterval(float heartbeatInterval)
         {
             this.deviceMonitor.HeartbeatInterval = heartbeatInterval;
