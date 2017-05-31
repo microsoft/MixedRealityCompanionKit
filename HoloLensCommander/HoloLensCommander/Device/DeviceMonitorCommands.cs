@@ -2,12 +2,14 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Security.Cryptography.Certificates;
+using Windows.UI.Core;
 using Microsoft.Tools.WindowsDevicePortal;
 using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
-using Windows.UI.Core;
 
 namespace HoloLensCommander
 {
@@ -155,6 +157,39 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Find the installed application name that is associated with the specified package name.
+        /// </summary>
+        /// <param name="packageName">Name of the application package.</param>
+        /// <returns>The application display name, or null if not found.</returns>
+        private async Task<string> FindAppNameFromPackageName(string packageName)
+        {
+            string appName = null;
+
+            // Get the collection of installed applications.
+            AppPackages apps = await this.GetInstalledApplicationsAsync();
+
+            // Remove the version/plaform from the package name and squash 
+            string squashedPackageName = SquashPackageName(packageName);
+
+            foreach (PackageInfo package in apps.Packages)
+            {
+                // Squash the name so there are no underscores or spaces
+                string squashedName = SquashName(package.FamilyName);
+
+
+                // Try to match with the squashed package name
+                if (squashedPackageName == squashedName)
+                {
+                    appName = package.Name;
+                    break;
+                }
+            }
+
+            // Return the un-squashed name
+            return appName;
+        }
+
+        /// <summary>
         /// Gets the collection of installed applications.
         /// </summary>
         /// <returns>AppPackages object describing the installed applications.</returns>
@@ -202,8 +237,8 @@ namespace HoloLensCommander
             return this.devicePortal.GetLowResolutionMrcLiveStreamUri(
                 true,   // Include holograms.
                 true,   // Include color camera.
-                true,  // Include microphone.
-                true); // Include application audio.
+                true,   // Include microphone.
+                true);  // Include application audio.
         }
 
         /// <summary>
@@ -225,8 +260,10 @@ namespace HoloLensCommander
             await Task.Run(
                 async () =>
                 {
+                    string appName = await this.FindAppNameFromPackageName(installFiles.AppPackageFile.Name);
+
                     await this.devicePortal.InstallApplicationAsync(
-                        null,
+                        appName,
                         installFiles.AppPackageFile,
                         installFiles.AppDependencyFiles,
                         installFiles.AppCertificateFile);
@@ -297,6 +334,47 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Returns a "compressed" (spaces and underscores removed) string.
+        /// </summary>
+        /// <param name="name">The name to squash.</param>
+        /// <returns>The modified name.</returns>
+        private string SquashName(string name)
+        {
+            string squashedName = name;
+
+            squashedName = squashedName.Replace(" ", "");
+            squashedName = squashedName.Replace("_", "");
+
+            return squashedName;
+        }
+
+        /// <summary>
+        /// Returns a "compressed" (spaces, underscores, version and platform info removed) version of a package name
+        /// </summary>
+        /// <param name="name">The package name to squash.</param>
+        /// <returns>The modified package name.</returns>
+        private string SquashPackageName(string name)
+        {
+            string squashedName = "";
+            int versionIndex = -1;
+
+            string[] nameParts = name.Split('_');
+            for (int i = 0; i < nameParts.Length; i++)
+            {
+                Version v;
+                if (Version.TryParse(nameParts[i], out v))
+                {
+                    versionIndex = i;
+                    break;
+                }
+
+                squashedName += nameParts[i];
+            }
+
+            return squashedName;
+        }
+
+        /// <summary>
         /// Starts a mixed reality recording on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -326,10 +404,15 @@ namespace HoloLensCommander
         {
             RunningProcesses runningApps = await this.GetRunningProcessesAsync();
 
+            List<string> doNotClose = new List<string>();
+            doNotClose.AddRange(DoNotCloseApps);
+
             foreach (DeviceProcessInfo processInfo in runningApps.Processes)
             {
-                // Do not terminate the shell.
-                if (ShellApp.ToLower() == processInfo.Name.ToLower())
+                // Skip applications that should not be closed.
+                if (doNotClose.Contains(
+                    processInfo.Name, 
+                    StringComparer.OrdinalIgnoreCase))
                 {
                     continue;
                 }

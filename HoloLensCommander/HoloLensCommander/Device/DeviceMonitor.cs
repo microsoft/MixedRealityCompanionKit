@@ -46,9 +46,14 @@ namespace HoloLensCommander
         public static readonly string DefaultConnectionAddressAsIp = "127.0.0.1:10080";
         
         /// <summary>
-        /// The executable name of the HoloLens shell application.
+        /// The file names of applications that will remain running after the user
+        /// requests all apps to be closed.
         /// </summary>
-        private static readonly string ShellApp = "HoloShellApp.exe";
+        private static readonly string[] DoNotCloseApps = new string[] 
+            {
+                "HoloShellApp.exe",
+                "MixedRealityPortal.exe"
+            };
 
         /// <summary>
         /// Options used to connect to this device.
