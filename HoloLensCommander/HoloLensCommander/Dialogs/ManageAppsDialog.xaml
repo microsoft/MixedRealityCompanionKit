@@ -71,7 +71,7 @@
                 Canvas.Left="400" Canvas.Top="115"/>
             <Button 
                 x:Name="UninstallAllApps"
-                Content="&#xEA39;"
+                Content="&#xE107;"
                 Command="{Binding UninstallAllAppsCommand}"
                 ToolTipService.ToolTip="Uninstall all sideloaded apps"
                 FontFamily="Segoe MDL2 Assets" FontSize="24" 
