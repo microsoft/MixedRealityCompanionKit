@@ -31,6 +31,12 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to clear the application status message.
+        /// </summary>
+        public ICommand ClearStatusMessageCommand
+        { get; private set; }
+
+        /// <summary>
         /// Command used to close all applications on the selected devices.
         /// </summary>
         public ICommand CloseAllAppsCommand
@@ -48,7 +54,7 @@ namespace HoloLensCommander
                 Task t = monitor.CloseAllAppsAsync();
             }
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -95,7 +101,7 @@ namespace HoloLensCommander
                 connectOptions.Address);
 
             await monitor.ConnectAsync(connectOptions);
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
 
             await this.RegisterDeviceAsync(
                 monitor, 
@@ -165,7 +171,7 @@ namespace HoloLensCommander
 
             await this.SaveConnectionsAsync();
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -386,7 +392,7 @@ namespace HoloLensCommander
 
             this.UpdateCommonAppsCollection(commonAppNames);
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
