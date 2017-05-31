@@ -30,11 +30,17 @@ namespace HoloLensCommander
             this.Name = options.Name;
             this.DeployNameToDevice = options.DeployNameToDevice;
 
-            this.ShowCredentials = options.ExpandCredentials ? Visibility.Visible : Visibility.Collapsed;
+            // Set the opposite of what we want and call the toggle method.
+            this.ShowCredentials = options.ExpandCredentials ? Visibility.Collapsed : Visibility.Visible;
+            this.ShowHideCredentials();
+
             this.UserName = options.UserName;
             this.Password = options.Password;
 
-            this.ShowNetworkSettings = options.ExpandNetworkSettings ? Visibility.Visible : Visibility.Collapsed;
+            // Set the opposite of what we want and call the toggle method.
+            this.ShowNetworkSettings = options.ExpandNetworkSettings ? Visibility.Collapsed : Visibility.Visible;
+            this.ShowHideNetworkSettings();
+
             this.Ssid = options.Ssid;
             this.NetworkKey = options.NetworkKey;
 

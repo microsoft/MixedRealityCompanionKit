@@ -325,13 +325,14 @@
                 Command="{Binding Path=ClearStatusMessageCommand}"
                 FontFamily="Segoe MDL2 Assets"
                 Width="40" Height="30"
-                Canvas.Left="0" Canvas.Top="5"/>
+                Canvas.Left="0" Canvas.Top="5">
+            </Button>
             <TextBlock
                 x:Name="statusMessage" 
                 Text="{Binding Path=StatusMessage}"
                 TextWrapping="NoWrap" FontSize="16"
                 HorizontalAlignment="Stretch"
-                Canvas.Left="65" Canvas.Top="7"/>
+                Canvas.Left="45" Canvas.Top="7"/>
         </Canvas>
     </Grid>
 </Page>
