@@ -109,6 +109,13 @@ The applications section displays and controls applications that are common to a
 
 The Close All button will stop all running UWP applications on the selected devices. To be more selective in closing an application, you will need to use the Manage apps option for each device.
 
+The Remove Sideloaded Apps button will uninstall all sideloaded applications on the selected devices. To be more selective in uninstalling applications, you can use the Manage apps option and uninstall on a specific device.
+
+![Get App Install Files Dialog](ReadmeImages/GetAppInstallFiles.png)
+
+The Install button will open a dialog box for selecting the appx, certificate, and dependency files required for installation.
+
+![Get Install Folder Button](ReadmeImages/GetInstallFolderButton.png) Launches the folder picker. Allows the user to select an installation folder and automatically populate the dialog box with the correct installation files.
 
 #### Mixed Reality Capture
 
@@ -117,6 +124,8 @@ The mixed reality capture section allows you to start and stop a recording on th
 ![Mixed Reality Capture Controls](ReadmeImages/MixedRealityControls.png)
 
 Files are saved to your PC’s Pictures Library under HoloLensCommander, and each device’s files will be placed in a folder named after the device’s address or tag.
+
+The Clear Camera Roll button wipes all saved photos, videos, and mixed reality captures on each selected device. 
 
 ```
 Note: Windows PC devices do not support Mixed Reality Capture.
@@ -158,6 +167,8 @@ There are times when you need to manage applications on a single device. To acco
 ![Run Application Button](ReadmeImages/RunAppButton.png) Runs the app selected in the Installed Applications list.
 
 ![Uninstall Application Button](ReadmeImages/UninstallAppButton.png) Uninstalls the app selected in the Installed Applications list.
+
+![Uninstall All Applications Button](ReadmeImages/UninstallAllAppsButton.png) Uninstalls all sideloaded apps listed in the Installed Applications list.
 
 ![Stop Application Button](ReadmeImages/CloseAppButton.png) Stops the app selected in the Running Applications list.
 
