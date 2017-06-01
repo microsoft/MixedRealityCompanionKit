@@ -203,10 +203,10 @@
                 <Canvas
                     x:Name="deviceControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="115" Margin="10,0,0,0">
+                    Width="280" Height="170" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="105">
+                        Width="280" Height="165">
                     </Border>
                     <TextBlock 
                         x:Name="deviceControl"
@@ -232,17 +232,26 @@
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20"
                         Width="70" Height="50" 
-                        Canvas.Left="107" Canvas.Top="42"/>
+                        Canvas.Left="105" Canvas.Top="42"/>
                     <Button
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
-                        ToolTipService.ToolTip="Unregister ALL connected devices"
+                        ToolTipService.ToolTip="Unregister the selected devices"
                         Command="{Binding Path=ForgetConnectionsCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         Width="70" Height="50" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20" 
                         Canvas.Left="200" Canvas.Top="42"/>
+                    <Button
+                        Content="&#xEA99;"
+                        ToolTipService.ToolTip="Clear status messages for the selected devices"
+                        Command="{Binding ClearDeviceStatusCommand}" 
+                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" 
+                        Width="70" Height="50" 
+                        FontFamily="Segoe MDL2 Assets" FontSize="20" 
+                        Canvas.Left="10" Canvas.Top="105"/>
                 </Canvas>
             </StackPanel>
         </ScrollViewer>
@@ -258,7 +267,6 @@
                 FontFamily="Segoe MDL2 Assets"
                 Width="50" Height="40"
                 Canvas.Top="5"/>
-            <!-- TODO -->
             <Button 
                 Content="&#xE28F;" 
                 ToolTipService.ToolTip="Save device session file"
@@ -320,7 +328,7 @@
                 Background="White">
             <Button
                 x:Name="clearStatus"
-                Content="&#xE947;"
+                Content="&#xEA99;"
                 ToolTipService.ToolTip="Clear status message"
                 Command="{Binding Path=ClearStatusMessageCommand}"
                 FontFamily="Segoe MDL2 Assets"

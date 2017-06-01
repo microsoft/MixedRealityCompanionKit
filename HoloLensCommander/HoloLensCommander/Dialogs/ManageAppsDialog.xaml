@@ -120,14 +120,5 @@
                 Width="50" Height="40" 
                 Canvas.Left="400" Canvas.Top="115"/>
         </Canvas>
-        <ScrollViewer
-            Width="450" Height="75">
-            <TextBlock 
-                x:Name="status"
-                Text="{Binding Path=StatusMessage}"
-                TextWrapping="WrapWholeWords"
-                FontSize="16"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        </ScrollViewer>
     </StackPanel>
 </ContentDialog>

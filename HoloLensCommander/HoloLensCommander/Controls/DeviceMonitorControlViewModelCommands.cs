@@ -36,6 +36,14 @@ namespace HoloLensCommander
         { get; private set; }
 
         /// <summary>
+        /// Implementation of the clear status message command.
+        /// </summary>
+        internal void ClearStatusMessage()
+        {
+            this.StatusMessage = string.Empty;
+        }
+
+        /// <summary>
         /// Command used to disconnect from the device.
         /// </summary>
         public ICommand DisconnectCommand

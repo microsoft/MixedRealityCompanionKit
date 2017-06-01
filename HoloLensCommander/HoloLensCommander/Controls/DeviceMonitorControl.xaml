@@ -159,7 +159,7 @@
                 Height="22" Width="32"
                 Canvas.Left="750" Canvas.Top="22">
                 <Button.RenderTransform>
-                    <CompositeTransform ScaleX="1.0" ScaleY="0.8"/>
+                    <CompositeTransform ScaleX="0.8" ScaleY="0.8"/>
                 </Button.RenderTransform>
             </Button>
         </Canvas>

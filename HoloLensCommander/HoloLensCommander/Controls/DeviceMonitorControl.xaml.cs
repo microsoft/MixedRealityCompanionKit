@@ -124,6 +124,17 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Clears the status message for this device.
+        /// </summary>
+        internal void ClearStatusMessage()
+        {
+            if (this.ViewModel.IsSelected)
+            {
+                this.ViewModel.ClearStatusMessage();
+            }
+        }
+
+        /// <summary>
         /// Closes all applications running on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>

@@ -704,7 +704,7 @@ namespace HoloLensCommander
             this.ClearStatusMessageCommand = new Command(
                 (parameter) =>
                 {
-                    this.StatusMessage = string.Empty;
+                    this.ClearStatusMessage();
                 });
 
             this.DisconnectCommand = new Command(

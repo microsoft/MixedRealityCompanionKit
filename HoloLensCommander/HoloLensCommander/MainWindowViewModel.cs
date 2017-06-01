@@ -154,25 +154,11 @@ namespace HoloLensCommander
         /// </remarks>
         public void Dispose()
         {
-            this.ClearRegisteredDevices();
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Bulk removes devices from application management.
-        /// </summary>
-        private void ClearRegisteredDevices()
-        {
-            List<DeviceMonitorControl> monitors = GetCopyOfRegisteredDevices();
-
-            foreach (DeviceMonitorControl monitor in monitors)
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
                 monitor.Dispose();
             }
-
-            monitors.Clear();
-
-            this.RegisteredDevices.Clear();
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -204,6 +190,12 @@ namespace HoloLensCommander
         /// </summary>
         private void RegisterCommands()
         {
+            this.ClearDeviceStatusCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.ClearDeviceStatus();
+                });
+
             this.ClearStatusMessageCommand = new Command(
                 (parameter) =>
                 {

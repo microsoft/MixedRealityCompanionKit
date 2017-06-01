@@ -31,6 +31,30 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to clear the delected devices status messages.
+        /// </summary>
+        public ICommand ClearDeviceStatusCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the clear device status command.
+        /// </summary>
+        private async Task ClearDeviceStatus()
+        {
+            YesNoMessageDialog messageDialog = new YesNoMessageDialog(
+                "Are you sure you want to clear the status for the selected devices?");
+            if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
+            {
+                return;
+            }
+
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            {
+                monitor.ClearStatusMessage();
+            }
+        }
+
+        /// <summary>
         /// Command used to clear the application status message.
         /// </summary>
         public ICommand ClearStatusMessageCommand
@@ -140,19 +164,19 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to forget all of the registered devices.
+        /// Command used to forget registered devices.
         /// </summary>
         public ICommand ForgetConnectionsCommand
         { get; private set; }
 
         /// <summary>
-        /// Implementation of the forget all connections command.
+        /// Implementation of the forget connections command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ForgetAllConnectionsAsync()
         {
             YesNoMessageDialog messageDialog = new YesNoMessageDialog(
-                "Are you sure you want to remove all connected devices?");
+                "Are you sure you want to unregister the selected devices?");
             if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
             {
                 return;
@@ -162,12 +186,15 @@ namespace HoloLensCommander
 
             foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                monitor.Disconnect();
+                DeviceMonitorControlViewModel viewModel = (DeviceMonitorControlViewModel)monitor.DataContext;
+                if (viewModel.IsSelected)
+                {
+                    monitor.Disconnect();
+                    this.RegisteredDevices.Remove(monitor);
+                }
             }
 
             this.suppressSave = false;
-
-            this.ClearRegisteredDevices();
 
             await this.SaveConnectionsAsync();
 
