@@ -632,7 +632,7 @@ namespace HoloLensCommander
             // Did we recover from a heartbeat loss?
             if (this.StatusMessage == HeartbeatLostMessage)
             {
-                this.StatusMessage = string.Empty;
+                this.ClearStatusMessage();
             }
 
             // Handle whether or not we were previously selected

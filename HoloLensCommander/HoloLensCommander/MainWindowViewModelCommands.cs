@@ -61,6 +61,14 @@ namespace HoloLensCommander
         { get; private set; }
 
         /// <summary>
+        /// Implementation of the clear status message command.
+        /// </summary>
+        private void ClearStatusMessage()
+        {
+            this.StatusMessage = string.Empty;
+        }
+        
+        /// <summary>
         /// Command used to close all applications on the selected devices.
         /// </summary>
         public ICommand CloseAllAppsCommand
@@ -471,7 +479,7 @@ namespace HoloLensCommander
         /// </summary>
         private async Task SaveSessionFile()
         {
-            this.StatusMessage = "";
+            this.ClearStatusMessage();
 
             try
             {

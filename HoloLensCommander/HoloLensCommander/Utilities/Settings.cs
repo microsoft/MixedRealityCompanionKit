@@ -102,13 +102,13 @@ namespace HoloLensCommander
         /// <param name="interval">Seconds between heartbeat checks.</param>
         public Settings(float interval) :  
             this(
-            false, 
+            false,          // autoReconnect
             interval,
-            false,
-            false,
-            false,
-            string.Empty,
-            string.Empty)
+            false,          // expandCredentials
+            false,          // expandNetworkSettigns
+            false,          // useInstalledCertificate
+            string.Empty,   // defaultSsid
+            string.Empty)   // defaultNetworkKey
         { }
 
         /// <summary>

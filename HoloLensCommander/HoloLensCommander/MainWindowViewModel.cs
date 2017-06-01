@@ -199,7 +199,7 @@ namespace HoloLensCommander
             this.ClearStatusMessageCommand = new Command(
                 (parameter) =>
                 {
-                    this.StatusMessage = string.Empty;
+                    this.ClearStatusMessage();
                 });
 
             this.CloseAllAppsCommand = new Command(
@@ -435,12 +435,6 @@ namespace HoloLensCommander
             this.UninstallAppCommand = new Command(
                 (parameter) =>
                 {
-                    this.UninstallApp();
-                });
-
-            this.UninstallAllAppsCommand = new Command(
-                (parameter) =>
-                {
                     try
                     {
                         this.UninstallApp();
@@ -449,6 +443,21 @@ namespace HoloLensCommander
                     {
                         this.StatusMessage = string.Format(
                             "Failed to uninstall an app on one or more devices ({0})",
+                            e.Message);
+                    }
+                });
+
+            this.UninstallAllAppsCommand = new Command(
+                (parameter) =>
+                {
+                    try
+                    {
+                        this.UninstallAllApps();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to uninstall all apps on one or more devices ({0})",
                             e.Message);
                     }
                 });
