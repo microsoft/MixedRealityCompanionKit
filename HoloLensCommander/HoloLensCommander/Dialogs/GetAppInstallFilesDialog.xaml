@@ -34,6 +34,7 @@
                 Command="{Binding Path=BrowseForAppPackageCommand}"
                 ToolTipService.ToolTip="Browse for the application package file"
                 FontSize="16"
+<<<<<<< HEAD
                 Width="50" Height="40"
                 Canvas.Left="550"/>
             <Button 
@@ -44,6 +45,18 @@
                 FontFamily="Segoe MDL2 Assets" FontSize="16"
                 Width="50" Height="40"
                 Canvas.Left="550" Canvas.Top="50"/>
+=======
+                Width="30" Height="40"
+                Canvas.Left="590"/>
+            <Button 
+                x:Name="browseForParentFolder"
+                Content="../"
+                Command="{Binding BrowseForParentFolderCommand}"
+                ToolTipService.ToolTip="Browse for the installation folder"
+                FontSize="16"
+                Width="35" Height="40"
+                Canvas.Left="550"/>
+>>>>>>> upstream/master
         </Canvas>
         <TextBlock 
             x:Name="certFileLabel" 
