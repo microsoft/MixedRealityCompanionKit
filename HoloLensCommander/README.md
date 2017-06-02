@@ -106,7 +106,6 @@ Users of the Windows Device Portal are aware of the ability to connect to an att
 
 To take advantage of this feature, Windows Mixed Reality Commander will default to this loopback address if the Connect dialog’s Address field is left blank.
 
-```
 Note: By default, UWP applications are subject to network isolation. For development and 
 side-load scenarios, your PC can be configured to allow an application to establish
 loopback connections.
@@ -118,6 +117,21 @@ For side-load scenarios, please refer to the documentation describing network is
 troubleshooting (https://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx). The application container name, at the time of this writing, for 
 Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”.
 ```
+
+#### Session Management
+The **Session Management** controls allow you to create and use a library of sessions that you can easily switch between.
+
+![Session Management Controls](ReadmeImages/SessionControls.png)
+
+##### Load Session
+The ![Load Session](ReadmeImages/LoadSessionButton.png) button loads a saved device session file. Loading a file removes all devices in the current session and replaces them with the devices from the file.
+
+```
+Note: If a device's IP Address changes afer the session has been saved, the device will need to be re-registered (and the old registration unregistered).
+```
+
+##### Save Session
+The ![Save Session](ReadmeImages/SaveSessionButton.png) button saves the current session to a file.
 
 #### Common Applications
 The **Common Applications** section displays and controls applications that are common to all selected devices. Each time a device is selected or deselected, this list is updated.
