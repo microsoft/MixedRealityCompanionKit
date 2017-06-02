@@ -212,11 +212,13 @@ When you connect a device (HoloLens or Windows PC) an entry will be created in t
 
 ![Device List](ReadmeImages/DeviceList.png)
 
-In the previous image, the upper device is a HoloLens and the lower is a Windows PC. You can differentiate, at a glance by the items highlighted in the red and blue boxes.
+In the previous image, the upper device is a HoloLens and the lower is a Windows PC. You can differentiate, at a glance by the items highlighted in the black, blue and red boxes.
 
 The HoloLens supports viewing and setting the interpupillary distance (IPD) and provides controls to view and update the value (red box).
 
 Windows PC devices do not support the IPD controls and have a small icon (blue box) between the additional options button (…) and the address.
+
+Devices that are not available at the time of registration display an exclamation point (black box) icon. Once a connection has been established, the device UI will be refreshed based on the type of device (HoloLens or Desktop PC).
 
 #### Managing Applications on an Individual Device
 There are times when you need to manage applications on a single device. To accomplish this, select the Manage apps from the menu displayed when clicking the additional commands button (…).
