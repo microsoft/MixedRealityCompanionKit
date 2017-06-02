@@ -62,10 +62,10 @@ Before attempting to connect to a device, please be sure that the Windows Device
 Note: Windows PCs must be rebooted after enabling the Windows Device Portal.
 ```
 ##### Set Credentials
-Before a device can be registered, the default Windows Device Portal credentials must be set. To do so, click the Set Credentials button ![Set Credentials](ReadmeImages/SetCredentialsButton.png).
+Before a device can be registered, the default Windows Device Portal credentials must be set. To do so, click the ![Set Credentials](ReadmeImages/SetCredentialsButton.png) button.
 
 ##### Restore Previous Session
-To restore the previous session (auto saved as devices are registered and unregistered), use the Restore Previous Session button ![Restore Previous Session](ReadmeImages/RestorePreviousSessionButton.PNG).
+To restore the previous session (auto saved as devices are registered and unregistered), use the ![Restore Previous Session](ReadmeImages/RestorePreviousSessionButton.PNG) button.
 
 ```
 Note: Reconnect to previous session will become disabled after a reconnection has been attempted, a session file has been loaded or the Register button has been used one or more times.
@@ -74,28 +74,30 @@ Note: Reconnect to previous session will become disabled after a reconnection ha
 ![Rgister Device Dialog](ReadmeImages/ConnectDialog.png)
 
 ###### Address
-Enter the IP Address in the Address field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). Checking the Desktop PC button will append the default Windows Device Portal port, if no port has been specified. 
+Enter the IP Address in the **Address** field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). Checking the **Desktop PC** button will append the default Windows Device Portal port, if no port has been specified. 
 
 To determine the correct address to specify:
 * HoloLens: Run the Settings application, select Network & Internet > Wi-Fi.
 * Windows PC : Run the Settings application, select Update & Security > For Developers.
 
 ##### Name
-Optionally enter a name associated with the device. If the Update Device options is checked, the device will be renamed and then rebooted.
+You can optionally enter a name associated with the device in the **Name** field. If the **Update Device** options is checked, the device will be renamed and then rebooted.
 
 ###### Username and Password
-If you wish to use a specific set of credentials for the device, fill out these controls. Doing so will override the default values.
+If you wish to use a specific set of credentials for the device, fill out the **User name** and **Password** fields. Doing so will override the default values.
 
 ###### SSID and Key
-If you wish to set your device onto a specific network access point, enter the SSID and network key in these boxes.
+If you wish to set your device onto a specific network access point, enter the **SSID** and **Network key**. If you have previously set defaults for these values, they will be automatically populated. As with user name and password, making changes to SSID and Network key will override the default values for the connection.
 
 ###### Use Installed Device Certificate
-If you have previously downloaded and installed the device's root certificate, you can select this option to use it. Otherwise, the certificate wil be automatically downloaded, though it will not be installed.
+If you have previously downloaded and installed the device's root certificate, you can select **Use Installed Device Certificate**fs. Otherwise, the certificate wil be automatically downloaded, though it will not be installed.
 
 ###### Update Connection
-Checking Update Connection instructs Windows Mixed Reality Commander to query the device for the first valid (non-169.x.x.x) IP address it reports. 
+Checking **Update Connection** instructs Windows Mixed Reality Commander to query the device for the first valid (non-169.x.x.x) IP address it reports. 
 
-If you specified an SSID, this may cause the device to become unreachable if the PC does not have access to the new address. 
+```
+Note: If you specifiy an SSID, the device may become unreachable if the PC does not have access to the new address. 
+```
 
 ##### Connection Shortcut for Development Machines and Side-Loading
 Getting the IP address from your HoloLens can be a more time-consuming process than getting it from your Windows PC (ex: ipconfig).
@@ -118,31 +120,36 @@ Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”.
 ```
 
 #### Common Applications
-The Common Applications section displays and controls applications that are common to all selected devices. Each time a device is selected or deselected, this list is updated.
+The **Common Applications** section displays and controls applications that are common to all selected devices. Each time a device is selected or deselected, this list is updated.
 
 ![Common Application Controls](ReadmeImages/ApplicationManagementControls.png)
 
 ##### Run
-The Run button will start the selected application on the selected devices.
+The **Run** button will start the selected application on the selected devices.
 
 ##### Close All
-The Close All button will stop all running UWP applications on the selected devices. 
-
-![Get App Install Files Dialog](ReadmeImages/GetAppInstallFiles.png)
+The **Close All** button will stop all running UWP applications on the selected devices. 
 
 ##### Install
-The Install button will open a dialog box for selecting the appx, certificate, and dependency files required for installation.
+The **Install** button will open a dialog box for selecting the files required for installation.
 
 ![Get Install Folder Button](ReadmeImages/GetInstallFolderButton.png) Launches the folder picker. Allows the user to select an installation folder and automatically populate the dialog box with the correct installation files.
 
 ##### Uninstall
-The Uninstall button will uninstall the selected application on the selected devices.
+The **Uninstall** button will uninstall the selected application on the selected devices.
 
 ##### Remove Sideloaded Apps
-The Remove Sideloaded Apps button will uninstall all sideloaded applications on the selected devices.
+The **Remove Sideloaded Apps** button will uninstall all sideloaded applications on the selected devices.
+
+#### Getting the Application Install files
+To install an application, you will need to specify the application package (appx or appxbundle), certificate (cer), and dependency (appx) files.
+
+![Get App Install Files Dialog](ReadmeImages/GetAppInstallFiles.png)
+
+You can browse to specific files using the ![Browse](ReadmeImages/BrowseButton.PNG) or you can have Windows Mixed Reality Commander automatically determine the required files by selecting a folder using the ![Get Folder](ReadmeImags/GetInstallFolderButton.png) button.
 
 #### Mixed Reality Capture
-The mixed reality capture section allows you to start and stop a recording on the selected devices. You can also save them to the PC running Windows Mixed Reality Commander and optionally delete them from the device after they have been saved locally.
+The **Mixed Reality Capture** section allows you to start and stop a recording on the selected devices. You can also save them to the PC running Windows Mixed Reality Commander and optionally delete them from the device after they have been saved locally.
 
 ![Mixed Reality Capture Controls](ReadmeImages/MixedRealityControls.png)
 
@@ -151,25 +158,25 @@ Files are saved to your PC’s Pictures Library under HoloLensCommander, and each 
 ```
 Note: Windows PC devices do not support Mixed Reality Capture.
 ```
+
 ##### Start
-The Start button begins recording a Mixed Reality video on the selected devices. On the device, a recording indicator will appear in the upper left.
+The **Start** button begins recording a Mixed Reality video on the selected devices. On the device, a recording indicator will appear in the upper left.
 
 ##### Stop
-The Stop button ends the Mixed Reality recording session on the selected devices. The file will be saved to the device's Camera Roll.
+The **Stop** button ends the Mixed Reality recording session on the selected devices. The file will be saved to the device's Camera Roll.
 
 ##### Save
-The Save button downloads all files from the Camera Roll on the selected devices.
+The **Save** button downloads all files from the Camera Roll on the selected devices.
 
 ##### Delete files after saving
-Checing the Delete files after saving option deletes each file in the device's Camera Roll once it has been downloaded.
+Checing the **Delete files after saving** option deletes each file in the device's Camera Roll once it has been downloaded.
 
 ##### Clear Camera Roll
-The Clear Camera Roll button wipes all saved photos, videos, and mixed reality captures on each selected device. 
-
+The **Clear Camera Roll** button wipes all saved photos, videos, and mixed reality captures on each selected device. 
 
 #### Device control
 
-The device control section allows you to bulk reboot or shutdown the selected devices. It also allows you to instruct Windows Mixed Reality Commander to forget all connected devices.
+The **Device Control** section allows you to bulk reboot or shutdown the selected devices. It also allows you to instruct Windows Mixed Reality Commander to unregister specific devices.
 
 ![Device Control Controls](ReadmeImages/DeviceControlControls.png)
 
@@ -177,11 +184,15 @@ The device control section allows you to bulk reboot or shutdown the selected de
 
 ![Shutdown Button](ReadmeImages/ShutdownButton.png) Shuts down the selected devices. Devices remain in the list and will report “Lost connection to the device”.
 
-![Forget Devices Button](ReadmeImages/ForgetDevicesButton.png) Forgets all connected devices by removing them from the devices list and updating the application state.
+![Forget Devices Button](ReadmeImages/ForgetDevicesButton.png) Unregisters the selected devices by removing them from the devices list and updating the application state.
 
+![Clear Device Status Button](ReadmeImages/ClearStatusButton.PNG) Clears the status messages for the selected devices.
+
+```
+Note: If Windows Mixed Reality Commander has lost contact with a device, the Lost Connection message will reappear automatically after the status message has been cleared.
+```
 
 #### Device List
-
 When you connect a device (HoloLens or Windows PC) an entry will be created in the device list (right side of the UI).
 
 ![Device List](ReadmeImages/DeviceList.png)
@@ -192,9 +203,7 @@ The HoloLens supports viewing and setting the interpupillary distance (IPD) and 
 
 Windows PC devices do not support the IPD controls and have a small icon (blue box) between the additional options button (…) and the address.
 
-
 #### Managing Applications on an Individual Device
-
 There are times when you need to manage applications on a single device. To accomplish this, select the Manage apps from the menu displayed when clicking the additional commands button (…).
 
 ![Manage Applications Dialog](ReadmeImages/ManageAppsDialog.png)
@@ -209,19 +218,15 @@ There are times when you need to manage applications on a single device. To acco
 
 ![Stop All Applications Button](ReadmeImages/CloseAllAppsButton.png) Stops all apps listed in the Running Applications list.
 
-
 ### Using Windows Mixed Reality Commander
-
 Windows Mixed Reality Commander can manage one or more HoloLens and/or Windows PC devices in a classroom or demo setting. The following sections describe common usage patterns for both settings.
 
 #### Customizing for the User
-
 HoloLens is designed for all users. The headband is adjustable to fit different sized heads and the optics are designed to allow for different distances between the eyes (interpupillary distance).
 
 To promote user comfort and hologram clarity, it is recommended to configure the IPD to match the user. There are two convenient methods for setting this value.
 
 ##### Directly Setting the IPD
-
 ![HoloLens Summary View](ReadmeImages/HoloLensSummaryView.png)
 
 If the user is already aware of his/her IPD, you can use the edit button to the right of the IPD to set it directly.
@@ -231,7 +236,6 @@ If the user is already aware of his/her IPD, you can use the edit button to the 
 Clicking Ok will send the desired value to the HoloLens. Within a few seconds, the UI will be updated to reflect the new setting.
 
 ##### Running Calibration on the HoloLens
-
 If the user is not aware of his/her IPD, you can run the HoloLens Calibration application to have the value measured and set.
 
 There are two ways this can be performed using Windows Mixed Reality Commander:
@@ -242,7 +246,6 @@ There are two ways this can be performed using Windows Mixed Reality Commander:
 While Calibration is running you will see “Waiting for Calibration to exit” in the device control. When complete, the control will display “Calibration has exited”.
 
 #### Controlling Application Lifetime
-
 Controlling application lifetime is a common requirement when running a classroom or demo.  Students and users often are required to spend a finite time in any given experience before moving on to the next task.
 
 Windows Mixed Reality Commander enables application lifetime control by using the Common Applications controls or the Manage Apps option for a specific device.
@@ -254,7 +257,6 @@ When an application is running on a device, you will see "Waiting for Applicatio
 When the application has been closed, by the user or via Windows Mixed Reality Commander, the message will change to "Application has exited".
 
 #### Assisting Users
-
 Mixed Reality is a new experience for many users, and they may, at times, get confused with where to look and/or how to interact with your application. To help you help your users, Windows Mixed Reality Commander provides Mixed Reality view.
 
 ```
@@ -274,17 +276,15 @@ To turn on Mixed Reality view, click the additional options (…) button for the d
 This will cause the user to see a red "REC" indication, in the upper left of the Holographic Frame. It is recommended that you tell your user to expect to see this. The indicator will turn off when you close the Mixed Reality view dialog.
 
 #### Keeping Track of Devices
-
 If you are managing multiple devices, it can become challenging to keep track of who is using which device. To make that easier, Windows Mixed Reality Commander allows you to tag the device with a custom name that is not communicated to the device. 
 
 For example, you may have 30 HoloLens devices in your classroom and notice that a student named Mick is having trouble with his assignment. Rather than having to memorize that IP address 10.254.130.7 is Mick's device, you can select the edit button next to the Name field to display the Tag Device dialog.
 
-![Edit Device Tag](ReadmeImages/EditDeviceTag.png)
-
-This will allow you to set a descriptive name for the device.
+![Set Device Name Button](ReadmeImages/EditDeviceTag.png) Displays a dialog allowing you to set a local name for the device. It also, optionally, allows you change the device's name.
 
 ![Tag Device Dialog](ReadmeImages/TagDialog.png)
 
+Checking the **Update Dveice** option will change the name on the device and reboot it. Once rebooted, the connection will be re-established using the updated device certificate.
 
 ### Project dependencies
 Windows Mixed Reality Commander depends on:
@@ -292,7 +292,6 @@ Windows Mixed Reality Commander depends on:
 The device must be in developer mode with the Windows Device Portal enabled and paired.
 - Windows Device Portal Wrapper
  - https://github.com/Microsoft/WindowsDevicePortalWrapper
-
 
 ### Contributing
 We welcome and encourage contributions to the Windows Mixed Reality Commander project. We look forward to evolving this tool with the community!
