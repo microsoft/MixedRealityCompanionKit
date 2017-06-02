@@ -21,10 +21,10 @@ The following sections describe the changes from v2.0 to v2.1706.
 
 #### New features
 Version 2.1706 includes the following new features:
-* Can now pew-register a device that is not currently on the network
+* Can now pre-register a device that is not currently on the network
 * Optionally reconnect to previous device session at startup
 * Configurable heartbeat interval
-* Default SSID and Network Key settings
+* Optional default SSID and Network Key
 * Can specify to use and installed device certificate when connecting
 * Support for changing the name of the device
 * Ability to save and load a specific device session
@@ -46,7 +46,6 @@ The following issues have been fixed:
 * Reconnecting to a previous session is now faster
 * Improved application stability in error conditions
 
-
 ### Key User Interface Elements
 
 #### Device Connection
@@ -55,7 +54,7 @@ The following issues have been fixed:
 
 ##### Register
 
-The Regiter button displays a dialog allowing you to target a specific device.
+The **Register** button displays a dialog allowing you to target a specific device.
 
 Before attempting to connect to a device, please be sure that the Windows Device Portal is enabled and paired with your desired credentials.
 
@@ -63,10 +62,10 @@ Before attempting to connect to a device, please be sure that the Windows Device
 Note: Windows PCs must be rebooted after enabling the Windows Device Portal.
 ```
 ##### Set Credentials
-Before a device can be registered, the default Windows Device Portal credentials must be set. To do so, click the Set Credentials button ![Set Credentials](readmeImages/SetCredentialsButton.png).
+Before a device can be registered, the default Windows Device Portal credentials must be set. To do so, click the Set Credentials button ![Set Credentials](ReadmeImages/SetCredentialsButton.png).
 
 ##### Restore Previous Session
-To restore the previous session (auto saved as devices are registered and unregistered), use the Restore Previous Session button ![Restore Previous Session](readmeImages/RestorePreviousSessionButton.png).
+To restore the previous session (auto saved as devices are registered and unregistered), use the Restore Previous Session button ![Restore Previous Session](ReadmeImages/RestorePreviousSessionButton.PNG).
 
 ```
 Note: Reconnect to previous session will become disabled after a reconnection has been attempted, a session file has been loaded or the Register button has been used one or more times.
@@ -75,9 +74,14 @@ Note: Reconnect to previous session will become disabled after a reconnection ha
 ![Rgister Device Dialog](ReadmeImages/ConnectDialog.png)
 
 ###### Address
-Enter the IP Address in the Address field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). To determine the correct address to specify:
+Enter the IP Address in the Address field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). Checking the Desktop PC button will append the default Windows Device Portal port, if no port has been specified. 
+
+To determine the correct address to specify:
 * HoloLens: Run the Settings application, select Network & Internet > Wi-Fi.
 * Windows PC : Run the Settings application, select Update & Security > For Developers.
+
+##### Name
+Optionally enter a name associated with the device. If the Update Device options is checked, the device will be renamed and then rebooted.
 
 ###### Username and Password
 If you wish to use a specific set of credentials for the device, fill out these controls. Doing so will override the default values.
@@ -93,21 +97,7 @@ Checking Update Connection instructs Windows Mixed Reality Commander to query th
 
 If you specified an SSID, this may cause the device to become unreachable if the PC does not have access to the new address. 
 
-
-**Set credentials as new default**
-
-This stores the current values for user name and password in a text file that resides in the Windows Mixed Reality Commander’s application data folder. 
-
-```
-Note: This data is stored in clear text and should not be considered secure storage.
-```
-
-**Use default credentials**
-
-If you have persisted the device credentials, you can use the Use default credentials to instruct Windows Mixed Reality Commander in the case where they may have been overridden for a specific device.
-
 ##### Connection Shortcut for Development Machines and Side-Loading
-
 Getting the IP address from your HoloLens can be a more time-consuming process than getting it from your Windows PC (ex: ipconfig).
 
 Users of the Windows Device Portal are aware of the ability to connect to an attached HoloLens using the loopback address (http://127.0.0.1:10080) when the Windows Phone IP over USB Transport service is installed (available as part of the Windows 10 SDK) and running.
@@ -128,34 +118,53 @@ Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”.
 ```
 
 #### Common Applications
-
-The applications section displays and controls applications that are common to all selected devices. Each time a device is selected or deselected, this list is updated.
+The Common Applications section displays and controls applications that are common to all selected devices. Each time a device is selected or deselected, this list is updated.
 
 ![Common Application Controls](ReadmeImages/ApplicationManagementControls.png)
 
-The Close All button will stop all running UWP applications on the selected devices. To be more selective in closing an application, you will need to use the Manage apps option for each device.
+##### Run
+The Run button will start the selected application on the selected devices.
 
-The Remove Sideloaded Apps button will uninstall all sideloaded applications on the selected devices. To be more selective in uninstalling applications, you can use the Manage apps option and uninstall on a specific device.
+##### Close All
+The Close All button will stop all running UWP applications on the selected devices. 
 
 ![Get App Install Files Dialog](ReadmeImages/GetAppInstallFiles.png)
 
+##### Install
 The Install button will open a dialog box for selecting the appx, certificate, and dependency files required for installation.
 
 ![Get Install Folder Button](ReadmeImages/GetInstallFolderButton.png) Launches the folder picker. Allows the user to select an installation folder and automatically populate the dialog box with the correct installation files.
 
-#### Mixed Reality Capture
+##### Uninstall
+The Uninstall button will uninstall the selected application on the selected devices.
 
+##### Remove Sideloaded Apps
+The Remove Sideloaded Apps button will uninstall all sideloaded applications on the selected devices.
+
+#### Mixed Reality Capture
 The mixed reality capture section allows you to start and stop a recording on the selected devices. You can also save them to the PC running Windows Mixed Reality Commander and optionally delete them from the device after they have been saved locally.
 
 ![Mixed Reality Capture Controls](ReadmeImages/MixedRealityControls.png)
 
 Files are saved to your PC’s Pictures Library under HoloLensCommander, and each device’s files will be placed in a folder named after the device’s address or tag.
 
-The Clear Camera Roll button wipes all saved photos, videos, and mixed reality captures on each selected device. 
-
 ```
 Note: Windows PC devices do not support Mixed Reality Capture.
 ```
+##### Start
+The Start button begins recording a Mixed Reality video on the selected devices. On the device, a recording indicator will appear in the upper left.
+
+##### Stop
+The Stop button ends the Mixed Reality recording session on the selected devices. The file will be saved to the device's Camera Roll.
+
+##### Save
+The Save button downloads all files from the Camera Roll on the selected devices.
+
+##### Delete files after saving
+Checing the Delete files after saving option deletes each file in the device's Camera Roll once it has been downloaded.
+
+##### Clear Camera Roll
+The Clear Camera Roll button wipes all saved photos, videos, and mixed reality captures on each selected device. 
 
 
 #### Device control
