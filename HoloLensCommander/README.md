@@ -126,9 +126,7 @@ The **Session Management** controls allow you to create and use a library of ses
 ##### Load Session
 The ![Load Session](ReadmeImages/LoadSessionButton.png) button loads a saved device session file. Loading a file removes all devices in the current session and replaces them with the devices from the file.
 
-```
-Note: If a device's IP Address changes afer the session has been saved, the device will need to be re-registered (and the old registration unregistered).
-```
+If a device's IP Address changes afer the session has been saved, the device will need to be re-registered (and the old registration unregistered).
 
 ##### Save Session
 The ![Save Session](ReadmeImages/SaveSessionButton.png) button saves the current session to a file.
