@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel;
+using Windows.UI.Xaml;
 
 namespace HoloLensCommander
 {
@@ -29,11 +30,21 @@ namespace HoloLensCommander
             this.Name = options.Name;
             this.DeployNameToDevice = options.DeployNameToDevice;
 
+            // Set the opposite of what we want and call the toggle method.
+            this.ShowCredentials = options.ExpandCredentials ? Visibility.Collapsed : Visibility.Visible;
+            this.ShowHideCredentials();
+
             this.UserName = options.UserName;
             this.Password = options.Password;
 
+            // Set the opposite of what we want and call the toggle method.
+            this.ShowNetworkSettings = options.ExpandNetworkSettings ? Visibility.Collapsed : Visibility.Visible;
+            this.ShowHideNetworkSettings();
+
             this.Ssid = options.Ssid;
             this.NetworkKey = options.NetworkKey;
+
+            this.UseInstalledCertificate = options.UseInstalledCertificate;
 
             this.UpdateConnection = options.UpdateConnection;
 

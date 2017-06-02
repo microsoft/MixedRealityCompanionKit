@@ -10,22 +10,23 @@
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
-    MaxHeight="500" MaxWidth="650">
+    MaxHeight="500" 
+    MaxWidth="700">
     <StackPanel>
         <TextBlock 
             x:Name="appPackageLabel" 
             Text="Application package" 
             TextWrapping="NoWrap" FontSize="16"
-            Width="600"/>
+            Width="650"/>
         <Canvas
-            Width="600" Height="50">
+            Width="650" Height="50">
             <TextBox
                 x:Name="appPackage"
                 Text="{Binding Path=AppPackageFileName}"
                 ToolTipService.ToolTip="The application package file"
                 FontSize="16"
                 IsReadOnly="True"
-                Width="545"
+                Width="540"
                 Canvas.Top="5"/>
             <Button 
                 x:Name="browseForAppPackage"
@@ -33,24 +34,24 @@
                 Command="{Binding Path=BrowseForAppPackageCommand}"
                 ToolTipService.ToolTip="Browse for the application package file"
                 FontSize="16"
-                Width="30" Height="40"
-                Canvas.Left="590"/>
+                Width="50" Height="40"
+                Canvas.Left="545"/>
             <Button 
                 x:Name="browseForParentFolder"
-                Content="../"
+                Content="&#xED43;"
                 Command="{Binding BrowseForParentFolderCommand}"
-                ToolTipService.ToolTip="Browse for the installation folder"
-                FontSize="16"
-                Width="35" Height="40"
-                Canvas.Left="550"/>
+                ToolTipService.ToolTip="Browse for the application package folder"
+                FontFamily="Segoe MDL2 Assets" FontSize="16"
+                Width="50" Height="40"
+                Canvas.Left="600"/>
         </Canvas>
         <TextBlock 
             x:Name="certFileLabel" 
             Text="Application certificate" 
             TextWrapping="NoWrap" FontSize="16"
-            Width="600"/>
+            Width="650"/>
         <Canvas
-            Width="600" Height="50">
+            Width="650" Height="50">
             <TextBox
                 x:Name="certFileName"
                 Text="{Binding Path=AppCertificateFileName}"
@@ -72,9 +73,9 @@
             x:Name="dependencyFilesLabel" 
             Text="Dependency files" 
             TextWrapping="NoWrap" FontSize="16"
-            Width="600"/>
+            Width="650"/>
         <Canvas
-            Width="600" Height="115">
+            Width="650" Height="115">
             <ListBox 
                 x:Name="dependencyList" 
                 ItemsSource="{Binding Path=DependencyFileNames}"
@@ -104,11 +105,22 @@
                 Width="50" Height="40"
                 Canvas.Left="550" Canvas.Top="46"/>
         </Canvas>
-        <RadioButton Content="x86" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
-                     GroupName="Architecture" IsChecked="True" Checked="RadioButton_Checked"/>
-        <RadioButton Content="x64" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
-                     GroupName="Architecture" Checked="RadioButton_Checked"/>
-        <RadioButton Content="ARM" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
-                     GroupName="Architecture" Checked="RadioButton_Checked"/>
+        <TextBlock 
+            x:Name="dependencyArchitectureLabel" 
+            Text="Dependency architecture" 
+            TextWrapping="NoWrap" FontSize="16"
+            Width="650"/>
+        <StackPanel
+            Orientation="Horizontal">
+            <RadioButton 
+                Content="x86" 
+                GroupName="Architecture" 
+                IsChecked="True" 
+                Checked="RadioButton_Checked"/>
+            <RadioButton 
+                Content="x64" 
+                GroupName="Architecture" 
+                Checked="RadioButton_Checked"/>
+        </StackPanel>
     </StackPanel>
 </ContentDialog>

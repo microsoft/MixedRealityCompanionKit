@@ -17,7 +17,22 @@ namespace HoloLensCommander
         /// Indicates whether or not the application should reconnect to the previous
         /// device session.
         /// </summary>
-        public bool AutoReconnect;
+        public bool AutoReconnect = false;
+
+        public string DefaultNetworkKey = string.Empty;
+        public string DefaultSsid = string.Empty;
+
+        /// <summary>
+        /// Indicates whether or not the settings dialog should default to
+        /// displaying the credentials controls.
+        /// </summary>
+        public bool ExpandCredentials = false;
+
+        /// <summary>
+        /// Indicates whether or not the settings dialog should default to
+        /// displaying the network settings controls.
+        /// </summary>
+        public bool ExpandNetworkSettings = false;
 
         /// <summary>
         /// Indicates whether or not the settings were successfully updated.
@@ -36,6 +51,12 @@ namespace HoloLensCommander
         /// For example, "HeartbeatInterval must be between x and y, inclusive."
         /// </remarks>
         public string StatusMessage = string.Empty;
+
+        /// <summary>
+        /// Indicates whether or not the settings dialog should use an 
+        /// installed certificate for the connection.
+        /// </summary>
+        public bool UseInstalledCertificate = false;
 
         /// <summary>
         /// The time, in seconds, beteen heartbeat checks.
@@ -71,15 +92,23 @@ namespace HoloLensCommander
         /// Initializes a new instance of the <see cref="Settings" /> class.
         /// </summary>
         public Settings() :
-            this(DefaultHeartbeatInterval)
+            this(
+            DefaultHeartbeatInterval)
         { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings" /> class.
         /// </summary>
         /// <param name="interval">Seconds between heartbeat checks.</param>
-        public Settings(float interval) : 
-            this(false, interval)
+        public Settings(float interval) :  
+            this(
+            false,          // autoReconnect
+            interval,
+            false,          // expandCredentials
+            false,          // expandNetworkSettigns
+            false,          // useInstalledCertificate
+            string.Empty,   // defaultSsid
+            string.Empty)   // defaultNetworkKey
         { }
 
         /// <summary>
@@ -87,12 +116,25 @@ namespace HoloLensCommander
         /// </summary>
         /// <param name="autoReconnect">True to auto-reconnect, false otherwise.</param>
         /// <param name="interval">Seconds between heartbeat checks.</param>
+        /// 
         public Settings(
             bool autoReconnect,
-            float interval)
+            float interval,
+            bool expandCredentials,
+            bool expandNetworkSettings,
+            bool useInstalledCertificate,
+            string defaultSsid,
+            string defaultNetworkKey)
         {
             this.AutoReconnect = autoReconnect;
             this.HeartbeatInterval = interval;
+
+            this.ExpandCredentials = expandCredentials;
+            this.ExpandNetworkSettings = expandNetworkSettings;
+            this.UseInstalledCertificate = useInstalledCertificate;
+
+            this.DefaultSsid = defaultSsid;
+            this.DefaultNetworkKey = defaultNetworkKey;
         }
     }
 }

@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:DesignHeight="40"
-    d:DesignWidth="750">
+    d:DesignWidth="800">
 
     <UserControl.Resources>
         <Style TargetType="CheckBox">
@@ -80,7 +80,7 @@
                     Command="{Binding Path=SetTagCommand}"
                     FontFamily="Segoe MDL2 Assets" FontSize="10"
                     Width="32" Height="22" 
-                    Canvas.Left="186" Canvas.Top="24">
+                    Canvas.Left="186" Canvas.Top="22">
                     <Button.RenderTransform>
                         <CompositeTransform ScaleX="1.0" ScaleY=".8"/>
                     </Button.RenderTransform>
@@ -125,9 +125,9 @@
                     Content="&#xEB7E;" 
                     Command="{Binding Path=SetIpdCommand}"
                     Visibility="{Binding Path=IpdVisibility}"
-                    FontFamily="Segoe MDL2 Assets"  FontSize="10"
+                    FontFamily="Segoe MDL2 Assets" FontSize="10"
                     Height="22" Width="32"
-                    Canvas.Left="89" Canvas.Top="24" >
+                    Canvas.Left="89" Canvas.Top="22" >
                     <Button.RenderTransform>
                         <CompositeTransform ScaleX="1.0" ScaleY="0.8"/>
                     </Button.RenderTransform>
@@ -150,6 +150,18 @@
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                     Width="262"/>
             </ScrollViewer>
+            <Button 
+                x:Name="clearStatus"
+                Content="&#xE947;"
+                ToolTipService.ToolTip="Clear status message"
+                Command="{Binding Path=ClearStatusMessageCommand}"
+                FontFamily="Segoe MDL2 Assets" FontSize="10"
+                Height="22" Width="32"
+                Canvas.Left="750" Canvas.Top="22">
+                <Button.RenderTransform>
+                    <CompositeTransform ScaleX="0.8" ScaleY="0.8"/>
+                </Button.RenderTransform>
+            </Button>
         </Canvas>
     </Grid>
 </Page>

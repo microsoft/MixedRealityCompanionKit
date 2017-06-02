@@ -31,6 +31,44 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Command used to clear the delected devices status messages.
+        /// </summary>
+        public ICommand ClearDeviceStatusCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the clear device status command.
+        /// </summary>
+        private async Task ClearDeviceStatus()
+        {
+            YesNoMessageDialog messageDialog = new YesNoMessageDialog(
+                "Are you sure you want to clear the status for the selected devices?");
+            if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
+            {
+                return;
+            }
+
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            {
+                monitor.ClearStatusMessage();
+            }
+        }
+
+        /// <summary>
+        /// Command used to clear the application status message.
+        /// </summary>
+        public ICommand ClearStatusMessageCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the clear status message command.
+        /// </summary>
+        private void ClearStatusMessage()
+        {
+            this.StatusMessage = string.Empty;
+        }
+        
+        /// <summary>
         /// Command used to close all applications on the selected devices.
         /// </summary>
         public ICommand CloseAllAppsCommand
@@ -48,7 +86,7 @@ namespace HoloLensCommander
                 Task t = monitor.CloseAllAppsAsync();
             }
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -95,7 +133,7 @@ namespace HoloLensCommander
                 connectOptions.Address);
 
             await monitor.ConnectAsync(connectOptions);
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
 
             await this.RegisterDeviceAsync(
                 monitor, 
@@ -134,19 +172,19 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to forget all of the registered devices.
+        /// Command used to forget registered devices.
         /// </summary>
         public ICommand ForgetConnectionsCommand
         { get; private set; }
 
         /// <summary>
-        /// Implementation of the forget all connections command.
+        /// Implementation of the forget connections command.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ForgetAllConnectionsAsync()
         {
             YesNoMessageDialog messageDialog = new YesNoMessageDialog(
-                "Are you sure you want to remove all connected devices?");
+                "Are you sure you want to unregister the selected devices?");
             if (MessageDialogButtonId.Yes != await messageDialog.ShowAsync())
             {
                 return;
@@ -156,16 +194,19 @@ namespace HoloLensCommander
 
             foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
             {
-                monitor.Disconnect();
+                DeviceMonitorControlViewModel viewModel = (DeviceMonitorControlViewModel)monitor.DataContext;
+                if (viewModel.IsSelected)
+                {
+                    monitor.Disconnect();
+                    this.RegisteredDevices.Remove(monitor);
+                }
             }
 
             this.suppressSave = false;
 
-            this.ClearRegisteredDevices();
-
             await this.SaveConnectionsAsync();
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -301,6 +342,13 @@ namespace HoloLensCommander
                     connectionInfo.Name,
                     this.UserName,
                     this.Password);
+                connectOptions.UseInstalledCertificate = this.useInstalledCertificate;
+                // Since we are suppressing the UI, we do not need to provide
+                // values for ExpandCredentials or ExpandNetworkSettings.
+
+                // We assume that since we are reconnecting, the device has previously
+                // been connected to the correct network access point.
+                // Therefore, we are omitting the Ssid and NetworkKey values.
 
                 await this.ConnectToDeviceAsync(
                     connectOptions,
@@ -386,7 +434,7 @@ namespace HoloLensCommander
 
             this.UpdateCommonAppsCollection(commonAppNames);
 
-            this.StatusMessage = "";
+            this.StatusMessage = string.Empty;
         }
 
         /// <summary>
@@ -431,7 +479,7 @@ namespace HoloLensCommander
         /// </summary>
         private async Task SaveSessionFile()
         {
-            this.StatusMessage = "";
+            this.ClearStatusMessage();
 
             try
             {
@@ -552,7 +600,12 @@ namespace HoloLensCommander
         {
             Settings settings = new Settings(
                 this.autoReconnect,
-                this.heartbeatInterval);
+                this.heartbeatInterval,
+                this.expandCredentials,
+                this.expandNetworkSettings,
+                this.useInstalledCertificate,
+                this.defaultSsid,
+                this.defaultNetworkKey);
 
             SettingsDialog settingsDialog = new SettingsDialog(settings);
             ContentDialogResult dialogResult = await settingsDialog.ShowAsync();
@@ -571,7 +624,12 @@ namespace HoloLensCommander
                 }
 
                 this.autoReconnect = settings.AutoReconnect;
+                this.expandCredentials = settings.ExpandCredentials;
+                this.expandNetworkSettings = settings.ExpandNetworkSettings;
                 this.heartbeatInterval = settings.HeartbeatInterval;
+                this.useInstalledCertificate = settings.UseInstalledCertificate;
+                this.defaultSsid = settings.DefaultSsid;
+                this.defaultNetworkKey = settings.DefaultNetworkKey;
                 this.SaveApplicationSettings();
 
                 // Update the device monitors with the new heartbeat interval.
@@ -802,6 +860,9 @@ namespace HoloLensCommander
             this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
             this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
 
+            this.defaultSsid = this.appSettings.Values[DefaultSsidKey] as string;
+            this.defaultNetworkKey = this.appSettings.Values[DefaultNetworkKeyKey] as string;
+
             if (!bool.TryParse(
                 this.appSettings.Values[AutoReconnectKey] as string, 
                 out this.autoReconnect))
@@ -809,11 +870,32 @@ namespace HoloLensCommander
                 this.autoReconnect = false;
             }
 
+            if (!bool.TryParse(
+                this.appSettings.Values[ExpandCredentialsKey] as string,
+                out this.expandCredentials))
+            {
+                this.expandCredentials = false;
+            }
+
+            if (!bool.TryParse(
+                this.appSettings.Values[ExpandNetworkSettingsKey] as string,
+                out this.expandNetworkSettings))
+            {
+                this.expandNetworkSettings = false;
+            }
+
             if (!float.TryParse(
                 this.appSettings.Values[HeartbeatIntervalKey] as string,
                 out this.heartbeatInterval))
             {
                 this.heartbeatInterval = Settings.DefaultHeartbeatInterval;
+            }
+
+            if (!bool.TryParse(
+                this.appSettings.Values[UseInstalledCertificateKey] as string,
+                out this.useInstalledCertificate))
+            {
+                this.useInstalledCertificate = false;
             }
         }
 
@@ -901,8 +983,14 @@ namespace HoloLensCommander
             this.appSettings.Values[DefaultUserNameKey] = this.UserName;
             this.appSettings.Values[DefaultPasswordKey] = this.Password;
 
+            this.appSettings.Values[DefaultSsidKey] = this.defaultSsid;
+            this.appSettings.Values[DefaultNetworkKeyKey] = this.defaultNetworkKey;
+
             this.appSettings.Values[AutoReconnectKey] = this.autoReconnect.ToString();
+            this.appSettings.Values[ExpandCredentialsKey] = this.expandCredentials.ToString();
+            this.appSettings.Values[ExpandNetworkSettingsKey] = this.expandNetworkSettings.ToString();
             this.appSettings.Values[HeartbeatIntervalKey] = this.heartbeatInterval.ToString();
+            this.appSettings.Values[UseInstalledCertificateKey] = this.useInstalledCertificate.ToString();
         }
 
         /// <summary>

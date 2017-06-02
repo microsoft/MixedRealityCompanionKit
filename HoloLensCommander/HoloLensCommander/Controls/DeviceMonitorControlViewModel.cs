@@ -32,9 +32,9 @@ namespace HoloLensCommander
         /// <summary>
         /// Text labels describing the type of device.
         /// </summary>
-        private static readonly string DeviceIsHoloLensLabel = "";  // no image
-        private static readonly string DeviceIsPCLabel = "";       // E7F4 (PC monitor)
-        private static readonly string DeviceIsUnknownLabel = "";  // E897 (question mark)
+        private static readonly string DeviceIsHoloLensLabel = string.Empty;    // no image
+        private static readonly string DeviceIsPCLabel = "";                   // E7F4 (PC monitor)
+        private static readonly string DeviceIsUnknownLabel = "";              // E897 (question mark)
 
         /// <summary>
         /// Text label indicating that an initial connection has not yet been established
@@ -83,8 +83,6 @@ namespace HoloLensCommander
         {
             this.deviceMonitorControl = control;
 
-            this.RegisterCommands();
-
             this.firstContact = false;
             this.deviceMonitor = monitor;
             this.deviceMonitor.HeartbeatLost += Device_HeartbeatLost;
@@ -98,6 +96,7 @@ namespace HoloLensCommander
             this.Address = deviceMonitor.Address;
             this.IsSelected = true;
 
+            this.RegisterCommands();
         }
 
         /// <summary>
@@ -633,7 +632,7 @@ namespace HoloLensCommander
             // Did we recover from a heartbeat loss?
             if (this.StatusMessage == HeartbeatLostMessage)
             {
-                this.StatusMessage = "";
+                this.ClearStatusMessage();
             }
 
             // Handle whether or not we were previously selected
@@ -702,6 +701,12 @@ namespace HoloLensCommander
         /// </summary>
         private void RegisterCommands()
         {
+            this.ClearStatusMessageCommand = new Command(
+                (parameter) =>
+                {
+                    this.ClearStatusMessage();
+                });
+
             this.DisconnectCommand = new Command(
                 (parameter) =>
                 {
@@ -711,13 +716,31 @@ namespace HoloLensCommander
             this.SetIpdCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.SetIpdAsync();
+                    try
+                    {
+                        await this.SetIpdAsync();
+                    }
+                    catch(Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to set IPD ({0})",
+                            e.Message);
+                    }
                 });
 
             this.SetTagCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.TagDeviceAsync();
+                    try
+                    {
+                        await this.TagDeviceAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to set the device name ({0})",
+                            e.Message);
+                    }
                 });
 
             this.ShowContextMenuCommand = new Command(

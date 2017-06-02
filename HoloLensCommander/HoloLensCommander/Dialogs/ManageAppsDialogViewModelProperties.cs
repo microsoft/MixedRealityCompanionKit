@@ -120,27 +120,6 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the message to be displayed to the user.
-        /// </summary>
-        private string statusMessage  = "";
-        public string StatusMessage
-        {
-            get
-            {
-                return this.statusMessage;
-            }
-
-            private set
-            {
-                if (this.statusMessage != value)
-                {
-                    this.statusMessage = value;
-                    this.NotifyPropertyChanged("StatusMessage");
-                }
-            }
-        }
-
-        /// <summary>
         /// Updates the value of the CanRunApp property.
         /// </summary>
         private void UpdateCanRunApp()

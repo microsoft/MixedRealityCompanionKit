@@ -80,8 +80,6 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task RefreshInstalledAppsAsync()
         {
-            //this.StatusMessage = "Refreshing list of installed apps.";
-
             AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
 
             List<string> appNames = Utilities.GetAppNamesFromPackageInfo(

@@ -36,7 +36,7 @@ namespace HoloLensCommander
                 // Return the data
                 ((SettingsDialogViewModel)this.DataContext).UpdateUserData(this.appSettings);
                 this.appSettings.SettingsUpdated = true;
-                this.appSettings.StatusMessage = "";
+                this.appSettings.StatusMessage = string.Empty;
             }
             catch(Exception e)
             {

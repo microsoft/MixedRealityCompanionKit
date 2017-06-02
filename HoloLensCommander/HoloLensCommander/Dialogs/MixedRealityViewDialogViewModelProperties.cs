@@ -87,7 +87,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Gets the message to be displayed to the user.
         /// </summary>
-        private string statusMessage  = "";
+        private string statusMessage = string.Empty;
         public string StatusMessage
         {
             get
