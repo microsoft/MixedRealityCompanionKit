@@ -12,9 +12,39 @@ Windows Mixed Reality Commander requires:
 * A HoloLens or Windows PC (In developer mode with the [Windows Device Portal](https://docs.microsoft.com/en-us/windows/uwp/debug-test-perf/device-portal-hololens#set-up-device-portal-on-hololens) enabled and configured)
 
 ### Building
-Building Windows Mixed Reality Commander requires [Visual Studio 2015 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2015 Professional and Enterprise are also supported.
+Building Windows Mixed Reality Commander requires [Visual Studio 2017 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2017 Professional and Enterprise are also supported.
 * Load HoloLensCommander.sln
 * Build and deploy the solution.
+
+### New in v2.1706
+The following sections describe the changes from v2.0 to v2.1706.
+
+#### New features
+Version 2.1706 includes the following new features:
+* Can now pew-register a device that is not currently on the network
+* Optionally reconnect to previous device session at startup
+* Configurable heartbeat interval
+* Default SSID and Network Key settings
+* Can specify to use and installed device certificate when connecting
+* Support for changing the name of the device
+* Ability to save and load a specific device session
+* Ability to clear status messages
+* Clear camera roll on device
+* Remove all side-loaded applications
+
+#### Changes
+Version 2.1706 introduced the following behavior changes:
+* Unregister devices now honors device selection (previously unregistered all devices)
+* Reconnecting to a previous session defers common application updating until all devices have been registered
+* Device list is sorted (at device registration time) by device name and address
+* Updated collection of applications to remain running when all applications are closed	
+
+#### Fixes
+The following issues have been fixed:
+* The device list now properly scrolls vertically
+* Installing an application is more likely to identify any previous version
+* Reconnecting to a previous session is now faster
+* Improved application stability in error conditions
 
 
 ### Key User Interface Elements
@@ -23,50 +53,46 @@ Building Windows Mixed Reality Commander requires [Visual Studio 2015 Community 
 
 ![Device Connection Controls](ReadmeImages/ConnectionControls.png)
 
-##### Connect
+##### Register
 
-The Connect button reads the user name and password, then displays a dialog allowing you to target a specific device.
+The Regiter button displays a dialog allowing you to target a specific device.
 
 Before attempting to connect to a device, please be sure that the Windows Device Portal is enabled and paired with your desired credentials.
 
 ```
 Note: Windows PCs must be rebooted after enabling the Windows Device Portal.
 ```
+##### Set Credentials
+Before a device can be registered, the default Windows Device Portal credentials must be set. To do so, click the Set Credentials button ![Set Credentials](readmeImages/SetCredentialsButton.png).
 
-![Connection Dialog](ReadmeImages/ConnectDialog.png)
+##### Restore Previous Session
+To restore the previous session (auto saved as devices are registered and unregistered), use the Restore Previous Session button ![Restore Previous Session](readmeImages/RestorePreviousSessionButton.png).
+
+```
+Note: Reconnect to previous session will become disabled after a reconnection has been attempted, a session file has been loaded or the Register button has been used one or more times.
+```
+
+![Rgister Device Dialog](ReadmeImages/ConnectDialog.png)
 
 ###### Address
-
 Enter the IP Address in the Address field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). To determine the correct address to specify:
-
 * HoloLens: Run the Settings application, select Network & Internet > Wi-Fi.
-
 * Windows PC : Run the Settings application, select Update & Security > For Developers.
 
-###### SSID and Key
+###### Username and Password
+If you wish to use a specific set of credentials for the device, fill out these controls. Doing so will override the default values.
 
+###### SSID and Key
 If you wish to set your device onto a specific network access point, enter the SSID and network key in these boxes.
 
-###### Update Connection
+###### Use Installed Device Certificate
+If you have previously downloaded and installed the device's root certificate, you can select this option to use it. Otherwise, the certificate wil be automatically downloaded, though it will not be installed.
 
+###### Update Connection
 Checking Update Connection instructs Windows Mixed Reality Commander to query the device for the first valid (non-169.x.x.x) IP address it reports. 
 
-If you specified an SSID, this value may change, and the connection update may fail. Please retry the connection again without setting the SSID and verify the correct network configuration in the Settings application.
+If you specified an SSID, this may cause the device to become unreachable if the PC does not have access to the new address. 
 
-##### Additional Options
-
-The additional options (…) button displays a menu that provide less common connection related functionality.
-
-**Reconnect to previous session**
-
-This option allows you to reconnect to the devices that were connected in a previous session of Windows Mixed Reality Commander.
-
-For this to be successful, devices need to have been connected using a common set of credentials and the credentials must be set in the User name and Password fields before selecting this option.
-
-```
-Note: Reconnect to previous session will not appear in the additional options menu after 
-a reconnection has been attempted or the Connect button has been used one or more times.
-```
 
 **Set credentials as new default**
 
