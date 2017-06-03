@@ -53,13 +53,13 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the address of the HoloLens on which applications are being managed.
+        /// Gets the address of the device on which applications are being managed.
         /// </summary>
         public string DeviceAddress
         {
             get
             {
-                return this.holoLensMonitor.Address;
+                return this.deviceMonitor.Address;
             }
         }
 
@@ -115,27 +115,6 @@ namespace HoloLensCommander
                     this.selectedRunningApp = value;
                     this.NotifyPropertyChanged("SelectedRunningApp");
                     this.UpdateCanStopApp();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the message to be displayed to the user.
-        /// </summary>
-        private string statusMessage  = "";
-        public string StatusMessage
-        {
-            get
-            {
-                return this.statusMessage;
-            }
-
-            private set
-            {
-                if (this.statusMessage != value)
-                {
-                    this.statusMessage = value;
-                    this.NotifyPropertyChanged("StatusMessage");
                 }
             }
         }

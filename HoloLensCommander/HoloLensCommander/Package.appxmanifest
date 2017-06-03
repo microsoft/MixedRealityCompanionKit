@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="HoloLensCommander" Publisher="CN=HoloLensCommander" Version="1.1.0.0" />
+  <Identity Name="HoloLensCommander" Publisher="CN=HoloLensCommander" Version="2.1706.0.0" />
   <mp:PhoneIdentity PhoneProductId="2ddfe2f3-79a6-4751-9a5c-56c49317682a" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>HoloLens Commander</DisplayName>
+    <DisplayName>Windows Mixed Reality Commander</DisplayName>
     <PublisherDisplayName>HoloLensCommander</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -15,7 +15,7 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="HoloLensCommander.App">
-      <uap:VisualElements DisplayName="HoloLens Commander" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Application to monitor and manage multiple HoloLens devices." BackgroundColor="transparent">
+      <uap:VisualElements DisplayName="Windows Mixed Reality Commander" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Application to monitor and manage multiple Windows Mixed Reality devices." BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
           <uap:ShowNameOnTiles>
             <uap:ShowOn Tile="wide310x150Logo" />
@@ -23,15 +23,6 @@
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
-      <Extensions>
-        <uap:Extension Category="windows.fileTypeAssociation">
-          <uap:FileTypeAssociation Name="apppackagebundle">
-            <uap:SupportedFileTypes>
-              <uap:FileType>.appxbundle</uap:FileType>
-            </uap:SupportedFileTypes>
-          </uap:FileTypeAssociation>
-        </uap:Extension>
-      </Extensions>
     </Application>
   </Applications>
   <Capabilities>

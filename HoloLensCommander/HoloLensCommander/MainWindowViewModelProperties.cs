@@ -76,7 +76,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the collection of applications that are common to all registered HoloLens devices.
+        /// Gets the collection of applications that are common to all registered devices.
         /// </summary>
         public ObservableCollection<string> CommonDeviceApps
         { get; private set; }
@@ -124,7 +124,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets a value indicating whether or not one or more HoloLens devices have been registered.
+        /// Gets a value indicating whether or not one or more devices have been registered.
         /// </summary>
         private bool haveRegisteredDevices = false;
         public bool HaveRegisteredDevices
@@ -146,10 +146,10 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets or sets the password to be used when connecting to a HoloLens.
+        /// Gets or sets the password to be used when connecting to a device.
         /// </summary>
         private string password = string.Empty;
-        public string Password
+        private string Password
         {
             get
             {
@@ -161,23 +161,25 @@ namespace HoloLensCommander
                 if (this.password != value)
                 {
                     this.password = value;
-                    this.NotifyPropertyChanged("Password");
                     this.UpdateCredentialsSet();
                 }
             }
         }
 
         /// <summary>
-        /// Gets the collection of registered HoloLensMonitorControls.
+        /// Gets the collection of registered DeviceMonitorControls.
         /// </summary>
-        public ObservableCollection<HoloLensMonitorControl> RegisteredDevices
+        public ObservableCollection<DeviceMonitorControl> RegisteredDevices
+        { get; private set; }
+
+        public DeviceFilters SelectionFilter
         { get; private set; }
 
         /// <summary>
-        /// Gets or sets the user name to be used when connecting to a HoloLens.
+        /// Gets or sets the user name to be used when connecting to a device.
         /// </summary>
         private string userName = string.Empty;
-        public string UserName
+        private string UserName
         {
             get
             {
@@ -189,7 +191,6 @@ namespace HoloLensCommander
                 if (this.userName != value)
                 {
                     this.userName = value;
-                    this.NotifyPropertyChanged("UserName");
                     this.UpdateCredentialsSet();
                 }
             }

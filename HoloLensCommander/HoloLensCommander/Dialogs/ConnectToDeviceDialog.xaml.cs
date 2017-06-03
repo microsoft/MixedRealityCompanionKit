@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Controls;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The class that implements the dialog used to connect to a HoloLens.
+    /// The class that implements the dialog used to connect to a device.
     /// </summary>
     public sealed partial class ConnectToDeviceDialog : ContentDialog
     {
@@ -18,7 +18,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectToDeviceDialog" /> class.
         /// </summary>
-        /// <param name="options">Options to be used when connectiong to a HoloLens.</param>
+        /// <param name="options">Options to be used when connectiong to a device.</param>
         public ConnectToDeviceDialog(ConnectOptions options)
         {
             this.connectOptions = options;

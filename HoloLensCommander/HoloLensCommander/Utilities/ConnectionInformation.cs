@@ -8,12 +8,12 @@ namespace HoloLensCommander
     public class ConnectionInformation
     {
         /// <summary>
-        /// The address of the HoloLens.
+        /// The address of the device.
         /// </summary>
         public string Address;
 
         /// <summary>
-        /// Descriptive text, typically a name or location, assigned to the HoloLens.
+        /// Descriptive text, typically a name or location, assigned to the device.
         /// </summary>
         public string Name;
 
@@ -27,7 +27,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionInformation" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
+        /// <param name="address">The address of the device.</param>
         public ConnectionInformation(string address) : this(
             address,
             string.Empty)
@@ -37,8 +37,8 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionInformation" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="name">Descriptive text assigned to the HoloLens.</param>
+        /// <param name="address">The address of the device.</param>
+        /// <param name="name">Descriptive text assigned to the device.</param>
         public ConnectionInformation(
             string address,
             string name)

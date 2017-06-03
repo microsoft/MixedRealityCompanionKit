@@ -9,7 +9,7 @@ namespace HoloLensCommander
     public partial class SetIpdDialogViewModel
     {
         /// <summary>
-        /// Gets the address of the HoloLens being viewed.
+        /// Gets the address of the device being viewed.
         /// </summary>
         public string DeviceAddress
         { get; private set; }

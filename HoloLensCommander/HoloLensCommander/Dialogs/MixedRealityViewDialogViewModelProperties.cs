@@ -53,13 +53,13 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Gets the address of the HoloLens being viewed.
+        /// Gets the address of the device being viewed.
         /// </summary>
         public string DeviceAddress
         {
             get
             {
-                return this.holoLensMonitor.Address;
+                return this.deviceMonitor.Address;
             }
         }
 
@@ -87,7 +87,7 @@ namespace HoloLensCommander
         /// <summary>
         /// Gets the message to be displayed to the user.
         /// </summary>
-        private string statusMessage  = "";
+        private string statusMessage = string.Empty;
         public string StatusMessage
         {
             get

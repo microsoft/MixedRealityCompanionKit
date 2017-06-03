@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
+using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
 
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensMonitorControl object.
+    /// The view model for the DeviceMonitorControl object.
     /// </summary>
-    partial class HoloLensMonitorControlViewModel
+    partial class DeviceMonitorControlViewModel
     {
         /// <summary>
         /// The identifiers of the context menu commands.
@@ -29,7 +30,21 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to disconnect from the HoloLens.
+        /// Command used to clear the application status message.
+        /// </summary>
+        public ICommand ClearStatusMessageCommand
+        { get; private set; }
+
+        /// <summary>
+        /// Implementation of the clear status message command.
+        /// </summary>
+        internal void ClearStatusMessage()
+        {
+            this.StatusMessage = string.Empty;
+        }
+
+        /// <summary>
+        /// Command used to disconnect from the device.
         /// </summary>
         public ICommand DisconnectCommand
         { get; private set; }
@@ -39,9 +54,9 @@ namespace HoloLensCommander
         /// </summary>
         internal void Disconnect()
         {
-            this.holoLensMonitor.Disconnect();
+            this.deviceMonitor.Disconnect();
             this.IsConnected = false;
-            this.holoLensMonitorControl.NotifyDisconnected();
+            this.deviceMonitorControl.NotifyDisconnected();
         }
 
         /// <summary>
@@ -50,12 +65,27 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task Reboot()
         {
-            await this.holoLensMonitor.RebootAsync();
+            await this.deviceMonitor.RebootAsync();
         }
 
+        /// <summary>
+        /// Sets the underlying DeviceMonitor's heartbeat interval.
+        /// </summary>
+        /// <param name="heartbeatInterval">The time, in seconds between heartbeat checks.</param>
+        internal void SetHeartbeatInterval(float heartbeatInterval)
+        {
+            this.deviceMonitor.HeartbeatInterval = heartbeatInterval;
+        }
+
+        /// <summary>
+        /// Command used to display the set ipd dialog.
+        /// </summary>
         public ICommand SetIpdCommand
         { get; private set; }
 
+        /// <summary>
+        /// Command used to display the set tag dialog.
+        /// </summary>
         public ICommand SetTagCommand
         { get; private set; }
 
@@ -74,23 +104,29 @@ namespace HoloLensCommander
             PopupMenu contextMenu = new PopupMenu();
 
             contextMenu.Commands.Add(new UICommand(
-                "HoloLens Information",
+                "Device Information",
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.DeviceInfo));
             contextMenu.Commands.Add(new UICommand(
                 "Manage apps", 
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.ManageApps));
-            contextMenu.Commands.Add(new UICommand(
-                "Mixed Reality view",
-                ContextMenuCommandHandler,
-                MonitorContextMenuCommandIds.MixedRealityView));
+            // Virtual Machines do not support Mixed Reality, base the decision
+            // on whether or not to show the Mixed Reality view item on the platform
+            // rather than the filter.
+            if (this.deviceMonitor.Platform == DevicePortalPlatforms.HoloLens)
+            {
+                contextMenu.Commands.Add(new UICommand(
+                    "Mixed Reality view",
+                    ContextMenuCommandHandler,
+                    MonitorContextMenuCommandIds.MixedRealityView));
+            }
             contextMenu.Commands.Add(new UICommand(
                 "Show Device Portal",
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.DevicePortal));
             contextMenu.Commands.Add(new UICommand(
-                "Disconnect",
+                "Unregister",
                 ContextMenuCommandHandler,
                 MonitorContextMenuCommandIds.Disconnect));
 
@@ -111,19 +147,55 @@ namespace HoloLensCommander
             switch((MonitorContextMenuCommandIds)command.Id)
             {
                 case MonitorContextMenuCommandIds.DeviceInfo:
-                    t = this.ShowDeviceInfoAsync();
+                    try
+                    {
+                        t = this.ShowDeviceInfoAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to display device information ({0})",
+                            e.Message);
+                    }
                     break;
 
                 case MonitorContextMenuCommandIds.ManageApps:
-                    t = this.ManageAppsAsync();
+                    try
+                    {
+                        t = this.ManageAppsAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to manage applications ({0})",
+                            e.Message);
+                    }
                     break;
 
                 case MonitorContextMenuCommandIds.MixedRealityView:
-                    t = this.MixedRealityViewAsync();
+                    try
+                    {
+                        t = this.MixedRealityViewAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to display Mixed Reality view ({0})",
+                            e.Message);
+                    }
                     break;
 
                 case MonitorContextMenuCommandIds.DevicePortal:
-                    t = this.LaunchDevicePortalAsync();
+                    try
+                    {
+                        t = this.LaunchDevicePortalAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to launch the Windows Device Portal ({0})",
+                            e.Message);
+                    }
                     break;
 
                 case MonitorContextMenuCommandIds.Disconnect:

@@ -22,7 +22,7 @@
             <TextBlock 
                 x:Name="deviceAddress"
                 Text="{Binding Path=DeviceAddress}"
-                ToolTipService.ToolTip="The address of the target HoloLens"
+                ToolTipService.ToolTip="The address of the target device"
                 FontSize="16"
                 Width="388"
                 Canvas.Left="62" Canvas.Top="10"/>
@@ -37,7 +37,7 @@
                 x:Name="installedAppsList"
                 ItemsSource="{Binding InstalledApps}"
                 SelectedItem="{Binding SelectedInstalledApp, Mode=TwoWay}"
-                ToolTipService.ToolTip="Applications installed on the HoloLens"
+                ToolTipService.ToolTip="Applications installed on your device"
                 Width="395" Height="175" 
                 BorderThickness="1" 
                 ScrollViewer.HorizontalScrollMode="Auto"
@@ -65,10 +65,18 @@
                 Content="&#xE108;"
                 Command="{Binding Path=UninstallAppCommand}"
                 IsEnabled="{Binding Path=CanRunApp}"
-                ToolTipService.ToolTip="Uninstall the selected application"
+                ToolTipService.ToolTip="Uninstall the selected store or sideloaded app"
                 FontFamily="Segoe MDL2 Assets" FontSize="24" 
                 Width="50" Height="40" 
                 Canvas.Left="400" Canvas.Top="115"/>
+            <Button 
+                x:Name="UninstallAllApps"
+                Content="&#xE107;"
+                Command="{Binding UninstallAllAppsCommand}"
+                ToolTipService.ToolTip="Uninstall all sideloaded apps"
+                FontFamily="Segoe MDL2 Assets" FontSize="24" 
+                Width="50" Height="40" 
+                Canvas.Left="400" Canvas.Top="161"/>
         </Canvas>
         <Canvas
             Width="450" Height="215">
@@ -80,7 +88,7 @@
                 x:Name="runningAppsList"
                 ItemsSource="{Binding Path=RunningApps}"
                 SelectedItem="{Binding Path=SelectedRunningApp, Mode=TwoWay}"
-                ToolTipService.ToolTip="Applications running on the HoloLens"
+                ToolTipService.ToolTip="Applications running on your device"
                 Width="395" Height="175" 
                 BorderThickness="1" 
                 ScrollViewer.HorizontalScrollMode="Auto"
@@ -112,14 +120,5 @@
                 Width="50" Height="40" 
                 Canvas.Left="400" Canvas.Top="115"/>
         </Canvas>
-        <ScrollViewer
-            Width="450" Height="75">
-            <TextBlock 
-                x:Name="status"
-                Text="{Binding Path=StatusMessage}"
-                TextWrapping="WrapWholeWords"
-                FontSize="16"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        </ScrollViewer>
     </StackPanel>
 </ContentDialog>

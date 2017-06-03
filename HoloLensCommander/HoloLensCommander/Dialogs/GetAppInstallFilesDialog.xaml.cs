@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace HoloLensCommander
@@ -37,6 +38,16 @@ namespace HoloLensCommander
         {
             // Return the user's selections.
             ((GetAppInstallFilesDialogViewModel)this.DataContext).UpdateUserData(this.appInstallFiles);
+        }
+
+        /// <summary>
+        /// Handle check event for the dependencies radio buttons.
+        /// </summary>
+        /// <param name="sender">The object sending the event.</param>
+        /// <param name="e">Event arguments.</param>
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            ((GetAppInstallFilesDialogViewModel)this.DataContext).ProcessorArchitectureValue = ((RadioButton)sender).Content.ToString();
         }
     }
 }

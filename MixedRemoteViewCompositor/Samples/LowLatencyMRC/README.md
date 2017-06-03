@@ -55,8 +55,8 @@ Add some 3D objects to the world before compiling and deploying the application 
 
 For instructions on exporting the project from Unity and the recommended settings, please refer to the following links in the documentation:
 	
-- [Exporting and building a Unity Visual Studio solution](https://developer.microsoft.com/en-us/windows/holographic/exporting_and_building_a_unity_visual_studio_solution)
-- [Recommended settings for Unity](https://developer.microsoft.com/en-us/windows/holographic/recommended_settings_for_unity)
+- [Exporting and building a Unity Visual Studio solution](https://developer.microsoft.com/en-us/windows/mixed-reality/exporting_and_building_a_unity_visual_studio_solution)
+- [Recommended settings for Unity](https://developer.microsoft.com/en-us/windows/mixed-reality/recommended_settings_for_unity)
 
 In addition to the above settings, add the following capabilities to the publishing settings(Edit > Project Settings), to ensure access to the camera and network:
 

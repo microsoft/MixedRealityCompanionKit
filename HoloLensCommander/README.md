@@ -1,187 +1,267 @@
-## HoloLens Commander
+## Windows Mixed Reality Commander
 
-HoloLens Commander is a Universal Windows application that demonstrates using the Windows Device Portal in a classroom environment. It enables observation and management of one or more HoloLens devices. This application is built upon the open source [Windows Device Portal Wrapper](https://github.com/Microsoft/WindowsDevicePortalWrapper) project and is used by the Microsoft HoloLens team in the Holographic Academy.
+Windows Mixed Reality Commander is a Universal Windows application that demonstrates using the Windows Device Portal in a classroom environment. It enables observation and management of one or more HoloLens and/or Windows PC devices. Along with managing a classroom, Windows Mixed Reality Commander can be used to effectively control devices in a demo environment.
+
+This application is built upon the open source [Windows Device Portal Wrapper](https://github.com/Microsoft/WindowsDevicePortalWrapper) project and is used by the Microsoft HoloLens team in the Holographic Academy.
+
+![Windows Mixed Reality Commander](ReadmeImages/MainWindow.png)
 
 ### Requirements
-HoloLens Commander requires:
-- A Windows 10 Device
- - Currently tested on x86 and x64.
-- A HoloLens
- - In developer mode
- - [Windows Device Portal](https://developer.microsoft.com/en-us/windows/holographic/using_the_windows_device_portal#setting_up_hololens_to_use_windows_device_portal) enabled and configured
+Windows Mixed Reality Commander requires:
+* A Windows 10 Device (Currently tested on x86 and x64)
+* A HoloLens or Windows PC (In developer mode with the [Windows Device Portal](https://docs.microsoft.com/en-us/windows/uwp/debug-test-perf/device-portal-hololens#set-up-device-portal-on-hololens) enabled and configured)
 
 ### Building
-Building HoloLens Commander requires [Visual Studio 2015 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2015 Professional and Enterise are also supported.
-- Load HoloLensCommander.sln
-- Build and deploy the solution.
+Building Windows Mixed Reality Commander requires [Visual Studio 2015 Community and the Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads). Visual Studio 2015 Professional and Enterprise are also supported.
+* Load HoloLensCommander.sln
+* Build and deploy the solution.
 
-### How to use HoloLens Commander
-Note: The first time you start HoloLens Commander on your PC, you will need to enter credentials or set the default credentials for Windows Device Portal connections to the HoloLens.
 
-#### Connecting to a HoloLens
-![Connection controls](ReadmeImages/ConnectionControls.png)
+### Key User Interface Elements
+
+#### Device Connection
+
+![Device Connection Controls](ReadmeImages/ConnectionControls.png)
 
 ##### Connect
 
-Connects to the specified HoloLens.
+The Connect button reads the user name and password, then displays a dialog allowing you to target a specific device.
 
-![Connect to HoloLens dialog](ReadmeImages/ConnectDialog.png)
+Before attempting to connect to a device, please be sure that the Windows Device Portal is enabled and paired with your desired credentials.
 
-NOTE: Leaving the address field blank, in the Connect to HoloLens dialog, will use a USB connection between the PC and the HoloLens. This is for **development** and **side-load** scenarios only. By default Windows Store applications are not allowed to make loopback connections. At development time, Visual Studio enables loopback for your application automatically for debugging purposes. When side-loaded, you will need to explicity allow loopback connections as described in the [documentation](http://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx).
+```
+Note: Windows PCs must be rebooted after enabling the Windows Device Portal.
+```
 
-When the Update Connection option is checked, HoloLens Commander will attempt to change the IP address used for communicating with the HoloLens after the inital connection is established. This is most useful when connecting via USB.
+![Connection Dialog](ReadmeImages/ConnectDialog.png)
 
-##### Additional connection commands
+###### Address
 
-The additonal connection commands button (...) displays a context sensitive menu providing the following options:
+Enter the IP Address in the Address field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). To determine the correct address to specify:
 
-- Reconnect to previous session
+* HoloLens: Run the Settings application, select Network & Internet > Wi-Fi.
 
-The reconnect command enables you to reconnect to the currently available HoloLens devices that were managed in the previous HoloLens Commander session. This command is available only if a HoloLens connection has yet to be established and the User name and Password fields are populated.
+* Windows PC : Run the Settings application, select Update & Security > For Developers.
 
-- Set credentials as default
+###### SSID and Key
 
-Stores the current values of the User name and Password fields as the default credentials to be used when connecting to a HoloLens.
+If you wish to set your device onto a specific network access point, enter the SSID and network key in these boxes.
 
-- Use default credentials
+###### Update Connection
 
-Replaces the current values of the User name and Password fields with the stored default credentials.
+Checking Update Connection instructs Windows Mixed Reality Commander to query the device for the first valid (non-169.x.x.x) IP address it reports. 
 
-##### User name
+If you specified an SSID, this value may change, and the connection update may fail. Please retry the connection again without setting the SSID and verify the correct network configuration in the Settings application.
 
-The user name used to connect to the HoloLens.
+##### Additional Options
 
-##### Password
+The additional options (…) button displays a menu that provide less common connection related functionality.
 
-The password used to connect to the HoloLens.
+**Reconnect to previous session**
 
-#### Applications
-The applications section allows for managing the applications running on multiple HoloLens devices simultaniously.
+This option allows you to reconnect to the devices that were connected in a previous session of Windows Mixed Reality Commander.
 
-![Application management controls](ReadmeImages/ApplicationManagementControls.png)
+For this to be successful, devices need to have been connected using a common set of credentials and the credentials must be set in the User name and Password fields before selecting this option.
 
-##### Common applications list
-This list shows the applications that are installed on all of the connected HoloLens devices.
+```
+Note: Reconnect to previous session will not appear in the additional options menu after 
+a reconnection has been attempted or the Connect button has been used one or more times.
+```
 
-##### Refresh
-Queries the connected HoloLens devices and updates the lost of common applications.
+**Set credentials as new default**
 
-##### Run
-Runs the application selected in the common applications list on the selected HoloLens devices.
+This stores the current values for user name and password in a text file that resides in the Windows Mixed Reality Commander’s application data folder. 
 
-##### Close All
-Stops all applications that are currently running on the selected HoloLens devices.
+```
+Note: This data is stored in clear text and should not be considered secure storage.
+```
 
-##### Uninstall
-Uninstalls the application selected in the common applications list from each of the selected HoloLens devices.
+**Use default credentials**
+
+If you have persisted the device credentials, you can use the Use default credentials to instruct Windows Mixed Reality Commander in the case where they may have been overridden for a specific device.
+
+##### Connection Shortcut for Development Machines and Side-Loading
+
+Getting the IP address from your HoloLens can be a more time-consuming process than getting it from your Windows PC (ex: ipconfig).
+
+Users of the Windows Device Portal are aware of the ability to connect to an attached HoloLens using the loopback address (http://127.0.0.1:10080) when the Windows Phone IP over USB Transport service is installed (available as part of the Windows 10 SDK) and running.
+
+To take advantage of this feature, Windows Mixed Reality Commander will default to this loopback address if the Connect dialog’s Address field is left blank.
+
+```
+Note: By default, UWP applications are subject to network isolation. For development and 
+side-load scenarios, your PC can be configured to allow an application to establish
+loopback connections.
+
+Building Windows Mixed Reality Commander using Visual Studio, on the PC on which it will
+be run, will automatically configure to allow loopback connections.
+
+For side-load scenarios, please refer to the documentation describing network isolation
+troubleshooting (https://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx). The application container name, at the time of this writing, for 
+Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”.
+```
+
+#### Common Applications
+
+The applications section displays and controls applications that are common to all selected devices. Each time a device is selected or deselected, this list is updated.
+
+![Common Application Controls](ReadmeImages/ApplicationManagementControls.png)
+
+The Close All button will stop all running UWP applications on the selected devices. To be more selective in closing an application, you will need to use the Manage apps option for each device.
+
+The Remove Sideloaded Apps button will uninstall all sideloaded applications on the selected devices. To be more selective in uninstalling applications, you can use the Manage apps option and uninstall on a specific device.
+
+![Get App Install Files Dialog](ReadmeImages/GetAppInstallFiles.png)
+
+The Install button will open a dialog box for selecting the appx, certificate, and dependency files required for installation.
+
+![Get Install Folder Button](ReadmeImages/GetInstallFolderButton.png) Launches the folder picker. Allows the user to select an installation folder and automatically populate the dialog box with the correct installation files.
 
 #### Mixed Reality Capture
-The Mixed Reality Capture control section allows for recording and saving of Mixed Reality Capture videos from the selected HoloLens devices.
 
-![Mixed Reality Capture controls](ReadmeImages/MixedRealityControls.png)
+The mixed reality capture section allows you to start and stop a recording on the selected devices. You can also save them to the PC running Windows Mixed Reality Commander and optionally delete them from the device after they have been saved locally.
 
-##### Start
+![Mixed Reality Capture Controls](ReadmeImages/MixedRealityControls.png)
 
-Starts a Mixed Reality Capture video recording. Users will notice a recording indicator in the upper left of the Holographic Frame and will experience a reduced application frame rate until the recording is stopped.
+Files are saved to your PC’s Pictures Library under HoloLensCommander, and each device’s files will be placed in a folder named after the device’s address or tag.
 
-##### Stop
+The Clear Camera Roll button wipes all saved photos, videos, and mixed reality captures on each selected device. 
 
-Stops the Mixed Reality Capture video recording.
+```
+Note: Windows PC devices do not support Mixed Reality Capture.
+```
 
-##### Save
 
-Files created by the Start and Stop controls, along with any other Mixed Reality Capture files created on the HoloLens (via the Windows Device Portal or a Cortana voice command) will be downloaded to the Pictures Library on the PC. Files will be saved to HoloLensCommander\<HoloLens address|name>.
+#### Device control
 
-##### Delete files after saving
+The device control section allows you to bulk reboot or shutdown the selected devices. It also allows you to instruct Windows Mixed Reality Commander to forget all connected devices.
 
-Checking this option will result in downloaded Mixed Reality Capture files to be deleted from the HoloLens.
+![Device Control Controls](ReadmeImages/DeviceControlControls.png)
 
-#### Device controls
-![Device control controls](ReadmeImages/DeviceControlControls.png)
+![Reboot Button](ReadmeImages/RebootButton.png) Reboots the devices selected in the device list. Devices will show “Lost connected to the device” while rebooting and will reactivate upon completion.
 
-The device control controls provide options (from left to right) to:
+![Shutdown Button](ReadmeImages/ShutdownButton.png) Shuts down the selected devices. Devices remain in the list and will report “Lost connection to the device”.
 
-- Reboot the selected HoloLens devices
-- Shut down the selected HoloLens devices
-- Forget all connected HoloLens devices
+![Forget Devices Button](ReadmeImages/ForgetDevicesButton.png) Forgets all connected devices by removing them from the devices list and updating the application state.
 
-Note: All HoloLens devices will be disconnected and will not be restorable via the Reconnect button.
 
-#### Registered HoloLens list
-The right side of the HoloLens Commander interface contains the list of connected HoloLens devices along with Select all and Select none buttons. Each entry provides the ability to select/deselect the specific HoloLens, view summary information related to the HoloLens (battery level, etc.) as well as access to functionality specific to a single HoloLens.
+#### Device List
+
+When you connect a device (HoloLens or Windows PC) an entry will be created in the device list (right side of the UI).
+
+![Device List](ReadmeImages/DeviceList.png)
+
+In the previous image, the upper device is a HoloLens and the lower is a Windows PC. You can differentiate, at a glance by the items highlighted in the red and blue boxes.
+
+The HoloLens supports viewing and setting the interpupillary distance (IPD) and provides controls to view and update the value (red box).
+
+Windows PC devices do not support the IPD controls and have a small icon (blue box) between the additional options button (…) and the address.
+
+
+#### Managing Applications on an Individual Device
+
+There are times when you need to manage applications on a single device. To accomplish this, select the Manage apps from the menu displayed when clicking the additional commands button (…).
+
+![Manage Applications Dialog](ReadmeImages/ManageAppsDialog.png)
+
+![Run Application Button](ReadmeImages/RunAppButton.png) Runs the app selected in the Installed Applications list.
+
+![Uninstall Application Button](ReadmeImages/UninstallAppButton.png) Uninstalls the app selected in the Installed Applications list.
+
+![Uninstall All Applications Button](ReadmeImages/UninstallAllAppsButton.png) Uninstalls all sideloaded apps listed in the Installed Applications list.
+
+![Stop Application Button](ReadmeImages/CloseAppButton.png) Stops the app selected in the Running Applications list.
+
+![Stop All Applications Button](ReadmeImages/CloseAllAppsButton.png) Stops all apps listed in the Running Applications list.
+
+
+### Using Windows Mixed Reality Commander
+
+Windows Mixed Reality Commander can manage one or more HoloLens and/or Windows PC devices in a classroom or demo setting. The following sections describe common usage patterns for both settings.
+
+#### Customizing for the User
+
+HoloLens is designed for all users. The headband is adjustable to fit different sized heads and the optics are designed to allow for different distances between the eyes (interpupillary distance).
+
+To promote user comfort and hologram clarity, it is recommended to configure the IPD to match the user. There are two convenient methods for setting this value.
+
+##### Directly Setting the IPD
 
 ![HoloLens Summary View](ReadmeImages/HoloLensSummaryView.png)
 
-From right to left, the HoloLens Summary view contains:
+If the user is already aware of his/her IPD, you can use the edit button to the right of the IPD to set it directly.
 
-- Selection check box
+![IPD Setting Dialog](ReadmeImages/IpdDialog.png)
 
-Unchecking this box will prevent this HoloLens from responding to commands other than those shown by clicking the Additional commands button, EXCEPT for the clear devices button in the Device Control controls.
+Clicking Ok will send the desired value to the HoloLens. Within a few seconds, the UI will be updated to reflect the new setting.
 
-- Additional commands button
+##### Running Calibration on the HoloLens
 
-- HoloLens address and name
+If the user is not aware of his/her IPD, you can run the HoloLens Calibration application to have the value measured and set.
 
-The address is the IP address of the HoloLens on your WiFi network. The name is a HoloLens Commander only value that is not transmitted to the HoloLens.
+There are two ways this can be performed using Windows Mixed Reality Commander:
 
-- Set Tag button
+1.	Start and run Calibration on ALL selected devices.
+2.	Run Calibration on a specific device using the Manage apps option for that device.
 
-The button to the right of where the device name is displayed allows you to set the name mentioned previously.
+While Calibration is running you will see “Waiting for Calibration to exit” in the device control. When complete, the control will display “Calibration has exited”.
 
-![Tag HoloLens Dialog](ReadmeImages/TagDialog.png)
+#### Controlling Application Lifetime
 
-- Battery information and IPD (InterPupilary Distance)
+Controlling application lifetime is a common requirement when running a classroom or demo.  Students and users often are required to spend a finite time in any given experience before moving on to the next task.
 
-Battery information includes the remaining capacity and an indication as to whether or not the HoloLens is plugged in.
+Windows Mixed Reality Commander enables application lifetime control by using the Common Applications controls or the Manage Apps option for a specific device.
 
-- Set IPD button
+When an application is running on a device, you will see "Waiting for Application to exit" on the right side of the appropriate device list entry.
 
-The button to the right of where the IPD is displayed allows you to set update the IPD value stored on the HoloLens.
+![Waiting for Application Exit](ReadmeImages/WaitingForAppExit.png)
 
-![Set IPD Dialog](ReadmeImages/IpdDialog.png)
+When the application has been closed, by the user or via Windows Mixed Reality Commander, the message will change to "Application has exited".
 
-- Status message
+#### Assisting Users
 
-##### Additonal commands
-##### HoloLens Information
-![HoloLens Information Dialog](ReadmeImages/HoloLensInfoDialog.png)
+Mixed Reality is a new experience for many users, and they may, at times, get confused with where to look and/or how to interact with your application. To help you help your users, Windows Mixed Reality Commander provides Mixed Reality view.
 
-The HoloLens Information dialog displays information about the operating system installed on a HoloLens.
+```
+Note: Mixed Reality View is only available for HoloLens devices.
+```
 
-Also displayed is the name of the HoloLens. This name is not the name from the Tag HoloLens dialog and is not updated by the HoloLens Commander.
+Mixed Reality view allows you to see what your user is seeing, enabling you to guide and assist him/her.
 
-##### Manage apps
-![Manage Apps Dialog](ReadmeImages/ManageAppsDialog.png)
+```
+Note: Windows Mixed Reality Commander supports Mixed Reality view for one HoloLens device at a time.
+```
 
-The Manage apps dialog displays the installed and running applications on the HoloLens. From top to bottom, the available controls are:
+To turn on Mixed Reality view, click the additional options (…) button for the device and select Mixed Reality view.
 
- - Refresh the list of installed applications
- - Run the selected application
- - Refresh the list of running applications
- - Close the selected application
- - Close all running applications
+![Mixed Reality View](ReadmeImages/MixedRealityViewDialog.png)
 
-##### Mixed Reality view
-![Mixed Reality View Dialog](ReadmeImages/MixedRealityViewDialog.png)
+This will cause the user to see a red "REC" indication, in the upper left of the Holographic Frame. It is recommended that you tell your user to expect to see this. The indicator will turn off when you close the Mixed Reality view dialog.
 
-The Mixed Reality view dialog allows the HoloLens Commander user to see what the HoloLens is seeing. This feed takes a few seconds to initialize and then runs at 15 frames per second (to limit the impact on the wireless network). 
+#### Keeping Track of Devices
 
-Note: On the HoloLens, the user will see a recording indicator in the upper left of the Holographic Frame and the frame rate will be reduced. Although a recording indicator is displayed, no recording is being created.
+If you are managing multiple devices, it can become challenging to keep track of who is using which device. To make that easier, Windows Mixed Reality Commander allows you to tag the device with a custom name that is not communicated to the device. 
 
-##### Show Device Portal
+For example, you may have 30 HoloLens devices in your classroom and notice that a student named Mick is having trouble with his assignment. Rather than having to memorize that IP address 10.254.130.7 is Mick's device, you can select the edit button next to the Name field to display the Tag Device dialog.
 
-The Show Device Portal command launches the default web browser and connects to the Windows Device Portal on the HoloLens.
+![Edit Device Tag](ReadmeImages/EditDeviceTag.png)
 
-##### Disconnect
+This will allow you to set a descriptive name for the device.
 
-Disconnects from the HoloLens and removes it from the list.
+![Tag Device Dialog](ReadmeImages/TagDialog.png)
+
 
 ### Project dependencies
-HoloLens Commander depends on:
+Windows Mixed Reality Commander depends on:
 - Windows Device Portal
-The HoloLens must be in developer mode with the Windows Device Portal enabled and paired.
+The device must be in developer mode with the Windows Device Portal enabled and paired.
 - Windows Device Portal Wrapper
  - https://github.com/Microsoft/WindowsDevicePortalWrapper
 
+
 ### Contributing
-We welcome and encourage contributions to the HoloLens Commander project. We look forward to evolving this tool with the community!
+We welcome and encourage contributions to the Windows Mixed Reality Commander project. We look forward to evolving this tool with the community!
+
+
+
+

@@ -13,40 +13,55 @@ namespace HoloLensCommander
     /// <summary>
     /// Application install status event handler.
     /// </summary>
-    /// <param name="sender">The HoloLensMonitor sending the event.</param>
+    /// <param name="sender">The DeviceMonitor sending the event.</param>
     /// <param name="args">Install status information.</param>
-    public delegate void HoloLensMonitorAppInstallStatusEventHandler(
-        HoloLensMonitor sender, 
+    public delegate void DeviceMonitorAppInstallStatusEventHandler(
+        DeviceMonitor sender, 
         ApplicationInstallStatusEventArgs args);
+
+    /// <summary>
+    /// Delegate defining the method signature for handling the HeartbeatLost event.
+    /// </summary>
+    /// <param name="sender">The object sending the event.</param>
+    public delegate void HeartbeatLostEventHandler(
+        DeviceMonitor sender);
+
+    /// <summary>
+    /// Delegate defining the method signature for handling the HeartbeatLost event.
+    /// </summary>
+    /// <param name="sender">The object sending the event.</param>
+    public delegate void HeartbeatReceivedEventHandler(
+        DeviceMonitor sender);
 
     /// <summary>
     /// Class that provides the relevant functionality of the Windows Device Portal.
     /// </summary>
-    public partial class HoloLensMonitor : IDisposable
+    public partial class DeviceMonitor : IDisposable
     {
         /// <summary>
-        /// Delegate defining the method signature for handling the HeartbeatLost event.
+        /// The default address used when connecting to a device. This address assumes
+        /// a USB connection.
         /// </summary>
-        /// <param name="sender">The object sending the event.</param>
-        public delegate void HeartbeatLostEventHandler(HoloLensMonitor sender);
-
-        /// <summary>
-        /// Delegate defining the method signature for handling the HeartbeatLost event.
-        /// </summary>
-        /// <param name="sender">The object sending the event.</param>
-        public delegate void HeartbeatReceivedEventHandler(HoloLensMonitor sender);
-
-        /// <summary>
-        /// The min, max and default heartbeat interval values, in seconds.
-        /// </summary>
-        public static readonly float MinimumHeartbeatIntervalSeconds = 1.0f;
-        public static readonly float MaximumHeartbeatIntervalSeconds = 60.0f;
-        public static readonly float DefaultHeartbeatIntervalSeconds = 5.0f;
+        public static readonly string DefaultConnectionAddress = "localhost:10080";
+        public static readonly string DefaultConnectionAddressAsIp = "127.0.0.1:10080";
         
         /// <summary>
-        /// The executable name of the HoloLens shell application.
+        /// The file names of applications that will remain running after the user
+        /// requests all apps to be closed.
         /// </summary>
-        private static readonly string ShellApp = "HoloShellApp.exe";
+        private static readonly string[] DoNotCloseApps = new string[] 
+            {
+                "HoloShellApp.exe",
+                "MixedRealityPortal.exe"
+            };
+
+        /// <summary>
+        /// Options used to connect to this device.
+        /// </summary>
+        /// <remarks>
+        /// This data is displayed until an initial connection is made to the device.
+        /// </remarks>
+        private ConnectOptions connectOptions;
 
         /// <summary>
         /// Dispatcher that allows heartbeats to be marshaled appropriately.
@@ -54,29 +69,34 @@ namespace HoloLensCommander
         private CoreDispatcher dispatcher;
 
         /// <summary>
-        /// Instance of the IDevicePortalConnection used to connect to this HoloLens.
+        /// Instance of the IDevicePortalConnection used to connect to this device.
         /// </summary>
         private IDevicePortalConnection devicePortalConnection;
 
         /// <summary>
-        /// Instance of the DevicePortal used to communicate with this HoloLens.
+        /// Instance of the DevicePortal used to communicate with this device.
         /// </summary>
         private DevicePortal devicePortal;
 
         /// <summary>
-        /// The current heartbeat interval, in seconds.
+        /// Has a successful heartbeat been received from the device?
         /// </summary>
-        private float heartbeatInterval;
+        private bool firstContact;
 
         /// <summary>
-        /// The timer used to initiate a heartbeat check.
+        /// The timer managing the heartbeat.
         /// </summary>
         private Timer heartbeatTimer;
 
         /// <summary>
+        /// False if the heartbeat timer is currently suspended.
+        /// </summary>
+        public bool heartbeatTimerRunning;
+
+        /// <summary>
         /// Event that is sent when the application install status has changed.
         /// </summary>
-        public event HoloLensMonitorAppInstallStatusEventHandler AppInstallStatus;
+        public event DeviceMonitorAppInstallStatusEventHandler AppInstallStatus;
         
         /// <summary>
         /// Event that is sent when the heartbeat has been lost.
@@ -89,17 +109,22 @@ namespace HoloLensCommander
         public event HeartbeatReceivedEventHandler HeartbeatReceived;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoloLensMonitor" /> class.
+        /// Initializes a new instance of the <see cref="DeviceMonitor" /> class.
         /// </summary>
-        public HoloLensMonitor(CoreDispatcher dispatcher) : this(dispatcher, DefaultHeartbeatIntervalSeconds)
+        public DeviceMonitor(CoreDispatcher dispatcher) : 
+            this(
+            dispatcher, 
+            Settings.DefaultHeartbeatInterval)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoloLensMonitor" /> class.
+        /// Initializes a new instance of the <see cref="DeviceMonitor" /> class.
         /// </summary>
         /// <param name="heartbeatInterval">The time, in seconds, between heartbeat checks.</param>
-        public HoloLensMonitor(CoreDispatcher dispatcher, float heartbeatInterval)
+        public DeviceMonitor(
+            CoreDispatcher dispatcher, 
+            float heartbeatInterval)
         {
             if (dispatcher == null)
             {
@@ -107,17 +132,11 @@ namespace HoloLensCommander
             }
 
             this.dispatcher = dispatcher;
+            this.HeartbeatInterval = heartbeatInterval;
 
-            if ((heartbeatInterval < MinimumHeartbeatIntervalSeconds) ||
-                (heartbeatInterval > MaximumHeartbeatIntervalSeconds))
-            {
-                throw new ArgumentException("The heartbeatInterval value is out of bounds");
-            }
-
-            this.heartbeatInterval = heartbeatInterval;
+            this.firstContact = false;
 
             // Create the timer, but do not start it.
-            // It will be started when ConnectAsync is called.
             this.heartbeatTimer = new Timer(
                 HeartbeatCallback,
                 null,
@@ -129,9 +148,8 @@ namespace HoloLensCommander
         /// Finalizer so that we are assured we clean up all encapsulated resources.
         /// </summary>
         /// <remarks>Call Dispose on this object to avoid running the finalizer.</remarks>
-        ~HoloLensMonitor()
+        ~DeviceMonitor()
         {
-            Debug.WriteLine("[~HoloLensMonitor]");
             this.Dispose();
         }
 
@@ -140,7 +158,6 @@ namespace HoloLensCommander
         /// </summary>
         public void Dispose()
         {
-            Debug.WriteLine("[HoloLensMonitor.Dispose]");
             if (this.devicePortal != null)
             {
                 this.devicePortal.AppInstallStatus += DevicePortal_AppInstallStatus;
@@ -149,6 +166,7 @@ namespace HoloLensCommander
 
             // Release the resources we manage.
             this.heartbeatTimer?.Dispose();
+            this.heartbeatTimerRunning = false;
             this.heartbeatTimer = null;
 
             // Suppress finalization to avoid attempting to clean up twice.
@@ -163,28 +181,31 @@ namespace HoloLensCommander
         {
             try
             {
-                // Suspend the timer.
-                heartbeatTimer.Change(
-                    Timeout.Infinite, 
-                    Timeout.Infinite);
+                this.SuspendHeartbeat();
 
                 try
                 {
-                    await UpdateBatteryStatus();
-                    await UpdateIpd();
-                    await UpdateThermalStage();
+                    // Have connected to the device the first time?
+                    if (!this.firstContact)
+                    {
+                        // Try to connect now.
+                        await this.EstablishConnection();
+                    }
 
-                    NotifyHeartbeatReceived();
+                    this.MachineName = await this.GetMachineNameAsync();
+                    await this.UpdateBatteryStatus();
+                    await this.UpdateIpd();
+                    await this.UpdateThermalStage();
+
+                    this.NotifyHeartbeatReceived();
                 }
                 catch
                 {
-                    NotifyHeartbeatLost();
+                    this.NotifyHeartbeatLost();
                 }
-                      
+
                 // Resume the timer.
-                heartbeatTimer.Change(
-                    (Int32)(heartbeatInterval * 1000.0f), 
-                    Timeout.Infinite);
+                this.StartHeartbeat();
             }
             catch
             {
@@ -210,7 +231,7 @@ namespace HoloLensCommander
         {
             if (!this.dispatcher.HasThreadAccess)
             {
-                // Assigning the return value of RunAsync a Task object to avoid 
+                // Assigning the return value of RunAsync to a Task object to avoid 
                 // warning 4014 (call is not awaited).
                 Task t = this.dispatcher.RunAsync(
                     CoreDispatcherPriority.Normal,
@@ -246,6 +267,25 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Starts/restarts the heartbeat timer by setting a non-infinite interval
+        /// </summary>
+        internal void StartHeartbeat()
+        {
+            this.UpdateHeartbeat(
+                (int)(this.HeartbeatInterval * 1000.0f));
+            this.heartbeatTimerRunning = true;
+        }
+
+        /// <summary>
+        /// Suspends the heartbeat timer by setting an infinite interval
+        /// </summary>
+        internal void SuspendHeartbeat()
+        {
+            this.UpdateHeartbeat(Timeout.Infinite);
+            this.heartbeatTimerRunning = false;
+        }
+
+        /// <summary>
         /// Updates the cached battery data.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
@@ -255,12 +295,30 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Update the heartbeat timer's due time.
+        /// </summary>
+        /// <param name="dueTimeMs">Milliseconds for the timer to wait until the next tick.</param>
+        private void UpdateHeartbeat(int dueTimeMs)
+        {
+            this.heartbeatTimer.Change(
+                dueTimeMs,
+                Timeout.Infinite);
+        }
+
+        /// <summary>
         /// Updates the cached interpupilary distance data.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task UpdateIpd()
         {
-            this.Ipd = await this.devicePortal.GetInterPupilaryDistanceAsync();
+            try
+            {
+                this.Ipd = await this.devicePortal.GetInterPupilaryDistanceAsync();
+            }
+            catch(NotSupportedException)
+            {
+                // Not supported on this type of device.
+            }
         }
 
         /// <summary>
@@ -269,7 +327,14 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task UpdateThermalStage()
         {
-            this.ThermalStage = await this.devicePortal.GetThermalStageAsync();
+            try
+            {
+                this.ThermalStage = await this.devicePortal.GetThermalStageAsync();
+            }
+            catch(NotSupportedException)
+            {
+                // Not supported on this type of device.
+            }
         }
     }
 }

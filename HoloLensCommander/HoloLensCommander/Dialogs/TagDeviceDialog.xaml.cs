@@ -6,28 +6,28 @@ using Windows.UI.Xaml.Controls;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The class that implements the dialog used to tag the connected HoloLens with information useful to the user
+    /// The class that implements the dialog used to tag the connected device with information useful to the user
     /// (ex: descriptive text, color, etc).
     /// </summary>
-    public sealed partial class TagHoloLensDialog : ContentDialog
+    public sealed partial class TagDeviceDialog : ContentDialog
     {
         /// <summary>
-        /// Object containing the information that is to be associated with a HoloLens.
+        /// Object containing the information that is to be associated with a device.
         /// </summary>
         private TagInformation tagInformation;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagHoloLensDialog" /> class.
+        /// Initializes a new instance of the <see cref="TagDeviceDialog" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="tagInfo">TagInformation object containing information associated with the HoloLens.</param>
-        public TagHoloLensDialog(
+        /// <param name="address">The address of device.</param>
+        /// <param name="tagInfo">TagInformation object containing information associated with the device.</param>
+        public TagDeviceDialog(
             string address,
             TagInformation tagInfo)
         {
             this.tagInformation = tagInfo;
 
-            this.DataContext = new TagHoloLensDialogViewModel(
+            this.DataContext = new TagDeviceDialogViewModel(
                 address,
                 tagInfo);
             this.InitializeComponent();
@@ -43,7 +43,7 @@ namespace HoloLensCommander
             ContentDialogButtonClickEventArgs args)
         {
             // Return the user's selections.
-            ((TagHoloLensDialogViewModel)this.DataContext).UpdateUserData(this.tagInformation);
+            ((TagDeviceDialogViewModel)this.DataContext).UpdateUserData(this.tagInformation);
         }
     }
 }

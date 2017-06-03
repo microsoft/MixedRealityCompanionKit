@@ -6,9 +6,9 @@ using System.ComponentModel;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the TagHoloLensDialog object.
+    /// The view model for the TagDeviceDialog object.
     /// </summary>
-    partial class TagHoloLensDialogViewModel : INotifyPropertyChanged
+    partial class TagDeviceDialogViewModel : INotifyPropertyChanged
     {
         /// <summary>
         /// Event that is notified when a property value has changed.
@@ -16,11 +16,11 @@ namespace HoloLensCommander
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagHoloLensDialogViewModel" /> class.
+        /// Initializes a new instance of the <see cref="TagDeviceDialogViewModel" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="tagInfo">TagInformation object containing information associated with the HoloLens.</param>
-        public TagHoloLensDialogViewModel(
+        /// <param name="address">The address of the device.</param>
+        /// <param name="tagInfo">TagInformation object containing information associated with the device.</param>
+        public TagDeviceDialogViewModel(
             string address,
             TagInformation tagInfo)
         {
@@ -42,10 +42,11 @@ namespace HoloLensCommander
         /// <summary>
         /// Update's the user selected data.
         /// </summary>
-        /// <param name="tagInfo">The information which is to be associated with the HoloLens.</param>
+        /// <param name="tagInfo">The information which is to be associated with the device.</param>
         internal void UpdateUserData(TagInformation tagInfo)
         {
             tagInfo.Name = this.Name;
+            tagInfo.DeployNameToDevice = this.DeployNameToDevice;
         }
     }
 }

@@ -7,94 +7,78 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <Style TargetType="RadioButton">
+            <Setter Property="MinWidth" Value="0"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="310"/>
             <ColumnDefinition Width="600*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <!-- Column 0 controls -->
-        <ScrollViewer Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+        <Canvas Grid.Column="0" Grid.Row="0"
+                x:Name="appControls"
+                Background="White"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Button 
+                x:Name="connectToDevice"
+                Content="Register"
+                ToolTipService.ToolTip="Register your device"
+                Command="{Binding Path=ConnectToDeviceCommand}" 
+                IsEnabled="{Binding Path=CredentialsSet}"
+                Width="75" Height="40"
+                Canvas.Top="5" Canvas.Left="10"/>
+            <Button 
+                Content="&#xE192;" 
+                ToolTipService.ToolTip="Set the connection credentials"
+                Command="{Binding Path=ShowSetCredentialsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5" Canvas.Left="90"/>
+            <Button 
+                Content="&#xE179;" 
+                ToolTipService.ToolTip="Reconnect to previous device session"
+                Command="{Binding Path=ReconnectPreviousSessionCommand}"
+                IsEnabled="{Binding Path=CanReconnectDevices}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5" Canvas.Left="145"/>
+            <Button 
+                Content="&#xE115;" 
+                ToolTipService.ToolTip="Adjust application settings"
+                Command="{Binding Path=ShowSettingsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40" 
+                Canvas.Top="5" Canvas.Left="240"/>
+        </Canvas>
+        <ScrollViewer Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <StackPanel
-                Background="White">
-                <Canvas
-                    x:Name="connectionControls"
-                    HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="175" Margin="10,0,0,0">
-                    <Border 
-                        BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="165"/>
-                    <Button
-                        x:Name="connectToDevice"
-                        Content="Connect" 
-                        ToolTipService.ToolTip="Connect to the attached HoloLens"
-                        Command="{Binding ConnectToDeviceCommand}" 
-                        IsEnabled="{Binding CredentialsSet}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top" 
-                        Width="171" Height="50" FontSize="20"
-                        Canvas.Left="10" Canvas.Top="10"/>
-                    <Button
-                        x:Name="showConnectContextMenu"
-                        Content="..."
-                        Command="{Binding Path=ShowConnectContextMenuCommand}" 
-                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                        ToolTipService.ToolTip="Display additional connection options."
-                        IsEnabled="{Binding CredentialsSet}"
-                        HorizontalAlignment="Left" VerticalAlignment="Top" 
-                        Width="75" Height="50" 
-                        FontSize="20" 
-                        Canvas.Left="195" Canvas.Top="10"/>
-                    <TextBlock 
-                        x:Name="userNameLabel" 
-                        Text="User name" 
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="18" TextWrapping="NoWrap"
-                        Canvas.Left="10" Canvas.Top="73"/>
-                    <TextBox
-                        x:Name="userNameBox"
-                        ToolTipService.ToolTip="Windows Device Portal user name"
-                        Text="{Binding Path=UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        TextWrapping="NoWrap"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                        FontSize="18"  
-                        Canvas.Left="127" Canvas.Top="73" Width="143"/>
-                    <TextBlock
-                        x:Name="passwordLabel" 
-                        Text="Password" 
-                        TextWrapping="NoWrap"
-                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="18"  
-                        Canvas.Left="21" Canvas.Top="120"/>
-                    <PasswordBox
-                        x:Name="passwordBox" 
-                        ToolTipService.ToolTip="Windows Device Portal password"
-                        Password="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                        Width="143" FontSize="18" 
-                        PasswordRevealMode="Peek" 
-                        Canvas.Left="127" Canvas.Top="117"/>
-                </Canvas>
-
+                Background="White" Height="Auto">
                 <Canvas
                     x:Name="applicationControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="235" Margin="10,0,0,0">
+                    Width="280" Height="315" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="225"/>
+                        Width="280" Height="305"/>
                     <TextBlock 
                         x:Name="commonAppsLabel" 
-                        Text="Applications" 
+                        Text="Common Applications" 
                         TextWrapping="NoWrap" FontSize="20"
                         Canvas.Left="10" Canvas.Top="10"/>
                     <ComboBox 
                         x:Name="commonAppsList"
-                        ToolTipService.ToolTip="Applications installed on all connected HoloLens devices"
+                        ToolTipService.ToolTip="Applications installed on all connected devices"
                         ItemsSource="{Binding Path=CommonDeviceApps}"
                         SelectedItem="{Binding Path=SelectedApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
@@ -104,7 +88,7 @@
                         x:Name="refreshApps" 
                         Content="&#xE777;" 
                         ToolTipService.ToolTip="Refresh the list of applications"
-                        Command="{Binding RefreshCommonAppsCommand}"
+                        Command="{Binding Path=RefreshCommonAppsCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20"
@@ -113,8 +97,8 @@
                     <Button 
                         x:Name="launchApp" 
                         Content="Run"
-                        ToolTipService.ToolTip="Run the selected app on the selected HoloLens devices"
-                        Command="{Binding LaunchAppCommand}"
+                        ToolTipService.ToolTip="Run the selected app on the selected devices"
+                        Command="{Binding Path=LaunchAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
@@ -123,9 +107,9 @@
                     <Button
                         x:Name="closeAllApps"
                         Content="Close All"
-                        ToolTipService.ToolTip="Stops all applications on the selected HoloLens devices"
-                        Command="{Binding CloseAllAppsCommand}" 
-                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        ToolTipService.ToolTip="Stops all applications on the selected devices"
+                        Command="{Binding Path=CloseAllAppsCommand}" 
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
                         FontSize="20"
                         Width="122" Height="50" 
@@ -133,8 +117,8 @@
                     <Button 
                         x:Name="installApp" 
                         Content="Install"
-                        ToolTipService.ToolTip="Install an app on the selected HoloLens devices"
-                        Command="{Binding InstallAppCommand}"
+                        ToolTipService.ToolTip="Install an app on the selected devices"
+                        Command="{Binding Path=InstallAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
@@ -143,23 +127,31 @@
                     <Button 
                         x:Name="uninstallApp" 
                         Content="Uninstall"
-                        ToolTipService.ToolTip="Uninstalls the selected app on the selected HoloLens devices"
-                        Command="{Binding UninstallAppCommand}"
+                        ToolTipService.ToolTip="Uninstalls the selected store or sideloaded app on the selected devices"
+                        Command="{Binding Path=UninstallAppCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Top" 
                         FontSize="20"
                         Width="122" Height="50"
                         Canvas.Left="148" Canvas.Top="163"/>
+                    <Button 
+                        x:Name="uninstallAllApps" 
+                        Content="Remove Sideloaded Apps"
+                        ToolTipService.ToolTip="Uninstalls all sideloaded apps on the selected devices"
+                        Command="{Binding Path=UninstallAllAppsCommand}"
+                        IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Top" 
+                        FontSize="20"
+                        Width="260" Height="50"
+                        Canvas.Left="10" Canvas.Top="235"/>
                 </Canvas>
-
                 <Canvas
                     x:Name="mixedRealityControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="160" Margin="10,0,0,0">
+                    Width="280" Height="210" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="150">
-                    </Border>
+                        Width="280" Height="200"/>
                     <TextBlock 
                         x:Name="mixedRealityLabel"
                         Text="Mixed Reality Capture"
@@ -168,44 +160,54 @@
                     <Button 
                         x:Name="startMrcRecording"
                         Content="Start"
-                        ToolTipService.ToolTip="StMixed Reality recording on selected HoloLens devices"
-                        Command="{Binding StartMixedRealityRecordingCommand}" 
+                        ToolTipService.ToolTip="Start Mixed Reality recording on the selected devices"
+                        Command="{Binding Path=StartMixedRealityRecordingCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
                         Width="75" Height="50" Canvas.Left="10" Canvas.Top="42"/>
                     <Button 
                         x:Name="stopMrcRecording"
                         Content="Stop"
-                        ToolTipService.ToolTip="Stop Mixed Reality recording on selected HoloLens devices"
-                        Command="{Binding StopMixedRealityRecordingCommand}" 
+                        ToolTipService.ToolTip="Stop Mixed Reality recording on the selected devices"
+                        Command="{Binding Path=StopMixedRealityRecordingCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
                         Width="75" Height="50" Canvas.Left="103" Canvas.Top="42"/>
                     <Button 
                         x:Name="saveMrcFiles"
                         Content="Save"
-                        ToolTipService.ToolTip="Save Mixed Reality files from the selected HoloLens devices"
-                        Command="{Binding SaveMixedRealityFilesCommand}" 
+                        ToolTipService.ToolTip="Save Mixed Reality files from the selected devices"
+                        Command="{Binding Path=SaveMixedRealityFilesCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="20"
                         Width="75" Height="50" Canvas.Left="195" Canvas.Top="42"/>
                     <CheckBox 
                         x:Name="deleteOnSave" 
                         Content="Delete files after saving" 
-                        ToolTipService.ToolTip="Delete Mixed Reality files from the selected HoloLens devices after they have been saved?"
+                        ToolTipService.ToolTip="Delete Mixed Reality files from the selected devices after they have been saved?"
                         IsChecked="{Binding Path=DeleteMixedRealityFilesAfterSave, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         FontSize="18"
-                        Canvas.Left="10" Canvas.Top="108"/>
+                        Canvas.Left="10" Canvas.Top="102"/>
+                    <Button
+                            x:Name="wipeCameraRoll"
+                            Content="Clear Camera Roll"
+                            ToolTipService.ToolTip="Remove camera roll files"
+                            Command="{Binding Path=WipeCameraRollCommand}" 
+                            IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" 
+                            Width="260" Height="50" 
+                            FontSize="20" Canvas.Left="10" Canvas.Top="139"/>
                 </Canvas>
 
                 <Canvas
                     x:Name="deviceControls"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Width="280" Height="115" Margin="10,0,0,0">
+                    Width="280" Height="170" Margin="10,0,0,0">
                     <Border 
                         BorderBrush="Black" BorderThickness="1"
-                        Width="280" Height="105"/>
+                        Width="280" Height="165">
+                    </Border>
                     <TextBlock 
                         x:Name="deviceControl"
                         Text="Device Control"
@@ -214,7 +216,7 @@
                     <Button
                         x:Name="rebootDevices"
                         Content="&#xEA6A;"
-                        ToolTipService.ToolTip="Reboot the selected HoloLens devices"
+                        ToolTipService.ToolTip="Reboot the selected devices"
                         Command="{Binding Path=RebootDevicesCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Left" VerticalAlignment="Top" 
@@ -224,63 +226,121 @@
                     <Button
                         x:Name="shutdownDevices"
                         Content="&#xE7BA;"
-                        ToolTipService.ToolTip="Shutdown the selected HoloLens devices"
+                        ToolTipService.ToolTip="Shutdown the selected devices"
                         Command="{Binding Path=ShutdownDevicesCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20"
                         Width="70" Height="50" 
-                        Canvas.Left="107" Canvas.Top="42"/>
+                        Canvas.Left="105" Canvas.Top="42"/>
                     <Button
                         x:Name="forgetDevices"
                         Content="&#xE74D;"
-                        ToolTipService.ToolTip="Remove all connected HoloLens devices"
-                        Command="{Binding ForgetConnectionsCommand}" 
+                        ToolTipService.ToolTip="Unregister the selected devices"
+                        Command="{Binding Path=ForgetConnectionsCommand}" 
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
                         HorizontalAlignment="Right" VerticalAlignment="Top" 
                         Width="70" Height="50" 
                         FontFamily="Segoe MDL2 Assets" FontSize="20" 
                         Canvas.Left="200" Canvas.Top="42"/>
+                    <Button
+                        Content="&#xEA99;"
+                        ToolTipService.ToolTip="Clear status messages for the selected devices"
+                        Command="{Binding ClearDeviceStatusCommand}" 
+                        IsEnabled="{Binding HaveRegisteredDevices}"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" 
+                        Width="70" Height="50" 
+                        FontFamily="Segoe MDL2 Assets" FontSize="20" 
+                        Canvas.Left="10" Canvas.Top="105"/>
                 </Canvas>
             </StackPanel>
         </ScrollViewer>
+
         <!-- Column 1 controls -->
-        <StackPanel Grid.Column="1" Grid.Row="0"
-            Background="White">
-            <Canvas
+        <Canvas Grid.Column="1" Grid.Row="0"
                 HorizontalAlignment="Stretch"
-                Height="40">
-                <Button 
+                Background="White">
+            <Button 
+                Content="&#xED43;" 
+                ToolTipService.ToolTip="Open a saved device session file"
+                Command="{Binding Path=LoadSessionFileCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5"/>
+            <Button 
+                Content="&#xE28F;" 
+                ToolTipService.ToolTip="Save device session file"
+                Command="{Binding Path=SaveSessionFileCommand}"
+                IsEnabled="{Binding Path=HaveRegisteredDevices}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5" Canvas.Left="55"/>
+            <Button 
                     x:Name="selectAll"
                     Content="Select All"
-                    ToolTipService.ToolTip="Selects all connected HoloLens devices"
+                    ToolTipService.ToolTip="Selects all connected devices"
                     Command="{Binding Path=SelectAllDevicesCommand}" 
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Width="110" Height="30" 
-                    Canvas.Left="5" Canvas.Top="5"/>
-                <Button 
+                    Width="110" Height="40" 
+                    Canvas.Left="130" Canvas.Top="5"/>
+            <Button 
                     x:Name="selectNone"
                     Content="Select None"
-                    ToolTipService.ToolTip="Deselects all connected HoloLens devices"
+                    ToolTipService.ToolTip="Deselects all connected devices"
                     Command="{Binding Path=DeselectAllDevicesCommand}" 
                     IsEnabled="{Binding Path=HaveRegisteredDevices}"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Width="110" Height="30" 
-                    Canvas.Left="120" Canvas.Top="5"/>
-            </Canvas>
+                    Width="110" Height="40" 
+                    Canvas.Left="245" Canvas.Top="5"/>
+            <RadioButton 
+                    x:Name="allDevices" 
+                    GroupName="deviceTypeFilters"
+                    Content="All"
+                    Command="{Binding Path=UseAllDevicesFilterCommand}"
+                    IsChecked="True"
+                    HorizontalAlignment="Left" Width="60" 
+                    Canvas.Left="365" Canvas.Top="8"/>
+            <RadioButton 
+                    x:Name="holoLensDevices" 
+                    GroupName="deviceTypeFilters"
+                    Content="HoloLens" 
+                    Command="{Binding Path=UseHoloLensFilterCommand}"
+                    HorizontalAlignment="Left" Width="110" 
+                    Canvas.Left="435" Canvas.Top="8"/>
+            <RadioButton 
+                    x:Name="desktopDevices" 
+                    GroupName="deviceTypeFilters"
+                    Content="Windows PC" 
+                    Command="{Binding Path=UseDesktopFilterCommand}"
+                    HorizontalAlignment="Left" Width="130" 
+                    Canvas.Left="545" Canvas.Top="8"/>
+        </Canvas>
+        <ScrollViewer Grid.Column="1" Grid.Row="1"
+            VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
             <ListBox 
                 x:Name="listBox" 
                 ItemsSource="{Binding Path=RegisteredDevices}"
                 Padding="0"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Auto"/>
-        </StackPanel>
-
-        <TextBlock Grid.Row="1" Grid.Column="1"
-            x:Name="textBlock" 
-            Text="{Binding Path=StatusMessage}"
-            TextWrapping="NoWrap" FontSize="16"
-            HorizontalAlignment="Stretch" VerticalAlignment="Top"
-            Margin="10,10,10,10"  />
+        </ScrollViewer>
+        <Canvas Grid.Row="2" Grid.Column="1"
+                Background="White">
+            <Button
+                x:Name="clearStatus"
+                Content="&#xEA99;"
+                ToolTipService.ToolTip="Clear status message"
+                Command="{Binding Path=ClearStatusMessageCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="40" Height="30"
+                Canvas.Left="0" Canvas.Top="5">
+            </Button>
+            <TextBlock
+                x:Name="statusMessage" 
+                Text="{Binding Path=StatusMessage}"
+                TextWrapping="NoWrap" FontSize="16"
+                HorizontalAlignment="Stretch"
+                Canvas.Left="45" Canvas.Top="7"/>
+        </Canvas>
     </Grid>
 </Page>

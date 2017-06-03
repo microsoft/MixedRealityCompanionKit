@@ -19,17 +19,18 @@ namespace HoloLensCommander
         /// <summary>
         /// Values used to store and retrieve settings data.
         /// </summary>
-        private static readonly string DefaultUserNameKey = "defaultUserName";
+        private static readonly string AutoReconnectKey = "autoReconnect";
+        private static readonly string DefaultNetworkKeyKey = "defaultNetworkKey";
         private static readonly string DefaultPasswordKey = "defaultPassword";
+        private static readonly string DefaultSsidKey = "defaultSsid";
+        private static readonly string DefaultUserNameKey = "defaultUserName";
+        private static readonly string ExpandCredentialsKey = "expandCredentials";
+        private static readonly string ExpandNetworkSettingsKey = "expandNetworkSettings";
+        private static readonly string HeartbeatIntervalKey = "heartbeatInterval";
+        private static readonly string UseInstalledCertificateKey = "useInstalledCertificate";
 
         /// <summary>
-        /// The default address used when connecting to a HoloLens. This address assumes
-        /// a USB connection.
-        /// </summary>
-        private static readonly string DefaultConnectionAddress = "localhost:10080";
-
-        /// <summary>
-        /// Name of the folder which will contain mixed reality files from the registered HoloLens devices.
+        /// Name of the folder which will contain mixed reality files from the registered devices.
         /// </summary>
         private static readonly string MixedRealityFilesFolderName = "HoloLensCommander";
 
@@ -44,14 +45,54 @@ namespace HoloLensCommander
         private ApplicationDataContainer appSettings;
 
         /// <summary>
-        /// Value indicating whether or not we have attempted to reconnect to previous HoloLens devices.
+        /// Should we automatically reconnect to the previous device session?
+        /// </summary>
+        private bool autoReconnect;
+
+        /// <summary>
+        /// The network key for the default SSID.
+        /// </summary>
+        private string defaultNetworkKey;
+
+        /// <summary>
+        /// The default network access point SSID to use when connecting devices.
+        /// </summary>
+        private string defaultSsid;
+
+        /// <summary>
+        /// Should the connect dialog auto-expand the credentials controls?
+        /// </summary>
+        private bool expandCredentials;
+
+        /// <summary>
+        /// Should the connect dialog auto-expand the network settings controls?
+        /// </summary>
+        private bool expandNetworkSettings;
+
+        /// <summary>
+        /// The time, in seconds, between a device's heartbeat check.
+        /// </summary>
+        private float heartbeatInterval;
+
+        /// <summary>
+        /// Value indicating whether or not we have attempted to reconnect to previous devices.
         /// </summary>
         private bool reconnected;
+
+        /// <summary>
+        /// Value indicating whether or not the common apps list should be refreshed.
+        /// </summary>
+        private bool suppressRefreshCommonApps;
 
         /// <summary>
         /// Value indicating whether or not connection changes are to be saved.
         /// </summary>
         private bool suppressSave;
+
+        /// <summary>
+        /// Should connections be established using an installed device certificate?
+        /// </summary>
+        private bool useInstalledCertificate;
 
         /// <summary>
         /// The local application folder.
@@ -71,20 +112,28 @@ namespace HoloLensCommander
             this.dispatcher = coreDispatcher;
 
             this.reconnected = false;
+            this.suppressRefreshCommonApps = false;
             this.suppressSave = false;
 
             this.CommonDeviceApps = new ObservableCollection<string>();
-            this.RegisteredDevices = new ObservableCollection<HoloLensMonitorControl>();
+            this.RegisteredDevices = new ObservableCollection<DeviceMonitorControl>();
 
             this.localFolder = ApplicationData.Current.LocalFolder;
 
+            this.SelectionFilter = DeviceFilters.All;
+
             // Fetch stored settings.
             this.appSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            this.UseDefaultCredentials();
+            this.LoadApplicationSettings();
             
+            if (this.autoReconnect)
+            {
+                this.ReconnectPreviousSession();    
+            }
             this.UpdateCanReconnect();
 
             this.RegisterCommands();
+
         }
 
         /// <summary>
@@ -93,7 +142,6 @@ namespace HoloLensCommander
         /// <remarks>Call Dispose on this object to avoid running the finalizer.</remarks>
         ~MainWindowViewModel()
         {
-            Debug.WriteLine("[~MainWindowViewModel]");
             this.Dispose();
         }
 
@@ -106,36 +154,20 @@ namespace HoloLensCommander
         /// </remarks>
         public void Dispose()
         {
-            Debug.WriteLine("[MainWindowViewModel.Dispose]");
-
-            this.ClearRegisteredDevices();
+            foreach (DeviceMonitorControl monitor in this.GetCopyOfRegisteredDevices())
+            {
+                monitor.Dispose();
+            }
             GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Bulk removes HoloLens devices from application management.
+        /// Get a copy of the registered device controls collection.
         /// </summary>
-        private void ClearRegisteredDevices()
+        /// <returns>List of DeviceMonitorControl objects.</returns>
+        private List<DeviceMonitorControl> GetCopyOfRegisteredDevices()
         {
-            List<HoloLensMonitorControl> monitors = GetCopyOfRegisteredDevices();
-
-            foreach (HoloLensMonitorControl monitor in monitors)
-            {
-                monitor.Dispose();
-            }
-
-            monitors.Clear();
-
-            this.RegisteredDevices.Clear();
-        }
-
-        /// <summary>
-        /// Get a copy of the registerd HoloLens devices.
-        /// </summary>
-        /// <returns>List of HoloLensMonitorControl objects.</returns>
-        private List<HoloLensMonitorControl> GetCopyOfRegisteredDevices()
-        {
-            List<HoloLensMonitorControl> registeredDevicesCopy = new List<HoloLensMonitorControl>();
+            List<DeviceMonitorControl> registeredDevicesCopy = new List<DeviceMonitorControl>();
 
             registeredDevicesCopy.AddRange(this.RegisteredDevices);
 
@@ -158,25 +190,59 @@ namespace HoloLensCommander
         /// </summary>
         private void RegisterCommands()
         {
+            this.ClearDeviceStatusCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.ClearDeviceStatus();
+                });
+
+            this.ClearStatusMessageCommand = new Command(
+                (parameter) =>
+                {
+                    this.ClearStatusMessage();
+                });
+
             this.CloseAllAppsCommand = new Command(
                 (parameter) =>
                 {
-                    this.CloseAllApps();
+                    try
+                    {
+                        this.CloseAllApps();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to close all apps on one or more devices ({0})",
+                            e.Message);
+                    }
                 });
 
             this.ConnectToDeviceCommand = new Command(
                 async (parameter) =>
                 {
-
                     ConnectOptions connectOptions = new ConnectOptions(
                         string.Empty,
+                        string.Empty,
                         this.UserName,
-                        this.Password,
-                        true);
+                        this.Password);
+                    // TODO: use the full featured constructor
+                    connectOptions.ExpandCredentials = this.expandCredentials;
+                    connectOptions.ExpandNetworkSettings = this.expandNetworkSettings;
+                    connectOptions.UseInstalledCertificate = this.useInstalledCertificate;
+                    connectOptions.Ssid = this.defaultSsid;
+                    connectOptions.NetworkKey = this.defaultNetworkKey;
 
-                    await this.ConnectToDeviceAsync(
-                        connectOptions,
-                        string.Empty);
+                    try
+                    {
+                        await this.ConnectToDeviceAsync(
+                            connectOptions);
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to connect to the device ({0})",
+                            e.Message);
+                    }
                 });
 
             this.DeselectAllDevicesCommand = new Command(
@@ -188,43 +254,119 @@ namespace HoloLensCommander
             this.ForgetConnectionsCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.ForgetAllConnectionsAsync();
+                    try
+                    {
+                        await this.ForgetAllConnectionsAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to unregister devices {0}",
+                            e.Message);
+                    }
                 });
 
             this.InstallAppCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.InstallAppAsync();
+                    try
+                    {
+                        await this.InstallAppAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to install the app on one or more devices ({0})",
+                            e.Message);
+                    }
                 });
 
             this.LaunchAppCommand = new Command(
                 (parameter) =>
                 {
+                    try
+                    {
+                        this.LaunchApp();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to launch the app on one or more devices ({0})",
+                            e.Message);
+                    }
                     this.LaunchApp();
                 });
 
-            this.RefreshCommonAppsCommand = new Command(
+            this.LoadSessionFileCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.RefreshCommonAppsAsync();
+                    await this.LoadSessionFileAsync(); 
                 });
 
             this.RebootDevicesCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.RebootDevicesAsync();
+                    try
+                    {
+                        await this.RebootDevicesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to reboot one or more devices ({0})",
+                            e.Message);
+                    }
                 });
 
-            this.ReconnectToDevicesCommand= new Command(
+            this.ReconnectPreviousSessionCommand = new Command(
+                (parameter) =>
+                {
+                    try
+                    {
+                        this.ReconnectPreviousSession();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to reconnect previous device session ({0})",
+                            e.Message);
+                    }
+                });
+
+            this.RefreshCommonAppsCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.ReconnectToDevicesAsync();
+                    try
+                    {
+                        await this.RefreshCommonAppsAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to refresh common applications ({0})",
+                            e.Message);
+                    }
                 });
 
             this.SaveMixedRealityFilesCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.SaveMixedRealityFiles();
+                    try
+                    {
+                        await this.SaveMixedRealityFiles();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to save Mixed Reality files from one or more devices ({0})",
+                            e.Message);
+                    }
+                });
+
+            this.SaveSessionFileCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.SaveSessionFile();
                 });
 
             this.SelectAllDevicesCommand = new Command(
@@ -233,39 +375,129 @@ namespace HoloLensCommander
                     this.SelectAllDevices();
                 });
 
-            this.ShowConnectContextMenuCommand = new Command(
+            this.ShowSetCredentialsCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.ShowConnectContextMenuAsync(parameter);
+                    await this.ShowSetCredentials();
+                });
+
+            this.ShowSettingsCommand = new Command(
+                async (paraneter) =>
+                {
+                    await this.ShowSettings();
                 });
 
             this.ShutdownDevicesCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.ShutdownDevicesAsync();
+                    try
+                    {
+                        await this.ShutdownDevicesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to shutdown one or more devices ({0})",
+                            e.Message);
+                    }
                 });
 
             this.StartMixedRealityRecordingCommand = new Command(
-                async (parameter) =>
+                (parameter) =>
                 {
-                    await this.StartMixedRealityRecording();
+                    try
+                    {
+                        this.StartMixedRealityRecording();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to start Mixed Reality recording on one or more devices ({0})",
+                            e.Message);
+                    }
                 });
 
             this.StopMixedRealityRecordingCommand = new Command(
-                async (parameter) =>
+                (parameter) =>
                 {
-                    await this.StopMixedRealityRecording();
+                    try
+                    {
+                        this.StopMixedRealityRecording();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to stop Mixed Reality recording on one or more devices ({0})",
+                            e.Message);
+                    }
                 });
 
             this.UninstallAppCommand = new Command(
-                async (parameter) =>
+                (parameter) =>
                 {
-                    await this.UninstallApp();
+                    try
+                    {
+                        this.UninstallApp();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to uninstall an app on one or more devices ({0})",
+                            e.Message);
+                    }
+                });
+
+            this.UninstallAllAppsCommand = new Command(
+                (parameter) =>
+                {
+                    try
+                    {
+                        this.UninstallAllApps();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to uninstall all apps on one or more devices ({0})",
+                            e.Message);
+                    }
+                });
+
+            this.UseAllDevicesFilterCommand = new Command(
+                (parameter) =>
+                {
+                    this.SelectionFilter = DeviceFilters.All;
+                });
+
+            this.UseDesktopFilterCommand = new Command(
+                (parameter) =>
+                {
+                    this.SelectionFilter = DeviceFilters.Desktop;
+                });
+
+            this.UseHoloLensFilterCommand = new Command(
+                (parameter) =>
+                {
+                    this.SelectionFilter = DeviceFilters.HoloLens;
+                });
+
+            this.WipeCameraRollCommand = new Command(
+                (parameter) =>
+                {
+                    try
+                    {
+                        this.WipeCameraRoll();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to clear the camera roll on one or more devices ({0})",
+                            e.Message);
+                    }
                 });
         }
 
         /// <summary>
-        /// Updates the UI with the list of applications installed on all registered HoloLens devices.
+        /// Updates the UI with the list of applications installed on all registered devices.
         /// </summary>
         /// <param name="appNames">List of application names.</param>
         private void UpdateCommonAppsCollection(List<string> appNames)

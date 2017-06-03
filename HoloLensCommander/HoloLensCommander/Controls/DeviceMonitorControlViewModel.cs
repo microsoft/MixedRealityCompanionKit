@@ -19,15 +19,28 @@ using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensMonitorControl object.
+    /// The view model for the DeviceMonitorControl object.
     /// </summary>
-    partial class HoloLensMonitorControlViewModel : INotifyPropertyChanged, IDisposable
+    partial class DeviceMonitorControlViewModel : INotifyPropertyChanged, IDisposable
     {
         /// <summary>
         /// Text labels describing the power connection state.
         /// </summary>
-        private static readonly string OnAcPowerLabel = "";     // EBB2 (battery with plug)
-        private static readonly string OnBatteryLabel = "";     // EBA7 (battery)
+        private static readonly string OnAcPowerLabel = "";        // EBB2 (battery with plug)
+        private static readonly string OnBatteryLabel = "";        // EBA7 (battery)
+
+        /// <summary>
+        /// Text labels describing the type of device.
+        /// </summary>
+        private static readonly string DeviceIsHoloLensLabel = string.Empty;    // no image
+        private static readonly string DeviceIsPCLabel = "";                   // E7F4 (PC monitor)
+        private static readonly string DeviceIsUnknownLabel = "";              // E897 (question mark)
+
+        /// <summary>
+        /// Text label indicating that an initial connection has not yet been established
+        /// with the device.
+        /// </summary>
+        private static readonly string ConnectionNotEstablishedLabel = "";  // E171 (exclamation point)
 
         /// <summary>
         /// Message to display when the heartbeat is lost.
@@ -35,14 +48,19 @@ namespace HoloLensCommander
         private static readonly string HeartbeatLostMessage = "Lost Connection to Device";
 
         /// <summary>
-        /// The HoloLensMonitor object responsible for communication with this HoloLens.
+        /// The DeviceMonitor object responsible for communication with this device.
         /// </summary>
-        private HoloLensMonitor holoLensMonitor;
+        private DeviceMonitor deviceMonitor;
 
         /// <summary>
-        /// The HoloLensMonitorControl object to which this view model is registered.
+        /// The DeviceMonitorControl object to which this view model is registered.
         /// </summary>
-        private HoloLensMonitorControl holoLensMonitorControl;
+        private DeviceMonitorControl deviceMonitorControl;
+
+        /// <summary>
+        /// Have we received the first heartbeat.
+        /// </summary>
+        private bool firstContact;
 
         /// <summary>
         /// Indicates whether or not the monitor control was selected prior to loss of heartbeat.
@@ -55,41 +73,43 @@ namespace HoloLensCommander
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoloLensMonitorControlViewModel" /> class.
+        /// Initializes a new instance of the <see cref="DeviceMonitorControlViewModel" /> class.
         /// </summary>
-        /// <param name="control">The HoloLensMonitorControl to which this object is registered.</param>
-        /// <param name="monitor">The HoloLensMonitor responsible for communication with this HoloLens.</param>
-        public HoloLensMonitorControlViewModel(
-            HoloLensMonitorControl control,
-            HoloLensMonitor monitor)
+        /// <param name="control">The DeviceMonitorControl to which this object is registered.</param>
+        /// <param name="monitor">The DeviceMonitor responsible for communication with this device.</param>
+        public DeviceMonitorControlViewModel(
+            DeviceMonitorControl control,
+            DeviceMonitor monitor)
         {
-            this.holoLensMonitorControl = control;
+            this.deviceMonitorControl = control;
 
-            this.RegisterCommands();
+            this.firstContact = false;
+            this.deviceMonitor = monitor;
+            this.deviceMonitor.HeartbeatLost += Device_HeartbeatLost;
+            this.deviceMonitor.HeartbeatReceived += Device_HeartbeatReceived;
+            this.deviceMonitor.AppInstallStatus += DeviceMonitor_AppInstallStatus;
 
-            this.holoLensMonitor = monitor;
-            this.holoLensMonitor.HeartbeatLost += HoloLens_HeartbeatLost;
-            this.holoLensMonitor.HeartbeatReceived += HoloLens_HeartbeatReceived;
-            this.holoLensMonitor.AppInstallStatus += HoloLensMonitor_AppInstallStatus;
+            this.SetFilter();
 
             this.IsConnected = true;
 
-            this.Address = holoLensMonitor.Address;
+            this.Address = deviceMonitor.Address;
             this.IsSelected = true;
+
+            this.RegisterCommands();
         }
 
         /// <summary>
         /// Finalizer so that we are assured we clean up all encapsulated resources.
         /// </summary>
         /// <remarks>Call Dispose on this object to avoid running the finalizer.</remarks>
-        HoloLensMonitorControlViewModel()
+        DeviceMonitorControlViewModel()
         {
-            Debug.WriteLine("[~HoloLensMonitorControlViewModel]");
             this.Dispose();
         }
 
         /// <summary>
-        /// Cleans up objects managed by the HoloLensMonitorControlViewModel.
+        /// Cleans up objects managed by the DeviceMonitorControlViewModel.
         /// </summary>
         /// <remarks>
         /// Failure to call this method will result in the object not being collected until
@@ -97,19 +117,18 @@ namespace HoloLensCommander
         /// </remarks>
         public void Dispose()
         {
-            Debug.WriteLine("[HoloLensMonitorControlViewModel.Dispose]");
-            this.holoLensMonitor.HeartbeatLost -= HoloLens_HeartbeatLost;
-            this.holoLensMonitor.HeartbeatReceived -= HoloLens_HeartbeatReceived;
-            this.holoLensMonitor.AppInstallStatus -= HoloLensMonitor_AppInstallStatus;
-            this.holoLensMonitor.Dispose();
-            this.holoLensMonitor = null;
+            this.deviceMonitor.HeartbeatLost -= Device_HeartbeatLost;
+            this.deviceMonitor.HeartbeatReceived -= Device_HeartbeatReceived;
+            this.deviceMonitor.AppInstallStatus -= DeviceMonitor_AppInstallStatus;
+            this.deviceMonitor.Dispose();
+            this.deviceMonitor = null;
 
             GC.SuppressFinalize(this);
         }
 
         
         /// <summary>
-        /// Closes all applications running on this HoloLens.
+        /// Closes all applications running on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task CloseAllAppsAsync()
@@ -118,7 +137,7 @@ namespace HoloLensCommander
             {
                 try
                 {
-                    await this.holoLensMonitor.TerminateAllApplicationsAsync();
+                    await this.deviceMonitor.TerminateAllApplicationsAsync();
                 }
                 catch(Exception e)
                 {
@@ -130,19 +149,18 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Queries the HoloLens for the names of all installed applications.
+        /// Queries the device for the names of all installed applications.
         /// </summary>
         /// <returns>List of application names.</returns>
         internal async Task<List<string>> GetInstalledAppNamesAsync()
         {
             List<string> appNames = new List<string>();
 
-            // Whether or not a device is selected, we still need to know what apps it has installed
-            if (this.IsConnected)
+            if (this.IsConnected && this.IsSelected)
             {
                 try
                 {
-                    AppPackages installedApps = await this.holoLensMonitor.GetInstalledApplicationsAsync();
+                    AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
                     appNames = Utilities.GetAppNamesFromPackageInfo(
                         installedApps.Packages,
                         true);
@@ -156,11 +174,11 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Downloads mixed reality files from the HoloLens.
+        /// Downloads mixed reality files from the device.
         /// </summary>
-        /// <param name="parentFolder">The parent folder which will contain the HoloLens specific folder.</param>
+        /// <param name="parentFolder">The parent folder which will contain the device specific folder.</param>
         /// <param name="deleteAfterDownload">Value indicating whether or not files are to be deleted
-        /// from the HoloLens after they have been downloaded.</param>
+        /// from the device after they have been downloaded.</param>
         /// <returns>The name of the folder in to which the files were downloaded.</returns>
         internal async Task<string> GetMixedRealityFilesAsync(
             StorageFolder parentFolder,
@@ -172,11 +190,11 @@ namespace HoloLensCommander
             {
                 try
                 {
-                    MrcFileList fileList = await this.holoLensMonitor.GetMixedRealityFileListAsync();
+                    MrcFileList fileList = await this.deviceMonitor.GetMixedRealityFileListAsync();
                     
                     if (fileList.Files.Count != 0)
                     {
-                        // Create the folder for this HoloLens' files.
+                        // Create the folder for this device's files.
                         StorageFolder folder = await parentFolder.CreateFolderAsync(
                             (string.IsNullOrWhiteSpace(this.Name) ? this.Address : this.Name),
                             CreationCollisionOption.OpenIfExists);
@@ -186,7 +204,7 @@ namespace HoloLensCommander
                         {
                             try
                             {
-                                byte[] fileData = await this.holoLensMonitor.GetMixedRealityFileAsync(fileInfo.FileName);
+                                byte[] fileData = await this.deviceMonitor.GetMixedRealityFileAsync(fileInfo.FileName);
 
                                 StorageFile file = await folder.CreateFileAsync(
                                     fileInfo.FileName,
@@ -204,7 +222,7 @@ namespace HoloLensCommander
 
                                 if (deleteAfterDownload)
                                 {
-                                    await this.holoLensMonitor.DeleteMixedRealityFile(fileInfo.FileName);
+                                    await this.deviceMonitor.DeleteMixedRealityFile(fileInfo.FileName);
                                 }
                             }
                             catch(Exception e)
@@ -229,30 +247,57 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Installs an application on this HoloLens.
+        /// Installs an application on this device.
         /// </summary>
-        /// <param name="appPackage">The fully qualified path to the application package.</param>
+        /// <param name="installFiles">Object describing the file(s) required to install an application.</param>
         /// <returns>Task object used for tracking method completion.</returns>
-        internal async Task InstallAppAsync(string appPackage)
+        internal async Task InstallAppAsync(AppInstallFiles installFiles)
         {
             if (this.IsConnected && this.IsSelected)
             {
                 try
                 {
-                    await this.holoLensMonitor.InstallApplicationAsync(appPackage);
+                    await this.deviceMonitor.InstallApplicationAsync(installFiles);
+
+                    this.deviceMonitorControl.NotifyAppInstall();
                 }
                 catch(Exception e)
                 {
                     this.StatusMessage = string.Format(
                         "Failed to install {0} - {1}",
-                        appPackage,
+                        installFiles.AppPackageFile.Name,
                         e.Message);
                 }
             }
         }
 
         /// <summary>
-        /// Launches an applicaiton on this HoloLens.
+        /// Wipes camera roll contents on this device.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task WipeCameraRollAsync()
+        {
+            if (this.IsConnected && this.IsSelected)
+            {
+                try
+                {
+                    MrcFileList fileList = await this.deviceMonitor.GetMixedRealityFileListAsync();
+
+                    foreach (MrcFileInformation fileInfo in fileList.Files)
+                    {
+                        await this.deviceMonitor.DeleteMixedRealityFile(fileInfo.FileName);
+                    }
+                    this.StatusMessage = "Camera roll wiped successfully.";
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format("Unable to delete all camera roll files. {0} ", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Launches an applicaiton on this device.
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
         /// <returns>The process identifier of the running application.</returns>
@@ -267,7 +312,7 @@ namespace HoloLensCommander
                     string appId = null;
                     string packageName = null;
 
-                    AppPackages installedApps = await this.holoLensMonitor.GetInstalledApplicationsAsync();
+                    AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
 
                     foreach (PackageInfo packageInfo in installedApps.Packages)
                     {
@@ -282,7 +327,7 @@ namespace HoloLensCommander
                     if (!string.IsNullOrWhiteSpace(appId) &&
                         !string.IsNullOrWhiteSpace(packageName))
                     {
-                        processId = await this.holoLensMonitor.LaunchApplicationAsync(
+                        processId = await this.deviceMonitor.LaunchApplicationAsync(
                             appId, 
                             packageName);
                     }
@@ -309,12 +354,12 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Launches the default web browser and connects to the Windows Device Portal on this HoloLens.
+        /// Launches the default web browser and connects to the Windows Device Portal on this devcie.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task LaunchDevicePortalAsync()
         {
-            await Launcher.LaunchUriAsync(this.holoLensMonitor.DevicePortalUri);
+            await Launcher.LaunchUriAsync(this.deviceMonitor.DevicePortalUri);
         }
 
         /// <summary>
@@ -323,7 +368,7 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task ManageAppsAsync()
         {
-            ContentDialog dialog = new ManageAppsDialog(this.holoLensMonitor, this.holoLensMonitorControl);
+            ContentDialog dialog = new ManageAppsDialog(this.deviceMonitor, this.deviceMonitorControl);
             await dialog.ShowAsync();
         }
         
@@ -333,12 +378,12 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task MixedRealityViewAsync()
         {
-            ContentDialog dialog = new MixedRealityViewDialog(this.holoLensMonitor);
+            ContentDialog dialog = new MixedRealityViewDialog(this.deviceMonitor);
             await dialog.ShowAsync();
         }
 
         /// <summary>
-        /// Reboots this HoloLens.
+        /// Reboots this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task RebootAsync()
@@ -347,7 +392,7 @@ namespace HoloLensCommander
             {
                 this.StatusMessage = "Rebooting";
 
-                await this.holoLensMonitor.RebootAsync();
+                await this.deviceMonitor.RebootAsync();
 
                 this.IsConnected = false;
             }
@@ -363,17 +408,17 @@ namespace HoloLensCommander
             float.TryParse(this.Ipd, out userInfo.Ipd);
 
             ContentDialog dialog = new SetIpdDialog(
-                this.holoLensMonitor.Address, 
+                this.deviceMonitor.Address, 
                 userInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
 
             // Primary button == "Set"
             if (result == ContentDialogResult.Primary)
             {
-                // Update the IPD on the HoloLens
+                // Update the IPD on the device
                 try
                 {
-                    await this.holoLensMonitor.SetIpd(userInfo.Ipd);
+                    await this.deviceMonitor.SetIpd(userInfo.Ipd);
                 }
                 catch (Exception e)
                 {
@@ -390,12 +435,12 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task ShowDeviceInfoAsync()
         {
-            ContentDialog dialog = new HoloLensInformationDialog(this.holoLensMonitor);
+            ContentDialog dialog = new DeviceInformationDialog(this.deviceMonitor);
             await dialog.ShowAsync().AsTask<ContentDialogResult>();
         }
 
         /// <summary>
-        /// Shuts down this HoloLens.
+        /// Shuts down this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task ShutdownAsync()
@@ -404,14 +449,14 @@ namespace HoloLensCommander
             {
                 this.StatusMessage = "Shutting down";
 
-                await this.holoLensMonitor.ShutdownAsync();
+                await this.deviceMonitor.ShutdownAsync();
 
                 this.IsConnected = false;
             }
         }
 
         /// <summary>
-        /// Starts recording a mixed reality video on this HoloLens.
+        /// Starts recording a mixed reality video on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task StartMixedRealityRecordingAsync()
@@ -420,35 +465,35 @@ namespace HoloLensCommander
             {
                 this.StatusMessage = "Starting mixed reality recording";
 
-                await this.holoLensMonitor.StartMixedRealityRecordingAsync();
+                await this.deviceMonitor.StartMixedRealityRecordingAsync();
             }
         }
 
         /// <summary>
-        /// Stops the mixed reality recording on this HoloLens.
+        /// Stops the mixed reality recording on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task StopMixedRealityRecordingAsync()
         {
             if (this.IsConnected && this.IsSelected)
             {
-                await this.holoLensMonitor.StopMixedRealityRecordingAsync();
+                await this.deviceMonitor.StopMixedRealityRecordingAsync();
 
                 this.StatusMessage = "Mixed reality recording stopped";
             }
         }
 
         /// <summary>
-        /// Displays the tag HoloLens dialog.
+        /// Displays the tag device dialog.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
-        private async Task TagHoloLensAsync()
+        private async Task TagDeviceAsync()
         {
             TagInformation tagInfo = new TagInformation();
             tagInfo.Name = this.Name;
 
-            ContentDialog dialog = new TagHoloLensDialog(
-                this.holoLensMonitor.Address,
+            ContentDialog dialog = new TagDeviceDialog(
+                this.deviceMonitor.Address,
                 tagInfo);
             ContentDialogResult result = await dialog.ShowAsync().AsTask<ContentDialogResult>();;
 
@@ -456,12 +501,23 @@ namespace HoloLensCommander
             if (result == ContentDialogResult.Primary)
             {
                 this.Name = tagInfo.Name;
-                this.holoLensMonitorControl.NotifyTagChanged();
+
+                if (tagInfo.DeployNameToDevice)
+                {
+                    // Set the device name.
+                    if (await this.deviceMonitor.SetDeviceNameAsync(this.Name))
+                    {
+                        // Reboot the device so the name change takes effect.
+                        await this.deviceMonitor.RebootAsync();
+                    }
+                }
+
+                this.deviceMonitorControl.NotifyTagChanged();
             }
         }
 
         /// <summary>
-        /// Unintalls an application on this HoloLens.
+        /// Unintalls an application on this device.
         /// </summary>
         /// <returns>Task object used for tracking method completion.</returns>
         internal async Task UninstallAppAsync(string appName)
@@ -470,7 +526,7 @@ namespace HoloLensCommander
             {
                 try
                 {
-                    AppPackages installedApps = await this.holoLensMonitor.GetInstalledApplicationsAsync();
+                    AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
 
                     string packageName = Utilities.GetPackageNameFromAppName(
                         appName,
@@ -483,9 +539,11 @@ namespace HoloLensCommander
                             appName));
                     }
 
-                    await this.holoLensMonitor.UninstallApplicationAsync(packageName);
+                    await this.deviceMonitor.UninstallApplicationAsync(packageName);
 
                     this.StatusMessage = "Uninstall complete";
+
+                    this.deviceMonitorControl.NotifyAppUninstall();
                 }
                 catch (Exception e)
                 {
@@ -494,8 +552,35 @@ namespace HoloLensCommander
                         appName,
                         e.Message);
                 }
+            }
+        }
 
-                this.holoLensMonitorControl.NotifyAppUninstall();
+        /// <summary>
+        /// Uninstalls all side-loaded apps on selected devices
+        /// </summary>
+        /// <returns></returns>
+        internal async Task UninstallAllAppsAsync()
+        {
+            if (this.IsConnected && this.IsSelected)
+            {
+                try
+                {
+                    AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
+                    foreach (PackageInfo packageInfo in installedApps.Packages)
+                    {
+                        if (packageInfo.IsSideloaded())
+                        {
+                            await this.deviceMonitor.UninstallApplicationAsync(packageInfo.FullName);
+                        }
+                    }
+                    this.StatusMessage = "Successfully uninstalled all apps.";
+
+                    this.deviceMonitorControl.NotifyAppUninstall();
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format("Failed to uninstall all apps. {0} ", e.Message);
+                }
             }
         }
 
@@ -504,8 +589,8 @@ namespace HoloLensCommander
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
         /// <param name="args">Event arguments.</param>
-        private void HoloLensMonitor_AppInstallStatus(
-            HoloLensMonitor sender, 
+        private void DeviceMonitor_AppInstallStatus(
+            DeviceMonitor sender, 
             ApplicationInstallStatusEventArgs args)
         {
             this.StatusMessage = args.Message;
@@ -515,7 +600,7 @@ namespace HoloLensCommander
         /// Handles the HeartbeatLost event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
-        private void HoloLens_HeartbeatLost(HoloLensMonitor sender)
+        private void Device_HeartbeatLost(DeviceMonitor sender)
         {
             this.IsConnected = false;
 
@@ -540,14 +625,14 @@ namespace HoloLensCommander
         /// Handles the HeartbeatReceived event.
         /// </summary>
         /// <param name="sender">The object which sent this event.</param>
-        private void HoloLens_HeartbeatReceived(HoloLensMonitor sender)
+        private void Device_HeartbeatReceived(DeviceMonitor sender)
         {
             this.IsConnected = true;
 
             // Did we recover from a heartbeat loss?
             if (this.StatusMessage == HeartbeatLostMessage)
             {
-                this.StatusMessage = "";
+                this.ClearStatusMessage();
             }
 
             // Handle whether or not we were previously selected
@@ -558,11 +643,23 @@ namespace HoloLensCommander
                 this.oldIsSelected = false;
             }
 
-            // Update the heartbeat based UI
+            // Was this the first time we received a heartbeat?
+            if (!this.firstContact)
+            {
+                // Cause common apps to be refreshed.
+                this.deviceMonitorControl.NotifySelectedChanged();
+                this.firstContact = true;
+            }
+
+            // Update the UI
+            this.SetFilter();
             this.PowerIndicator = sender.BatteryState.IsOnAcPower ? OnAcPowerLabel : OnBatteryLabel;
             this.BatteryLevel = string.Format("{0}%", sender.BatteryState.Level.ToString("#.00"));
-            this.ThermalStatus = (sender.ThermalStage == ThermalStages.Normal) ? Visibility.Collapsed : Visibility.Visible;
-            this.Ipd = sender.Ipd.ToString();
+            if (this.deviceMonitor.Platform == DevicePortalPlatforms.HoloLens)
+            {
+                this.ThermalStatus = (sender.ThermalStage == ThermalStages.Normal) ? Visibility.Collapsed : Visibility.Visible;
+                this.Ipd = sender.Ipd.ToString();
+            }
         }
 
         /// <summary>
@@ -571,7 +668,7 @@ namespace HoloLensCommander
         /// <param name="message">The message to display to the user.</param>
         private void MarshalStatusMessageUpdate(string message)
         {
-            CoreDispatcher dispatcher = this.holoLensMonitorControl.Dispatcher;
+            CoreDispatcher dispatcher = this.deviceMonitorControl.Dispatcher;
             if (!dispatcher.HasThreadAccess)
             {
                 // Assigning the return value of RunAsync to a Task object to avoid 
@@ -604,6 +701,12 @@ namespace HoloLensCommander
         /// </summary>
         private void RegisterCommands()
         {
+            this.ClearStatusMessageCommand = new Command(
+                (parameter) =>
+                {
+                    this.ClearStatusMessage();
+                });
+
             this.DisconnectCommand = new Command(
                 (parameter) =>
                 {
@@ -613,13 +716,31 @@ namespace HoloLensCommander
             this.SetIpdCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.SetIpdAsync();
+                    try
+                    {
+                        await this.SetIpdAsync();
+                    }
+                    catch(Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to set IPD ({0})",
+                            e.Message);
+                    }
                 });
 
             this.SetTagCommand = new Command(
                 async (parameter) =>
                 {
-                    await this.TagHoloLensAsync();
+                    try
+                    {
+                        await this.TagDeviceAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        this.StatusMessage = string.Format(
+                            "Failed to set the device name ({0})",
+                            e.Message);
+                    }
                 });
 
             this.ShowContextMenuCommand = new Command(
@@ -628,6 +749,57 @@ namespace HoloLensCommander
                     await this.ShowContextMenuAsync(parameter);
                 });
         }
+
+        /// <summary>
+        /// Determine the correct setting for the Filter property.
+        /// </summary>
+        private void SetFilter()
+        {
+            switch (this.deviceMonitor.Platform)
+            {
+                case DevicePortalPlatforms.HoloLens:
+                    this.Filter = DeviceFilters.HoloLens;
+                    this.DeviceTypeLabel = DeviceIsHoloLensLabel;
+                    this.IpdVisibility = Visibility.Visible;
+                    break;
+
+                case DevicePortalPlatforms.Windows:
+                    this.Filter = DeviceFilters.Desktop;
+                    this.DeviceTypeLabel = DeviceIsPCLabel;
+                    this.IpdVisibility = Visibility.Collapsed;
+                    break;
+
+                case DevicePortalPlatforms.VirtualMachine:
+                    switch (this.deviceMonitor.DeviceFamily)
+                    {
+                        case "Windows.Desktop":
+                            this.Filter = DeviceFilters.Desktop;
+                            this.DeviceTypeLabel = DeviceIsPCLabel;
+                            this.IpdVisibility = Visibility.Collapsed;
+                            break;
+
+                        case "Windows.Holographic":
+                            this.Filter = DeviceFilters.HoloLens;
+                            this.DeviceTypeLabel = DeviceIsHoloLensLabel;
+                            this.IpdVisibility = Visibility.Visible;
+                            break;
+
+                        default:
+                            this.Filter = DeviceFilters.None;
+                            this.DeviceTypeLabel = DeviceIsUnknownLabel;
+                            this.IpdVisibility = Visibility.Collapsed;
+                            break;
+                    }
+                    break;
+
+                default:
+                    this.Filter = DeviceFilters.None;
+                    this.DeviceTypeLabel = this.firstContact ? DeviceIsUnknownLabel : ConnectionNotEstablishedLabel;
+                    this.IpdVisibility = Visibility.Collapsed;
+                    break;
+            }
+        }
+
 
         /// <summary>
         /// Monitors running processes and when the specified id is no longer running, update's the status message ui.
@@ -664,7 +836,7 @@ namespace HoloLensCommander
                     resetEvent.Reset();
                     timer.Change(0, waitTime);
                     resetEvent.WaitOne(waitTime * 2);   // Wait no longer than twice the specified time.
-                    runningProcesses = await this.holoLensMonitor.GetRunningProcessesAsync();
+                    runningProcesses = await this.deviceMonitor.GetRunningProcessesAsync();
                     processIsRunning = runningProcesses.Contains(processId);
                 }
                 while(processIsRunning);

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -100,45 +100,52 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\HoloLensMonitorControl.xaml.cs">
-      <DependentUpon>HoloLensMonitorControl.xaml</DependentUpon>
+    <Compile Include="Controls\DeviceMonitorControl.xaml.cs">
+      <DependentUpon>DeviceMonitorControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\HoloLensMonitorControlViewModel.cs" />
-    <Compile Include="Controls\HoloLensMonitorControlViewModelCommands.cs" />
-    <Compile Include="Controls\HoloLensMonitorControlViewModelProperties.cs" />
+    <Compile Include="Controls\DeviceMonitorControlViewModel.cs" />
+    <Compile Include="Controls\DeviceMonitorControlViewModelCommands.cs" />
+    <Compile Include="Controls\DeviceMonitorControlViewModelProperties.cs" />
+    <Compile Include="Device\DeviceMonitor.cs" />
+    <Compile Include="Device\DeviceMonitorCommands.cs" />
+    <Compile Include="Device\DeviceMonitorProperties.cs" />
     <Compile Include="Dialogs\ConnectToDeviceDialog.xaml.cs">
       <DependentUpon>ConnectToDeviceDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\ConnectToDeviceDialogViewModel.cs" />
     <Compile Include="Dialogs\ConnectToDeviceDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\ConnectToDeviceDialogViewModelCommands.cs" />
+    <Compile Include="Dialogs\DeviceInformationDialog.xaml.cs">
+      <DependentUpon>DeviceInformationDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\DeviceInformationDialogViewModel.cs" />
+    <Compile Include="Dialogs\DeviceInformationDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialog.xaml.cs">
       <DependentUpon>GetAppInstallFilesDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModel.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelCommands.cs" />
-    <Compile Include="Dialogs\HoloLensInformationDialog.xaml.cs">
-      <DependentUpon>HoloLensInformationDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\HoloLensInformationDialogViewModel.cs" />
-    <Compile Include="Dialogs\HoloLensInformationDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModel.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelCommands.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModel.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\SetCredentialsDialogViewModel.cs" />
+    <Compile Include="Dialogs\SetCredentialsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\SetIpdDialog.xaml.cs">
       <DependentUpon>SetIpdDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\SetIpdDialogViewModel.cs" />
     <Compile Include="Dialogs\SetIpdDialogViewModelProperties.cs" />
-    <Compile Include="Dialogs\TagHoloLensDialogViewModel.cs" />
-    <Compile Include="Dialogs\TagHoloLensDialogViewModelProperties.cs" />
-    <Compile Include="HoloLens\HoloLensMonitorCommands.cs" />
-    <Compile Include="HoloLens\HoloLensMonitorProperties.cs" />
+    <Compile Include="Dialogs\SettingsDialogViewModel.cs" />
+    <Compile Include="Dialogs\SettingsDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\TagDeviceDialog.xaml.cs">
+      <DependentUpon>TagDeviceDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\TagDeviceDialogViewModel.cs" />
+    <Compile Include="Dialogs\TagDeviceDialogViewModelProperties.cs" />
     <Compile Include="MainWindowViewModel.cs" />
-    <Compile Include="HoloLens\HoloLensDevicePortalConnection.cs" />
-    <Compile Include="HoloLens\HoloLensMonitor.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -151,15 +158,20 @@
       <DependentUpon>ManageAppsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Dialogs\TagHoloLensDialog.xaml.cs">
-      <DependentUpon>TagHoloLensDialog.xaml</DependentUpon>
+    <Compile Include="Dialogs\SetCredentialsDialog.xaml.cs">
+      <DependentUpon>SetCredentialsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\SettingsDialog.xaml.cs">
+      <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities\AppInstallFiles.cs" />
     <Compile Include="Utilities\ConnectionInformation.cs" />
     <Compile Include="Utilities\ConnectOptions.cs" />
+    <Compile Include="Utilities\DeviceMonitorControlComparer.cs" />
     <Compile Include="Utilities\Enums.cs" />
     <Compile Include="Utilities\Command.cs" />
     <Compile Include="Dialogs\YesNoMessageDialog.cs" />
+    <Compile Include="Utilities\Settings.cs" />
     <Compile Include="Utilities\TagInformation.cs" />
     <Compile Include="Utilities\UserInformation.cs" />
     <Compile Include="Utilities\Utilities.cs" />
@@ -184,11 +196,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Controls\HoloLensMonitorControl.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="Controls\DeviceMonitorControl.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\ConnectToDeviceDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\DeviceInformationDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -196,11 +212,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialogs\HoloLensInformationDialog.xaml">
+    <Page Include="Dialogs\SetIpdDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Dialogs\SetIpdDialog.xaml">
+    <Page Include="Dialogs\TagDeviceDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -212,17 +228,21 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialogs\TagHoloLensDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Dialogs\ManageAppsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Dialogs\SetCredentialsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\SettingsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
-    <VisualStudioVersion>14.0</VisualStudioVersion>
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0' ">
+    <VisualStudioVersion>15.0</VisualStudioVersion>
   </PropertyGroup>
   <PropertyGroup />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />

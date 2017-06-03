@@ -13,11 +13,11 @@ namespace HoloLensCommander
         /// <summary>
         /// Initializes a new instance of the <see cref="ManageAppsDialog" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor that is responsible for communication with the HoloLens.</param>
-        /// <param name="monitorControl">The HoloLensMonitor control that launched this dialog.</param>
+        /// <param name="monitor">The DeviceMonitor that is responsible for communication with the device.</param>
+        /// <param name="monitorControl">The DeviceMonitorControl that launched this dialog.</param>
         public ManageAppsDialog(
-            HoloLensMonitor monitor,
-            HoloLensMonitorControl monitorControl)
+            DeviceMonitor monitor,
+            DeviceMonitorControl monitorControl)
         {
             this.DataContext = new ManageAppsDialogViewModel(
                 monitor, 

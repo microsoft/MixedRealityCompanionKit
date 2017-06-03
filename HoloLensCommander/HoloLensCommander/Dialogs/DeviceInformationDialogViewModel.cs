@@ -7,14 +7,14 @@ using System.ComponentModel;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the HoloLensInformationDialog object.
+    /// The view model for the DeviceInformationDialog object.
     /// </summary>
-    public partial class HoloLensInformationDialogViewModel : INotifyPropertyChanged
+    public partial class DeviceInformationDialogViewModel : INotifyPropertyChanged
     {
         /// <summary>
-        /// The HoloLensMonitor object responsible for communication with this HoloLens.
+        /// The DeviceMonitor object responsible for communication with this device.
         /// </summary>
-        private HoloLensMonitor holoLensMonitor;
+        private DeviceMonitor deviceMonitor;
 
         /// <summary>
         /// Event that is notified when a property value has changed.
@@ -22,13 +22,13 @@ namespace HoloLensCommander
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoloLensInformationDialogViewModel" /> class.
+        /// Initializes a new instance of the <see cref="DeviceInformationDialogViewModel" /> class.
         /// </summary>
-        /// <param name="monitor">The HoloLensMonitor responsible for communication with this HoloLens.</param>
-        public HoloLensInformationDialogViewModel(
-            HoloLensMonitor monitor)
+        /// <param name="monitor">The DeviceMonitor responsible for communication with this device.</param>
+        public DeviceInformationDialogViewModel(
+            DeviceMonitor monitor)
         {
-            this.holoLensMonitor = monitor;
+            this.deviceMonitor = monitor;
         }
 
         /// <summary>

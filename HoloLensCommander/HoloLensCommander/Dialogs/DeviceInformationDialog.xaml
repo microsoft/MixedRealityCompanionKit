@@ -1,12 +1,12 @@
 ﻿<ContentDialog
-    x:Class="HoloLensCommander.HoloLensInformationDialog"
+    x:Class="HoloLensCommander.DeviceInformationDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:HoloLensCommander"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="HoloLens Information"
+    Title="Device Information"
     PrimaryButtonText="Ok"
     MaxHeight="600">
 
@@ -21,10 +21,10 @@
             <TextBlock 
                 x:Name="deviceAddress"
                 Text="{Binding Path=DeviceAddress}"
-                ToolTipService.ToolTip="The address of the target HoloLens"
+                ToolTipService.ToolTip="The address of the target device"
                 FontSize="16"
-                Width="388"
-                Canvas.Left="62" Canvas.Top="10"/>
+                Width="320"
+                Canvas.Left="130" Canvas.Top="10"/>
         </Canvas>
         <Canvas 
             Width="450" Height="40">
@@ -36,7 +36,7 @@
             <TextBlock 
                 x:Name="machineName"
                 Text="{Binding Path=MachineName}"
-                ToolTipService.ToolTip="The machine name of the target HoloLens"
+                ToolTipService.ToolTip="The machine name of the target device"
                 FontSize="16"
                 Width="320"
                 Canvas.Left="130" Canvas.Top="10"/>
@@ -56,10 +56,10 @@
             <TextBlock 
                 x:Name="osVersion"
                 Text="{Binding Path=OsVersion}"
-                ToolTipService.ToolTip="The version of the operating system on the target HoloLens"
+                ToolTipService.ToolTip="The version of the operating system on the target device"
                 FontSize="16"
-                Width="365"
-                Canvas.Left="85" Canvas.Top="40"/>
+                Width="320"
+                Canvas.Left="130" Canvas.Top="40"/>
             <TextBlock 
                 x:Name="platformLabel"
                 Text="Platform"
@@ -67,11 +67,11 @@
                 Canvas.Top="70"/>
             <TextBlock 
                 x:Name="osPlatform"
-                Text="{Binding Path=OsPlatformName}"
-                ToolTipService.ToolTip="The operating system platfom on the target HoloLens"
+                Text="{Binding Path=OsPlatform}"
+                ToolTipService.ToolTip="The operating system platfom on the target device"
                 FontSize="16"
-                Width="365"
-                Canvas.Left="85" Canvas.Top="70"/>
+                Width="320"
+                Canvas.Left="130" Canvas.Top="70"/>
         </Canvas>
     </StackPanel>
 </ContentDialog>

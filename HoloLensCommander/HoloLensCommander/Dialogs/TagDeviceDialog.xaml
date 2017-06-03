@@ -1,12 +1,12 @@
 ﻿<ContentDialog
-    x:Class="HoloLensCommander.TagHoloLensDialog"
+    x:Class="HoloLensCommander.TagDeviceDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:HoloLensCommander"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="Tag the HoloLens"
+    Title="Name your device"
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
     PrimaryButtonClick="ContentDialog_OkClick"
@@ -23,13 +23,13 @@
             <TextBlock 
                 x:Name="deviceAddress"
                 Text="{Binding Path=DeviceAddress}"
-                ToolTipService.ToolTip="The address of the target HoloLens"
+                ToolTipService.ToolTip="The address of the target device"
                 FontSize="16"
                 Width="388"
                 Canvas.Left="62" Canvas.Top="10"/>
         </Canvas>
         <Canvas 
-            Width="450" Height="50">
+            Width="450" Height="100">
             <TextBlock 
                 x:Name="nameLabel"
                 Text="Name"
@@ -38,9 +38,15 @@
             <TextBox 
                 x:Name="name"
                 Text="{Binding Path=Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                ToolTipService.ToolTip="Descriptive name for the HoloLens (HoloLens will not be updated)"
+                ToolTipService.ToolTip="Descriptive name for the device"
                 Canvas.Left="50" Width="400" 
                 Canvas.Top="10"/>
+            <CheckBox 
+                x:Name="deployNameToDevice"
+                Content="Update the device"
+                ToolTipService.ToolTip="Change the name of your device? (This will reboot the device)"
+                IsChecked="{Binding Path=DeployNameToDevice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Canvas.Left="5" Canvas.Top="55" />
         </Canvas>
     </StackPanel>
 </ContentDialog>

@@ -9,12 +9,12 @@ using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
 namespace HoloLensCommander
 {
     /// <summary>
-    /// The view model for the ManageAppsDialog fsobject.
+    /// The view model for the ManageAppsDialog object.
     /// </summary>
     partial class ManageAppsDialogViewModel
     {
         /// <summary>
-        /// Command used to close all applications running on this HoloLens.
+        /// Command used to close all applications running on this device.
         /// </summary>
         public ICommand CloseAllAppsCommand
         { get; private set; }
@@ -25,11 +25,11 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task CloseAllRunningAppsAsync()
         {
-            await this.holoLensMonitor.TerminateAllApplicationsAsync();
+            await this.deviceMonitor.TerminateAllApplicationsAsync();
         }
 
         /// <summary>
-        /// Command used to close a single application on this HoloLens.
+        /// Command used to close a single application on this device.
         /// </summary>
         public ICommand CloseAppCommand
         { get; private set; }
@@ -48,11 +48,11 @@ namespace HoloLensCommander
             string packageName = selectedApp.Substring(index + 1);
             packageName = packageName.Substring(0, packageName.Length-1);
 
-            await this.holoLensMonitor.TerminateApplicationAsync(packageName);
+            await this.deviceMonitor.TerminateApplicationAsync(packageName);
         }
 
         /// <summary>
-        /// Command used to launch an application on this HoloLens.
+        /// Command used to launch an application on this device.
         /// </summary>
         public ICommand LaunchAppCommand
         { get; private set; }
@@ -65,11 +65,11 @@ namespace HoloLensCommander
         {
             string appName = this.SelectedInstalledApp as string;
 
-            return await this.holoLensMonitorControl.LaunchAppAsync(appName);
+            return await this.deviceMonitorControl.LaunchAppAsync(appName);
         }
 
         /// <summary>
-        /// Command used to update the list of applications installed on this HoloLens.
+        /// Command used to update the list of applications installed on this device.
         /// </summary>
         public ICommand RefreshInstalledAppsCommand
         { get; private set; }
@@ -80,9 +80,7 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task RefreshInstalledAppsAsync()
         {
-            //this.StatusMessage = "Refreshing list of installed apps.";
-
-            AppPackages installedApps = await this.holoLensMonitor.GetInstalledApplicationsAsync();
+            AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
 
             List<string> appNames = Utilities.GetAppNamesFromPackageInfo(
                 installedApps.Packages,
@@ -92,7 +90,7 @@ namespace HoloLensCommander
         }
         
         /// <summary>
-        /// Command used to update the list of applications running on this HoloLens.
+        /// Command used to update the list of applications running on this device.
         /// </summary>
         public ICommand RefreshRunningAppsCommand
         { get; private set; }
@@ -103,7 +101,7 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task RefreshRunningAppsAsync()
         {
-            RunningProcesses runningApps = await this.holoLensMonitor.GetRunningProcessesAsync();
+            RunningProcesses runningApps = await this.deviceMonitor.GetRunningProcessesAsync();
 
             List<string> appNames = new List<string>();
 
@@ -123,7 +121,7 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Command used to uninstall a single application on this HoloLens.
+        /// Command used to uninstall a single application on this device.
         /// </summary>
         public ICommand UninstallAppCommand
         { get; private set; }
@@ -136,7 +134,16 @@ namespace HoloLensCommander
         {
             string appName = this.SelectedInstalledApp as string;
 
-            await this.holoLensMonitorControl.UninstallAppAsync(appName);
+            await this.deviceMonitorControl.UninstallAppAsync(appName);
+            await this.RefreshInstalledAppsAsync();
+        }
+
+        public ICommand UninstallAllAppsCommand
+        { get; private set; }
+
+        private async Task UninstallAllAppsAsync()
+        {
+            await this.deviceMonitorControl.UninstallAllAppsAsync();
             await this.RefreshInstalledAppsAsync();
         }
 

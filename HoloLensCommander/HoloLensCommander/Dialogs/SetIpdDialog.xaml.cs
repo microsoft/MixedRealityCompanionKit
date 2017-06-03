@@ -11,15 +11,15 @@ namespace HoloLensCommander
     public sealed partial class SetIpdDialog : ContentDialog
     {
         /// <summary>
-        /// Object containing the information that is to be associated with a HoloLens.
+        /// Object containing the user specific information (ex: IPD) that is to be associated with a device.
         /// </summary>
         private UserInformation userInformation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SetIpdDialog" /> class.
         /// </summary>
-        /// <param name="address">The address of the HoloLens.</param>
-        /// <param name="userInfo">UserInformation object containing information associated with the HoloLens.</param>
+        /// <param name="address">The address of the device.</param>
+        /// <param name="userInfo">UserInformation object containing information associated with the device.</param>
         public SetIpdDialog(
             string address,
             UserInformation userInfo)
@@ -34,7 +34,7 @@ namespace HoloLensCommander
 
         private void ContentDialog_OkClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            // Send the update to the HoloLens
+            // Return the data
             ((SetIpdDialogViewModel)this.DataContext).UpdateUserData(this.userInformation);
         }
     }
