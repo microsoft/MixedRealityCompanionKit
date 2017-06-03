@@ -16,7 +16,10 @@ public:
 
     HRESULT Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture);
 
+    // 3 frames are caches for reliable hologram stability:
+    // Get the timestamp of the earliest (and currently rendered) cached frame.
     LONGLONG GetTimestamp();
+
     LONGLONG GetDurationHNS();
 
     void Update();

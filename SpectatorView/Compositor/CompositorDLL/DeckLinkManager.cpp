@@ -123,7 +123,7 @@ LONGLONG DeckLinkManager::GetTimestamp()
 {
     if (IsEnabled())
     {
-        return deckLinkDevice->GetTimeStamp();
+        return deckLinkDevice->GetTimestamp();
     }
 
     return 0;

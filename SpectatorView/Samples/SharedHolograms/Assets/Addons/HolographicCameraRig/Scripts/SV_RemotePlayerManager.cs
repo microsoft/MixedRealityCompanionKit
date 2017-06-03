@@ -26,6 +26,11 @@ namespace SpectatorView
             out float posX, out float posY, out float posZ);
 #else
         [DllImport("UnityCompositorInterface")]
+        private static extern bool SetHologramPose(
+            float rotX, float rotY, float rotZ, float rotW,
+            float posX, float posY, float posZ);
+
+        [DllImport("UnityCompositorInterface")]
         private static extern long GetCurrentUnityTime();
 
         [DllImport("UnityCompositorInterface")]
@@ -59,8 +64,6 @@ namespace SpectatorView
         private long colorFrameDurationNS = (long)((1.0f / 30.0f) * 1000000000);
         long prevTimeOffsetNS = 0;
         float colorFrameReceivedTimeS = 0;
-#else
-        NetworkMovement networkMovement = null;
 #endif
 
         bool registeredSharingStageCallbacks = false;
@@ -91,16 +94,13 @@ namespace SpectatorView
         void RegisterCustomMessages()
         {
             customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.HeadTransform] = this.UpdateHeadTransform;
-            customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.NetworkRoundTripTime] = OnNetworkRoundTripTime;
 
 #if UNITY_EDITOR
             customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.SpatialMapping] = OnSpatialMapping;
             customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.UpdateSpectatorViewIP] = OnUpdateSpectatorViewIP;
 #else
-            customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.SetNetworkTime] = OnNetworkTimeSet;
             customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.SetColorDuration] = OnColorDuration;
             customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.SpatialMappingRequest] = OnSpatialMappingRequest;
-            customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.TimeOffset] = OnTimeOffset;
             customMessages.MessageHandlers[SpectatorView.SV_CustomMessages.TestMessageID.EditorUser] = OnEditorUser;
 #endif
         }
@@ -152,77 +152,7 @@ namespace SpectatorView
             HolographicCameraManager.Instance.requestSpatialMappingData = true;
         }
 
-        void RequestCurrentNetworkLatency()
-        {
-#if UNITY_EDITOR
-            if (SpectatorView.SV_CustomMessages.Instance != null &&
-                SpectatorView.SV_CustomMessages.Instance.Initialized &&
-                SharingStage.Instance != null)
-            {
-                SpectatorView.SV_CustomMessages.Instance.SendNetworkRoundTripTime(GetCurrentUnityTime());
-            }
-#endif
-        }
-
-        void OnTimeOffset(HoloToolkit.Sharing.NetworkInMessage msg)
-        {
 #if !UNITY_EDITOR
-            float eventTime = Time.time;
-            msg.ReadInt64();
-
-            int timeOffset = msg.ReadInt32();
-            if (timeOffset > 0) { timeOffset *= -1; }
-
-            colorFrameReceivedTimeS = eventTime;
-            prevTimeOffsetNS = timeOffset;
-
-            Vector3 pos;
-            Quaternion rot;
-
-            if (GetHeadTransform(WorldManager.GetNativeISpatialCoordinateSystemPtr(), 
-                (int)timeOffset, 
-                out rot.x, out rot.y, out rot.z, out rot.w, 
-                out pos.x, out pos.y, out pos.z))
-            {
-                // Transform the head position and rotation from world space into local space
-                Vector3 HeadPos = this.transform.InverseTransformPoint(pos);
-                Quaternion HeadRot = Quaternion.Inverse(this.transform.rotation) * rot;
-                SpectatorView.SV_CustomMessages.Instance.SendHeadTransform(HeadPos, HeadRot);
-            }
-#endif
-        }
-
-        void OnNetworkRoundTripTime(HoloToolkit.Sharing.NetworkInMessage msg)
-        {
-            long userID = msg.ReadInt64();
-
-            long time = msg.ReadInt64();
-
-#if !UNITY_EDITOR
-            SpectatorView.SV_CustomMessages.Instance.SendNetworkRoundTripTime(time);
-#else
-            if (HolographicCameraManager.Instance != null &&
-                HolographicCameraManager.Instance.tppcUser != null &&
-                HolographicCameraManager.Instance.tppcUser.IsValid() &&
-                userID == HolographicCameraManager.Instance.tppcUser.GetID())
-            {
-                NetworkTime = GetCurrentUnityTime() - time;
-
-                SetNetworkLatency(NetworkTime);
-                SpectatorView.SV_CustomMessages.Instance.SendTPPCNetworkTime(NetworkTime);
-            }
-#endif
-        }
-
-#if !UNITY_EDITOR
-        void OnNetworkTimeSet(HoloToolkit.Sharing.NetworkInMessage msg)
-        {
-            msg.ReadInt64();
-
-            long time = msg.ReadInt64();
-            NetworkTime = time;
-        }
-
         void OnColorDuration(HoloToolkit.Sharing.NetworkInMessage msg)
         {
             msg.ReadInt64();
@@ -263,21 +193,10 @@ namespace SpectatorView
             Vector3 pos;
             Quaternion rot;
 
-            long timeSinceLastColorFrameNS = (long)((Time.time - colorFrameReceivedTimeS) * 1000000000);
-
-            // If the elapsed time is greater than a color frame duration, decrease the offset time by that number of frames.
-            if (timeSinceLastColorFrameNS >= colorFrameDurationNS && colorFrameDurationNS != 0) 
-            {
-                int numOffsets = (int)(timeSinceLastColorFrameNS / colorFrameDurationNS);
-
-                timeSinceLastColorFrameNS -= (numOffsets * colorFrameDurationNS);
-                if (timeSinceLastColorFrameNS < 0) { timeSinceLastColorFrameNS = 0; }
-            }
-
             try
             {
                 if (GetHeadTransform(WorldManager.GetNativeISpatialCoordinateSystemPtr(),
-                    (int)((-1 * timeSinceLastColorFrameNS) + prevTimeOffsetNS),
+                    -1 * (int)colorFrameDurationNS,
                     out rot.x, out rot.y, out rot.z, out rot.w,
                     out pos.x, out pos.y, out pos.z))
                 {
@@ -290,16 +209,7 @@ namespace SpectatorView
             catch (Exception ex)
             {
                 Debug.LogException(ex);
-            }
-#else
-            timeSinceLastNetworkTimeSnapshot += Time.deltaTime;
-            if (timeSinceLastNetworkTimeSnapshot >= networkTimeSnapshotInterval)
-            {
-                timeSinceLastNetworkTimeSnapshot = 0;
-
-                RequestCurrentNetworkLatency();
-                customMessages.SendTPPCColorDuration(GetColorDuration());
-            }
+            }      
 #endif
         }
 
@@ -316,7 +226,6 @@ namespace SpectatorView
                     remoteHeads[user.GetID()].IP == HolographicCameraManager.Instance.HolographicCameraIP.Trim() &&
                     HolographicCameraManager.Instance.HolographicCameraIP.Trim() != String.Empty)
                 {
-                    networkMovement = null;
                     HolographicCameraManager.Instance.ResetHolographicCamera();
                 }
 #endif
@@ -412,18 +321,8 @@ namespace SpectatorView
                     SpectatorView.HolographicCameraManager.Instance.tppcUser != null &&
                     SpectatorView.HolographicCameraManager.Instance.tppcUser.GetID() == userID)
                 {
-                    if (networkMovement == null)
-                    {
-                        networkMovement = headInfo.HeadObject.AddComponent<NetworkMovement>();
-                    }
-
-                    networkMovement.AddTransform(
-                        new NetworkMovement.NetworkTransform()
-                        {
-                            Position = headPos,
-                            Rotation = headRot
-                        }
-                    );
+                    SetHologramPose(headRot.x, headRot.y, headRot.z, headRot.w,
+                            headPos.x, headPos.y, headPos.z);
                 }
                 else
 #endif

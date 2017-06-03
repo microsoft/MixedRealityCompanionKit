@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using UnityEngine;
 using System;
-using System.Collections;
+using System.Globalization;
 using System.Threading;
+using UnityEngine;
 using HoloToolkit.Unity;
-using HoloToolkit.Sharing;
-using HoloToolkit.Sharing.Utilities;
 using HoloToolkit.Unity.InputModule;
 
-namespace HoloToolkit.Sharing
+namespace HoloToolkit.Sharing.VoiceChat
 {
     /// <summary>
     /// Transmits data from your microphone to other clients connected to a SessionServer. Requires any receiving client to be running the MicrophoneReceiver script.
@@ -21,7 +19,7 @@ namespace HoloToolkit.Sharing
         /// <summary>
         /// Which type of microphone/quality to access
         /// </summary>
-        public MicStream.StreamCategory streamtype = MicStream.StreamCategory.HIGH_QUALITY_VOICE;
+        public MicStream.StreamCategory Streamtype = MicStream.StreamCategory.HIGH_QUALITY_VOICE;
 
         /// <summary>
         /// You can boost volume here as desired. 1 is default but probably too quiet. You can change during operation. 
@@ -36,52 +34,47 @@ namespace HoloToolkit.Sharing
         /// <summary>
         /// Whether other users should be able to hear the transmitted audio
         /// </summary>
-        public bool Mute = false;
+        public bool Mute;
 
         public Transform GlobalAnchorTransform;
 
-        public bool ShowInterPacketTime = false;
+        public bool ShowInterPacketTime;
 
         private DateTime timeOfLastPacketSend;
         private float worstTimeBetweenPackets;
 
-        private int sequenceNumber = 0;
+        private int sequenceNumber;
 
-        //#if !UNITY_METRO || UNITY_EDITOR
         private int sampleRateType = 3; // 48000Hz
-                                        //#else
-                                        //    private int sampleRateType = 1; // 16000Hz
-                                        //#endif
 
         private AudioSource audioSource;
 
         private bool hasServerConnection;
         private bool micStarted;
-        private int dataChannelCount;
 
         public const int AudioPacketSize = 960;
         private CircularBuffer micBuffer = new CircularBuffer(AudioPacketSize * 10 * 2 * 4, true);
         private byte[] packetSamples = new byte[AudioPacketSize * 4];
 
         // bit packers
-        private BitManipulator versionPacker = new BitManipulator(0x7, 0);           // 3 bits, 0 shift
-        private BitManipulator audioStreamCountPacker = new BitManipulator(0x38, 3); // 3 bits, 3 shift
-        private BitManipulator channelCountPacker = new BitManipulator(0x1c0, 6);    // 3 bits, 6 shift
-        private BitManipulator sampleRatePacker = new BitManipulator(0x600, 9);      // 2 bits, 9 shift
-        private BitManipulator sampleTypePacker = new BitManipulator(0x1800, 11);    // 2 bits, 11 shift
-        private BitManipulator sampleCountPacker = new BitManipulator(0x7fe000, 13); // 10 bits, 13 shift
-        private BitManipulator codecTypePacker = new BitManipulator(0x1800000, 23);  // 2 bits, 23 shift
-        private BitManipulator mutePacker = new BitManipulator((int)0x2000000, 25);  // 1 bits, 25 shift
-        private BitManipulator sequenceNumberPacker = new BitManipulator((int)0x7C000000, 26);  // 6 bits, 26 shift
+        private readonly BitManipulator versionPacker = new BitManipulator(0x7, 0);           // 3 bits, 0 shift
+        private readonly BitManipulator audioStreamCountPacker = new BitManipulator(0x38, 3); // 3 bits, 3 shift
+        private readonly BitManipulator channelCountPacker = new BitManipulator(0x1c0, 6);    // 3 bits, 6 shift
+        private readonly BitManipulator sampleRatePacker = new BitManipulator(0x600, 9);      // 2 bits, 9 shift
+        private readonly BitManipulator sampleTypePacker = new BitManipulator(0x1800, 11);    // 2 bits, 11 shift
+        private readonly BitManipulator sampleCountPacker = new BitManipulator(0x7fe000, 13); // 10 bits, 13 shift
+        private readonly BitManipulator codecTypePacker = new BitManipulator(0x1800000, 23);  // 2 bits, 23 shift
+        private readonly BitManipulator mutePacker = new BitManipulator(0x2000000, 25);  // 1 bits, 25 shift
+        private readonly BitManipulator sequenceNumberPacker = new BitManipulator(0x7C000000, 26);  // 6 bits, 26 shift
 
-        private Mutex audioDataMutex = new Mutex();
+        private readonly Mutex audioDataMutex = new Mutex();
 
         #region DebugVariables
-        public bool HearSelf = false;
+        public bool HearSelf;
 
-        private CircularBuffer testCircularBuffer = new CircularBuffer(48000 * 2 * 4 * 3, true);
+        private readonly CircularBuffer testCircularBuffer = new CircularBuffer(48000 * 2 * 4 * 3, true);
         private AudioSource testSource;
-        public AudioClip testClip;
+        public AudioClip TestClip;
         public bool SaveTestClip;
         #endregion
 
@@ -104,7 +97,7 @@ namespace HoloToolkit.Sharing
         {
             audioSource = GetComponent<AudioSource>();
 
-            int errorCode = MicStream.MicInitializeCustomRate((int)streamtype, AudioSettings.outputSampleRate);
+            int errorCode = MicStream.MicInitializeCustomRate((int)Streamtype, AudioSettings.outputSampleRate);
             CheckForErrorOnCall(errorCode);
             if (errorCode == 0 || errorCode == (int)MicStream.ErrorCodes.ALREADY_RUNNING)
             {
@@ -131,8 +124,6 @@ namespace HoloToolkit.Sharing
                         {
                             Debug.LogError("Send buffer filled up. Some audio will be lost.");
                         }
-
-                        dataChannelCount = numChannels;
                     }
                 }
             }
@@ -161,7 +152,7 @@ namespace HoloToolkit.Sharing
                 {
                     while (micBuffer.UsedCapacity >= 4 * AudioPacketSize)
                     {
-                        TransmitAudio(connection, dataChannelCount);
+                        TransmitAudio(connection);
                     }
                 }
             }
@@ -180,21 +171,21 @@ namespace HoloToolkit.Sharing
                 float[] testBuffer = new float[testCircularBuffer.UsedCapacity / 4];
                 testCircularBuffer.Read(testBuffer, 0, testBuffer.Length * 4);
                 testCircularBuffer.Reset();
-                testClip = AudioClip.Create("testclip", testBuffer.Length / 2, 2, 48000, false);
-                testClip.SetData(testBuffer, 0);
+                TestClip = AudioClip.Create("testclip", testBuffer.Length / 2, 2, 48000, false);
+                TestClip.SetData(testBuffer, 0);
                 if (!testSource)
                 {
                     GameObject testObj = new GameObject("testclip");
                     testObj.transform.parent = transform;
                     testSource = testObj.AddComponent<AudioSource>();
                 }
-                testSource.PlayClip(testClip, false);
+                testSource.PlayClip(TestClip);
                 SaveTestClip = false;
             }
             #endregion
         }
 
-        private void TransmitAudio(NetworkConnection connection, int numChannels)
+        private void TransmitAudio(NetworkConnection connection)
         {
             micBuffer.Read(packetSamples, 0, 4 * AudioPacketSize);
             SendFixedSizedChunk(connection, packetSamples, packetSamples.Length);
@@ -207,7 +198,7 @@ namespace HoloToolkit.Sharing
 
         private void SendFixedSizedChunk(NetworkConnection connection, byte[] data, int dataSize)
         {
-            System.DateTime currentTime = System.DateTime.Now;
+            DateTime currentTime = DateTime.Now;
             float seconds = (float)(currentTime - timeOfLastPacketSend).TotalSeconds;
             timeOfLastPacketSend = currentTime;
             if (seconds < 10.0)
@@ -219,7 +210,9 @@ namespace HoloToolkit.Sharing
 
                 if (ShowInterPacketTime)
                 {
-                    UnityEngine.Debug.Log("Microphone: Millisecs since last sent: " + seconds * 1000.0 + "  Worst: " + worstTimeBetweenPackets * 1000.0);
+                    Debug.LogFormat("Microphone: Millisecs since last sent: {0}, Worst: {1}",
+                        (seconds * 1000.0).ToString(CultureInfo.InvariantCulture),
+                        (worstTimeBetweenPackets * 1000.0).ToString(CultureInfo.InvariantCulture));
                 }
             }
 
@@ -233,23 +226,23 @@ namespace HoloToolkit.Sharing
             msg.Write((byte)5); // 8 byte header size
 
             Int32 pack = 0;
-            versionPacker.SetBits(ref pack, 1);             // version
-            audioStreamCountPacker.SetBits(ref pack, 1);    // AudioStreamCount
-            channelCountPacker.SetBits(ref pack, 1);        // ChannelCount
-            sampleRatePacker.SetBits(ref pack, sampleRateType); // SampleRate: 1 = 16000, 3 = 48000
-            sampleTypePacker.SetBits(ref pack, 0);          // SampleType
-            sampleCountPacker.SetBits(ref pack, dataCountFloats);  // SampleCount (data count is in bytes and the actual data is in floats, so div by 4)
-            codecTypePacker.SetBits(ref pack, 0);           // CodecType   
+            versionPacker.SetBits(ref pack, 1);                   // version
+            audioStreamCountPacker.SetBits(ref pack, 1);          // AudioStreamCount
+            channelCountPacker.SetBits(ref pack, 1);              // ChannelCount
+            sampleRatePacker.SetBits(ref pack, sampleRateType);   // SampleRate: 1 = 16000, 3 = 48000
+            sampleTypePacker.SetBits(ref pack, 0);                // SampleType
+            sampleCountPacker.SetBits(ref pack, dataCountFloats); // SampleCount (data count is in bytes and the actual data is in floats, so div by 4)
+            codecTypePacker.SetBits(ref pack, 0);                 // CodecType
             mutePacker.SetBits(ref pack, Mute ? 1 : 0);
             sequenceNumberPacker.SetBits(ref pack, sequenceNumber++);
             sequenceNumber %= 32;
 
-            msg.Write((int)pack);           // the packed bits
+            msg.Write(pack); // the packed bits
 
             // This is where stream data starts. Write all data for one stream
 
-            msg.Write((float)0.0f);         // average amplitude.  Not needed in direction from client to server.
-            msg.Write((int)clientId);  // non-zero client ID for this client.
+            msg.Write(0.0f);     // average amplitude.  Not needed in direction from client to server.
+            msg.Write(clientId); // non-zero client ID for this client.
 
             // HRTF position bits
 
@@ -313,17 +306,17 @@ namespace HoloToolkit.Sharing
 
         private void OnApplicationFocus(bool focused)
         {
-            this.OnApplicationPause(!focused);
+            OnApplicationPause(!focused);
         }
 
         private void OnDisable()
         {
-            this.OnApplicationPause(true);
+            OnApplicationPause(true);
         }
 
         private void OnEnable()
         {
-            this.OnApplicationPause(false);
+            OnApplicationPause(false);
         }
 #endif
     }

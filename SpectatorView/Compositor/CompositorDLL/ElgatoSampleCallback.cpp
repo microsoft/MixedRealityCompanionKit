@@ -20,7 +20,9 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
     // Get frame time.
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);
-    cachedTimestamp = t.QuadPart;
+    thirdTimeStamp = secondTimeStamp;
+    secondTimeStamp = latestTimeStamp;
+    latestTimeStamp = t.QuadPart;
 
     int copyLength = length;
     if (copyLength > FRAME_BUFSIZE)
@@ -29,7 +31,10 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
         copyLength = FRAME_BUFSIZE;
     }
 
-    memcpy(cachedBytes, pBuffer, copyLength);
+    memcpy(thirdCachedBuffer, secondCachedBuffer, FRAME_BUFSIZE);
+    memcpy(secondCachedBuffer, latestBuffer, FRAME_BUFSIZE);
+    memcpy(latestBuffer, pBuffer, copyLength);
+
     EnterCriticalSection(&frameAccessCriticalSection);
     isVideoFrameReady = true;
     LeaveCriticalSection(&frameAccessCriticalSection);
@@ -42,13 +47,14 @@ void ElgatoSampleCallback::UpdateSRV(ID3D11ShaderResourceView* srv, bool useCPU)
     if (useCPU)
     {
         BYTE* stagingBytes = new BYTE[FRAME_BUFSIZE];
-        DirectXHelper::ConvertYUVtoBGRA(cachedBytes, stagingBytes, FRAME_WIDTH, FRAME_HEIGHT, true);
+        // Do not cache when using the CPU
+        DirectXHelper::ConvertYUVtoBGRA(latestBuffer, stagingBytes, FRAME_WIDTH, FRAME_HEIGHT, true);
         DirectXHelper::UpdateSRV(_device, srv, stagingBytes, FRAME_WIDTH * FRAME_BPP);
         delete[] stagingBytes;
     }
     else
     {
-        DirectXHelper::UpdateSRV(_device, srv, cachedBytes, FRAME_WIDTH * FRAME_BPP);
+        DirectXHelper::UpdateSRV(_device, srv, thirdCachedBuffer, FRAME_WIDTH * FRAME_BPP);
     }
 }
 

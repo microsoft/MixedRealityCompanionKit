@@ -1,4 +1,6 @@
-﻿Shader "Holographic/WireFrameInside"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Holographic/WireFrameInside"
 {
     Properties
     {
@@ -53,7 +55,7 @@
                 v2g OUT;
                 float d = tex2Dlod(_DispTex, float4(v.texcoord1.x + _Offset.x, v.texcoord1.y + _Offset.y, 0, 0)).r * _Displacement;
                 v.vertex.xyz += v.normal * d;
-                OUT.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+                OUT.pos = UnityObjectToClipPos(v.vertex);
                 OUT.uv = v.texcoord; // The UVs aren't used in this shader but are included in case you want to use them.
                 return OUT;
             }

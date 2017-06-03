@@ -6,7 +6,8 @@
 
 #if USE_OPENCV
 
-OpenCVFrameProvider::OpenCVFrameProvider()
+OpenCVFrameProvider::OpenCVFrameProvider(bool cacheFrames) :
+    _cacheFrames(cacheFrames)
 {
 }
 
@@ -65,7 +66,9 @@ void OpenCVFrameProvider::Update()
 
     if (videoCapture->grab())
     {
-        cachedTimestamp = time.QuadPart;
+        thirdTimeStamp = secondTimeStamp;
+        secondTimeStamp = latestTimeStamp;
+        latestTimeStamp = time.QuadPart;
 
         concurrency::create_task([=]
         {
@@ -94,7 +97,9 @@ void OpenCVFrameProvider::Update()
             EnterCriticalSection(&lock);
             dirtyFrame = false;
 
-            memcpy(cachedFrame, tmpData, FRAME_BUFSIZE);
+            memcpy(thirdCachedBuffer, secondCachedBuffer, FRAME_BUFSIZE);
+            memcpy(secondCachedBuffer, latestBuffer, FRAME_BUFSIZE);
+            memcpy(latestBuffer, tmpData, FRAME_BUFSIZE);
 
             LeaveCriticalSection(&lock);
         });
@@ -104,7 +109,14 @@ void OpenCVFrameProvider::Update()
             EnterCriticalSection(&lock);
             if (!dirtyFrame)
             {
-                DirectXHelper::UpdateSRV(_device, _colorSRV, cachedFrame, FRAME_WIDTH * FRAME_BPP);
+                if (!_cacheFrames && latestBuffer != nullptr)
+                {
+                    DirectXHelper::UpdateSRV(_device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
+                }
+                else if (_cacheFrames && thirdCachedBuffer != nullptr)
+                {
+                    DirectXHelper::UpdateSRV(_device, _colorSRV, thirdCachedBuffer, FRAME_WIDTH * FRAME_BPP);
+                }
                 dirtyFrame = true;
             }
             LeaveCriticalSection(&lock);
@@ -131,7 +143,7 @@ bool OpenCVFrameProvider::IsVideoFrameReady()
 
 LONGLONG OpenCVFrameProvider::GetTimestamp()
 {
-    return cachedTimestamp;
+    return thirdTimeStamp;
 }
 
 LONGLONG OpenCVFrameProvider::GetDurationHNS()
