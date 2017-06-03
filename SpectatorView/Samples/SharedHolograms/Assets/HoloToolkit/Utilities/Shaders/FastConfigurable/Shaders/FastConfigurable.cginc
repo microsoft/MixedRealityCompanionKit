@@ -182,7 +182,7 @@ v2f vert(a2v v)
         o.lmap.xy = v.lightMapUV.xy * unity_LightmapST.xy + unity_LightmapST.zw;
     #else
         #if defined(_USEAMBIENT_ON) && !defined(_USEBUMPMAP_ON)
-            //grab ambient color from Unity's spherical harmonics					
+            //grab ambient color from Unity's spherical harmonics                    
             o.vertexLighting += ShadeSH9(float4(worldNormal, 1.0));
         #endif
 
@@ -210,7 +210,7 @@ v2f vert(a2v v)
     #endif
     
     #if defined(_USEREFLECTIONS_ON)
-        float3 vertexToCamera = _WorldSpaceCameraPos - worldPos;	
+        float3 vertexToCamera = _WorldSpaceCameraPos - worldPos;    
 
         #if defined(_CALIBRATIONSPACEREFLECTIONS_ON)
             float3 normalReflection = normalize(mul((float3x3)CalibrationSpaceWorldToLocal, flipCorrectedNormal);
@@ -266,7 +266,7 @@ float4 frag(v2f IN) : SV_Target
         float3 lightColorShadowAttenuated = min(lightmapResult, lightAttenuation * 2);
         #else
         float3 lightColorShadowAttenuated = lightmapResult;
-        #endif	
+        #endif    
     #else
         float3 lightColorShadowAttenuated = IN.vertexLighting;
         #if USE_PER_PIXEL
@@ -277,7 +277,7 @@ float4 frag(v2f IN) : SV_Target
                 lightColorShadowAttenuated += ShadeSH9(float4(worldNormal, 1.0));
             #else
                 float3 worldNormal = IN.worldNormal;
-            #endif					
+            #endif                    
         
             #if defined(_USEDIFFUSE_ON)
                 lightColorShadowAttenuated += HoloTKLightingLambertian(worldNormal, _WorldSpaceLightPos0.xyz, _LightColor0.rgb);

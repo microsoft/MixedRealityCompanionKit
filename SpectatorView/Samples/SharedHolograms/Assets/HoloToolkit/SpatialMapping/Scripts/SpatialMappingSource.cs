@@ -239,7 +239,6 @@ namespace HoloToolkit.Unity.SpatialMapping
                 )
             {
                 Destroy(surface.Object);
-                Debug.Assert(surface.GetType().IsValueType(), "If surface is no longer a value type, you should probably set surface.Object to null.");
             }
 
             Mesh filterMesh = surface.Filter.sharedMesh;

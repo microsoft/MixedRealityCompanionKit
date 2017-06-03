@@ -152,12 +152,17 @@ namespace SpectatorView
                 Debug.LogWarning("alphaBlendOutputMat material was not found.");
             }
 
-            alphaBlendVideoMat.SetFloat("_Alpha", HolographicCameraManager.Instance.DefaultAlpha);
-            alphaBlendPreviewMat.SetFloat("_Alpha", HolographicCameraManager.Instance.DefaultAlpha);
-            alphaBlendOutputMat.SetFloat("_Alpha", HolographicCameraManager.Instance.DefaultAlpha);
+            alphaBlendVideoMat.SetFloat("_Alpha", SpectatorViewManager.Instance.DefaultAlpha);
+            alphaBlendPreviewMat.SetFloat("_Alpha", SpectatorViewManager.Instance.DefaultAlpha);
+            alphaBlendOutputMat.SetFloat("_Alpha", SpectatorViewManager.Instance.DefaultAlpha);
 
-            SetFrameOffset(HolographicCameraManager.Instance.DefaultFrameOffset);
-            SetAlpha(HolographicCameraManager.Instance.DefaultAlpha);
+            SetFrameOffset(SpectatorViewManager.Instance.DefaultFrameOffset);
+            SetAlpha(SpectatorViewManager.Instance.DefaultAlpha);
+
+            alphaBlendVideoMat.SetFloat("_Brightness", 1.0f);
+            alphaBlendPreviewMat.SetFloat("_Brightness", 1.0f);
+            alphaBlendOutputMat.SetFloat("_Brightness", 1.0f);
+            flipHorizontallyMat.SetFloat("_Brightness", 1.0f);
         }
 
         public void Reset()
@@ -233,10 +238,10 @@ namespace SpectatorView
 
             camera.enabled = true;
 
-            renderTexture = new RenderTexture(rtWidth, rtHeight, (int)HolographicCameraManager.Instance.TextureDepth);
-            renderTexture.antiAliasing = (int)HolographicCameraManager.Instance.AntiAliasing;
+            renderTexture = new RenderTexture(rtWidth, rtHeight, (int)SpectatorViewManager.Instance.TextureDepth);
+            renderTexture.antiAliasing = (int)SpectatorViewManager.Instance.AntiAliasing;
             renderTexture.anisoLevel = 0;
-            renderTexture.filterMode = HolographicCameraManager.Instance.Filter;
+            renderTexture.filterMode = SpectatorViewManager.Instance.Filter;
             camera.targetTexture = renderTexture;
         }
 

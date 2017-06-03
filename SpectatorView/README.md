@@ -1,5 +1,8 @@
 # README
 
+**These instructions are for the UNET implementation of spectator view**
+For the **HoloToolkit sharing service** implementation, see the [Legacy Documentation](./LegacyDocs/SharingService/README.md).
+
 ![Spectator View Rig](./DocumentationImages/spectatorview.jpg)
 
 ## Overview
@@ -29,7 +32,9 @@ Make sure the materials you get are compatible with your existing camera.
         + [7/16 Nut Driver](https://www.amazon.com/Klein-Tools-630-7-Cushion-Grip-Hollow-Shank/dp/B000BPG4CW/ref=sr_1_1?ie=UTF8&qid=1479853212&sr=8-1&keywords=7%2F16+nut+driver)
         + [T15 Torx](https://www.amazon.com/Stanley-60-011-Standard-Torx-Screwdriver/dp/B000KFXDWW/ref=sr_1_1?ie=UTF8&qid=1479853303&sr=8-1&keywords=15+torx)
         + [T7 Torx](https://www.amazon.com/SE-7542ST-6-Piece-Professional-Screwdriver/dp/B000ST3K3W/ref=sr_1_1?ie=UTF8&qid=1479853479&sr=8-1&keywords=torx+7)
-
++ [Router](https://www.amazon.com/D-Link-Tri-Band-Performance-Beamforming-DIR-890L/dp/B00PVD81MK/ref=sr_1_3?ie=UTF8&qid=1496459664&sr=8-3)
+    + This is necessary if your network does not support UDP broadcast.
+        
 ![Screw Drivers](./DocumentationImages/screw_driver.jpg)
 
 ## Software
@@ -49,6 +54,7 @@ Make sure the materials you get are compatible with your existing camera.
 + [Canon SDK](https://www.usa.canon.com/internet/portal/us/home/explore/solutions-services/digital-camera-sdk-information) (Optional)
     + If you are using a Canon camera and have access to the Canon EDSDK, you can tether your camera to your PC to take higher resolution images.
 + [Unity3D](https://unity3d.com/unity/beta/)
+    + UNET implementation works best in Unity 5.6.1+
 + [Visual Studio 2015 Update 3](https://developer.microsoft.com/en-us/windows/downloads)
 
 
@@ -91,7 +97,7 @@ Calibrates the HoloLens to the external camera.  Uses a checkerboard pattern to 
 ### Compositor
 Unity Editor window that renders holograms from Unity over a color frame from a capture card.  Outputs photo and video of the scene.  This must be built and copied to your Unity project using CopyDLL.cmd.
 ### Samples\SharedHolograms
-Sample demonstrating how to add the HolographicCameraRig to an app that is already a shared experience.  In this case, it is the Holographic Academy [Holograms 240](https://developer.microsoft.com/en-us/windows/holographic/holograms_240) course.
+Sample demonstrating how to add the HolographicCameraRig to an app that is already a shared experience.  In this case, it is a simple shared experience using [UNET](https://docs.unity3d.com/Manual/UNet.html).
 ### CopyDLL.cmd
 If you have changed any #define in CompositorShared.h, run this cmd to copy DLL's that depend on those definitions to your Unity projects.  Include the Assets path to your own project to copy there.
 
@@ -110,6 +116,26 @@ If using a camera with a capture card, you must configure the camera to output c
     + This is the center port on the Blackmagic capture card.
 
 Note: if you would like to capture images or video at a resolution other than 1080P (eg: Photo Mode, 720P, or 4K) there will be a small code change mentioned in the individual projects' README's.
+
+
+## Network Setup
++ The networking stack requires UDP broadcast to be enabled on your network.
++ If you are on a corporate network that does not have this enabled, you may need to use a [router](https://www.amazon.com/D-Link-Tri-Band-Performance-Beamforming-DIR-890L/dp/B00PVD81MK/ref=sr_1_3?ie=UTF8&qid=1496459664&sr=8-3)
+    + Plug an ethernet cable from your PC into the router.
+    + Connect your HoloLens devices to this router.
++ Ensure your HoloLens devices and Unity can talk to each other by opening up UDP and TCP communication to Unity in your firewall settings.
+    + Open the **Control Panel**.
+    + Select **System and Security**.
+    + Select **Windows Firewall**.
+    + Select **Advanced Settings**.
+    + Select **Inbound Rules**.
+    + Find **Unity Editor** and ensure the **Program** path is the version of Unity you are using.
+    + Double click on the Unity Editor line with the **UDP** protocol.
+    + Select **Allow the connection**.
+    + Select **Advanced**.
+    + Select the **profiles** that will work for your router.  (At least **Private** must be checked when using a router.)
+    + Select **Apply**.
+    + Repeat for the **TCP** protocol.
 
 
 ## Spectator View Rig Setup
@@ -197,22 +223,19 @@ Each capture card has required software dependencies including runtimes and SDK'
 
 ## Adding Spectator View Support to Your Unity App
 + If your application does not use the HoloToolkit, you must first **add the HoloToolkit**.
-    + This can be done from the UnityPackage directory for a minimum set of the HoloToolkit for spectator view compatibility.
+    + This can be done from the spectator view releases in the HoloLens Companion Kit repository for a minimum set of the HoloToolkit for spectator view compatibility.
     + Find the largest number subdirectory for the latest official release.
     + Import the **HoloToolkit_Min_%number%.unitypackage**
 + Import the **SpectatorView_%number%.unitypackage** to add the spectator view code to your project.
-+ Unzip the **External_%number%.zip** archive adjacent to your project's Assets directory.
-    + Ensure the unzipped directory is titled "External" and does not have another "External" subdirectory.
 + Add the **"Addons\HolographicCameraRig\Prefabs\SpectatorViewManager"** prefab to your Hierarchy.
-+ Build **"Compositor\Compositor.sln"** and run **CopyDLL.cmd** with the Assets directory of your project as the only parameter.
++ Add the **"Addons\HolographicCameraRig\SV_UNET\Prefabs\Sharing** prefab to your Hierarchy.
++ Build **"Compositor\Compositor.sln"** for x86 and x64 and run **CopyDLL.cmd** with the Assets directory of your project as the only parameter.
     + For more information and build configuration options, read the [compositor README](Compositor/README.md).
++ Restart Unity for DLLs to import.
 + For more information, read the [sample README](Samples/README.md).
 
 
-**NOTE:** You can alternatively use the latest HoloToolkit from the [github repository](https://github.com/Microsoft/HoloToolkit-Unity) - The sample project is kept up to date with breaking changes before official drops are made, but this code is constantly changing so additional work may be required to ensure compatibility.  If you are using this HoloToolkit, you can use the spectator view UnityPackage in "UnityPackage\HoloToolkit_master".
-
-
-##Documentation
+## Documentation
 + **Overview**
 + [Calibration](Calibration/README.md)
 + [Compositor](Compositor/README.md)

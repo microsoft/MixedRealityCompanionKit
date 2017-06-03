@@ -16,7 +16,7 @@ namespace SpectatorView
             SpatialMappingManager.Instance.SetSpatialMappingSource(this);
         }
 
-        public void AddSurface(List<Vector3> vertices, List<Vector3> normals, List<int> triangles)
+        public void AddSurface(List<Vector3> vertices, List<Vector3> normals, List<int> triangles, Transform parent = null)
         {
             Mesh mesh = new Mesh();
             mesh.Clear();
@@ -27,10 +27,15 @@ namespace SpectatorView
 
             mesh.RecalculateNormals();
 
+            if (parent == null)
+            {
+                parent = transform;
+            }
+
             SurfaceObject surfaceObject = CreateSurfaceObject(
                         mesh: mesh,
                         objectName: "RemoteSpatialMapping",
-                        parentObject: transform,
+                        parentObject: parent,
                         drawVisualMeshesOverride: SpatialMappingManager.Instance.DrawVisualMeshes,
                         castShadowsOverride: SpatialMappingManager.Instance.CastShadows
                         );

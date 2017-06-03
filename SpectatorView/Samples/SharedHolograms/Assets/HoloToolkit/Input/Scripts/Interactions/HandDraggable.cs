@@ -139,7 +139,7 @@ namespace HoloToolkit.Unity.InputModule
             Vector3 handDirection = Vector3.Normalize(handPosition - pivotPosition);
 
             objForward = mainCamera.transform.InverseTransformDirection(objForward);       // in camera space
-            objUp = mainCamera.transform.InverseTransformDirection(objUp);       		   // in camera space
+            objUp = mainCamera.transform.InverseTransformDirection(objUp);                  // in camera space
             objDirection = mainCamera.transform.InverseTransformDirection(objDirection);   // in camera space
             handDirection = mainCamera.transform.InverseTransformDirection(handDirection); // in camera space
 
@@ -226,10 +226,10 @@ namespace HoloToolkit.Unity.InputModule
             // Apply Final Rotation
             HostTransform.rotation = Quaternion.Lerp(HostTransform.rotation, draggingRotation, RotationLerpSpeed);
 
-            if (RotationMode == RotationModeEnum.OrientTowardUserAndKeepUpright)		
-            {		
-                Quaternion upRotation = Quaternion.FromToRotation(HostTransform.up, Vector3.up);		
-                HostTransform.rotation = upRotation * HostTransform.rotation;		
+            if (RotationMode == RotationModeEnum.OrientTowardUserAndKeepUpright)        
+            {        
+                Quaternion upRotation = Quaternion.FromToRotation(HostTransform.up, Vector3.up);        
+                HostTransform.rotation = upRotation * HostTransform.rotation;        
             }
         }
 

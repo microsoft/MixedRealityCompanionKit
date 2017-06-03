@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Coin
+  - Floor
   layers:
   - Default
   - TransparentFX
@@ -13,8 +15,6 @@ TagManager:
   - UI
   - 
   - 
-  - NavPath
-  - Drone
   - 
   - 
   - 
@@ -37,6 +37,8 @@ TagManager:
   - 
   - 
   - 
+  - ShadowBox
+  - SpatialMapping
   m_SortingLayers:
   - name: Default
     uniqueID: 0

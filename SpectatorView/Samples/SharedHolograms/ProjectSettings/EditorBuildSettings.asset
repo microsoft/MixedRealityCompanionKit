@@ -6,4 +6,5 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Sharing.unity
+    path: Assets/SpectatorViewSample.unity
+    guid: 65cbb24a27f135c488a22d5007ce52d1

@@ -39,7 +39,7 @@ namespace SpectatorView
         }
         public static string BuildConfig
         {
-            get { return GetEditorPref(EditorPrefs_BuildConfig, "Debug"); }
+            get { return GetEditorPref(EditorPrefs_BuildConfig, "Release"); }
             set { EditorPrefs.SetString(EditorPrefs_BuildConfig, value); }
         }
         public static bool ForceRebuild
@@ -59,12 +59,12 @@ namespace SpectatorView
         }
         public static string DeviceUser
         {
-            get { return GetEditorPref(EditorPrefs_DeviceUser, ""); }
+            get { return GetEditorPref(EditorPrefs_DeviceUser, "user"); }
             set { EditorPrefs.SetString(EditorPrefs_DeviceUser, value); }
         }
         public static string DevicePassword
         {
-            get { return GetEditorPref(EditorPrefs_DevicePwd, ""); }
+            get { return GetEditorPref(EditorPrefs_DevicePwd, "password"); }
             set { EditorPrefs.SetString(EditorPrefs_DevicePwd, value); }
         }
         public static bool FullReinstall

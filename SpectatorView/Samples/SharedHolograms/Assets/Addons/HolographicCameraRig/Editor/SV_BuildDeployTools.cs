@@ -20,6 +20,8 @@ namespace SpectatorView
     public class BuildDeployTools
     {
         // Consts
+        //TODO: 14 for VS 2015
+        //      15 for VS 2017
         public static readonly string DefaultMSBuildVersion = "14.0";
 
         // Functions
@@ -59,16 +61,39 @@ namespace SpectatorView
 
         public static string CalcMSBuildPath(string msBuildVersion)
         {
+            bool foundPath = true;
             using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(string.Format(@"Software\Microsoft\MSBuild\ToolsVersions\{0}", msBuildVersion)))
             {
                 if (key == null)
                 {
-                    return null;
+                    foundPath = false;
                 }
-                string msBuildBinFolder = key.GetValue("MSBuildToolsPath") as string;
-                string msBuildPath = Path.Combine(msBuildBinFolder, "msbuild.exe");
-                return msBuildPath;
+
+                if (foundPath)
+                {
+                    string msBuildBinFolder = key.GetValue("MSBuildToolsPath") as string;
+                    string msBuildPath = Path.Combine(msBuildBinFolder, "msbuild.exe");
+                    return msBuildPath;
+                }
             }
+
+            // Cound not find msbuild path in msbuild registry location, attempt to find VS 2017 install path where msbuild 15 is found.
+            if (!foundPath)
+            {
+                using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\VisualStudio\SxS\VS7"))
+                {
+                    if (key == null)
+                    {
+                        return null;
+                    }
+
+                    string vs17InstallPath = key.GetValue(msBuildVersion) as string;
+                    string msBuildPath = Path.Combine(vs17InstallPath, @"MSBuild\" + msBuildVersion + @"\Bin\MSBuild.exe");
+                    return msBuildPath;
+                }
+            }
+
+            return null;
         }
 
         public static bool BuildAppxFromSolution(string productName, string msBuildVersion, bool forceRebuildAppx, string buildConfig, string buildDirectory, bool incrementVersion)

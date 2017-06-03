@@ -15,15 +15,15 @@
 
 // main tex
 #ifdef _MainTex_SCALE_ON
-	#define _MainTex_SCALE_TOGGLE 1
+    #define _MainTex_SCALE_TOGGLE 1
 #else
-	#define _MainTex_SCALE_TOGGLE 0
+    #define _MainTex_SCALE_TOGGLE 0
 #endif
 
 #ifdef _MainTex_OFFSET_ON
-	#define _MainTex_OFFSET_TOGGLE 1
+    #define _MainTex_OFFSET_TOGGLE 1
 #else
-	#define _MainTex_OFFSET_TOGGLE 0
+    #define _MainTex_OFFSET_TOGGLE 0
 #endif
 
 #define MAINTEX_TYPE_S CONCAT(TRANSFORM_TEX_, _MainTex_SCALE_TOGGLE)
@@ -32,15 +32,15 @@
 
 //bump map
 #ifdef _BumpMap_SCALE_ON
-	#define _BumpMap_SCALE_TOGGLE 1
+    #define _BumpMap_SCALE_TOGGLE 1
 #else
-	#define _BumpMap_SCALE_TOGGLE 0
+    #define _BumpMap_SCALE_TOGGLE 0
 #endif
 
 #ifdef _BumpMap_OFFSET_ON
-	#define _BumpMap_OFFSET_TOGGLE 1
+    #define _BumpMap_OFFSET_TOGGLE 1
 #else
-	#define _BumpMap_OFFSET_TOGGLE 0
+    #define _BumpMap_OFFSET_TOGGLE 0
 #endif
 
 #define BUMPMAP_TYPE_S CONCAT(TRANSFORM_TEX_, _BumpMap_SCALE_TOGGLE)
@@ -49,15 +49,15 @@
 
 //occlusion map
 #ifdef _OcclusionMap_SCALE_ON
-	#define _OcclusionMap_SCALE_TOGGLE 1
+    #define _OcclusionMap_SCALE_TOGGLE 1
 #else
-	#define _OcclusionMap_SCALE_TOGGLE 0
+    #define _OcclusionMap_SCALE_TOGGLE 0
 #endif
 
 #ifdef _OcclusionMap_OFFSET_ON
-	#define _OcclusionMap_OFFSET_TOGGLE 1
+    #define _OcclusionMap_OFFSET_TOGGLE 1
 #else
-	#define _OcclusionMap_OFFSET_TOGGLE 0
+    #define _OcclusionMap_OFFSET_TOGGLE 0
 #endif
 
 #define OCCLUSIONMAP_TYPE_S CONCAT(TRANSFORM_TEX_, _OcclusionMap_SCALE_TOGGLE)
