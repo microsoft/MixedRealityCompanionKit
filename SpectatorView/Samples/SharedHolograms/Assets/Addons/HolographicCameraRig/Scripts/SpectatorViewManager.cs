@@ -67,7 +67,10 @@ namespace SpectatorView
             {
                 Debug.LogError("Sharing must be populated.");
             }
+        }
 
+        void Start()
+        {
             InstantiateSharing();
         }
 

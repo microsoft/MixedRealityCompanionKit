@@ -6,16 +6,12 @@
 
 // These methods must all be called from the same thread.
 // Otherwise, a lock will need to be added which will substantially slow down the render thread.
-HologramQueue::HologramQueue(ID3D11Device* device)
+HologramQueue::HologramQueue()
 {
     for (int i = 0; i < MAX_QUEUE_SIZE; i++)
     {
         m_holographicFrameQueue[i].timeStamp = INVALID_TIMESTAMP;
         m_holographicFrameQueue[i].m_id = i;
-        if (m_holographicFrameQueue[i].holoTexture == nullptr)
-        {
-            m_holographicFrameQueue[i].holoTexture = DirectXHelper::CreateTexture(device, hologramQueueFrameData, HOLOGRAM_WIDTH, HOLOGRAM_HEIGHT, 4);
-        }
     }
 }
 
@@ -38,12 +34,6 @@ FrameMessage* HologramQueue::FindClosestFrame(LONGLONG timeStamp, LONGLONG frame
     for (int i = 0; i < MAX_QUEUE_SIZE; i++)
     {
         LONGLONG frameTime = m_holographicFrameQueue[i].timeStamp;
-
-        // Absolute value of timestamps in case QPC is currently reporting negative values.
-        if (timeStamp < 0) { timeStamp *= -1; }
-        if (frameTime < 0) { frameTime *= -1; }
-        if (frameOffset < 0) { frameOffset *= -1; }
-
         LONGLONG delta = timeStamp - frameTime - frameOffset;
 
         if (delta >= 0 && delta < smallestDelta)

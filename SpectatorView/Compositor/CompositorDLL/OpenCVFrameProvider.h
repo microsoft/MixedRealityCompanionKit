@@ -18,7 +18,7 @@
 class OpenCVFrameProvider : public IFrameProvider
 {
 public:
-    OpenCVFrameProvider();
+    OpenCVFrameProvider(bool cacheFrames = true);
     ~OpenCVFrameProvider();
 
     virtual HRESULT Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture);
@@ -48,12 +48,16 @@ private:
     CRITICAL_SECTION lock;
     CRITICAL_SECTION frameAccessCriticalSection;
 
-    LONGLONG cachedTimestamp = -1;
-    LONGLONG latestTimestamp = -1;
+    bool _cacheFrames = true;
+
+    LONGLONG latestTimeStamp = 0;
+    LONGLONG secondTimeStamp = 0;
+    LONGLONG thirdTimeStamp = 0;
 
     BYTE* tmpData = new BYTE[FRAME_BUFSIZE];
-    BYTE* cachedFrame = new BYTE[FRAME_BUFSIZE];
-    BYTE* latestFrame = new BYTE[FRAME_BUFSIZE];
+    BYTE* thirdCachedBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* secondCachedBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
 
     cv::VideoCapture* videoCapture = nullptr;
     ID3D11ShaderResourceView* _colorSRV;

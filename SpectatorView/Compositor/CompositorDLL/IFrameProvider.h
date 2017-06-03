@@ -9,7 +9,9 @@ class IFrameProvider
 public:
     // Set up the FrameProvider to start delivering frames.
     virtual HRESULT Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture) = 0;
-    // Get the timestamp of the latest frame.
+
+    // 4 frames are caches for reliable hologram stability:
+    // Get the timestamp of the currently rendered cached frame.
     virtual LONGLONG GetTimestamp() = 0;
 
     virtual LONGLONG GetDurationHNS() = 0;
