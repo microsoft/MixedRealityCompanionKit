@@ -67,6 +67,14 @@ namespace SpectatorView
 
         [DllImport("UnityCompositorInterface")]
         private static extern bool IsRecording();
+
+        [DllImport("UnityCompositorInterface")]
+        private static extern void UpdateSpectatorView();
+
+        [DllImport("UnityCompositorInterface")]
+        private static extern bool GetEarliestHologramPose(
+            out float rotX, out float rotY, out float rotZ, out float rotW,
+            out float posX, out float posY, out float posZ, out float timestamp);
         #endregion
 
         public bool IsCurrentlyActive { get; set; }
@@ -272,6 +280,23 @@ namespace SpectatorView
 
         void Update()
         {
+            UpdateSpectatorView();
+
+            if (IsCurrentlyActive && transform.parent != null)
+            {
+                if (NewColorFrame())
+                {
+                    Quaternion currRot = Quaternion.identity;
+                    Vector3 currPos = Vector3.zero;
+                    float nextTime = 0;
+                    GetEarliestHologramPose(out currRot.x, out currRot.y, out currRot.z, out currRot.w,
+                        out currPos.x, out currPos.y, out currPos.z, out nextTime);
+
+                    transform.parent.localPosition = currPos;
+                    transform.parent.localRotation = currRot;
+                }
+            }
+
             if (!frameProviderInitialized)
             {
                 frameProviderInitialized = InitializeFrameProvider();

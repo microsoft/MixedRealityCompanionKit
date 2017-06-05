@@ -106,8 +106,6 @@ private:
     IBaseFilter *pNullF = NULL;
     ElgatoSampleCallback *frameCallback = NULL;
     IElgatoVideoCaptureFilter6 *filter = NULL;
-
-    BYTE* cachedBuffer = new BYTE[FRAME_BUFSIZE];
 };
 
 #endif

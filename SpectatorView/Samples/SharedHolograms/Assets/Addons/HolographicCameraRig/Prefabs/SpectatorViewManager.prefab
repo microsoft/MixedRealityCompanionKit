@@ -56,5 +56,6 @@ MonoBehaviour:
   Anchor: {fileID: 1000011605073594, guid: 575b6f2048cf6a547b9f168869d4e523, type: 2}
   Sharing: {fileID: 163528, guid: 8aaf37823b26ee449bb3b3d7775965c3, type: 2}
   SpectatorViewIP: 
-  LocalComputerIP: 
   SharingServiceIP: 
+  LocalComputerIP: 
+  ClientHololensCSV: 

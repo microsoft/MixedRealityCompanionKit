@@ -18,48 +18,28 @@ namespace SpectatorView
 
         public void AddSurface(List<Vector3> vertices, List<Vector3> normals, List<int> triangles)
         {
-            GameObject meshObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            meshObject.layer = SpatialMappingManager.Instance.PhysicsLayer;
-            meshObject.transform.localPosition = Vector3.zero;
-            meshObject.transform.localRotation = Quaternion.identity;
-
             Mesh mesh = new Mesh();
-            meshObject.GetComponent<MeshFilter>().mesh.Clear();
-            meshObject.GetComponent<MeshFilter>().mesh = mesh;
+            mesh.Clear();
+
             mesh.SetVertices(vertices);
             mesh.SetNormals(normals);
             mesh.SetTriangles(triangles, 0);
 
             mesh.RecalculateNormals();
 
-            Collider collider = meshObject.GetComponent<Collider>();
-            if (collider != null)
-            {
-                GameObject.DestroyImmediate(collider);
-            }
-            MeshCollider meshCollider = meshObject.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = null;
-            meshCollider.sharedMesh = mesh;
+            SurfaceObject surfaceObject = CreateSurfaceObject(
+                        mesh: mesh,
+                        objectName: "RemoteSpatialMapping",
+                        parentObject: transform,
+                        drawVisualMeshesOverride: SpatialMappingManager.Instance.DrawVisualMeshes,
+                        castShadowsOverride: SpatialMappingManager.Instance.CastShadows
+                        );
 
-            if (!SpatialMappingManager.Instance.DrawVisualMeshes)
-            {
-                meshObject.GetComponent<Renderer>().enabled = false;
-            }
-            if (!SpatialMappingManager.Instance.CastShadows)
-            {
-                meshObject.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
+            surfaceObject.Object.transform.localPosition = Vector3.zero;
+            surfaceObject.Object.transform.localRotation = Quaternion.identity;
 
-            GameObject surfaceObject = AddSurfaceObject(mesh, "RemoteSpatialMapping", transform);
-            surfaceObject.transform.localPosition = Vector3.zero;
-            surfaceObject.transform.localRotation = Quaternion.identity;
+            AddSurfaceObject(surfaceObject);
 
-            meshCollider = surfaceObject.GetComponent<MeshCollider>();
-            meshCollider.sharedMesh = null;
-            meshCollider.sharedMesh = mesh;
-
-            // Destroy original game object.
-            GameObject.DestroyImmediate(meshObject);
         }
 
         public void ClearMeshes()

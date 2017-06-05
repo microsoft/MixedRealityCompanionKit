@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using SpectatorView;
 
 namespace HoloToolkit.Unity.InputModule
 {
@@ -12,8 +13,15 @@ namespace HoloToolkit.Unity.InputModule
     /// Input Manager is responsible for managing input sources and dispatching relevant events
     /// to the appropriate input handlers. 
     /// </summary>
-    public class InputManager : Singleton<InputManager>
+    public class InputManager : SV_Singleton<InputManager>
     {
+        /// <summary>
+        /// To tap on a hologram even when not focused on,
+        /// set OverrideFocusedObject to desired game object.
+        /// If it's null, then focused object will be used.
+        /// </summary>
+        public GameObject OverrideFocusedObject { get; set; }
+
         public event Action InputEnabled;
         public event Action InputDisabled;
 
@@ -208,6 +216,9 @@ namespace HoloToolkit.Unity.InputModule
                 return;
             }
 
+            // Use focused object when OverrideFocusedObject is null.
+            GameObject focusedObject = (OverrideFocusedObject == null) ? GazeManager.Instance.HitObject : OverrideFocusedObject;
+
             // Send the event to global listeners
             for (int i = 0; i < globalListeners.Count; i++)
             {
@@ -222,7 +233,6 @@ namespace HoloToolkit.Unity.InputModule
 
                 // If there is a focused object in the hierarchy of the modal handler, start the event
                 // bubble there
-                GameObject focusedObject = GazeManager.Instance.HitObject;
                 if (focusedObject != null && focusedObject.transform.IsChildOf(modalInput.transform))
                 {
 
@@ -242,9 +252,9 @@ namespace HoloToolkit.Unity.InputModule
             }
 
             // If event was not handled by modal, pass it on to the current focused object
-            if (GazeManager.Instance.HitObject != null)
+            if (focusedObject != null)
             {
-                bool eventHandled = ExecuteEvents.ExecuteHierarchy(GazeManager.Instance.HitObject, eventData, eventHandler);
+                bool eventHandled = ExecuteEvents.ExecuteHierarchy(focusedObject, eventData, eventHandler);
                 if (eventHandled)
                 {
                     return;

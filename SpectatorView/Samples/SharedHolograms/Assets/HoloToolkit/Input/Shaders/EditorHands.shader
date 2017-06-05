@@ -3,7 +3,7 @@
     Properties
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
-        _Color ("Tint", Color) = (1,1,1,1)
+        [PerRendererData] _Color ("Tint", Color) = (1,1,1,1)
         
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -17,7 +17,7 @@
     SubShader
     {
         Tags
-        { 
+        {
             "Queue"="Transparent" 
             "IgnoreProjector"="True" 
             "RenderType"="Transparent" 
@@ -43,7 +43,7 @@
 
         Pass
         {
-        CGPROGRAM
+            CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
@@ -55,7 +55,6 @@
                 float2 texcoord : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
-
             struct v2f
             {
                 float4 vertex   : SV_POSITION;
@@ -63,34 +62,32 @@
                 half2 texcoord  : TEXCOORD0;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
-            
             fixed4 _Color;
-
             v2f vert(appdata_t IN)
             {
                 UNITY_SETUP_INSTANCE_ID(IN);
-
                 v2f OUT;
-                OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
+                OUT.vertex = UnityObjectToClipPos(IN.vertex);
                 OUT.texcoord = IN.texcoord;
-#ifdef UNITY_HALF_TEXEL_OFFSET
+                #ifdef UNITY_HALF_TEXEL_OFFSET
                 OUT.vertex.xy += (_ScreenParams.zw-1.0)*float2(-1,1);
-#endif
+                #endif
                 OUT.color = IN.color * _Color;
-
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
                 return OUT;
             }
 
-            sampler2D _MainTex;
 
+            sampler2D _MainTex;
             fixed4 frag(v2f IN) : SV_Target
             {
                 half4 color = tex2D(_MainTex, IN.texcoord) * IN.color;
                 clip (color.a - 0.01);
                 return color;
             }
+
         ENDCG
         }
     }
+    CustomEditor "EditorHandsMaterialInspector"
 }

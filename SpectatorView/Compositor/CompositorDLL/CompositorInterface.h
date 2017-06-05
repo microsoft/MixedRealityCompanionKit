@@ -57,7 +57,8 @@ public:
     DLLEXPORT void Update();
     DLLEXPORT void StopFrameProvider();
 
-    DLLEXPORT LONGLONG GetColorTime();
+    DLLEXPORT LONGLONG GetTimestamp();
+
     DLLEXPORT LONGLONG GetColorDuration();
 
     DLLEXPORT void TakePicture(ID3D11Device* device, int width, int height, int bpp, 
