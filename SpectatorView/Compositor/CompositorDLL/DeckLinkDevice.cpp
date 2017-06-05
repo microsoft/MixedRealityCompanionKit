@@ -79,9 +79,10 @@ DeckLinkDevice::~DeckLinkDevice()
     DeleteCriticalSection(&m_outputCriticalSection);
     DeleteCriticalSection(&m_frameAccessCriticalSection);
 
-    delete[] cachedBuffer;
-    delete[] stagingBuffer;
+    delete[] thirdCachedBuffer;
+    delete[] secondCachedBuffer;
     delete[] latestBuffer;
+    delete[] stagingBuffer;
     delete[] outputBuffer;
     delete[] outputBufferRaw;
 }
@@ -148,7 +149,8 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* o
     BSTR                            deviceNameBSTR = NULL;
 
     ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
-    ZeroMemory(cachedBuffer, FRAME_BUFSIZE);
+    ZeroMemory(thirdCachedBuffer, FRAME_BUFSIZE);
+    ZeroMemory(secondCachedBuffer, FRAME_BUFSIZE);
     ZeroMemory(latestBuffer, FRAME_BUFSIZE);
     ZeroMemory(outputBuffer, FRAME_BUFSIZE);
     ZeroMemory(outputBufferRaw, FRAME_BUFSIZE_RAW);
@@ -372,13 +374,16 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
     {
         if (frame->GetBytes((void**)&rawBuffer) == S_OK)
         {
+            // Always return the latest buffer when using the CPU.
             if (_useCPU)
             {
-                DirectXHelper::ConvertYUVtoBGRA(rawBuffer, cachedBuffer, FRAME_WIDTH, FRAME_HEIGHT, true);
+                DirectXHelper::ConvertYUVtoBGRA(rawBuffer, latestBuffer, FRAME_WIDTH, FRAME_HEIGHT, true);
             }
             else
             {
-                memcpy(cachedBuffer, rawBuffer, FRAME_BUFSIZE_RAW);
+                memcpy(thirdCachedBuffer, secondCachedBuffer, FRAME_BUFSIZE_RAW);
+                memcpy(secondCachedBuffer, latestBuffer, FRAME_BUFSIZE_RAW);
+                memcpy(latestBuffer, rawBuffer, FRAME_BUFSIZE_RAW);
             }
         }
     }
@@ -391,11 +396,14 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
                 //TODO: Remove this block if R and B components are swapped in color feed.
                 memcpy(stagingBuffer, localFrameBuffer, FRAME_BUFSIZE);
                 DirectXHelper::ConvertBGRAtoRGBA(stagingBuffer, FRAME_WIDTH, FRAME_HEIGHT, true);
-                memcpy(cachedBuffer, stagingBuffer, FRAME_BUFSIZE);
+                // Do not cache frames when using the CPU
+                memcpy(latestBuffer, stagingBuffer, FRAME_BUFSIZE);
             }
             else
             {
-                memcpy(cachedBuffer, localFrameBuffer, FRAME_BUFSIZE);
+                memcpy(thirdCachedBuffer, secondCachedBuffer, FRAME_BUFSIZE);
+                memcpy(secondCachedBuffer, latestBuffer, FRAME_BUFSIZE);
+                memcpy(latestBuffer, localFrameBuffer, FRAME_BUFSIZE);
             }
         }
     }
@@ -404,7 +412,9 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
     frame->GetStreamTime(&t, &frameDuration, QPC_MULTIPLIER);
 
     // Get frame time.
-    cachedTimeStamp = time.QuadPart;
+    thirdTimeStamp = secondTimeStamp;
+    secondTimeStamp = latestTimeStamp;
+    latestTimeStamp = time.QuadPart;
 
     dirtyFrame = false;
 
@@ -445,13 +455,20 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
 void DeckLinkDevice::Update()
 {
     if (_colorSRV != nullptr &&
-        cachedBuffer != nullptr &&
         device != nullptr)
     {
         if (!dirtyFrame)
         {
             dirtyFrame = true;
-            DirectXHelper::UpdateSRV(device, _colorSRV, cachedBuffer, FRAME_WIDTH * FRAME_BPP);
+            if (_useCPU && latestBuffer != nullptr)
+            {
+                // Do not cache when using CPU.
+                DirectXHelper::UpdateSRV(device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
+            }
+            else if (!_useCPU && thirdCachedBuffer != nullptr)
+            {
+                DirectXHelper::UpdateSRV(device, _colorSRV, thirdCachedBuffer, FRAME_WIDTH * FRAME_BPP);
+            }
 
             EnterCriticalSection(&m_frameAccessCriticalSection);
             isVideoFrameReady = true;

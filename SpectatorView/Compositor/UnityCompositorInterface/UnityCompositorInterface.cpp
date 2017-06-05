@@ -47,16 +47,8 @@ static ID3D11ShaderResourceView* g_UnityHoloSRV = nullptr;
 
 static ID3D11Device* g_pD3D11Device = NULL;
 
-static LONGLONG prevFrameDelta = 0;
-static LONGLONG prevFrameDeltaNoModification = 0;
-static LONGLONG lastColorTime = INVALID_TIMESTAMP;
-static LONGLONG lastHoloTime = INVALID_TIMESTAMP;
-static LONGLONG prevColorTime = INVALID_TIMESTAMP;
-// Flag to indicate to Unity that a new color frame is ready.
-static bool newColorFrameExternal = false;
-
 static float _frameOffset = INITIAL_FRAME_OFFSET;
-static LONGLONG _networkLatency = 0;
+static LONGLONG colorTime = INVALID_TIMESTAMP;
 
 static bool takePicture = false;
 static bool takeHiResPicture = false;
@@ -112,35 +104,163 @@ UNITYDLL void UpdateCompositor()
     }
 
     ci->Update();
-
-    prevColorTime = lastColorTime;
-    lastColorTime = ci->GetColorTime();
-
-    // These flags are only queried from Unity's update loop, so a lock is not needed.
-    if (prevColorTime != lastColorTime)
-    {
-        newColorFrameExternal = true;
-    }
-}
-
-UNITYDLL void SetHoloTime()
-{
-    LARGE_INTEGER time;
-    QueryPerformanceCounter(&time);
-
-    time.QuadPart;
-    lastHoloTime = time.QuadPart;
-}
-
-UNITYDLL void SetExplicitHoloTime(LONGLONG holoTime)
-{
-    lastHoloTime = holoTime;
 }
 
 // Expose queue state so Unity can determine whether to render the spectator view's render texture or the queued hologram texture.
 UNITYDLL bool QueueingHoloFrames()
 {
     return QUEUE_FRAMES;
+}
+
+struct HoloLensPose
+{
+public:
+    HoloLensPose()
+    {
+        _rotX = 0;
+        _rotY = 0;
+        _rotZ = 0;
+        _rotW = 0;
+
+        _posX = 0;
+        _posY = 0;
+        _posZ = 0;
+
+        _timestamp = 0;
+        _colorTime = 0;
+    }
+
+    HoloLensPose(HoloLensPose& copy)
+    {
+        _rotX = copy._rotX;
+        _rotY = copy._rotY;
+        _rotZ = copy._rotZ;
+        _rotW = copy._rotW;
+
+        _posX = copy._posX;
+        _posY = copy._posY;
+        _posZ = copy._posZ;
+
+        _timestamp = copy._timestamp;
+        _colorTime = copy._colorTime;
+    }
+
+    HoloLensPose(
+        float rotX, float rotY, float rotZ, float rotW,
+        float posX, float posY, float posZ,
+        LONGLONG timestamp, LONGLONG colorTime)
+    {
+        _rotX = rotX;
+        _rotY = rotY;
+        _rotZ = rotZ;
+        _rotW = rotW;
+
+        _posX = posX;
+        _posY = posY;
+        _posZ = posZ;
+
+        _timestamp = timestamp;
+        _colorTime = colorTime;
+    }
+
+    float _rotX, _rotY, _rotZ, _rotW, _posX, _posY, _posZ;
+    LONGLONG _timestamp;
+    LONGLONG _colorTime;
+};
+
+static HoloLensPose thirdPose = HoloLensPose::HoloLensPose();
+
+UNITYDLL void GetEarliestHologramPose(
+    float& rotX, float& rotY, float& rotZ, float& rotW,
+    float& posX, float& posY, float& posZ, float& timestamp)
+{
+    rotX = thirdPose._rotX;
+    rotY = thirdPose._rotY;
+    rotZ = thirdPose._rotZ;
+    rotW = thirdPose._rotW;
+
+    posX = thirdPose._posX;
+    posY = thirdPose._posY;
+    posZ = thirdPose._posZ;
+
+    timestamp = thirdPose._timestamp;
+}
+
+// Set hologram poses when we get them on the network.
+UNITYDLL void SetHologramPose(
+    float rotX, float rotY, float rotZ, float rotW,
+    float posX, float posY, float posZ)
+{
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    LARGE_INTEGER time;
+    QueryPerformanceCounter(&time);
+
+    LONGLONG timestamp = time.QuadPart;
+
+    auto hologramFrame = ci->GetNextHologramFrame(timestamp);
+    if (hologramFrame != nullptr)
+    {
+        hologramFrame->rotX = rotX;
+        hologramFrame->rotY = rotY;
+        hologramFrame->rotZ = rotZ;
+        hologramFrame->rotW = rotW;
+
+        hologramFrame->posX = posX;
+        hologramFrame->posY = posY;
+        hologramFrame->posZ = posZ;
+    }
+}
+
+static bool newColorFrame = false;
+UNITYDLL bool NewColorFrame()
+{
+    bool value = newColorFrame;
+
+    if (value == true)
+    {
+        newColorFrame = false;
+    }
+
+    return value;
+}
+
+UNITYDLL void UpdateSpectatorView()
+{
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    LONGLONG cachedTime = colorTime;
+    colorTime = ci->GetTimestamp();
+    if (cachedTime != colorTime)
+    {
+        LONGLONG frameDuration = ci->GetColorDuration();
+        float buffer = 0.1f * frameDuration;
+
+        // Find a pose on the leading end of this color frame.
+        const auto frame = ci->FindClosestHologramFrame(
+            colorTime - frameDuration + buffer, (LONGLONG)(_frameOffset * (float)frameDuration));
+
+        if (frame != nullptr)
+        {
+            thirdPose._rotX = frame->rotX;
+            thirdPose._rotY = frame->rotY;
+            thirdPose._rotZ = frame->rotZ;
+            thirdPose._rotW = frame->rotW;
+            thirdPose._posX = frame->posX;
+            thirdPose._posY = frame->posY;
+            thirdPose._posZ = frame->posZ;
+            thirdPose._timestamp = frame->timeStamp;
+            thirdPose._colorTime = colorTime;
+        }
+
+        newColorFrame = true;
+    }
 }
 
 // Plugin function to handle a specific rendering event
@@ -151,38 +271,8 @@ static void __stdcall OnRenderEvent(int eventID)
         return;
     }
 
-#if QUEUE_FRAMES
-    // Get the time of the current render event.
-    LARGE_INTEGER time;
-
-    QueryPerformanceCounter(&time);
-
-    // Update Hologram Queue
-    if (ci != nullptr && g_holoRenderTexture != nullptr && g_holoTexture != nullptr && g_pD3D11Device != nullptr)
-    {
-        LONGLONG frameDuration = ci->GetColorDuration();
-        auto timestamp = (time.QuadPart) + (LONGLONG)(_frameOffset * (float)frameDuration);
-
-        const auto hologramFrame = ci->GetNextHologramFrame(timestamp);
-        if (hologramFrame != nullptr)
-        {
-            DirectXHelper::CopyTexture(g_pD3D11Device, hologramFrame->holoTexture, g_holoRenderTexture);
-
-            const auto closestHologramFrame = ci->FindClosestHologramFrame(ci->GetColorTime(), prevFrameDeltaNoModification);
-            if (closestHologramFrame != nullptr)
-            {
-                if (closestHologramFrame->GetId() != hologramFrame->GetId())
-                {
-                    DirectXHelper::CopyTexture(g_pD3D11Device, g_holoTexture, closestHologramFrame->holoTexture);
-                }
-                else
-                {
-                    DirectXHelper::CopyTexture(g_pD3D11Device, g_holoTexture, g_holoRenderTexture);
-                }
-            }
-        }
-    }
-#endif
+    // Update hologram texture from the spectator view camera.
+    DirectXHelper::CopyTexture(g_pD3D11Device, g_holoTexture, g_holoRenderTexture);
 
     EnterCriticalSection(&lock);
 
@@ -245,7 +335,7 @@ static void __stdcall OnRenderEvent(int eventID)
             delete[] mergedBytes;
         }
 
-        LONGLONG cachedFrameTime = ci->GetColorTime();
+        LONGLONG cachedFrameTime = ci->GetTimestamp();
         if (isRecording &&
             g_videoTexture != nullptr &&
             cachedFrameTime != INVALID_TIMESTAMP &&
@@ -263,44 +353,6 @@ static void __stdcall OnRenderEvent(int eventID)
     LeaveCriticalSection(&lock);
 }
 
-UNITYDLL void SetNetworkLatency(LONGLONG networkLatency)
-{
-    _networkLatency = networkLatency;
-}
-
-UNITYDLL int GetFrameDelta()
-{
-    if (ci == nullptr)
-    {
-        return 0;
-    }
-
-    if (lastColorTime == INVALID_TIMESTAMP)
-    {
-        return 0;
-    }
-
-    LARGE_INTEGER frequency;
-    QueryPerformanceFrequency(&frequency);
-
-    LONGLONG frameDuration = ci->GetColorDuration();
-    LONGLONG frameDelta = (lastHoloTime - lastColorTime);
-
-    if (frameDelta > 0) { frameDelta *= -1; }
-
-    frameDelta -= (LONGLONG)(_frameOffset * (float)frameDuration);
-    prevFrameDeltaNoModification = frameDelta;
-
-    frameDelta -= (LONGLONG)(_networkLatency / 2.0f);
-
-    frameDelta *= QPC_MULTIPLIER;
-    frameDelta /= frequency.QuadPart;
-
-    prevFrameDelta = frameDelta;
-
-    return (int)frameDelta;
-}
-
 UNITYDLL LONGLONG GetColorDuration()
 {
     if (ci != nullptr)
@@ -309,18 +361,6 @@ UNITYDLL LONGLONG GetColorDuration()
     }
 
     return (LONGLONG)((1.0f / 30.0f) * QPC_MULTIPLIER);
-}
-
-UNITYDLL bool NewColorFrame()
-{
-    bool ret = newColorFrameExternal;
-
-    if (newColorFrameExternal)
-    {
-        newColorFrameExternal = false;
-    }
-
-    return ret;
 }
 
 // Function to pass a callback to plugin-specific scripts
@@ -395,7 +435,6 @@ UNITYDLL void SetAudioData(BYTE* audioData)
 #if ENCODE_AUDIO
     // Get the time for the audio frame.
     LARGE_INTEGER time;
-
     QueryPerformanceCounter(&time);
 
     if (ci != nullptr)
@@ -611,3 +650,27 @@ UNITYDLL bool CreateUnityHoloTexture(ID3D11ShaderResourceView*& srv)
     return true;
 }
 #pragma endregion CreateExternalTextures
+
+// These functions are included for backwards compatibility
+#pragma region BackCompat
+UNITYDLL void SetHoloTime()
+{
+}
+
+UNITYDLL void SetExplicitHoloTime(LONGLONG holoTime)
+{
+}
+
+UNITYDLL int GetFrameDelta()
+{
+    return 0;
+}
+
+static LONGLONG _networkLatency = 0;
+
+// HNS
+UNITYDLL void SetNetworkLatency(LONGLONG networkLatency)
+{
+    _networkLatency = networkLatency;
+}
+#pragma endregion BackCompat

@@ -9,7 +9,7 @@
 #include <memory>
 #include <array>
 
-#define MAX_QUEUE_SIZE 30
+#define MAX_QUEUE_SIZE 90
 
 #define INVALID_TIMESTAMP -1
 
@@ -20,8 +20,7 @@ typedef struct
     friend class HologramQueue;
 public:
     LONGLONG timeStamp = INVALID_TIMESTAMP;
-
-    ID3D11Texture2D* holoTexture;
+    float rotX, rotY, rotZ, rotW, posX, posY, posZ;
 
     int GetId() const { return m_id; }
 private:
@@ -34,7 +33,7 @@ static BYTE* hologramQueueFrameData = new BYTE[HOLOGRAM_BUFSIZE];
 class HologramQueue
 {
 public:
-    HologramQueue(ID3D11Device* device);
+    HologramQueue();
 
     FrameMessage* GetNextFrame(LONGLONG timeStamp);
     FrameMessage* FindClosestFrame(LONGLONG timeStamp, LONGLONG frameOffset);

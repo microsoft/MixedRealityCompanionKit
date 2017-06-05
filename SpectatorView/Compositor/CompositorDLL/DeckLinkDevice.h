@@ -57,18 +57,20 @@ private:
     CRITICAL_SECTION          m_outputCriticalSection;
 
     BYTE* localFrameBuffer;
-    BYTE* rawBuffer =         new BYTE[FRAME_BUFSIZE_RAW];
+    BYTE* rawBuffer =           new BYTE[FRAME_BUFSIZE_RAW];
 
-    BYTE* cachedBuffer =      new BYTE[FRAME_BUFSIZE];
-    BYTE* stagingBuffer =     new BYTE[FRAME_BUFSIZE];
-    BYTE* latestBuffer =      new BYTE[FRAME_BUFSIZE];
-    BYTE* outputBuffer =      new BYTE[FRAME_BUFSIZE];
-    BYTE* outputBufferRaw =   new BYTE[FRAME_BUFSIZE_RAW];
+    BYTE* thirdCachedBuffer =   new BYTE[FRAME_BUFSIZE];
+    BYTE* secondCachedBuffer =  new BYTE[FRAME_BUFSIZE];
+    BYTE* latestBuffer =        new BYTE[FRAME_BUFSIZE];
+    BYTE* stagingBuffer =       new BYTE[FRAME_BUFSIZE];
+    BYTE* outputBuffer =        new BYTE[FRAME_BUFSIZE];
+    BYTE* outputBufferRaw =     new BYTE[FRAME_BUFSIZE_RAW];
 
     BMDTimeValue frameDuration = 0;
 
     LONGLONG latestTimeStamp = 0;
-    LONGLONG cachedTimeStamp = 0;
+    LONGLONG secondTimeStamp = 0;
+    LONGLONG thirdTimeStamp = 0;
 
     bool dirtyFrame = true;
     bool isVideoFrameReady = false;
@@ -104,9 +106,9 @@ public:
     virtual HRESULT  STDMETHODCALLTYPE    VideoInputFormatChanged (/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */ IDeckLinkDisplayMode *newDisplayMode, /* in */ BMDDetectedVideoInputFormatFlags detectedSignalFlags);
     virtual HRESULT  STDMETHODCALLTYPE    VideoInputFrameArrived (/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket);
 
-    LONGLONG GetTimeStamp()
+    LONGLONG GetTimestamp()
     {
-        return cachedTimeStamp;
+        return thirdTimeStamp;
     }
 
     LONGLONG GetDurationHNS()

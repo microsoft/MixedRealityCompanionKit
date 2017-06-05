@@ -71,14 +71,14 @@ To restore the previous session (auto saved as devices are registered and unregi
 Note: Reconnect to previous session will become disabled after a reconnection has been attempted, a session file has been loaded or the Register button has been used one or more times.
 ```
 
-![Rgister Device Dialog](ReadmeImages/ConnectDialog.png)
+![Register Device Dialog](ReadmeImages/ConnectDialog.png)
 
 ###### Address
 Enter the IP Address in the **Address** field. If you are connecting to a Windows PC, you must also provide the port number (typically 50443). Checking the **Desktop PC** button will append the default Windows Device Portal port, if no port has been specified. 
 
 To determine the correct address to specify:
 * HoloLens: Run the Settings application, select Network & Internet > Wi-Fi.
-* Windows PC : Run the Settings application, select Update & Security > For Developers.
+* Windows PC: Run the Settings application, select Update & Security > For Developers.
 
 ##### Name
 You can optionally enter a name associated with the device in the **Name** field. If the **Update Device** options is checked, the device will be renamed and then rebooted.
@@ -90,11 +90,11 @@ If you wish to use a specific set of credentials for the device, fill out the **
 If you wish to set your device onto a specific network access point, enter the **SSID** and **Network key**. If you have previously set defaults for these values, they will be automatically populated. As with user name and password, making changes to SSID and Network key will override the default values for the connection.
 
 ```
-Note: If you specifiy an SSID, the device may become unreachable if the PC does not have access to the new address. 
+Note: If you specify an SSID, the device may become unreachable if the PC does not have access to the new address. 
 ```
 
 ###### Use Installed Device Certificate
-If you have previously downloaded and installed the device's root certificate, you can select **Use Installed Device Certificate**fs. Otherwise, the certificate wil be automatically downloaded, though it will not be installed.
+If you have previously downloaded and installed the device's root certificate, you can select **Use Installed Device Certificate**. Otherwise, the certificate wil be automatically downloaded, though it will not be installed.
 
 ###### Update Connection
 Checking **Update Connection** instructs Windows Mixed Reality Commander to query the device for the first valid (non-169.x.x.x) IP address it reports. 
@@ -128,7 +128,7 @@ The **Session Management** controls allow you to create and use a library of ses
 The ![Load Session](ReadmeImages/LoadSessionButton.png) button loads a saved device session file. Loading a file removes all devices in the current session and replaces them with the devices from the file.
 
 ```
-Note: If a device's IP Address changes afer the session has been saved, the device will need to be re-registered (and the old registration unregistered).
+Note: If a device's IP Address changes after the session has been saved, the device will need to be re-registered (and the old registration unregistered).
 ```
 
 ##### Save Session
@@ -184,7 +184,7 @@ The **Stop** button ends the Mixed Reality recording session on the selected dev
 The **Save** button downloads all files from the Camera Roll on the selected devices.
 
 ##### Delete files after saving
-Checing the **Delete files after saving** option deletes each file in the device's Camera Roll once it has been downloaded.
+Checking the **Delete files after saving** option deletes each file in the device's Camera Roll once it has been downloaded.
 
 ##### Clear Camera Roll
 The **Clear Camera Roll** button wipes all saved photos, videos, and mixed reality captures on each selected device. 
@@ -301,7 +301,7 @@ For example, you may have 30 HoloLens devices in your classroom and notice that 
 
 ![Tag Device Dialog](ReadmeImages/TagDialog.png)
 
-Checking the **Update Dveice** option will change the name on the device and reboot it. Once rebooted, the connection will be re-established using the updated device certificate.
+Checking the **Update Device** option will change the name on the device and reboot it. Once rebooted, the connection will be re-established using the updated device certificate.
 
 #### Settings
 The ![Settings](ReadmeImages/SettingsButton.png) displays a dialog that allows you to configure the behavior of Windows Mixed Reality Commander.
@@ -309,7 +309,7 @@ The ![Settings](ReadmeImages/SettingsButton.png) displays a dialog that allows y
 ![Settings Dialog](ReadmeImages/SettingsDialogs.png)
 
 ##### Auto-Reconnect
-The **Auto-reconnect to previous sesion** option enables the automatic loading of the device session file that is auto-saved as devices are registered and unregistered.
+The **Auto-reconnect to previous session** option enables the automatic loading of the device session file that is auto-saved as devices are registered and unregistered.
 
 ##### Heartbeat interval
 The **Heartbeat Interval** specifies the number of seconds between attempts to verify device availability.
@@ -321,13 +321,13 @@ Checking **Expand credentials** tells Windows Mixed Reality Commander to expand 
 **Expand network settings** controls whether or not the SSID and Network key controls are expanded in the **Register device** dialog.
 
 ##### Use installed device certificate
-Checking **Use installed device certificate** tells Windows Mixed Reality Commmander to not download the root certificate for the device because the certificate has already been downloaded and installed in the certificate store.
+Checking **Use installed device certificate** tells Windows Mixed Reality Commander to not download the root certificate for the device because the certificate has already been downloaded and installed in the certificate store.
 
 ##### Default SSID and Network Key
-If you need to add your devices to a specific network access point, you can simplify the task by setting defaut values for the SSID and Network Key. These will be used, by default, when connections are established.
+If you need to add your devices to a specific network access point, you can simplify the task by setting default values for the SSID and Network Key. These will be used, by default, when connections are established.
 
 ```
-Note: If you specifiy an SSID, the device may become unreachable if the PC does not have access to the new address. 
+Note: If you specify an SSID, the device may become unreachable if the PC does not have access to the new address. 
 ```
 
 ### Project dependencies

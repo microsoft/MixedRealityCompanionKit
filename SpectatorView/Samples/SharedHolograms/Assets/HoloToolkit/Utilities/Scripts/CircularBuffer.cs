@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using UnityEngine;
-using UnityEngine.Assertions;
 using System;
-using System.Collections;
 
 namespace HoloToolkit.Unity
 {
+    /// <summary>
+    /// Helper class for transmitting data over network.
+    /// </summary>
     public class CircularBuffer
     {
         public CircularBuffer(int size, bool allowOverwrite = false, int padding = 4)
@@ -57,7 +57,7 @@ namespace HoloToolkit.Unity
             {
                 maxWritePos = allowOverwrite ? data.Length : readOffset - readWritePadding;
             }
-        
+
             int chunkSize = Math.Min(byteCount, maxWritePos - writeOffset);
             int writeEnd = writeOffset + chunkSize;
             bool needToMoveReadOffset = wrappedAround ? writeEnd >= readOffset : (writeEnd == data.Length && readOffset == 0);
@@ -116,9 +116,9 @@ namespace HoloToolkit.Unity
         }
 
         private byte[] data;
-        private int writeOffset = 0;
-        private int readOffset = 0;
-    
+        private int writeOffset;
+        private int readOffset;
+
         private readonly int readWritePadding;
         private readonly bool allowOverwrite;
     }

@@ -55,10 +55,11 @@ MonoBehaviour:
   ClientRole: 0
   ServerAddress: localhost
   ServerPort: 20602
-  connectOnAwake: 0
+  connectOnAwake: 1
   AutoDiscoverServer: 0
   PingIntervalSec: 2
-  IsAudioEndpoint: 0
+  IsAudioEndpoint: 1
+  ShowDetailedLogs: 0
 --- !u!114 &114000013602799446
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace HoloToolkit.Unity
 {
+    /// <summary>
+    /// Sets global shader variables relating to near plane fade
+    /// </summary>
     [ExecuteInEditMode]
     public class NearPlaneFade : MonoBehaviour
     {
@@ -17,7 +20,7 @@ namespace HoloToolkit.Unity
 
         private int fadeDistancePropertyID;
 
-        private void Start()
+        private void Awake()
         {
             fadeDistancePropertyID = Shader.PropertyToID("_NearPlaneFadeDistance");
             UpdateShaderParams();
@@ -25,19 +28,21 @@ namespace HoloToolkit.Unity
 
         private void OnValidate()
         {
-            FadeDistanceStart = Mathf.Max(FadeDistanceStart, 0);
-            FadeDistanceEnd = Mathf.Max(FadeDistanceEnd, 0);
-            FadeDistanceStart = Mathf.Max(FadeDistanceStart, FadeDistanceEnd);
-
             UpdateShaderParams();
         }
 
         private void UpdateShaderParams()
         {
-            float rangeInverse = 1.0f / (FadeDistanceStart - FadeDistanceEnd);
-            var fadeDist = new Vector4(-FadeDistanceEnd * rangeInverse, rangeInverse, 0, 0);
+            FadeDistanceStart = Mathf.Max(FadeDistanceStart, 0);
+            FadeDistanceEnd = Mathf.Max(FadeDistanceEnd, 0);
+            FadeDistanceStart = Mathf.Max(FadeDistanceStart, FadeDistanceEnd);
 
-            Shader.SetGlobalVector(fadeDistancePropertyID, fadeDist);
+            if (FadeDistanceStart != FadeDistanceEnd)
+            {
+                float rangeInverse = 1.0f / (FadeDistanceStart - FadeDistanceEnd);
+                var fadeDist = new Vector4(-FadeDistanceEnd * rangeInverse, rangeInverse, 0, 0);
+                Shader.SetGlobalVector(fadeDistancePropertyID, fadeDist);
+            }
 
             if (NearPlaneFadeOn)
             {

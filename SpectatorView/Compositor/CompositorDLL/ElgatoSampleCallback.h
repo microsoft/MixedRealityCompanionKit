@@ -56,7 +56,7 @@ public:
     
     LONGLONG GetTimestamp()
     {
-        return cachedTimestamp;
+        return thirdTimeStamp;
     }
 
     bool IsVideoFrameReady();
@@ -65,8 +65,13 @@ private:
     ULONG m_cRef = 0;
 
     ID3D11Device* _device;
-    BYTE* cachedBytes = new BYTE[FRAME_BUFSIZE];
-    LONGLONG cachedTimestamp = -1;
+    BYTE* thirdCachedBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* secondCachedBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
+
+    LONGLONG latestTimeStamp = 0;
+    LONGLONG secondTimeStamp = 0;
+    LONGLONG thirdTimeStamp = 0;
 
     CRITICAL_SECTION frameAccessCriticalSection;
     bool isVideoFrameReady = false;

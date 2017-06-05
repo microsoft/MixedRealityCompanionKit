@@ -9,6 +9,7 @@ namespace HoloToolkit.Sharing
 {
     /// <summary>
     /// Keeps track of the users in the current session.
+    /// Instance is created by Sharing Stage when a connection is found.
     /// </summary>
     public class SessionUsersTracker : IDisposable
     {
@@ -26,7 +27,7 @@ namespace HoloToolkit.Sharing
         /// Local cached pointer to the sessions tracker..
         /// </summary>
         private readonly ServerSessionsTracker serverSessionsTracker;
-        
+
         /// <summary>
         /// List of users that are in the current session.
         /// </summary>
@@ -36,12 +37,12 @@ namespace HoloToolkit.Sharing
         {
             CurrentUsers = new List<User>();
 
-            this.serverSessionsTracker = sessionsTracker;
-            this.serverSessionsTracker.CurrentUserJoined += OnCurrentUserJoinedSession;
-            this.serverSessionsTracker.CurrentUserLeft += OnCurrentUserLeftSession;
+            serverSessionsTracker = sessionsTracker;
+            serverSessionsTracker.CurrentUserJoined += OnCurrentUserJoinedSession;
+            serverSessionsTracker.CurrentUserLeft += OnCurrentUserLeftSession;
 
-            this.serverSessionsTracker.UserJoined += OnUserJoinedSession;
-            this.serverSessionsTracker.UserLeft += OnUserLeftSession;
+            serverSessionsTracker.UserJoined += OnUserJoinedSession;
+            serverSessionsTracker.UserLeft += OnUserLeftSession;
         }
 
         /// <summary>
@@ -53,9 +54,11 @@ namespace HoloToolkit.Sharing
         {
             for (int u = 0; u < CurrentUsers.Count; u++)
             {
-                var user = CurrentUsers[u];
+                User user = CurrentUsers[u];
                 if (user.GetID() == userId)
+                {
                     return user;
+                }
             }
             return null;
         }
@@ -72,11 +75,11 @@ namespace HoloToolkit.Sharing
         {
             if (disposing)
             {
-                this.serverSessionsTracker.CurrentUserJoined -= OnCurrentUserJoinedSession;
-                this.serverSessionsTracker.CurrentUserLeft -= OnCurrentUserLeftSession;
+                serverSessionsTracker.CurrentUserJoined -= OnCurrentUserJoinedSession;
+                serverSessionsTracker.CurrentUserLeft -= OnCurrentUserLeftSession;
 
-                this.serverSessionsTracker.UserJoined -= OnUserJoinedSession;
-                this.serverSessionsTracker.UserLeft -= OnUserLeftSession;
+                serverSessionsTracker.UserJoined -= OnUserJoinedSession;
+                serverSessionsTracker.UserLeft -= OnUserLeftSession;
             }
         }
 
@@ -94,7 +97,7 @@ namespace HoloToolkit.Sharing
             {
                 User user = joinedSession.GetUser(i);
                 CurrentUsers.Add(user);
-                UserJoined.RaiseEvent(user);;
+                UserJoined.RaiseEvent(user);
             }
         }
 
@@ -115,10 +118,18 @@ namespace HoloToolkit.Sharing
 
             if (!CurrentUsers.Contains(user))
             {
-                //Debug.LogFormat("User {0} joined current session.", user.GetName());
-                CurrentUsers.RemoveAll(x => x.GetID() == user.GetID()); // in case there was an old user with the same ID
+                // Remove any old users with the same ID
+                for (int i = CurrentUsers.Count - 1; i >= 0; i--)
+                {
+                    if (CurrentUsers[i].GetID() == user.GetID())
+                    {
+                        CurrentUsers.RemoveAt(i);
+                    }
+                }
+
                 CurrentUsers.Add(user);
                 UserJoined.RaiseEvent(user);
+                // Debug.LogFormat("User {0} joined current session.", user.GetName());
             }
         }
 
@@ -129,10 +140,14 @@ namespace HoloToolkit.Sharing
                 return;
             }
 
-            if (CurrentUsers.RemoveAll(x => x.GetID() == user.GetID()) > 0)
+            for (int i = CurrentUsers.Count - 1; i >= 0; i--)
             {
-                //Debug.LogFormat("User {0} left current session.", user.GetName());
-                UserLeft.RaiseEvent(user);
+                if (CurrentUsers[i].GetID() == user.GetID())
+                {
+                    CurrentUsers.RemoveAt(i);
+                    UserLeft.RaiseEvent(user);
+                    // Debug.LogFormat("User {0} left current session.", user.GetName());
+                }
             }
         }
 
