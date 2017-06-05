@@ -9,7 +9,8 @@
     Title="Settings"
     PrimaryButtonText="Ok"
     SecondaryButtonText="Cancel"
-    PrimaryButtonClick="ContentDialog_OkClick">
+    PrimaryButtonClick="ContentDialog_OkClick"
+    MaxHeight="500">
 
     <StackPanel>
         <Canvas 
