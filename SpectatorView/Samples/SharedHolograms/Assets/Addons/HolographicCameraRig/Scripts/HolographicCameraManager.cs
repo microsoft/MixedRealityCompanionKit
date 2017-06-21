@@ -19,6 +19,7 @@ namespace SpectatorView
 {
     public class HolographicCameraManager : SpectatorView.SV_Singleton<HolographicCameraManager>
     {
+#if UNITY_EDITOR
         #region DLLImports
         [DllImport("UnityCompositorInterface")]
         private static extern int GetFrameWidth();
@@ -76,7 +77,7 @@ namespace SpectatorView
             out float rotX, out float rotY, out float rotZ, out float rotW,
             out float posX, out float posY, out float posZ, out float timestamp);
         #endregion
-
+#endif
         public bool IsCurrentlyActive { get; set; }
 
         [Header("Device IPs")]
