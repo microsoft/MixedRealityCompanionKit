@@ -22,7 +22,7 @@ namespace SpectatorView
         // Consts
         //TODO: 14 for VS 2015
         //      15 for VS 2017
-        public static readonly string DefaultMSBuildVersion = "14.0";
+        public static readonly string DefaultMSBuildVersion = "15.0";
 
         // Functions
         public static bool BuildSLN(string buildDirectory, bool showConfDlg = true)
