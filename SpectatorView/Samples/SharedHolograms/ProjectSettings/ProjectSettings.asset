@@ -265,6 +265,7 @@ PlayerSettings:
   switchSocketMemoryPoolSize: 6144
   switchSocketAllocatorPoolSize: 128
   switchSocketConcurrencyLimit: 14
+  switchScreenResolutionBehavior: 2
   switchUseCPUProfiler: 0
   switchApplicationID: 0x0005000C10000001
   switchNSODependencies: 
@@ -280,9 +281,6 @@ PlayerSettings:
   switchTitleNames_9: 
   switchTitleNames_10: 
   switchTitleNames_11: 
-  switchTitleNames_12: 
-  switchTitleNames_13: 
-  switchTitleNames_14: 
   switchPublisherNames_0: 
   switchPublisherNames_1: 
   switchPublisherNames_2: 
@@ -295,9 +293,6 @@ PlayerSettings:
   switchPublisherNames_9: 
   switchPublisherNames_10: 
   switchPublisherNames_11: 
-  switchPublisherNames_12: 
-  switchPublisherNames_13: 
-  switchPublisherNames_14: 
   switchIcons_0: {fileID: 0}
   switchIcons_1: {fileID: 0}
   switchIcons_2: {fileID: 0}
@@ -310,9 +305,6 @@ PlayerSettings:
   switchIcons_9: {fileID: 0}
   switchIcons_10: {fileID: 0}
   switchIcons_11: {fileID: 0}
-  switchIcons_12: {fileID: 0}
-  switchIcons_13: {fileID: 0}
-  switchIcons_14: {fileID: 0}
   switchSmallIcons_0: {fileID: 0}
   switchSmallIcons_1: {fileID: 0}
   switchSmallIcons_2: {fileID: 0}
@@ -325,9 +317,6 @@ PlayerSettings:
   switchSmallIcons_9: {fileID: 0}
   switchSmallIcons_10: {fileID: 0}
   switchSmallIcons_11: {fileID: 0}
-  switchSmallIcons_12: {fileID: 0}
-  switchSmallIcons_13: {fileID: 0}
-  switchSmallIcons_14: {fileID: 0}
   switchManualHTML: 
   switchAccessibleURLs: 
   switchLegalInformation: 
@@ -343,7 +332,7 @@ PlayerSettings:
   switchApplicationErrorCodeCategory: 
   switchUserAccountSaveDataSize: 0
   switchUserAccountSaveDataJournalSize: 0
-  switchAttribute: 0
+  switchApplicationAttribute: 0
   switchCardSpecSize: 4
   switchCardSpecClock: 25
   switchRatingsMask: 0
@@ -370,6 +359,15 @@ PlayerSettings:
   switchParentalControl: 0
   switchAllowsScreenshot: 1
   switchDataLossConfirmation: 0
+  switchSupportedNpadStyles: 3
+  switchSocketConfigEnabled: 0
+  switchTcpInitialSendBufferSize: 32
+  switchTcpInitialReceiveBufferSize: 64
+  switchTcpAutoSendBufferSizeMax: 256
+  switchTcpAutoReceiveBufferSizeMax: 256
+  switchUdpSendBufferSize: 9
+  switchUdpReceiveBufferSize: 42
+  switchSocketBufferEfficiency: 4
   ps4NPAgeRating: 12
   ps4NPTitleSecret: 
   ps4NPTrophyPackPath: 
@@ -518,9 +516,9 @@ PlayerSettings:
   metroPackageVersion: 1.0.0.0
   metroCertificatePath: Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: DefaultCompany
-  metroCertificateIssuer: DefaultCompany
-  metroCertificateNotAfter: 002ab6a9eab0d301
+  metroCertificateSubject: Microsoft
+  metroCertificateIssuer: Microsoft
+  metroCertificateNotAfter: 00561a009c0ed401
   metroApplicationDescription: SpectatorViewSample
   wsaImages: {}
   metroTileShortName: Amaze

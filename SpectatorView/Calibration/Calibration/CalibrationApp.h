@@ -39,8 +39,8 @@
 
 #include "opencv2/opencv.hpp"
 
-//TODO: Update to the version of OpenCV you are using (if not 3.1)
-#pragma comment(lib, "opencv_world310")
+//TODO: Update to the version of OpenCV you are using (if not 3.2)
+#pragma comment(lib, "opencv_world320")
 
 // For REST calls
 using namespace web::json;
