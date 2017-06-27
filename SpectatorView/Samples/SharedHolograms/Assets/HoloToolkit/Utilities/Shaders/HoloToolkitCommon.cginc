@@ -22,7 +22,7 @@ inline float3 HoloTKLightingLambertian(float3 normal, float3 lightDir, float3 li
 // Specular lighting
 inline float3 HoloTKLightingBlinnPhong(float3 normal, float3 lightDir, float lightCol, float3 viewDir, float specularPower, float specularScale, float3 specularColor)
 {
-    float3 h = normalize(lightDir + viewDir);	
+    float3 h = normalize(lightDir + viewDir);    
     float nh = max(0, dot(normal, h));
     float spec = pow(nh, specularPower) * specularScale;
     

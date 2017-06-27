@@ -17,6 +17,7 @@ Shader "Hidden/AlphaBlendPreview"
         _FlipVideo("FlipVideo", int) = 0
         // Flip R and B
         _RGBA("RGBA", int) = 0
+        _Brightness("Brightness", float) = 1.0
     }
     SubShader
     {
@@ -61,6 +62,7 @@ Shader "Hidden/AlphaBlendPreview"
             int _SwapBackgroundRB;
             int _FlipVideo;
             int _RGBA;
+            float _Brightness;
 
             fixed4 fragYUV(v2f i)
             {
@@ -85,6 +87,7 @@ Shader "Hidden/AlphaBlendPreview"
                     val = 1;
                 }
             fixed4 backCol = GetRGBA(yuvPixel, val);
+            backCol.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 0)
                 {
@@ -111,6 +114,7 @@ Shader "Hidden/AlphaBlendPreview"
                 }
 
                 fixed4 backCol = tex2D(_MainTex, i.uv);
+                backCol.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 0)
                 {

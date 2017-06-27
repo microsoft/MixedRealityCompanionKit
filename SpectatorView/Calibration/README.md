@@ -92,7 +92,7 @@ Calibration process should look like this.  For better results, you can also fil
 
 ![calibration](../DocumentationImages/calibration.gif)
 
-##Documentation
+## Documentation
 + [Overview](../README.md)
 + **Calibration**
 + [Compositor](../Compositor/README.md)

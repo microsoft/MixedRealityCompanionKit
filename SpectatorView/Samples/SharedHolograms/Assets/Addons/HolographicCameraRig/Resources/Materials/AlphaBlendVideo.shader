@@ -17,6 +17,7 @@ Shader "Hidden/AlphaBlendVideo"
         _YUV("YUV", int) = 0
         _SwapBackgroundRB("SwapBackgroundRB", int) = 0
         _NV12("NV12", int) = 0
+        _Brightness("Brightness", float) = 1.0
     }
     
     SubShader
@@ -62,6 +63,7 @@ Shader "Hidden/AlphaBlendVideo"
             int _YUV;
             int _NV12;
             int _SwapBackgroundRB;
+            float _Brightness;
 
             fixed4 fragRGBA(v2f i)
             {
@@ -83,6 +85,7 @@ Shader "Hidden/AlphaBlendVideo"
                 }
 
                 backCol = tex2D(_MainTex, backColUV);
+                backCol.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 0)
                 {
@@ -120,6 +123,7 @@ Shader "Hidden/AlphaBlendVideo"
                     val = 1;
                 }
                 fixed4 backCol = GetRGBA(yuv, val);
+                backCol.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 0)
                 {
@@ -161,6 +165,10 @@ Shader "Hidden/AlphaBlendVideo"
                 fixed4 backCol2 = GetRGBA(yuvPixel, 1);
                 fixed4 backCol3 = GetRGBA(yuvPixel2, 0);
                 fixed4 backCol4 = GetRGBA(yuvPixel2, 1);
+                backCol.rgba *= _Brightness;
+                backCol2.rgba *= _Brightness;
+                backCol3.rgba *= _Brightness;
+                backCol4.rgba *= _Brightness;
 
                 // Alpha Blend
                 fixed2 uv1, uv2, uv3, uv4;
@@ -213,6 +221,10 @@ Shader "Hidden/AlphaBlendVideo"
                 backCol2 = GetRGBA(yuvPixel, 1);
                 backCol3 = GetRGBA(yuvPixel2, 0);
                 backCol4 = GetRGBA(yuvPixel2, 1);
+                backCol.rgba *= _Brightness;
+                backCol2.rgba *= _Brightness;
+                backCol3.rgba *= _Brightness;
+                backCol4.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 1)
                 {
@@ -274,6 +286,10 @@ Shader "Hidden/AlphaBlendVideo"
                 fixed4 backCol2 = tex2D(_MainTex, uv2);
                 fixed4 backCol3 = tex2D(_MainTex, uv3);
                 fixed4 backCol4 = tex2D(_MainTex, uv4);
+                backCol.rgba *= _Brightness;
+                backCol2.rgba *= _Brightness;
+                backCol3.rgba *= _Brightness;
+                backCol4.rgba *= _Brightness;
 
                 fixed4 frontCol = tex2D(_FrontTex, fixed2(uv1.x, 1 - uv1.y));
                 fixed4 frontCol2 = tex2D(_FrontTex, fixed2(uv2.x, 1 - uv2.y));
@@ -313,6 +329,10 @@ Shader "Hidden/AlphaBlendVideo"
                 backCol2 = tex2D(_MainTex, uv2);
                 backCol3 = tex2D(_MainTex, uv3);
                 backCol4 = tex2D(_MainTex, uv4);
+                backCol.rgba *= _Brightness;
+                backCol2.rgba *= _Brightness;
+                backCol3.rgba *= _Brightness;
+                backCol4.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 1)
                 {

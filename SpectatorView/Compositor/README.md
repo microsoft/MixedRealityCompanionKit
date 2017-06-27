@@ -83,7 +83,7 @@ If you are not using a black magic capture card, you will need to install Open C
 + If you have followed all of the steps in the sample project: as you move the camera around, the composite image will show the holograms where they should be with respect to your HoloLens.
 
 
-##Documentation
+## Documentation
 + [Overview](../README.md)
 + [Calibration](../Calibration/README.md)
 + **Compositor**

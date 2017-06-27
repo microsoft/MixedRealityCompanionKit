@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using SpectatorView;
 
 namespace HoloToolkit.Unity.InputModule
 {
@@ -13,7 +12,7 @@ namespace HoloToolkit.Unity.InputModule
     /// Input Manager is responsible for managing input sources and dispatching relevant events
     /// to the appropriate input handlers. 
     /// </summary>
-    public class InputManager : SV_Singleton<InputManager>
+    public class InputManager : Singleton<InputManager>
     {
         /// <summary>
         /// To tap on a hologram even when not focused on,

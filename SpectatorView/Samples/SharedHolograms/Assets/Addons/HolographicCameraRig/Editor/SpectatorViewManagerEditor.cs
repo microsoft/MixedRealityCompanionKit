@@ -18,19 +18,42 @@ namespace SpectatorView
 
         string BuildIPsList()
         {
-            string ipCSV = SpectatorViewManager.Instance.ClientHololensCSV;
-            string[] ipArray = ipCSV.Split(new char[','], System.StringSplitOptions.RemoveEmptyEntries);
-
-            List<string> ipList = new List<string>();
-            foreach (string ip in ipArray)
+            SpectatorViewManager svm = (SpectatorViewManager)target;
+            if (svm == null)
             {
-                ipList.Add(ip.Trim());
+                return string.Empty;
             }
 
-            string spectatorViewIP = SpectatorViewManager.Instance.SpectatorViewIP.Trim();
+            string ipCSV = string.Empty;
+            List<string> ipList = new List<string>();
+
+            if (svm.ClientHololensCSV.Trim() != string.Empty)
+            {
+                ipCSV = svm.ClientHololensCSV;
+                string[] ipArray = ipCSV.Split(new char[] { ',', ' ', ';' }, System.StringSplitOptions.RemoveEmptyEntries);
+                foreach (string ip in ipArray)
+                {
+                    if (!ipList.Contains(ip.Trim()))
+                    {
+                        System.Net.IPAddress address;
+                        Debug.Log("IP: " + ip.Trim());
+                        if (System.Net.IPAddress.TryParse(ip.Trim(), out address))
+                        {
+                            Debug.Log("Parsed!");
+                            ipList.Add(ip.Trim());
+                        }
+                    }
+                }
+            }
+
+            string spectatorViewIP = svm.SpectatorViewID.Trim();
             if (spectatorViewIP != string.Empty && !ipList.Contains(spectatorViewIP))
             {
-                ipList.Add(spectatorViewIP);
+                System.Net.IPAddress address;
+                if (System.Net.IPAddress.TryParse(spectatorViewIP.Trim(), out address))
+                {
+                    ipList.Add(spectatorViewIP);
+                }
             }
 
             ipCSV = string.Empty;
@@ -54,20 +77,7 @@ namespace SpectatorView
             GUILayout.Space(5);
             EditorGUILayout.BeginVertical("Box");
             {
-                GUILayout.Label("Update IP");
-
-                SpectatorView.SpectatorViewManager svm = (SpectatorView.SpectatorViewManager)target;
-                if (GUILayout.Button("Update Spectator View IP"))
-                {
-                    svm.UpdateSpectatorViewIP();
-                }
-            }
-            EditorGUILayout.EndVertical();
-
-            GUILayout.Space(5);
-            EditorGUILayout.BeginVertical("Box");
-            {
-                GUILayout.Label("App Management");
+                GUILayout.Label("App Management", EditorStyles.boldLabel);
 
                 if (GUILayout.Button("Open Build Window"))
                 {
@@ -135,6 +145,7 @@ namespace SpectatorView
                     BuildDeployWindow buildWindow = BuildDeployWindow.GetBuildWindow();
                     buildWindow.KillAppOnIPs(BuildIPsList());
                 }
+                GUILayout.Space(5);
             }
             EditorGUILayout.EndVertical();
         }
