@@ -20,6 +20,7 @@ namespace SpectatorView
     public class SpectatorViewManager : SpectatorView.SV_Singleton<SpectatorViewManager>
     {
         #region DLLImports
+#if UNITY_EDITOR
         [DllImport("UnityCompositorInterface")]
         private static extern int GetFrameWidth();
 
@@ -62,7 +63,6 @@ namespace SpectatorView
         [DllImport("UnityCompositorInterface")]
         private static extern bool IsRecording();
 
-#if UNITY_EDITOR
         [DllImport("UnityCompositorInterface")]
         private static extern bool GetEarliestHologramPose(
             out float rotX, out float rotY, out float rotZ, out float rotW,
