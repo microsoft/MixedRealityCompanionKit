@@ -19,9 +19,9 @@ If you are using a Blackmagic capture card, you will need to install the SDK and
 + Update the DeckLink_inc user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
 
-### OpenCV 3.1
-If you are not using a black magic capture card, you will need to install Open CV to get color frames from a different capture device.
-+ Download and install OpenCV 3.1 from here: http://opencv.org/downloads.html
+### OpenCV 3.2
+If you are not using a capture card with an included FrameProvider, you will need to install Open CV to get color frames from a different capture device.
++ Download and install OpenCV 3.2 from here: http://opencv.org/downloads.html
 + Extract OpenCV anywhere on your computer.
 + Update the OpenCV_vc14 user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
@@ -37,7 +37,7 @@ If you are not using a black magic capture card, you will need to install Open C
 
 #### If you are using a different capture card that does not run on BlackMagic's DeckLink SDK:
 + First try using the OpenCV FrameProvider:
-    + **NOTE:** This will require an x64 build of Unity unless you built your own x86 OpenCV 3.1 binaries
+    + **NOTE:** This will require an x64 build of Unity unless you built your own x86 OpenCV 3.2 binaries
     + In CompositorShared.h in the SharedHeaders project, change **USE_OPENCV** to TRUE, change the other FrameProvider preprocessor definitions to FALSE.
     + In OpenCVFrameProvider.h, change **CAMERA_ID** to be the index of the capture device you are using.
 + If that did not work and your capture card has an SDK, use that:

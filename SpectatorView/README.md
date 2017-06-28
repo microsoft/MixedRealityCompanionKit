@@ -49,8 +49,8 @@ Make sure the materials you get are compatible with your existing camera.
     + If using an Elgato capture card.
 + [Elgato Filters](https://github.com/elgatosf/gamecapture)
     + If using an Elgato capture card.
-+ [OpenCV 3.1](http://opencv.org/downloads.html)
-    + Download and install OpenCV **3.1**
++ [OpenCV 3.2](http://opencv.org/downloads.html)
+    + Download and install OpenCV **3.2**
 + [Canon SDK](https://www.usa.canon.com/internet/portal/us/home/explore/solutions-services/digital-camera-sdk-information) (Optional)
     + If you are using a Canon camera and have access to the Canon EDSDK, you can tether your camera to your PC to take higher resolution images.
 + [Unity3D](https://unity3d.com/unity/beta/)
@@ -63,8 +63,8 @@ The following dependencies require a manual download and a Visual Studio user ma
 
 ![Dependencies](./DocumentationImages/dependencies.png)
 
-### OpenCV 3.1
-+ Download and install OpenCV **3.1** from [here](http://opencv.org/downloads.html).
+### OpenCV 3.2
++ Download and install OpenCV **3.2** from [here](http://opencv.org/downloads.html).
 + Extract OpenCV anywhere on your computer.
 + Update the OpenCV_vc14 user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
