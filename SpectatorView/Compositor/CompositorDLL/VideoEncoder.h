@@ -48,6 +48,8 @@ private:
     void WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duration);
     void WriteAudio(byte* buffer, LONGLONG timestamp);
 
+    LARGE_INTEGER freq;
+
     class VideoInput
     {
     public:

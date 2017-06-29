@@ -37,6 +37,8 @@ bool VideoEncoder::Initialize(ID3D11Device* device)
     HRESULT hr = E_PENDING;
     hr = MFStartup(MF_VERSION);
 
+    QueryPerformanceFrequency(&freq);
+
 #if HARDWARE_ENCODE_VIDEO
     MFCreateDXGIDeviceManager(&resetToken, &deviceManager);
 
@@ -179,9 +181,6 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
         return;
     }
 
-    LARGE_INTEGER freq;
-    QueryPerformanceFrequency(&freq);
-
     LONGLONG sampleTimeNow = timestamp;
     if (sampleTimeNow < 0) { sampleTimeNow *= -1; }
     LONGLONG sampleTimeStart = startTime;
@@ -266,9 +265,6 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
     {
         return;
     }
-
-    LARGE_INTEGER freq;
-    QueryPerformanceFrequency(&freq);
 
     LONGLONG sampleTimeNow = timestamp;
     if (sampleTimeNow < 0) { sampleTimeNow *= -1; }

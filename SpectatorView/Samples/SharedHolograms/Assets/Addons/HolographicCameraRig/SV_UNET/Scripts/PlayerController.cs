@@ -26,7 +26,7 @@ namespace SpectatorView
         [DllImport("UnityCompositorInterface")]
         private static extern bool SetHologramPose(
             float rotX,  float rotY,  float rotZ,  float rotW,
-            float posX,  float posY,  float posZ);
+            float posX,  float posY,  float posZ, float msOffset);
 #endif
         #endregion
 
@@ -39,7 +39,6 @@ namespace SpectatorView
 
             return 0.033f;
         }
-
 
         private static PlayerController _Instance = null;
         public static PlayerController Instance
@@ -72,6 +71,9 @@ namespace SpectatorView
         /// </summary>
         [SyncVar]
         private Vector3 localPosition;
+
+        [SyncVar]
+        int spectatorViewPing = 0;
 
         /// <summary>
         /// The rotation relative to the shared world anchor.
@@ -109,10 +111,15 @@ namespace SpectatorView
         /// <param name="postion">the localPosition to set</param>
         /// <param name="rotation">the localRotation to set</param>
         [Command(channel = 1)]
-        public void CmdTransform(Vector3 postion, Quaternion rotation)
+        public void CmdTransform(Vector3 postion, Quaternion rotation, int ping)
         {
             localPosition = postion;
             localRotation = rotation;
+
+            if (IsSV())
+            {
+                spectatorViewPing = ping;
+            }
         }
 
         [SyncVar(hook = "AnchorEstablishedChanged")]
@@ -612,7 +619,7 @@ namespace SpectatorView
                 if (IsSV())
                 {
                     SetHologramPose(localRotation.x, localRotation.y, localRotation.z, localRotation.w,
-                        localPosition.x, localPosition.y, localPosition.z);
+                        localPosition.x, localPosition.y, localPosition.z, (float)spectatorViewPing / 2.0f);
                 }
 #endif
                 return;
@@ -657,9 +664,15 @@ namespace SpectatorView
                 transform.rotation = Camera.main.transform.rotation;
             }
 
-            // For UNET we use a command to signal the host to update our local position
-            // and rotation
-            CmdTransform(transform.localPosition, transform.localRotation);
+            // For UNET we use a command to signal the host to update our local position and rotation
+            if (IsSV())
+            {
+                CmdTransform(transform.localPosition, transform.localRotation, NetworkManager.singleton.client.GetRTT());
+            }
+            else
+            {
+                CmdTransform(transform.localPosition, transform.localRotation, 0);
+            }
         }
 
         /// <summary>
