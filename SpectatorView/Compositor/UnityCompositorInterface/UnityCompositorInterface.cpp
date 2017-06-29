@@ -189,7 +189,7 @@ UNITYDLL void GetEarliestHologramPose(
 // Set hologram poses when we get them on the network.
 UNITYDLL void SetHologramPose(
     float rotX, float rotY, float rotZ, float rotW,
-    float posX, float posY, float posZ)
+    float posX, float posY, float posZ, float msOffset)
 {
     if (ci == nullptr)
     {
@@ -201,7 +201,10 @@ UNITYDLL void SetHologramPose(
 
     LONGLONG timestamp = time.QuadPart;
 
-    auto hologramFrame = ci->GetNextHologramFrame(timestamp);
+    // Convert offset to microseconds.
+    LONGLONG offset = (LONGLONG)(msOffset * 1000.0f);
+
+    auto hologramFrame = ci->GetNextHologramFrame(timestamp - offset);
     if (hologramFrame != nullptr)
     {
         hologramFrame->rotX = rotX;
@@ -240,11 +243,9 @@ UNITYDLL void UpdateSpectatorView()
     if (cachedTime != colorTime)
     {
         LONGLONG frameDuration = ci->GetColorDuration();
-        float buffer = 0.1f * frameDuration;
-
         // Find a pose on the leading end of this color frame.
         const auto frame = ci->FindClosestHologramFrame(
-            colorTime - frameDuration + buffer, (LONGLONG)(_frameOffset * (float)frameDuration));
+            colorTime - frameDuration, (LONGLONG)(_frameOffset * (float)frameDuration));
 
         if (frame != nullptr)
         {
