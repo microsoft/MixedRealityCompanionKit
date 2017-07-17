@@ -227,7 +227,7 @@ Each capture card has required software dependencies including runtimes and SDK'
     + This can be done from the spectator view releases in the HoloLens Companion Kit repository for a minimum set of the HoloToolkit for spectator view compatibility.
     + Find the largest number subdirectory for the latest official release.
     + Import the **HoloToolkit_Min_%number%.unitypackage**
-+ Import the **SpectatorView_%number%.unitypackage** to add the spectator view code to your project.
++ Import the **SpectatorView_%number%.unitypackage** from [releases](https://github.com/Microsoft/HoloLensCompanionKit/releases), to add the spectator view code to your project.
 + Add the **"Addons\HolographicCameraRig\Prefabs\SpectatorViewManager"** prefab to your Hierarchy.
 + Add the **"Addons\HolographicCameraRig\SV_UNET\Prefabs\Sharing** prefab to your Hierarchy.
 + Build **"Compositor\Compositor.sln"** for x86 and x64 and run **CopyDLL.cmd** with the Assets directory of your project as the only parameter.
