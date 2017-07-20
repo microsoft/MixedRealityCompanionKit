@@ -3,7 +3,7 @@
 
 #pragma once
 
-#if USE_DECKLINK
+#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
 #include "IFrameProvider.h"
 #include "DeckLinkDevice.h"

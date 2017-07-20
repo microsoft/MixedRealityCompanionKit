@@ -43,6 +43,7 @@ private:
     ID3D11Device* _device;
 
     HologramQueue* hologramQueue;
+    LONGLONG stubVideoTime = 0;
 
 #if USE_CANON_SDK
     CanonSDKManager* canonManager;

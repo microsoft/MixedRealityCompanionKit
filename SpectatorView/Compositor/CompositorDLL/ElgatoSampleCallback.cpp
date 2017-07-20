@@ -13,10 +13,13 @@ ElgatoSampleCallback::ElgatoSampleCallback(ID3D11Device* device) :
 
 ElgatoSampleCallback::~ElgatoSampleCallback()
 {
+    isEnabled = false;
 }
 
 STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long length)
 {
+    isEnabled = true;
+
     // Get frame time.
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);

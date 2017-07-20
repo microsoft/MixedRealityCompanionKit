@@ -336,10 +336,8 @@ static void __stdcall OnRenderEvent(int eventID)
             delete[] mergedBytes;
         }
 
-        LONGLONG cachedFrameTime = ci->GetTimestamp();
         if (isRecording &&
             g_videoTexture != nullptr &&
-            cachedFrameTime != INVALID_TIMESTAMP &&
             ci->IsVideoFrameReady())
         {
 #if HARDWARE_ENCODE_VIDEO
@@ -347,7 +345,17 @@ static void __stdcall OnRenderEvent(int eventID)
 #else
             DirectXHelper::GetBytesFromTexture(g_pD3D11Device, g_videoTexture, FRAME_BPP, videoBytes);
 #endif
-            ci->RecordFrameAsync(videoBytes, cachedFrameTime);
+            LONGLONG frameTime = ci->GetTimestamp();
+            if (frameTime == INVALID_TIMESTAMP ||
+                frameTime == 0)
+            {
+                // To record frames before a camera source is present, we must have a valid timestamp.
+                LARGE_INTEGER time;
+                QueryPerformanceCounter(&time);
+                frameTime = time.QuadPart;
+            }
+
+            ci->RecordFrameAsync(videoBytes, frameTime);
         }
     }
 

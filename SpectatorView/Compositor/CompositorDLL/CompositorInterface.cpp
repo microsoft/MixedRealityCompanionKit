@@ -24,7 +24,7 @@ CompositorInterface::CompositorInterface()
 #if USE_ELGATO
     frameProvider = new ElgatoFrameProvider();
 #endif
-#if USE_DECKLINK
+#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
     frameProvider = new DeckLinkManager();
 #endif
 #if USE_OPENCV
@@ -263,6 +263,23 @@ bool CompositorInterface::IsVideoFrameReady()
     if (frameProvider == nullptr)
     {
         return false;
+    }
+
+    // Allow for stub video frames when frame provider is not enabled.
+    // A frame provider may not be enabled if it is reporting that it is not enabled or 
+    // if its reported frame time is invalid.
+    LONGLONG frameTime = frameProvider->GetTimestamp();
+    if (!frameProvider->IsEnabled() ||
+        frameTime == 0 || frameTime == INVALID_TIMESTAMP)
+    {
+        LARGE_INTEGER time;
+        QueryPerformanceCounter(&time);
+        // If elapsed time exceeds frame duration, allow for a video frame.
+        if (time.QuadPart - stubVideoTime >= (LONGLONG)((1.0f / 30.0f) * (QPC_MULTIPLIER / MS2HNS)))
+        {
+            stubVideoTime = time.QuadPart;
+            return true;
+        }
     }
 
     return frameProvider->IsVideoFrameReady();

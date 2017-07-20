@@ -88,12 +88,17 @@ LONGLONG ElgatoFrameProvider::GetTimestamp()
 
 LONGLONG ElgatoFrameProvider::GetDurationHNS()
 {
-    return (LONGLONG)((1.0f / 60.0f) * QPC_MULTIPLIER);
+    return (LONGLONG)((1.0f / 30.0f) * QPC_MULTIPLIER);
 }
 
 bool ElgatoFrameProvider::IsEnabled()
 {
-    return isEnabled;
+    if (frameCallback == nullptr)
+    {
+        return false;
+    }
+
+    return frameCallback->IsEnabled();
 }
 
 void ElgatoFrameProvider::Dispose()
@@ -264,7 +269,7 @@ HRESULT ElgatoFrameProvider::SetSampleGrabberParameters()
     ZeroMemory(&vih, sizeof(VIDEOINFOHEADER));
     vih.rcTarget.right = FRAME_WIDTH;
     vih.rcTarget.bottom = FRAME_HEIGHT;
-    vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 60.0f) * QPC_MULTIPLIER);
+    vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 30.0f) * QPC_MULTIPLIER);
     vih.bmiHeader.biWidth = FRAME_WIDTH;
     vih.bmiHeader.biHeight = FRAME_HEIGHT;
     vih.bmiHeader.biSizeImage = FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP_RAW;
