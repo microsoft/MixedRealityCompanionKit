@@ -57,7 +57,10 @@ Make sure the materials you get are compatible with your existing camera.
     + UNET implementation works best in Unity 5.6.1+
 + [Visual Studio 2017](https://developer.microsoft.com/en-us/windows/downloads)
     + Note: Visual Studio 2015 may also be used, but the solutions will need to be rolled back to v140 and you will need to target an earlier UWP SDK (such as 10586 or 14393)
-
+    + Ensure you have the following VS2017 Workloads installed: 
+        1. Universal Windows Platform development 
+        2. Desktop development with C++ 
+        3. Game development with C++
 
 ## Dependencies
 The following dependencies require a manual download and a Visual Studio user macro.
