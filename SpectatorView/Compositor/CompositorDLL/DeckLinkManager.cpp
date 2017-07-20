@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "DeckLinkManager.h"
 
-#if USE_DECKLINK
+#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
 DeckLinkManager::DeckLinkManager(bool useCPU, bool passthroughOutput)
 {
@@ -69,10 +69,16 @@ HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Te
                     else if (FRAME_HEIGHT >= 1080 && FRAME_HEIGHT < 2160)
                     {
                         videoDisplayMode = bmdModeHD1080p5994;
+#if USE_DECKLINK_SHUTTLE
+                        videoDisplayMode = bmdModeHD1080p2398;
+#endif
                     }
                     else if (FRAME_HEIGHT == 2160)
                     {
                         videoDisplayMode = bmdMode4K2160p5994;
+#if USE_DECKLINK_SHUTTLE
+                        videoDisplayMode = bmdMode4K2160p2398;
+#endif
                     }
                     else if (FRAME_HEIGHT > 2160)
                     {

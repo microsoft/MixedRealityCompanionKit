@@ -279,10 +279,8 @@ namespace SpectatorView
             {
                 frameProviderInitialized = InitializeFrameProvider();
             }
-            else if (frameProviderInitialized)
-            {
-                UpdateCompositor();
-            }
+            
+            UpdateCompositor();
 #endif
 
 #region network state

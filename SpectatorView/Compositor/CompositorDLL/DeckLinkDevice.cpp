@@ -26,7 +26,7 @@
 */
 #include "stdafx.h"
 
-#if USE_DECKLINK
+#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
 #include <comutil.h>
 #include "DeckLinkDevice.h"
@@ -176,7 +176,6 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* o
         // Returning false here prevent the rest of the init function executing
         // But we can still continue without an output interface
     }
-
 
     // Check if input mode detection is supported.
     if (m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes) == S_OK)
@@ -339,12 +338,6 @@ HRESULT DeckLinkDevice::VideoInputFormatChanged(/* in */ BMDVideoInputFormatChan
         supportsOutput = false;
     }
 
-    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
-    {
-        OutputDebugString(L"Unable to start output playback.\n");
-        supportsOutput = false;
-    }
-
     m_currentlyCapturing = true;
 
 bail:
@@ -418,32 +411,40 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
 
     dirtyFrame = false;
 
-    if (supportsOutput && _passthroughOutput)
-    {
-        BMDTimeValue bmd_time, bmd_duration;
-        frame->GetStreamTime(&bmd_time, &bmd_duration, m_playbackTimeScale);
-        if (supportsOutput && m_deckLinkOutput != NULL)
-        {
-            m_deckLinkOutput->ScheduleVideoFrame(frame, bmd_time, bmd_duration, m_playbackTimeScale);
-        }
-    }
-    else if (supportsOutput && _outputTexture != nullptr && device != nullptr)
+    if (supportsOutput && m_deckLinkOutput != NULL)
     {
         BMDTimeValue bmd_time, bmd_duration;
         frame->GetStreamTime(&bmd_time, &bmd_duration, m_playbackTimeScale);
 
-        if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
+        if (_passthroughOutput)
         {
-            memcpy(rawBuffer, outputBufferRaw, FRAME_BUFSIZE_RAW);
+            if (supportsOutput && m_deckLinkOutput != NULL)
+            {
+                m_deckLinkOutput->DisplayVideoFrameSync(frame);
+            }
         }
-        else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
+        else if (_outputTexture != nullptr)
         {
-            memcpy(localFrameBuffer, outputBuffer, FRAME_BUFSIZE);
-        }
+            if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
+            {
+                memcpy(rawBuffer, outputBufferRaw, FRAME_BUFSIZE_RAW);
+            }
+            else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
+            {
+                memcpy(localFrameBuffer, outputBuffer, FRAME_BUFSIZE);
+            }
 
-        if (supportsOutput && m_deckLinkOutput != NULL)
-        {
-            m_deckLinkOutput->ScheduleVideoFrame(frame, bmd_time, bmd_duration, m_playbackTimeScale);
+            m_deckLinkOutput->DisplayVideoFrameSync(frame);
+
+            // Clear frame buffer.
+            if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
+            {
+                ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
+            }
+            else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
+            {
+                ZeroMemory(localFrameBuffer, FRAME_BUFSIZE);
+            }
         }
     }
 

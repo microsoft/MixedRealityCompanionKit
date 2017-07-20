@@ -27,7 +27,7 @@
 
 #pragma once
 
-#if USE_DECKLINK
+#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
 #include <Windows.h>
 #include <vector>

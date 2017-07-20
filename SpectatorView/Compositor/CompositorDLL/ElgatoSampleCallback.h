@@ -60,6 +60,10 @@ public:
     }
 
     bool IsVideoFrameReady();
+    bool IsEnabled()
+    {
+        return isEnabled;
+    }
 
 private:
     ULONG m_cRef = 0;
@@ -75,5 +79,6 @@ private:
 
     CRITICAL_SECTION frameAccessCriticalSection;
     bool isVideoFrameReady = false;
+    bool isEnabled = false;
 };
 
