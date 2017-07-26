@@ -379,7 +379,12 @@ void CalibrationApp::PerformCalibration()
     cv::Mat distCoeffColor, distCoeffHolo;
     cv::Mat colorR, holoR, colorT, holoT;
     
+#if !DSLR_USE_KNOWN_INTRINSICS
     cv::Mat colorMat = cv::initCameraMatrix2D(colorObjectPoints, colorImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), (double)HOLO_HEIGHT / (double)HOLO_WIDTH);
+#else
+    double colorFocalLength = DSLR_FOCAL_LENGTH * std::min(HOLO_WIDTH / DSLR_MATRIX_WIDTH, HOLO_HEIGHT / DSLR_MATRIX_HEIGHT);
+    cv::Mat colorMat = (cv::Mat_<double>(3,3) << colorFocalLength, 0, HOLO_WIDTH / 2., 0, colorFocalLength, HOLO_HEIGHT / 2., 0, 0, 1);
+#endif
     cv::Mat holoMat = cv::initCameraMatrix2D(holoObjectPoints, holoImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), (double)HOLO_HEIGHT / (double)HOLO_WIDTH);
 
     OutputDebugString(L"Start Calibrating DSLR.\n");
