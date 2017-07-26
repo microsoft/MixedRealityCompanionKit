@@ -23,6 +23,12 @@
 
 #define CALIBRATION_FREQUENCY_SECONDS 3
 
+// Known DSLR intrinsics (enable only if you can provide all these values)
+#define DSLR_USE_KNOWN_INTRINSICS TRUE
+#define DSLR_FOCAL_LENGTH 0.014
+#define DSLR_MATRIX_WIDTH 0.036
+#define DSLR_MATRIX_HEIGHT 0.024
+
 // Use the C++ standard templated min/max
 #define NOMINMAX
 
