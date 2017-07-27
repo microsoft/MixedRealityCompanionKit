@@ -99,6 +99,9 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
 #if USE_DECKLINK
     frameProvider = new DeckLinkManager(true, true);
 #endif
+#if USE_DECKLINK_SHUTTLE
+    frameProvider = new DeckLinkManager(true, true);
+#endif
 #if USE_OPENCV
     frameProvider = new OpenCVFrameProvider(false);
 #endif
