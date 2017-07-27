@@ -15,16 +15,15 @@ VideoEncoder::VideoEncoder(UINT frameWidth, UINT frameHeight, UINT frameStride, 
     audioChannels(audioChannels),
     audioBPS(audioBPS),
     fps(fps),
-    bitRate(frameWidth * frameHeight * fps * 4),
+    bitRate(62 * 1000 * 1000 + 500 * 1000), // 62,5 MBit/s
     videoEncodingFormat(MFVideoFormat_H264),
-#if HARDWARE_ENCODE_VIDEO
-    inputFormat(MFVideoFormat_NV12),
-#else
-    inputFormat(MFVideoFormat_RGB32),
-#endif
     isRecording(false)
 {
-
+#if HARDWARE_ENCODE_VIDEO
+  inputFormat = MFVideoFormat_NV12;
+#else
+  inputFormat = MFVideoFormat_RGB32;
+#endif
 }
 
 VideoEncoder::~VideoEncoder()
