@@ -379,15 +379,20 @@ void CalibrationApp::PerformCalibration()
     cv::Mat distCoeffColor, distCoeffHolo;
     cv::Mat colorR, holoR, colorT, holoT;
     
-#if !DSLR_USE_KNOWN_INTRINSICS
-    cv::Mat colorMat = cv::initCameraMatrix2D(colorObjectPoints, colorImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), (double)HOLO_HEIGHT / (double)HOLO_WIDTH);
-#else
+#if DSLR_USE_KNOWN_INTRINSICS
     double colorFocalLength = DSLR_FOCAL_LENGTH * std::min(HOLO_WIDTH / DSLR_MATRIX_WIDTH, HOLO_HEIGHT / DSLR_MATRIX_HEIGHT);
     cv::Mat colorMat = (cv::Mat_<double>(3,3) << colorFocalLength, 0, HOLO_WIDTH / 2., 0, colorFocalLength, HOLO_HEIGHT / 2., 0, 0, 1);
+#else
+    cv::Mat colorMat = cv::initCameraMatrix2D(colorObjectPoints, colorImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), (double)HOLO_HEIGHT / (double)HOLO_WIDTH);
 #endif
     cv::Mat holoMat = cv::initCameraMatrix2D(holoObjectPoints, holoImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), (double)HOLO_HEIGHT / (double)HOLO_WIDTH);
 
     OutputDebugString(L"Start Calibrating DSLR.\n");
+#if DSLR_USE_KNOWN_INTRINSICS
+	OutputDebugString(L"Setting user-defined focal length before calibration: ");
+	OutputDebugString(std::to_wstring(colorFocalLength).c_str());
+	OutputDebugString(L"\n");
+#endif
     double colorRMS = cv::calibrateCamera(colorObjectPoints, colorImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), colorMat, distCoeffColor, colorR, colorT, CV_CALIB_USE_INTRINSIC_GUESS);
     OutputDebugString(L"Done Calibrating DSLR.\n");
     OutputDebugString(L"Start Calibrating HoloLens.\n");
