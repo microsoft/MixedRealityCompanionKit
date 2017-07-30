@@ -389,9 +389,9 @@ void CalibrationApp::PerformCalibration()
 
     OutputDebugString(L"Start Calibrating DSLR.\n");
 #if DSLR_USE_KNOWN_INTRINSICS
-	OutputDebugString(L"Setting user-defined focal length before calibration: ");
-	OutputDebugString(std::to_wstring(colorFocalLength).c_str());
-	OutputDebugString(L"\n");
+    OutputDebugString(L"Setting user-defined focal length before calibration: ");
+    OutputDebugString(std::to_wstring(colorFocalLength).c_str());
+    OutputDebugString(L"\n");
 #endif
     double colorRMS = cv::calibrateCamera(colorObjectPoints, colorImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), colorMat, distCoeffColor, colorR, colorT, CV_CALIB_USE_INTRINSIC_GUESS);
     OutputDebugString(L"Done Calibrating DSLR.\n");
