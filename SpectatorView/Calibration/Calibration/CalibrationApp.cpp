@@ -96,7 +96,7 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
 #if USE_ELGATO
     frameProvider = new ElgatoFrameProvider(true);
 #endif
-#if USE_DECKLINK
+#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
     frameProvider = new DeckLinkManager(true, true);
 #endif
 #if USE_OPENCV
