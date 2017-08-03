@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "VideoEncoder.h"
 
+#include "codecapi.h"
+
 
 VideoEncoder::VideoEncoder(UINT frameWidth, UINT frameHeight, UINT frameStride, UINT fps,
     UINT32 audioBufferSize, UINT32 audioSampleRate, UINT32 audioChannels, UINT32 audioBPS) :
@@ -15,16 +17,15 @@ VideoEncoder::VideoEncoder(UINT frameWidth, UINT frameHeight, UINT frameStride, 
     audioChannels(audioChannels),
     audioBPS(audioBPS),
     fps(fps),
-    bitRate(frameWidth * frameHeight * fps * 4),
+    bitRate(62 * 1000 * 1000 + 500 * 1000), // 62,5 MBit/s
     videoEncodingFormat(MFVideoFormat_H264),
-#if HARDWARE_ENCODE_VIDEO
-    inputFormat(MFVideoFormat_NV12),
-#else
-    inputFormat(MFVideoFormat_RGB32),
-#endif
     isRecording(false)
 {
-
+#if HARDWARE_ENCODE_VIDEO
+  inputFormat = MFVideoFormat_NV12;
+#else
+  inputFormat = MFVideoFormat_RGB32;
+#endif
 }
 
 VideoEncoder::~VideoEncoder()
@@ -109,6 +110,16 @@ void VideoEncoder::StartRecording(LPCWSTR videoPath, bool encodeAudio)
     if (SUCCEEDED(hr)) { hr = MFSetAttributeSize(pVideoTypeOut, MF_MT_FRAME_SIZE, frameWidth, frameHeight); }
     if (SUCCEEDED(hr)) { hr = MFSetAttributeRatio(pVideoTypeOut, MF_MT_FRAME_RATE, fps, 1); }
     if (SUCCEEDED(hr)) { hr = MFSetAttributeRatio(pVideoTypeOut, MF_MT_PIXEL_ASPECT_RATIO, 1, 1); }
+
+    /* With a resolution of 1080p, 60 FPS and a desired bitrate of 62,5 MBit/s after compression the following level-profile combination is needed:
+     * - Level   = 4.2 (allows for max. 1920x1080 @ 64 FPS)
+     * - Profile = High (allows for max. 62.5 MBit/s)
+     *
+     * See: https://de.wikipedia.org/wiki/H.264#Level
+     */
+    if (SUCCEEDED(hr)) { hr = pVideoTypeOut->SetUINT32(MF_MT_MPEG2_LEVEL, eAVEncH264VLevel4_2); }
+    if (SUCCEEDED(hr)) { hr = pVideoTypeOut->SetUINT32(MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_High); }
+
     if (SUCCEEDED(hr)) { hr = sinkWriter->AddStream(pVideoTypeOut, &videoStreamIndex); }
 
     if (encodeAudio)
