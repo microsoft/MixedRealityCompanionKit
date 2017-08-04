@@ -61,6 +61,8 @@ Make sure the materials you get are compatible with your existing camera.
         1. Universal Windows Platform development 
         2. Desktop development with C++ 
         3. Game development with C++
++ [Windows Media Feature Pack](https://www.microsoft.com/en-us/download/details.aspx?id=48231)
+    + Only required for Windows **N** or **KN** editions.
 
 ## Dependencies
 The following dependencies require a manual download and a Visual Studio user macro.
