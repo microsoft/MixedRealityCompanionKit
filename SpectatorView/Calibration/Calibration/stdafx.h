@@ -23,6 +23,18 @@
 
 #define CALIBRATION_FREQUENCY_SECONDS 3
 
+// Known DSLR intrinsics (enable only if you can provide all these values)
+#define DSLR_USE_KNOWN_INTRINSICS FALSE
+#define DSLR_FOCAL_LENGTH 0.014
+#define DSLR_MATRIX_WIDTH 0.036
+#define DSLR_MATRIX_HEIGHT 0.024
+// Set to true if you want calibration app to avoid adjustment of
+// supplied focal length and/or matrix dimensions
+#define DSLR_FIX_FOCAL_LENGTH FALSE
+// Set to true if you are sure that optical axis of your lens
+// intersects with matrix at its center
+#define DSLR_FIX_PRINCIPAL_POINT FALSE
+
 // Use the C++ standard templated min/max
 #define NOMINMAX
 
