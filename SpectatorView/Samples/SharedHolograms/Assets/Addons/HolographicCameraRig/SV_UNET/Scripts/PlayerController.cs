@@ -389,7 +389,7 @@ namespace SpectatorView
                 !SpectatorView.SpectatorViewManager.Instance.IsCurrentlyActive &&
                 IsSV())
             {
-                SpectatorView.SpectatorViewManager.Instance.EnableHolographicCamera(UNetAnchorManager.Instance.gameObject.transform);
+                SpectatorView.SpectatorViewManager.Instance.EnableHolographicCamera(this.gameObject.transform);
             }
 #endif
         }
