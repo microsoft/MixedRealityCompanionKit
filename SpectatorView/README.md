@@ -49,7 +49,7 @@ Make sure the materials you get are compatible with your existing camera.
     + If using an Elgato capture card.
 + [Elgato Filters](https://github.com/elgatosf/gamecapture)
     + If using an Elgato capture card.
-+ [OpenCV 3.2](http://opencv.org/downloads.html)
++ [OpenCV 3.2](https://sourceforge.net/projects/opencvlibrary/files/opencv-win/3.2.0/)
     + Download and install OpenCV **3.2**
 + [Canon SDK](https://www.usa.canon.com/internet/portal/us/home/explore/solutions-services/digital-camera-sdk-information) (Optional)
     + If you are using a Canon camera and have access to the Canon EDSDK, you can tether your camera to your PC to take higher resolution images.
