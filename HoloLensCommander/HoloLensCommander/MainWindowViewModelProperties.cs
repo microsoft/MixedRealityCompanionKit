@@ -34,6 +34,44 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Gets or sets the API Token to be used when connecting to mobile center.
+        /// </summary>
+        private string apiToken = string.Empty;
+        public string ApiToken
+        {
+            get
+            {
+                return this.apiToken;
+            }
+
+            set
+            {
+                if (this.apiToken != value)
+                {
+                    this.apiToken = value;
+                    this.UpdateAPItoken();
+                }
+            }
+        }
+
+        private bool apiTokenSet = false;
+        public bool ApiTokenSet
+        {
+            get
+            {
+                return this.apiTokenSet;
+            }
+            set
+            {
+                if (apiTokenSet!=value)
+                {
+                    apiTokenSet = value;
+                    this.NotifyPropertyChanged("APItokenSet");
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether or not the application management controls are to be enabled.
         /// </summary>
         private bool canManageApps = false;
@@ -236,6 +274,18 @@ namespace HoloLensCommander
                     this.NotifyPropertyChanged("StatusMessage");
                 }
             }
+        }
+
+        private void UpdateAPItoken()
+        {
+            bool haveAPItoken = false;
+
+            if (!string.IsNullOrWhiteSpace(this.ApiToken))
+            {
+                haveAPItoken = true;
+            }
+
+            this.ApiTokenSet = haveAPItoken;
         }
 
         /// <summary>

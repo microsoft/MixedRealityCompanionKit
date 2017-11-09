@@ -586,6 +586,23 @@ namespace HoloLensCommander
             }
         }
 
+        public ICommand ShowSetAPItokenCommand
+        { get; private set; }
+
+        private async Task ShowSetAPItoken()
+        {
+            UserToken apiToken = new UserToken(this.ApiToken);
+
+            SetAPItokenDialog apiTokenDialogs = new SetAPItokenDialog(apiToken);
+            ContentDialogResult dialogResult = await apiTokenDialogs.ShowAsync();
+
+            if (dialogResult==ContentDialogResult.Primary)
+            {
+                this.ApiToken = apiToken.ApiToken;
+                this.SaveApplicationSettings();
+            }
+        }
+
         /// <summary>
         /// Command used to display the settings dialog.
         /// </summary>
@@ -860,6 +877,8 @@ namespace HoloLensCommander
             this.UserName = this.appSettings.Values[DefaultUserNameKey] as string;
             this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
 
+            this.ApiToken = this.appSettings.Values[DefaultAPItokenKey] as string;
+
             this.defaultSsid = this.appSettings.Values[DefaultSsidKey] as string;
             this.defaultNetworkKey = this.appSettings.Values[DefaultNetworkKeyKey] as string;
 
@@ -982,6 +1001,8 @@ namespace HoloLensCommander
         {
             this.appSettings.Values[DefaultUserNameKey] = this.UserName;
             this.appSettings.Values[DefaultPasswordKey] = this.Password;
+
+            this.appSettings.Values[DefaultAPItokenKey] = this.ApiToken;
 
             this.appSettings.Values[DefaultSsidKey] = this.defaultSsid;
             this.appSettings.Values[DefaultNetworkKeyKey] = this.defaultNetworkKey;
