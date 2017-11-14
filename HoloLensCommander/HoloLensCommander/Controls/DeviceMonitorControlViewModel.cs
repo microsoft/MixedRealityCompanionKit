@@ -646,13 +646,17 @@ namespace HoloLensCommander
             // Was this the first time we received a heartbeat?
             if (!this.firstContact)
             {
-                // Update the device address display.
-                this.Address = this.deviceMonitor.Address;
-                ((DeviceMonitorControlViewModel)(this.deviceMonitorControl.DataContext)).Address = this.Address;
-
                 // Cause common apps to be refreshed.
                 this.deviceMonitorControl.NotifySelectedChanged();
                 this.firstContact = true;
+
+            }
+
+            if (this.Address != this.deviceMonitor.Address)
+            {             
+                // Update the device address display.
+                this.Address = this.deviceMonitor.Address;
+                ((DeviceMonitorControlViewModel)(this.deviceMonitorControl.DataContext)).Address = this.Address;
 
                 // Re-save the collection...
                 this.deviceMonitorControl.NotifyTagChanged();
