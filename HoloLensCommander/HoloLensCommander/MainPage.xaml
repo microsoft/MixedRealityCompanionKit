@@ -322,6 +322,13 @@
                 FontFamily="Segoe MDL2 Assets"
                 Width="50" Height="40"
                 Canvas.Top="5" Canvas.Left="675"/>
+            <Button 
+                Content="&#xE71D;" 
+                ToolTipService.ToolTip="Display Mobile Center app list"
+                Command="{Binding Path=ShowMobileCenterAppsCommand}"
+                FontFamily="Segoe MDL2 Assets"
+                Width="50" Height="40"
+                Canvas.Top="5" Canvas.Left="730"/>
         </Canvas>
         <ScrollViewer Grid.Column="1" Grid.Row="1"
             VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">

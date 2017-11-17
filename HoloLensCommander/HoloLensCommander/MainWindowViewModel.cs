@@ -376,6 +376,12 @@ namespace HoloLensCommander
                     this.SelectAllDevices();
                 });
 
+            this.ShowMobileCenterAppsCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.ShowMobileCenterApps();
+                });
+
             this.ShowSetAPItokenCommand = new Command(
                 async (parameter) =>
                 {

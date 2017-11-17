@@ -131,6 +131,11 @@
     <Compile Include="Dialogs\ManageAppsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModel.cs" />
     <Compile Include="Dialogs\MixedRealityViewDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\MobileCenterAppsDialog.xaml.cs">
+      <DependentUpon>MobileCenterAppsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\MobileCenterAppsDialogViewModel.cs" />
+    <Compile Include="Dialogs\MobileCenterAppsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\SetAPItokenDialog.xaml.cs">
       <DependentUpon>SetAPItokenDialog.xaml</DependentUpon>
     </Compile>
@@ -170,6 +175,7 @@
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities\AppInstallFiles.cs" />
+    <Compile Include="Utilities\AppResponse.cs" />
     <Compile Include="Utilities\ConnectionInformation.cs" />
     <Compile Include="Utilities\ConnectOptions.cs" />
     <Compile Include="Utilities\DeviceMonitorControlComparer.cs" />
@@ -181,6 +187,7 @@
     <Compile Include="Utilities\UserInformation.cs" />
     <Compile Include="Utilities\UserToken.cs" />
     <Compile Include="Utilities\Utilities.cs" />
+    <Compile Include="Utilities\WebRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -215,6 +222,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\GetAppInstallFilesDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\MobileCenterAppsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

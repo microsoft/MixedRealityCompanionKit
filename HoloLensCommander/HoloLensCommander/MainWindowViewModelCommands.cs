@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -584,6 +585,21 @@ namespace HoloLensCommander
                 this.Password = credentials.Password;
                 this.SaveApplicationSettings();
             }
+        }
+
+        public ICommand ShowMobileCenterAppsCommand
+        { get; private set; }
+
+        private async Task ShowMobileCenterApps()
+        {
+            AppCenterWebRequest appCenterWebRequest = new AppCenterWebRequest();
+            string requestResponseJson = await appCenterWebRequest.HttpWebRequest();
+
+            AppResponse[] appResponse;
+            appResponse = JsonConvert.DeserializeObject<AppResponse[]>(requestResponseJson);
+
+            ContentDialog mobileCenterAppsDialog = new MobileCenterAppsDialog(appResponse);
+            await mobileCenterAppsDialog.ShowAsync();
         }
 
         public ICommand ShowSetAPItokenCommand
