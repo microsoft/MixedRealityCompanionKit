@@ -276,7 +276,7 @@ namespace HoloLensCommander
         /// <param name="appId">The application identifier.</param>
         /// <param name="packageName">The name of the application package.</param>
         /// <returns>The processes identifier of the applicaition.</returns>
-        public async Task<int> LaunchApplicationAsync(
+        public async Task<uint> LaunchApplicationAsync(
             string appId,
             string packageName)
         {
