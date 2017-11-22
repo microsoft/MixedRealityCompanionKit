@@ -95,10 +95,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="MixedRemoteViewCompositor, Version=255.255.255.255, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)..\..\..\Build\$(Configuration)\Plugins\WSA\$(PlatformName)\MixedRemoteViewCompositor.winmd</HintPath>
+    <Reference Include="MixedRemoteViewCompositor">
+      <HintPath>..\..\..\..\Source\Win32\MixedRemoteViewCompositor.winmd</HintPath>      
+      <IsWinMDFile>true</IsWinMDFile>
+      <Implementation>MixedRemoteViewCompositor.dll</Implementation>
     </Reference>
+<ReferenceCopyLocalPaths Include="$(SolutionDir)..\..\..\Build\$(Configuration)\Plugins\WSA\$(PlatformName)\MixedRemoteViewCompositor.dll" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
