@@ -61,7 +61,7 @@ namespace HoloLensCommander
         /// Implementation of the launch application command.
         /// </summary>
         /// <returns>The process identifier of the launched application.</returns>
-        private async Task<int> LaunchAppAsync()
+        private async Task<uint> LaunchAppAsync()
         {
             string appName = this.SelectedInstalledApp as string;
 

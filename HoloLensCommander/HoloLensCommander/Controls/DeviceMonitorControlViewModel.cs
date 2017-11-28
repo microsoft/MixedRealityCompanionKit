@@ -301,9 +301,9 @@ namespace HoloLensCommander
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
         /// <returns>The process identifier of the running application.</returns>
-        internal async Task<int> LaunchAppAsync(string appName)
+        internal async Task<uint> LaunchAppAsync(string appName)
         {
-            int processId = 0;
+            uint processId = 0;
 
             if (this.IsConnected && this.IsSelected)
             {
@@ -646,13 +646,17 @@ namespace HoloLensCommander
             // Was this the first time we received a heartbeat?
             if (!this.firstContact)
             {
-                // Update the device address display.
-                this.Address = this.deviceMonitor.Address;
-                ((DeviceMonitorControlViewModel)(this.deviceMonitorControl.DataContext)).Address = this.Address;
-
                 // Cause common apps to be refreshed.
                 this.deviceMonitorControl.NotifySelectedChanged();
                 this.firstContact = true;
+
+            }
+
+            if (this.Address != this.deviceMonitor.Address)
+            {             
+                // Update the device address display.
+                this.Address = this.deviceMonitor.Address;
+                ((DeviceMonitorControlViewModel)(this.deviceMonitorControl.DataContext)).Address = this.Address;
 
                 // Re-save the collection...
                 this.deviceMonitorControl.NotifyTagChanged();
@@ -816,7 +820,7 @@ namespace HoloLensCommander
         /// <param name="waitSeconds">Time, in seconds, to wait between checking on the processes.</param>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task WatchProcess(
-            int processId,
+            uint processId,
             string appName,
             float waitSeconds)
         {
@@ -844,7 +848,7 @@ namespace HoloLensCommander
                     timer.Change(0, waitTime);
                     resetEvent.WaitOne(waitTime * 2);   // Wait no longer than twice the specified time.
                     runningProcesses = await this.deviceMonitor.GetRunningProcessesAsync();
-                    processIsRunning = runningProcesses.Contains(processId);
+                    processIsRunning = runningProcesses.Contains((int)processId);
                 }
                 while(processIsRunning);
 
