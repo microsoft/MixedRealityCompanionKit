@@ -20,5 +20,22 @@ namespace HoloLensCommander
                 }
             }
         }
+
+        private string selectedMobileCenterApp = string.Empty;
+        public string SelectedMobileCenterApp
+        {
+            get
+            {
+                return this.selectedMobileCenterApp;
+            }
+            set
+            {
+                if (this.selectedMobileCenterApp!=value)
+                {
+                    this.selectedMobileCenterApp = value;
+                    this.NotifyPropertyChanged(nameof(SelectedMobileCenterApp));
+                }
+            }
+        }
     }
 }

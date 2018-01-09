@@ -14,7 +14,13 @@ namespace HoloLensCommander
             {
                 this.MobileCenterApps.Add(appResponseList[i].name);
             }
-            
+
+            //Register the commands for the mobile center apps dialog
+            this.DownloadInstallMobileAppsCommand = new Command(
+                async (parameter) =>
+                {
+                    await this.DownloadInstallMobileAppsAsync(appResponseList);
+                });
         }
         private void NotifyPropertyChanged(string propertyName)
         {

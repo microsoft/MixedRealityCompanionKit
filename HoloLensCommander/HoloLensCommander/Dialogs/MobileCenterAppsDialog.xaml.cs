@@ -24,11 +24,9 @@ namespace HoloLensCommander
 {
     public sealed partial class MobileCenterAppsDialog : ContentDialog
     {
-       
-
-        public MobileCenterAppsDialog()
+        public MobileCenterAppsDialog(AppResponse[] appResponse)
         {
-            jsonParse();
+            this.DataContext = new MobileCenterAppsDialogViewModel(appResponse);
             this.InitializeComponent();
         }
 

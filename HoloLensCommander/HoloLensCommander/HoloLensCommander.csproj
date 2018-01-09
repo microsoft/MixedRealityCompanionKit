@@ -135,6 +135,7 @@
       <DependentUpon>MobileCenterAppsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\MobileCenterAppsDialogViewModel.cs" />
+    <Compile Include="Dialogs\MobileCenterAppsDialogViewModelCommands.cs" />
     <Compile Include="Dialogs\MobileCenterAppsDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\SetAPItokenDialog.xaml.cs">
       <DependentUpon>SetAPItokenDialog.xaml</DependentUpon>

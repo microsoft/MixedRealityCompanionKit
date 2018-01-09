@@ -326,6 +326,7 @@
                 Content="&#xE71D;" 
                 ToolTipService.ToolTip="Display Mobile Center app list"
                 Command="{Binding Path=ShowMobileCenterAppsCommand}"
+                IsEnabled="{Binding Path=ApiTokenSet}"
                 FontFamily="Segoe MDL2 Assets"
                 Width="50" Height="40"
                 Canvas.Top="5" Canvas.Left="730"/>

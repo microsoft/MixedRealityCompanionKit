@@ -46,8 +46,8 @@
             <Button 
                 x:Name="downloadSelectedApp"
                 Content="&#xE896;"
-                Command="{Binding RefreshInstalledAppsCommand}"
-                ToolTipService.ToolTip="Download selected app from the Mobile Center"
+                Command="{Binding DownloadInstallMobileAppsCommand}"
+                ToolTipService.ToolTip="Download and install selected app from the Mobile Center"
                 FontFamily="Segoe MDL2 Assets" FontSize="24" 
                 Width="50" Height="40" 
                 Canvas.Left="400" Canvas.Top="25"/>
