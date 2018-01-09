@@ -1,4 +1,6 @@
 # git ignore file
+AppPackages/
+BundleArtifacts/
 bin/
 obj/
 .vs/

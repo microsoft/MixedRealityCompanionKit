@@ -40,7 +40,8 @@ The apps have a directory "Assets\Addons\HolographicCameraRig" which, alongside 
 	![Run In Background](../../../DocumentationImages/Unity/run_in_bg.png)
 
 ## Adding spectator view support to your app
-This sample project has been set up as a shared experience, but if you would like to add this functionality to your existing app, or would like to start from a new project, follow these instructions:
+Since you are using the HoloToolkit sharing service, you must use the old Spectator View Manager code which can be found [here](https://github.com/Microsoft/MixedRealityCompanionKit/tree/1.5.7.0/SpectatorView/Samples/SharedHolograms/Assets). This sample project has been set up as a shared experience, but if you would like to add this functionality to your existing app, or would like to start from a new project, follow these instructions:
+
 + Copy **Assets\Addons\HolographicCameraRig** to **Assets\Addons\** in your project.
 + Download the latest [HoloToolkit](https://github.com/Microsoft/HoloToolkit-Unity) and add it to your project.
 + Add **Assets\Addons\HolographicCameraRig\Prefabs\SpectatorViewManager** to the root of your hierarchy.
