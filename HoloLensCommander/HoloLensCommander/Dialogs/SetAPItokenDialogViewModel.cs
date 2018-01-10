@@ -15,9 +15,11 @@ namespace HoloLensCommander
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public SetAPItokenDialogViewModel(UserToken apiToken)
+        public SetAPItokenDialogViewModel(UserToken apiToken, NetworkCredential appCenterCredentials)
         {
             this.APIToken= apiToken.ApiToken;
+            this.AppCenterUserName = appCenterCredentials.UserName;
+            this.AppCenterPassword = appCenterCredentials.Password;
         }
 
         /// <summary>
@@ -34,6 +36,12 @@ namespace HoloLensCommander
         internal void UpdateAPItoken(UserToken apiToken)
         {
             apiToken.ApiToken = this.APIToken;
+        }
+
+        internal void UpdateAppCenterCredentials(NetworkCredential appCenterCredentials)
+        {
+            appCenterCredentials.UserName = this.AppCenterUserName;
+            appCenterCredentials.Password = this.AppCenterPassword;
         }
     }
 }

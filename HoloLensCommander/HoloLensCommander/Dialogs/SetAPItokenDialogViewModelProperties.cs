@@ -24,5 +24,38 @@ namespace HoloLensCommander
                 }
             }
         }
+
+        private string appCenterUserName = string.Empty;
+        public string AppCenterUserName
+        {
+            get
+            {
+                return this.appCenterUserName;
+            }
+            set
+            {
+                if (this.appCenterUserName!=value)
+                {
+                    this.appCenterUserName = value;
+                    this.NotifyPropertyChanged(nameof(AppCenterUserName));
+                }
+            }
+        }
+        private string appCenterPassword = string.Empty;
+        public string AppCenterPassword
+        {
+            get
+            {
+                return this.appCenterPassword;
+            }
+            set
+            {
+                if (this.appCenterPassword != value)
+                {
+                    this.appCenterPassword = value;
+                    this.NotifyPropertyChanged(nameof(AppCenterPassword));
+                }
+            }
+        }
     }
 }

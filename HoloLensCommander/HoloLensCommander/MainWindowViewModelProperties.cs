@@ -71,6 +71,50 @@ namespace HoloLensCommander
             }
         }
 
+        private bool appCenterCredentialsSet = false;
+        public bool AppCenterCredentialsSet
+        {
+            get
+            {
+                return this.appCenterCredentialsSet;
+            }
+
+            private set
+            {
+                if (this.appCenterCredentialsSet != value)
+                {
+                    this.appCenterCredentialsSet = value;
+                    this.NotifyPropertyChanged("AppCenterCredentialsSet");
+                }
+            }
+        }
+
+        private string appCenterUserName = string.Empty;
+        public string AppCenterUserName
+        {
+            get
+            {
+                return this.appCenterUserName;
+            }
+            set
+            {
+                appCenterUserName = value;
+            }
+        }
+
+        private string appCenterPassword = string.Empty;
+        public string AppCenterPassword
+        {
+            get
+            {
+                return this.appCenterPassword;
+            }
+            set
+            {
+                appCenterPassword = value;
+            }
+        }
+
         /// <summary>
         /// Gets a value indicating whether or not the application management controls are to be enabled.
         /// </summary>
@@ -308,6 +352,18 @@ namespace HoloLensCommander
             {
                 this.CanReconnectDevices = false;
             }
+        }
+
+        private void UpdateAppCenterCredentials()
+        {
+            bool haveAppCenterCredentials = false;
+
+            if (!string.IsNullOrWhiteSpace(this.AppCenterUserName) && !string.IsNullOrWhiteSpace(this.AppCenterPassword))
+            {
+                haveAppCenterCredentials = true;
+            }
+            this.AppCenterCredentialsSet = haveAppCenterCredentials;
+            this.UpdateCanReconnect();
         }
 
         /// <summary>

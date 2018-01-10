@@ -894,6 +894,8 @@ namespace HoloLensCommander
             this.Password = this.appSettings.Values[DefaultPasswordKey] as string;
 
             this.ApiToken = this.appSettings.Values[DefaultAPItokenKey] as string;
+            this.AppCenterUserName = this.appSettings.Values[DefaultAppCenterUserNameKey] as string;
+            this.AppCenterPassword = this.appSettings.Values[DefaultAppCenterPasswordKey] as string;
 
             this.defaultSsid = this.appSettings.Values[DefaultSsidKey] as string;
             this.defaultNetworkKey = this.appSettings.Values[DefaultNetworkKeyKey] as string;
@@ -1019,6 +1021,8 @@ namespace HoloLensCommander
             this.appSettings.Values[DefaultPasswordKey] = this.Password;
 
             this.appSettings.Values[DefaultAPItokenKey] = this.ApiToken;
+            this.appSettings.Values[DefaultAppCenterUserNameKey] = this.AppCenterUserName;
+            this.appSettings.Values[DefaultAppCenterPasswordKey] = this.AppCenterPassword;
 
             this.appSettings.Values[DefaultSsidKey] = this.defaultSsid;
             this.appSettings.Values[DefaultNetworkKeyKey] = this.defaultNetworkKey;

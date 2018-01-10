@@ -27,5 +27,33 @@
                 Width="200" 
                 Canvas.Top="10" Canvas.Left="85"/>
         </Canvas>
+        <Canvas
+            Width="350" Height="50">
+            <TextBlock 
+                x:Name="Password"
+                Text="Password"
+                FontSize="16" 
+                Canvas.Top="16" Canvas.Left="5"/>
+            <TextBox 
+                x:Name="password"
+                Text="{Binding Path= AppCenterPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                ToolTipService.ToolTip="Mobile Center API Token"
+                Width="200" 
+                Canvas.Top="10" Canvas.Left="85"/>
+        </Canvas>
+        <Canvas
+            Width="350" Height="50">
+            <TextBlock 
+                x:Name="UserName"
+                Text="User"
+                FontSize="16" 
+                Canvas.Top="16" Canvas.Left="5"/>
+            <TextBox 
+                x:Name="username"
+                Text="{Binding Path= AppCenterUserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                ToolTipService.ToolTip="Mobile Center UserName"
+                Width="200" 
+                Canvas.Top="10" Canvas.Left="85"/>
+        </Canvas>
     </StackPanel>
 </ContentDialog>

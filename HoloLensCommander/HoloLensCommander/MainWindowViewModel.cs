@@ -21,6 +21,8 @@ namespace HoloLensCommander
         /// </summary>
         private static readonly string AutoReconnectKey = "autoReconnect";
         private static readonly string DefaultAPItokenKey = "defaultAPItokenKey";
+        private static readonly string DefaultAppCenterUserNameKey = "defaultAppCenterUserName";
+        private static readonly string DefaultAppCenterPasswordKey = "defaultAppCenterPassword";
         private static readonly string DefaultNetworkKeyKey = "defaultNetworkKey";
         private static readonly string DefaultPasswordKey = "defaultPassword";
         private static readonly string DefaultSsidKey = "defaultSsid";
