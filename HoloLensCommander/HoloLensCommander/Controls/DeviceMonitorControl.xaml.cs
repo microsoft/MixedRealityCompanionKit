@@ -190,7 +190,7 @@ namespace HoloLensCommander
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
         /// <returns>The process identifier of the running application.</returns>
-        internal async Task<uint> LaunchAppAsync(string appName)
+        internal async Task<int> LaunchAppAsync(string appName)
         {
             return await this.ViewModel.LaunchAppAsync(appName);
         }
