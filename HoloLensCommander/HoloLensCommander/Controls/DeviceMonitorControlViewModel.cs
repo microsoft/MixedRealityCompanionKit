@@ -297,13 +297,13 @@ namespace HoloLensCommander
         }
 
         /// <summary>
-        /// Launches an applicaiton on this device.
+        /// Launches an application on this device.
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
         /// <returns>The process identifier of the running application.</returns>
-        internal async Task<uint> LaunchAppAsync(string appName)
+        internal async Task<int> LaunchAppAsync(string appName)
         {
-            uint processId = 0;
+            int processId = 0;
 
             if (this.IsConnected && this.IsSelected)
             {
@@ -327,7 +327,7 @@ namespace HoloLensCommander
                     if (!string.IsNullOrWhiteSpace(appId) &&
                         !string.IsNullOrWhiteSpace(packageName))
                     {
-                        processId = await this.deviceMonitor.LaunchApplicationAsync(
+                        processId = (int)await this.deviceMonitor.LaunchApplicationAsync(
                             appId, 
                             packageName);
                     }
@@ -820,7 +820,7 @@ namespace HoloLensCommander
         /// <param name="waitSeconds">Time, in seconds, to wait between checking on the processes.</param>
         /// <returns>Task object used for tracking method completion.</returns>
         private async Task WatchProcess(
-            uint processId,
+            int processId,
             string appName,
             float waitSeconds)
         {
@@ -848,7 +848,7 @@ namespace HoloLensCommander
                     timer.Change(0, waitTime);
                     resetEvent.WaitOne(waitTime * 2);   // Wait no longer than twice the specified time.
                     runningProcesses = await this.deviceMonitor.GetRunningProcessesAsync();
-                    processIsRunning = runningProcesses.Contains((int)processId);
+                    processIsRunning = runningProcesses.Contains(processId);
                 }
                 while(processIsRunning);
 
