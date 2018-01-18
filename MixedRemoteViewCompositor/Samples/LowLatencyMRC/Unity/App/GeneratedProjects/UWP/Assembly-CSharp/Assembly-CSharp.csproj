@@ -1,0 +1,406 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(ProjectDir)..\..\..\UnityCommon.props" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{d8163e72-853b-4b9d-97ad-c0f1330db4f1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AssemblyCSharpWSA</RootNamespace>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <BaseIntermediateOutputPath>obj\x86\Debug\</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <BaseIntermediateOutputPath>obj\x86\Release\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;ENABLE_PROFILER;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Master|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x86\Master\</OutputPath>
+    <BaseIntermediateOutputPath>obj\x86\Master\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <BaseIntermediateOutputPath>obj\x64\Debug\</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <BaseIntermediateOutputPath>obj\x64\Release\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;ENABLE_PROFILER;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Master|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x64\Master\</OutputPath>
+    <BaseIntermediateOutputPath>obj\x64\Master\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\ARM\Debug\</OutputPath>
+    <BaseIntermediateOutputPath>obj\ARM\Debug\</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\ARM\Release\</OutputPath>
+    <BaseIntermediateOutputPath>obj\ARM\Release\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;ENABLE_PROFILER;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Master|ARM' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\ARM\Master\</OutputPath>
+    <BaseIntermediateOutputPath>obj\ARM\Master\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_1;UNITY_2017_2;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_METRO;UNITY_METRO;UNITY_METRO_API;PLATFORM_WINRT;UNITY_WINRT;ENABLE_WINRT_PINVOKE;ENABLE_LAZY_METHOD_CACHING;ENABLE_MOVIES;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_NETWORK;ENABLE_EVENT_QUEUE;UNITY_PLATFORM_THREAD_TO_CORE_MAPPING;ENABLE_SUBSTANCE;PLATFORM_SUPPORTS_ADS_ID;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;CURL_STATICLIB;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;UNITY_WSA;ENABLE_DOTNET;UNITY_WINRT_10_0;UNITY_PRO_LICENSE;NETFX_CORE;ENABLE_WINMD_SUPPORT;WINDOWS_UWP;UNITY_UWP;UNITY_WSA_10_0;</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+
+    <Reference Include="UnityEngine.TilemapModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.TilemapModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UNETModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UNETModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.StyleSheetsModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.StyleSheetsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteMaskModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.SpriteMaskModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.TerrainModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VRModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.VRModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.VideoModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VehiclesModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.VehiclesModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WinRTLegacy">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\WinRTLegacy.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.WindModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.WindModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.WebModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.WebModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityConnectModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UnityConnectModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UnityAnalyticsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ClothModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.ClothModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.AudioModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.DirectorModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CrashReportingModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.CrashReportingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.AccessibilityModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ARModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.ARModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AIModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.AIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ParticlesLegacyModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.ParticlesLegacyModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.Physics2DModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PerformanceReportingModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.PerformanceReportingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.GridModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.GridModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.GameCenterModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.GameCenterModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.InputModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.Timeline">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.Timeline.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\nunit.framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.HoloLens">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.HoloLens.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.Networking">
+      <HintPath>$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.Networking.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <SDKReference Include="WindowsDesktop, Version=10.0.14393.0"/>
+    <SDKReference Include="WindowsIoT, Version=10.0.14393.0"/>
+    <SDKReference Include="WindowsMobile, Version=10.0.14393.0"/>
+    <SDKReference Include="WindowsTeam, Version=10.0.14393.0"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\CaptureEngine.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\CaptureEngine.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\Connection.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\Connection.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\Connector.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\Connector.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\Listener.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\Listener.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\NetworkComponent.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\NetworkComponent.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\PlaybackEngine.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\PlaybackEngine.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\Interop\Plugin.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\Interop\Plugin.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\MrvcCapture.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\MrvcCapture.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\MrvcManager.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\MrvcManager.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\MrvcPlayer.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\MrvcPlayer.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\SpatialTranformHelper.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\SpatialTranformHelper.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\StateChangedEventArgs.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\StateChangedEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\AddOns\MixedRemoteViewCompositor\Scripts\VideoCompositor.cs">
+      <Link>AddOns\MixedRemoteViewCompositor\Scripts\VideoCompositor.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\Scripts\CursorManager.cs">
+      <Link>Scripts\CursorManager.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\Scripts\RaycastController.cs">
+      <Link>Scripts\RaycastController.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
+    <VisualStudioVersion>14.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+    <PropertyGroup>
+    <TargetsTriggeredByCompilation>$(TargetsTriggeredByCompilation);RunSerializationWeaver</TargetsTriggeredByCompilation>
+  </PropertyGroup>
+  <Target Name="RunSerializationWeaver" Condition="'$(BuildingProject)' == 'true'">
+    <Message Importance="high" Text="Running SerializationWeaver..." />
+    <Move SourceFiles="@(IntermediateAssembly)" DestinationFolder="$(TargetDir)Unprocessed" OverwriteReadOnlyFiles="true" />
+    <Move SourceFiles="@(IntermediateAssembly-&gt;'%(RelativeDir)%(Filename).pdb')" DestinationFolder="$(TargetDir)Unprocessed" Condition="Exists('@(IntermediateAssembly-&gt;'%(RelativeDir)%(Filename).pdb')')" OverwriteReadOnlyFiles="true" />
+    <Exec Command="&quot;$(UnityWSAToolsDir)SerializationWeaver\SerializationWeaver.exe&quot; &quot;$(TargetDir)Unprocessed\$(TargetFileName)&quot; &quot;-pdb&quot; &quot;-verbose&quot; &quot;-unity-engine=$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.CoreModule.dll&quot; &quot;$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)').TrimEnd('\'))&quot; &quot;-lock=$([System.IO.Path]::Combine('$(ProjectDir)', 'project.lock.json'))&quot; &quot;@C:\Users\motio\vulcan\MixedRealityCompanionKit\MixedRemoteViewCompositor\Samples\LowLatencyMRC\Unity\App\GeneratedProjects\UWP\Assembly-CSharp\SerializationWeaverArgs.txt&quot; &quot;-additionalAssemblyPath=$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed&quot; &quot;-unity-networking=$(UnityWSASolutionDir)$(UnityWSASolutionName)\Unprocessed\UnityEngine.Networking.dll&quot;" />
+    <Message Importance="high" Text="SerializationWeaver done." />
+  </Target>
+  <PropertyGroup>
+    <CleanDependsOn>$(CleanDependsOn);CleanSerializationWeaver</CleanDependsOn>
+  </PropertyGroup>
+  <Target Name="CleanSerializationWeaver">
+    <Delete Files="$(TargetDir)Unprocessed\$(TargetFileName)" />
+    <Delete Files="$(TargetDir)Unprocessed\$(TargetName).pdb" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
