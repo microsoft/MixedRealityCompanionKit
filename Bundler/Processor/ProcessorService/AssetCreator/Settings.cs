@@ -1,4 +1,6 @@
-﻿namespace AssetCreator {
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+namespace AssetCreator {
     
     
     // This class allows you to handle specific events on the settings class:
