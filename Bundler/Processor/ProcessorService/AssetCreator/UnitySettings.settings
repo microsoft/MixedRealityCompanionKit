@@ -1,0 +1,24 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="AssetCreator" GeneratedClassName="UnitySettings">
+  <Profiles />
+  <Settings>
+    <Setting Name="UnityInstallLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Program Files\Unity\Editor\</Value>
+    </Setting>
+    <Setting Name="UnityBundleProject" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Bundler\Projects\Unity\</Value>
+    </Setting>
+    <Setting Name="UnityBundleProjectCopy" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Bundler\Projects\Unity\Assets\toBundle\</Value>
+    </Setting>
+    <Setting Name="UnityBundleProject_5_6" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Bundler\Projects\Unity_5_6\</Value>
+    </Setting>
+    <Setting Name="UnityBundleProjectCopy_5_6" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Bundler\Projects\Unity_5_6\Assets\toBundle\</Value>
+    </Setting>
+    <Setting Name="UnityInstallLocation_5_6" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Program Files\Unity_5_6_0f1\Editor\</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

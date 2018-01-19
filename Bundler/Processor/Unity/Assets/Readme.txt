@@ -1,0 +1,2 @@
+Create a subfolder in the "ToBundle" folder to hold each model you want turned into an asset bundle, then run the "Bundle/CreateAssetBundles" command.  
+Bundles will be generated in the root of the project - in the "AssetBundles" folder.
