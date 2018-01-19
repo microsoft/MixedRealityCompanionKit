@@ -9,10 +9,6 @@ public class LoadBundle : MonoBehaviour {
 
     string bundleName = ".unity3d";
     string assetPath;
-    void Start()
-    {
-       
-    }
 
     private void OnGUI()
     {
@@ -24,11 +20,6 @@ public class LoadBundle : MonoBehaviour {
         {
             StartCoroutine(LoadTheBundle());
         }
-    }
-
-    void Update()
-    {
-        //transform.Translate(0, .01f, 0);
     }
 
     IEnumerator LoadTheBundle()
