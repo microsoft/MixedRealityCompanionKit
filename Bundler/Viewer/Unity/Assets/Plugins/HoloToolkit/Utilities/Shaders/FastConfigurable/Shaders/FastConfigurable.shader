@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-Shader "HoloToolkit/Fast Configurable"
+Shader "MixedRealityToolkit/Fast Configurable"
 {
     Properties
     {
@@ -11,10 +11,10 @@ Shader "HoloToolkit/Fast Configurable"
         [Toggle] _UseMainColor("Main Color Enabled?", Float) = 0
         _Color("Main Color", Color) = (1,1,1,1)		
 		[Toggle] _UseMainTex("Main Texture Enabled?", Float) = 0
-		[NoScaleOffset]_MainTex("Main Texture", 2D) = "white" {}
+		[NoScaleOffset]_MainTex("Main Texture", 2D) = "red" {}
 
 		[Toggle] _UseOcclusionMap("Occlusion/Detail Texture Enabled?", Float) = 0
-		[NoScaleOffset]_OcclusionMap("Occlusion/Detail Texture", 2D) = "" {}
+		[NoScaleOffset]_OcclusionMap("Occlusion/Detail Texture", 2D) = "blue" {}
        
         [Toggle] _UseAmbient("Ambient Lighting Enabled?", Float) = 1
         [Toggle] _UseDiffuse("Diffuse Lighting Enabled?", Float) = 1

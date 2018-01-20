@@ -15,6 +15,9 @@ Viewer/Unity/Unity.sln
 Viewer/Unity/Unity.Editor.csproj
 Viewer/Unity/Unity.Editor.Plugins.csproj
 Viewer/Unity/Unity.Plugins.csproj
+Viewer/TestBundle/AssetBundles.zip
+Viewer/TestBundle/AssetBundles/Boat/boat.unity3d
+Viewer/TestBundle/AssetBundles/Teapot/teapot.unity3d
 Viewer/Unity/Assembly-CSharp-Editor-firstpass.csproj
 Viewer/Unity/Assembly-CSharp-Editor.csproj
 Viewer/Unity/Assembly-CSharp-firstpass.csproj
@@ -27,6 +30,7 @@ Processor/Unity/Library*/
 Processor/Unity/Temp/ProcessJobs*/
 Processor/Unity/Temp*/
 Processor/Unity/EXE*/
+Processor/Unity/AssetBundles
 /Processor/ProcessorService/.vs/AssetCreator/v15
 /Processor/Unity/obj/Debug
 /Processor/Unity/Unity.sln
