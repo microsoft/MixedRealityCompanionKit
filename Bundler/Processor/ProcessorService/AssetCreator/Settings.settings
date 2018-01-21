@@ -9,7 +9,7 @@
       <Value Profile="(Default)">1000000,100000</Value>
     </Setting>
     <Setting Name="MaxScriptLocation" Type="System.String" Scope="User">
-      <Value Profile="(Default)">@\"C:\Bundler\Assets\HoloAssetCreator-OSS.ms\"</Value>
+      <Value Profile="(Default)">C:\Bundler\Assets\HoloAssetCreator.ms</Value>
     </Setting>
     <Setting Name="MaxInstallLocation" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\Program Files\Autodesk\3ds Max 2017\</Value>
@@ -24,7 +24,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="TempPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">c:\temp\temp</Value>
+      <Value Profile="(Default)">c:\bundler\temp</Value>
     </Setting>
     <Setting Name="MaxCombinePartsWithSameMaterial" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

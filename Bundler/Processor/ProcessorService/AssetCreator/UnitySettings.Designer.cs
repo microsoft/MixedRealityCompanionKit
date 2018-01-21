@@ -12,7 +12,7 @@ namespace AssetCreator {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
     internal sealed partial class UnitySettings : global::System.Configuration.ApplicationSettingsBase {
         
         private static UnitySettings defaultInstance = ((UnitySettings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new UnitySettings())));
@@ -92,6 +92,30 @@ namespace AssetCreator {
             }
             set {
                 this["UnityInstallLocation_5_6"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5.5")]
+        public string UnityVersionName {
+            get {
+                return ((string)(this["UnityVersionName"]));
+            }
+            set {
+                this["UnityVersionName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("_5_5")]
+        public string UnityVersionFileSuffix {
+            get {
+                return ((string)(this["UnityVersionFileSuffix"]));
+            }
+            set {
+                this["UnityVersionFileSuffix"] = value;
             }
         }
     }

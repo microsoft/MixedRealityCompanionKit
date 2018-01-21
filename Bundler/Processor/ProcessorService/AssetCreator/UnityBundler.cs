@@ -26,43 +26,44 @@ namespace AssetCreator
         {
             Console.WriteLine(" Copying Exported Max Files To Unity Projects");
 
-            Utilities.DirectoryCopy(inputPath, UnitySettings.Default.UnityBundleProjectCopy + fileName, true);
-            Utilities.DirectoryCopy(inputPath, UnitySettings.Default.UnityBundleProjectCopy_5_6 + fileName, true);
+            Utilities.DirectoryCopy(inputPath, Path.Combine(UnitySettings.Default.UnityBundleProjectCopy, fileName), true);
+            Utilities.DirectoryCopy(inputPath, Path.Combine(UnitySettings.Default.UnityBundleProjectCopy_5_6, fileName), true);
 
             Console.WriteLine(" Processing Unity");
 
             // Unity asset bundles are not compatible between versions (yet), so we need to create new unique bundles for each version.
             // The client is responsible for requesting the correct file version.
-            var unity_5_5Task = RunUnityBundler(false);
-            var unity_5_6Task = RunUnityBundler(true);
+            var unityTask = RunUnityBundler(UnitySettings.Default.UnityVersionName, UnitySettings.Default.UnityInstallLocation, UnitySettings.Default.UnityBundleProject, UnitySettings.Default.UnityVersionFileSuffix);
+            var unity_5_6Task = RunUnityBundler("5.6", UnitySettings.Default.UnityInstallLocation_5_6, UnitySettings.Default.UnityBundleProject_5_6, "_5_6");
 
-            await Task.WhenAll(unity_5_5Task, unity_5_6Task);
+            await Task.WhenAll(unityTask, unity_5_6Task);
 
-            CleanTempFiles();
+            CleanTempFiles(UnitySettings.Default.UnityBundleProject, UnitySettings.Default.UnityBundleProjectCopy);
+            CleanTempFiles(UnitySettings.Default.UnityBundleProject_5_6, UnitySettings.Default.UnityBundleProjectCopy_5_6);
 
-            var bundles = unity_5_5Task.Result;
+            var bundles = unityTask.Result;
             bundles.AddRange(unity_5_6Task.Result);
             return bundles;
         }
 
-        private Task<List<AssetCatalog.LODBundle>> RunUnityBundler(bool is5_6 = false)
+        private Task<List<AssetCatalog.LODBundle>> RunUnityBundler(string unityVersionName, string unityInstallLocation, string bundleProjectLocation, string bundleSuffix)
         {
             return Task.Run(() =>
             {
                 var bundles = new List<AssetCatalog.LODBundle>();
 
-                var unityBundleOutputFolder = (is5_6 ? UnitySettings.Default.UnityBundleProject_5_6 : UnitySettings.Default.UnityBundleProject) + "\\AssetBundles\\";
+                var unityBundleOutputFolder = Path.Combine(bundleProjectLocation, "AssetBundles");
                 if (!Directory.Exists(unityBundleOutputFolder))
                     Directory.CreateDirectory(unityBundleOutputFolder);
 
-                Console.WriteLine("  - Launching Unity " + (is5_6 ? "5.6" : "5.5") + " to create bundle (async)");
+                Console.WriteLine("  - Launching Unity {0} to create bundle (async)", unityVersionName);
 
                 Process unityInfo = new Process();
                 unityInfo.StartInfo.CreateNoWindow = false;
                 unityInfo.StartInfo.UseShellExecute = true;
-                unityInfo.StartInfo.WorkingDirectory = (is5_6 ? UnitySettings.Default.UnityInstallLocation_5_6 : UnitySettings.Default.UnityInstallLocation);
-                unityInfo.StartInfo.FileName = @"Unity.exe";
-                string launchArgs = " -batchmode -quit -projectPath " + (is5_6 ? UnitySettings.Default.UnityBundleProject_5_6 : UnitySettings.Default.UnityBundleProject) + " -executeMethod BuildAssetBundles.BuildBundles ";
+                unityInfo.StartInfo.WorkingDirectory = unityInstallLocation;
+                unityInfo.StartInfo.FileName = "Unity.exe";
+                string launchArgs = " -batchmode -quit -projectPath " + bundleProjectLocation + " -executeMethod BuildAssetBundles.BuildBundles ";
                 unityInfo.StartInfo.Arguments = launchArgs;
                 unityInfo.Start();
 
@@ -72,17 +73,21 @@ namespace AssetCreator
 
                 if (files.Count() == 0)
                 {
-                    Console.WriteLine(" *** NO BUNDLES after Unity " + (is5_6 ? "5.6" : "5.5"));
+                    Console.WriteLine(" *** NO BUNDLES after Unity {0}", unityVersionName);
                 }
                 else
                 {
                     foreach (FileInfo file in files)
                     {
                         var origName = Path.GetFileNameWithoutExtension(file.FullName);
-                        var fileName = Path.GetFileNameWithoutExtension(file.FullName) + (is5_6 ? "_5_6" : "_5_5") + Path.GetExtension(file.FullName);
-                        if (File.Exists(outputPath + "\\" + fileName))
-                            File.Delete(outputPath + "\\" + fileName);
-                        file.MoveTo(outputPath + "\\" + fileName);
+                        var fileName = Path.GetFileNameWithoutExtension(file.FullName) + bundleSuffix + Path.GetExtension(file.FullName);
+                        var fullName = Path.Combine(outputPath, fileName);
+
+                        if (File.Exists(fullName))
+                        {
+                            File.Delete(fullName);
+                        }
+                        file.MoveTo(fullName);
 
                         var number = 0;
                         //HACK: currently we just have 5 LOD's that are differentiated by the filename
@@ -99,20 +104,20 @@ namespace AssetCreator
                         if (origName.ToUpper().EndsWith("LOD5"))
                             number = 5;
 
-                        bundles.Add(new AssetCatalog.LODBundle() { Name = origName, LODNumber = number, Bundle = fileName, UnityVersion = is5_6 ? "5.6" : "5.5" });
+                        bundles.Add(new AssetCatalog.LODBundle() { Name = origName, LODNumber = number, Bundle = fileName, UnityVersion = unityVersionName });
                     }
                 }
-                Console.WriteLine("  - Unity " + (is5_6 ? "5.6" : "5.5") + " done.");
+                Console.WriteLine("  - Unity {0} done.", unityVersionName);
                 return bundles;
             });
         }
 
-        public void CleanTempFiles()
+        public void CleanTempFiles(string bundleProjectLocation, string bundleProjectCopyLocation)
         {
-            if (!string.IsNullOrEmpty(UnitySettings.Default.UnityBundleProjectCopy))
+            if (!string.IsNullOrEmpty(bundleProjectCopyLocation))
             {
                 //Clean up temp Unity
-                DirectoryInfo tempUnityDir = new DirectoryInfo(UnitySettings.Default.UnityBundleProjectCopy);
+                DirectoryInfo tempUnityDir = new DirectoryInfo(bundleProjectCopyLocation);
 
                 foreach (FileInfo file in tempUnityDir.GetFiles())
                 {
@@ -124,32 +129,10 @@ namespace AssetCreator
                 }
 
             }
-            if (!string.IsNullOrEmpty(UnitySettings.Default.UnityBundleProject))
+            if (!string.IsNullOrEmpty(bundleProjectLocation))
             {
-                DirectoryInfo assetBundlesDir = new DirectoryInfo(UnitySettings.Default.UnityBundleProject + "\\AssetBundles\\");
+                DirectoryInfo assetBundlesDir = new DirectoryInfo(Path.Combine(bundleProjectLocation, "AssetBundles"));
                 foreach (FileInfo file in assetBundlesDir.GetFiles())
-                {
-                    file.Delete();
-                }
-            }
-
-            if (!string.IsNullOrEmpty(UnitySettings.Default.UnityBundleProjectCopy_5_6))
-            {
-                DirectoryInfo tempUnityDir_5_6 = new DirectoryInfo(UnitySettings.Default.UnityBundleProjectCopy_5_6);
-
-                foreach (FileInfo file in tempUnityDir_5_6.GetFiles())
-                {
-                    file.Delete();
-                }
-                foreach (DirectoryInfo dir in tempUnityDir_5_6.GetDirectories())
-                {
-                    dir.Delete(true);
-                }
-            }
-            if (!string.IsNullOrEmpty(UnitySettings.Default.UnityBundleProject_5_6))
-            {
-                DirectoryInfo assetBundlesDir_5_6 = new DirectoryInfo(UnitySettings.Default.UnityBundleProject_5_6 + "\\AssetBundles\\");
-                foreach (FileInfo file in assetBundlesDir_5_6.GetFiles())
                 {
                     file.Delete();
                 }

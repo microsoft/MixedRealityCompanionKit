@@ -20,5 +20,11 @@
     <Setting Name="UnityInstallLocation_5_6" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\Program Files\Unity_5_6_0f1\Editor\</Value>
     </Setting>
+    <Setting Name="UnityVersionName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5.5</Value>
+    </Setting>
+    <Setting Name="UnityVersionFileSuffix" Type="System.String" Scope="User">
+      <Value Profile="(Default)">_5_5</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -41,9 +41,9 @@ namespace AssetCreator
 
             if (Settings.Default.CreateUnityAssetBundles)
             {
-                if (AssetCatalog.LoadAssetInfo(bundleOutputFolderPath + "\\bundleInfo.json") != null)
+                if (AssetCatalog.LoadAssetInfo(Path.Combine(bundleOutputFolderPath, "bundleInfo.json")) != null)
                 {
-                    assetInfo = AssetCatalog.LoadAssetInfo(bundleOutputFolderPath + "\\bundleInfo.json");
+                    assetInfo = AssetCatalog.LoadAssetInfo(Path.Combine(bundleOutputFolderPath, "bundleInfo.json"));
                     // Existing asset, just updating.
                     if (string.IsNullOrEmpty(assetInfo.Id))
                         assetInfo.Id = assetId;
@@ -72,14 +72,14 @@ namespace AssetCreator
             userFolderName = new DirectoryInfo(new FileInfo(zipFileToProcess).DirectoryName).Parent.Name;
             baseFolderName = new DirectoryInfo(new FileInfo(zipFileToProcess).DirectoryName).Parent.Parent.Name;
 
-            baseFolderPath = Settings.Default.BaseDataPath + "\\" + baseFolderName;
-            processedOutputFolderPath = baseFolderPath + "\\" +  userFolderName + "\\Processed\\"  + assetId;
-            failedOutputFolderPath = baseFolderPath + "\\" + userFolderName + "\\Failed\\" + assetId;
-            tempFolderPath = Settings.Default.TempPath + "\\" + assetId;
+            baseFolderPath = Path.Combine(Settings.Default.BaseDataPath, baseFolderName); ;
+            processedOutputFolderPath = Path.Combine(baseFolderPath, userFolderName, "Processed", assetId);
+            failedOutputFolderPath = Path.Combine(baseFolderPath, userFolderName, "Failed", assetId);
+            tempFolderPath = Path.Combine(Settings.Default.TempPath, assetId);
 
             if (Settings.Default.CreateUnityAssetBundles)
             {
-                bundleOutputFolderPath = baseFolderPath + "\\" + userFolderName + "\\Bundles\\" +  assetId;
+                bundleOutputFolderPath = Path.Combine(baseFolderPath, userFolderName, "Bundles", assetId);
                 Directory.CreateDirectory(bundleOutputFolderPath);
             }
         }
@@ -90,7 +90,7 @@ namespace AssetCreator
                 return;
 
             assetInfo.Status = newStatus;
-            AssetCatalog.UpdateAssetInfo(assetInfo, bundleOutputFolderPath + "\\bundleInfo.json");
+            AssetCatalog.UpdateAssetInfo(assetInfo, Path.Combine(bundleOutputFolderPath, "bundleInfo.json"));
         }
 
         public async Task<bool> ProcessZip()
@@ -114,7 +114,7 @@ namespace AssetCreator
                 var fileInfo = new FileInfo(zipFileToProcess);
                 while (Utilities.IsFileLocked(fileInfo)) { Task.Delay(100).Wait(); Console.WriteLine("Waiting... {0}", zipFileToProcess); }
 
-                var exportPath = tempFolderPath + "\\Export\\";
+                var exportPath = Path.Combine(tempFolderPath, "Export");
 
                 try
                 {
@@ -146,18 +146,21 @@ namespace AssetCreator
                                 // Rename the FBX to the be same as the zip name
                                 var fbxName = Path.GetFileNameWithoutExtension(files[i]);
                                 var newName = fbxName.Replace("mesh", zipFileName);
-                                File.Move(exportPath + fbxName + ".fbx", exportPath + newName + ".fbx");
+                                File.Move(Path.Combine(exportPath, fbxName + ".fbx"), Path.Combine(exportPath, newName + ".fbx"));
                             }
 
-                            File.Move(exportPath + "mesh.png", exportPath + "\\" + zipFileName + ".png");
-                            File.Move(exportPath + "mesh.json", exportPath + "\\" + "maxinfo" + ".json");
+                            File.Move(Path.Combine(exportPath, "mesh.png"), Path.Combine(exportPath, zipFileName + ".png"));
+                            File.Move(Path.Combine(exportPath, "mesh.json"), Path.Combine(exportPath, "maxinfo.json"));
 
-                            if (File.Exists(bundleOutputFolderPath + "\\" + zipFileName + ".png"))
-                                File.Delete(bundleOutputFolderPath + "\\" + zipFileName + ".png");
-                            File.Copy(exportPath + zipFileName + ".png", bundleOutputFolderPath + "\\" + zipFileName + ".png");
-                            if (File.Exists(bundleOutputFolderPath + "\\" + "maxinfo.json"))
-                                File.Delete(bundleOutputFolderPath + "\\" + "maxinfo.json");
-                            File.Copy(exportPath + "maxinfo" + ".json", bundleOutputFolderPath + "\\" + "maxinfo" + ".json");
+                            var bundleOutputPngFileName = Path.Combine(bundleOutputFolderPath, zipFileName + ".png");
+                            if (File.Exists(bundleOutputPngFileName))
+                                File.Delete(bundleOutputPngFileName);
+                            File.Copy(Path.Combine(exportPath, zipFileName + ".png"), bundleOutputPngFileName);
+
+                            var bundleOutputJsonFileName = Path.Combine(bundleOutputFolderPath, "maxinfo.json");
+                            if (File.Exists(bundleOutputJsonFileName))
+                                File.Delete(bundleOutputJsonFileName);
+                            File.Copy(Path.Combine(exportPath,  "maxinfo.json"), bundleOutputJsonFileName);
 
                             success = true;
 
@@ -205,13 +208,15 @@ namespace AssetCreator
                         Directory.CreateDirectory(processedOutputFolderPath);
 
                     // TODO: We probably should have unique folder paths for all files, but just delete and replace for now.
-                    if (File.Exists(processedOutputFolderPath + "\\" + Path.GetFileName(zipFileToProcess)))
-                        File.Delete(processedOutputFolderPath + "\\" + Path.GetFileName(zipFileToProcess));
-                    File.Move(zipFileToProcess, processedOutputFolderPath + "\\" + Path.GetFileName(zipFileToProcess));
+                    var processedOutputZipFileName = Path.Combine(processedOutputFolderPath, Path.GetFileName(zipFileToProcess));
+                    if (File.Exists(processedOutputZipFileName))
+                        File.Delete(processedOutputZipFileName);
+                    File.Move(zipFileToProcess, processedOutputZipFileName);
 
-                    if (Directory.Exists(processedOutputFolderPath + "\\MaxOutput"))
-                        Directory.Delete(processedOutputFolderPath + "\\MaxOutput", true);
-                    Utilities.DirectoryCopy(exportPath, processedOutputFolderPath + "\\MaxOutput", true);
+                    var processedMaxOutputPath = Path.Combine(processedOutputFolderPath, "MaxOutput");
+                    if (Directory.Exists(processedMaxOutputPath))
+                        Directory.Delete(processedMaxOutputPath, true);
+                    Utilities.DirectoryCopy(exportPath, processedMaxOutputPath, true);
                 }
                 else
                 {
@@ -224,14 +229,16 @@ namespace AssetCreator
                         Directory.CreateDirectory(failedOutputFolderPath);
 
                     // We probably should have unique folder paths for all files, but just delete for now
-                    if (File.Exists(failedOutputFolderPath + "\\" + Path.GetFileName(zipFileToProcess)))
-                        File.Delete(failedOutputFolderPath + "\\" + Path.GetFileName(zipFileToProcess));
-                    File.Move(zipFileToProcess, failedOutputFolderPath + "\\" + Path.GetFileName(zipFileToProcess));
+                    var failedOutputZipFileName = Path.Combine(failedOutputFolderPath, Path.GetFileName(zipFileToProcess));
+                    if (File.Exists(failedOutputZipFileName))
+                        File.Delete(failedOutputZipFileName);
+                    File.Move(zipFileToProcess, failedOutputZipFileName);
 
-                    if (Directory.Exists(failedOutputFolderPath + "\\MaxOutput"))
-                        Directory.Delete(failedOutputFolderPath + "\\MaxOutput", true);
+                    var failedMaxOutputPath = Path.Combine(failedOutputFolderPath, "MaxOutput");
+                    if (Directory.Exists(failedMaxOutputPath))
+                        Directory.Delete(failedMaxOutputPath, true);
                     if (Directory.Exists(exportPath))
-                        Utilities.DirectoryCopy(exportPath, failedOutputFolderPath + "\\MaxOutput", true);
+                        Utilities.DirectoryCopy(exportPath, failedMaxOutputPath, true);
                 }
 
                 //Clean up temp Max Files
@@ -264,7 +271,7 @@ namespace AssetCreator
                 "global inQualitySurfAreaCalc = @\\\"" + Settings.Default.MaxQualitySurfAreaCalc + "\\\";" +
                 "global inImportAllFiles = @\\\"" + Settings.Default.MaxImportAllFiles + "\\\";" +
 
-                "filein " + Settings.Default.MaxScriptLocation;
+                "filein @\\\"" + Settings.Default.MaxScriptLocation + "\\\"";
             maxInfo.StartInfo.Arguments = launchArgs;
             maxInfo.Start();
 

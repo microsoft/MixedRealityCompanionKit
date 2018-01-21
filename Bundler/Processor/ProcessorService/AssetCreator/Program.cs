@@ -14,14 +14,31 @@ namespace AssetCreator
         static Queue<FileProcessor> FileQueue = new Queue<FileProcessor>();
         static void Main(string[] args)
         {
-            Console.WriteLine("Base data path: {0}", Settings.Default.BaseDataPath);
-            Console.WriteLine("3DS Max path: {0}", Settings.Default.MaxInstallLocation);
+            Console.WriteLine("Settings are loaded from the config file.");
+
             Console.WriteLine("3DS Max processing script path: {0}", Settings.Default.MaxScriptLocation);
+            if(!File.Exists(Settings.Default.MaxScriptLocation))
+            {
+                Console.WriteLine("\tUnable to find script {0}.  Update the MaxScriptLocation", Settings.Default.MaxScriptLocation);
+                return;
+            }
+
+            if (!CheckPathSetting("3ds Max", "MaxInstallLocation", Settings.Default.MaxInstallLocation)) return;
+
+            Console.WriteLine("Base data path: {0}", Settings.Default.BaseDataPath);
+            Console.WriteLine("Temp path: {0}", Settings.Default.TempPath);
+
+
 
             if (Settings.Default.CreateUnityAssetBundles)
             {
+                if (!CheckPathSetting("Unity", "UnityInstallLocation", UnitySettings.Default.UnityInstallLocation)) return;
                 Console.WriteLine("Unity bundle project: {0}", UnitySettings.Default.UnityBundleProject);
                 Console.WriteLine("Unity bundle project folder to process: {0}", UnitySettings.Default.UnityBundleProjectCopy);
+
+                if (!CheckPathSetting("Unity 5.6", "UnityInstallLocation_5_6", UnitySettings.Default.UnityInstallLocation_5_6)) return;
+                Console.WriteLine("Unity 5.6 bundle project: {0}", UnitySettings.Default.UnityBundleProject_5_6);
+                Console.WriteLine("Unity 5.6 bundle project folder to process: {0}", UnitySettings.Default.UnityBundleProjectCopy_5_6);
             }
             Console.WriteLine("_________________________________________________________");
             Console.WriteLine("");
@@ -52,13 +69,24 @@ namespace AssetCreator
             };
         }
 
+        private static bool CheckPathSetting(string name, string configName, string path)
+        {
+            Console.WriteLine("{0} path: {1}", name, path);
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine("\tUnable to find {0} at {1}.  Update the {2} config setting", name, path, configName);
+                return false;
+            }
+            return true;
+        }
+
         public static void UpdateFolders()
         {
             if (!Directory.Exists(Settings.Default.BaseDataPath))
                 Directory.CreateDirectory(Settings.Default.BaseDataPath);
 
             if (Directory.GetDirectories(Settings.Default.BaseDataPath).Length == 0)
-                Directory.CreateDirectory(Settings.Default.BaseDataPath + "\\Public");
+                Directory.CreateDirectory(Path.Combine(Settings.Default.BaseDataPath, "Public"));
 
             /// The data folder has subfolders to isolate different groups.  Each group has their own set of user folders, upload folder and output folders.
             /// Each level also has it's own set of "public" folders.
@@ -80,11 +108,11 @@ namespace AssetCreator
             try
             {
                 if (Directory.GetDirectories(orgDataPath).Length == 0)
-                    Directory.CreateDirectory(orgDataPath + "\\Public");
+                    Directory.CreateDirectory(Path.Combine(orgDataPath, "Public"));
                 
                 foreach (var userFolderPath in Directory.GetDirectories(orgDataPath))
                 {
-                    var uploadFolder = userFolderPath + "\\Upload";
+                    var uploadFolder = Path.Combine(userFolderPath, "Upload");
 
                     if (!Directory.Exists(uploadFolder))
                         Directory.CreateDirectory(uploadFolder);
