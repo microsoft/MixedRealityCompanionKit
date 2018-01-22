@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Holographic_WireFrame
+  m_Shader: {fileID: 4800000, guid: a54f6470286b0b142ae6df46e33ef0f6, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 3000
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _DispTex:
+        m_Texture: {fileID: 2800000, guid: 642b6dfda6015aa4b86067d4d9a7a30b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Displacement: 0.25
+    - _RimPow: 0.7
+    m_Colors:
+    - _Color: {r: 0, g: 0.08493916, b: 0.49264705, a: 1}
+    - _Offset: {r: 0.98785305, g: 0.04939265, b: 0, a: 0}
+    - _RimColor: {r: 0, g: 0.27053753, b: 0.71323526, a: 1}
+    - _WireColor: {r: 0.034482475, g: 0, b: 1, a: 1}

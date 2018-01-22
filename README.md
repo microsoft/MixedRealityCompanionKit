@@ -16,5 +16,7 @@ HoloLensCompanionKit contains the following feature areas:
 
 5. [Windows Mixed Reality Commander](HoloLensCommander/README.md) (Formerly, HoloLens Commander)
 
+6. [Asset Bundler](Bundler/README.md)
+
 
 

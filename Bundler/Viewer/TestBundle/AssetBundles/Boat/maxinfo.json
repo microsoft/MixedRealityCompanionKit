@@ -1,0 +1,21 @@
+{
+"DateTimeStarted" : "12/6/2017 9:31:43 AM",
+"CustomSettings" : "false",
+"ModelsInZip" : "1",
+"TargetLODs" : {"LOD1" : {"TargetPlatform" : "VR-PC","TargetPlatformVertexCount" : "1000000"},"LOD2" : {"TargetPlatform" : "HoloLens","TargetPlatformVertexCount" : "100000"} 
+
+}, 
+"DontDecimateVertsUnder" : "75",
+"Source" : {"targetplatform" : "Source-NoEdits",
+"polycount" : "9999",
+"vertexcount" : "29994",
+"partcount" : "2",
+"surfacearea" : "0.395907"
+}, 
+"LOD0" : {"targetplatform" : "Source-Welded",
+"polycount" : "9999",
+"vertexcount" : "5441",
+"partcount" : "2"
+}, 
+"DateTimeEnded" : "12/6/2017 9:31:44 AM"
+}

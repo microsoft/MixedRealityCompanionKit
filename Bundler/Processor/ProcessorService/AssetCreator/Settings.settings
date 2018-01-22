@@ -1,0 +1,39 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="AssetCreator" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MaxTargetPlatforms" Type="System.String" Scope="User">
+      <Value Profile="(Default)">VR-PC,HoloLens</Value>
+    </Setting>
+    <Setting Name="MaxTargetVertexCount" Type="System.String" Scope="User">
+      <Value Profile="(Default)">1000000,100000</Value>
+    </Setting>
+    <Setting Name="MaxScriptLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Bundler\Assets\HoloAssetCreator.ms</Value>
+    </Setting>
+    <Setting Name="MaxInstallLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Program Files\Autodesk\3ds Max 2017\</Value>
+    </Setting>
+    <Setting Name="BaseDataPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\bundler\data</Value>
+    </Setting>
+    <Setting Name="MaxDontDecimateLessThan" Type="System.String" Scope="User">
+      <Value Profile="(Default)">75</Value>
+    </Setting>
+    <Setting Name="CreateUnityAssetBundles" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="TempPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\bundler\temp</Value>
+    </Setting>
+    <Setting Name="MaxCombinePartsWithSameMaterial" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="MaxQualitySurfAreaCalc" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="MaxImportAllFiles" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
