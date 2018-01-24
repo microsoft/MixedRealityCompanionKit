@@ -1,28 +1,45 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using UnityEngine;
 
-public class SingleInstance<T> : MonoBehaviour where T : SingleInstance<T>
+namespace HoloToolkit.Unity
 {
-
-    private static T _Instance;
-    public static T Instance
+    /// <summary>
+    /// A simplified version of the Singleton class which doesn't depend on the Instance being set in Awake
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class SingleInstance<T> : MonoBehaviour where T : SingleInstance<T>
     {
-        get
+        private static T _Instance;
+        public static T Instance
         {
-            if (_Instance == null)
+            get
             {
-                T[] objects = FindObjectsOfType<T>();
-                if (objects.Length != 1)
+                if (_Instance == null)
                 {
-                    Debug.LogFormat("Expected exactly 1 {0} but found {1}", typeof(T).ToString(), objects.Length);
+                    T[] objects = FindObjectsOfType<T>();
+                    if (objects.Length == 1)
+                    {
+                        _Instance = objects[0];
+                    }
+                    else if (objects.Length > 1)
+                    {
+                        Debug.LogErrorFormat("Expected exactly 1 {0} but found {1}", typeof(T).ToString(), objects.Length);
+                    }
                 }
-                else
-                {
-                    _Instance = objects[0];
-                }
+                return _Instance;
             }
-            return _Instance;
+        }
+
+        /// <summary>
+        /// Called by Unity when destroying a MonoBehaviour. Scripts that extend
+        /// SingleInstance should be sure to call base.OnDestroy() to ensure the
+        /// underlying static _Instance reference is properly cleaned up.
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            _Instance = null;
         }
     }
 }

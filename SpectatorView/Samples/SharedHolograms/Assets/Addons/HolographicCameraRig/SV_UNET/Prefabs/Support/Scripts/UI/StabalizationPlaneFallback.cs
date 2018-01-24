@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using HoloToolkit.Unity.InputModule;
 using HoloToolkit.Unity;
-using UnityEngine.VR.WSA;
+using UnityEngine.XR.WSA;
 
 namespace SpectatorView
 {
