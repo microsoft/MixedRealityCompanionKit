@@ -4,8 +4,8 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Runtime.InteropServices;
-using UnityEngine.VR.WSA;
-using UnityEngine.VR.WSA.Input;
+using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Input;
 using System.Collections.Generic;
 using System;
 
