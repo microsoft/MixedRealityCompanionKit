@@ -2,13 +2,9 @@
 This fork of the official repo contains an update for the SpectatorView sample application to work with Unity 2017.2.0+ and the latest MRTK. Other than that, no changes to the offical repo.
 
 **Tested with:**
-Unity 2017.2.0
-Unity 2017.2.1
-Unity 2017.3
-Elgato HD60S Capture Card
-GoPro Hero 5
+Unity 2017.2.0, Unity 2017.2.1, Unity 2017.3, Elgato HD60S Capture Card, GoPro Hero 5
 
-**Please note:**
+**Note:**
 Unity 2017.2.1 currently has some issues with hologram jittering and tracking loss without recovering, so you should avoid that Version.
 Unity 2017.3 has a new Setting in the XR Player Settings. Unfold the Little arrow next to "Windows Mixed Reality" and check "Enable Depth Buffer Sharing" to resolve the jittering mentioned above.
 I currently recomment to use Unity 2017.2.0 for HoloLens development, but that's just my experience.
