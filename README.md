@@ -1,3 +1,6 @@
+# PLEASE NOTE
+This fork of the official repo contains an update for the SpectatorView sample application to work with Unity 2017.2.0+ and the latest MRTK. Other than that, no changes to the offical repo.
+
 # MixedRealityCompanionKit
 Mixed Reality Companion Kit -- This is a MixedRealityToolkit style repository for code bits and components that may not run directly on Microsoft HoloLens or immersive headsets but instead pair with them to build experiences targeting Windows Mixed Reality.
 
