@@ -7,11 +7,10 @@
 # Default behavior is to never overwrite files
 LowLatencyMrcSample.sln: modified
 GeneratedProjects\UWP\Assembly-CSharp\project.json: 4FCF72A4D5EDB37E24C206A7BCFE7AF1
-GeneratedProjects\UWP\Assembly-CSharp-firstpass\project.json: 4FCF72A4D5EDB37E24C206A7BCFE7AF1
 LowLatencyMrcSample\App.cs: C305DD5BB8387A8FEADCE285E1F6C42C
-LowLatencyMrcSample\LowLatencyMrcSample.csproj: modified
+LowLatencyMrcSample\LowLatencyMrcSample.csproj: 3747C95C65321DD761DAE609A22877CC
 LowLatencyMrcSample\LowLatencyMrcSample.csproj.user: modified
-LowLatencyMrcSample\Package.appxmanifest: 08506BF1A715DF0A2EF78E9991914307
+LowLatencyMrcSample\Package.appxmanifest: 7A71D844F3EE94DD40515DDF829D46F4
 LowLatencyMrcSample\project.json: 1D02BC64BAC0D041019673A1C4C51737
 LowLatencyMrcSample\Assets\SplashScreen.scale-200.png: 60618416282ED104FD1473935716045D
 LowLatencyMrcSample\Assets\Square150x150Logo.scale-200.png: E02834B4A5DFB97FF8E212C1CACBB084

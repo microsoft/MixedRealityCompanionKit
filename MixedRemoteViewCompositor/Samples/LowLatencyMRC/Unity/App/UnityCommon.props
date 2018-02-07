@@ -1,8 +1,8 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <UnityWSASolutionName>LowLatencyMrcSample</UnityWSASolutionName>
-        <UnityWSASolutionDir>C:\Users\motio\vulcan\MixedRealityCompanionKit\MixedRemoteViewCompositor\Samples\LowLatencyMRC\Unity\App\</UnityWSASolutionDir>
-        <UnityProjectDir>C:\Users\motio\vulcan\MixedRealityCompanionKit\MixedRemoteViewCompositor\Samples\LowLatencyMRC\Unity\</UnityProjectDir>
+        <UnityWSASolutionDir>C:\Users\motio\vulcan\F_MixedRealityCompanionKit\MixedRemoteViewCompositor\Samples\LowLatencyMRC\Unity\App\</UnityWSASolutionDir>
+        <UnityProjectDir>C:\Users\motio\vulcan\F_MixedRealityCompanionKit\MixedRemoteViewCompositor\Samples\LowLatencyMRC\Unity\</UnityProjectDir>
         <UnityWSAPlayerDir>C:\Program Files\Unity_2017.2\Editor\Data\PlaybackEngines\MetroSupport\</UnityWSAPlayerDir>
         <UnityWSAToolsDir>$(UnityWSASolutionDir)Unity\Tools\</UnityWSAToolsDir>
     </PropertyGroup>
