@@ -124,6 +124,9 @@ namespace MixedRemoteViewCompositor
                 return S_OK;
             }
 
+			HRESULT GetCameraMatrixSourcesCount(DWORD *count);
+			HRESULT GetCameraMatrixSource(DWORD which, NetworkMediaSinkStreamImpl **result);
+
         private:
             HRESULT FormatChanged(_In_ IMFMediaType* pMediaType);
             HRESULT SampleUpdated(_In_ IMFSample* pSample);

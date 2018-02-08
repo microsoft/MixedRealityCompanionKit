@@ -40,6 +40,13 @@ namespace MixedRemoteViewCompositor
             Matrix4x4 cameraAffine;
         };
 
+		extern "C" struct CameraMatrices
+		{
+			Matrix4x4 viewTransform;
+			Matrix4x4 projection;
+			Matrix4x4 worldToCamera;
+		};
+
         extern "C" typedef void(UNITY_INTERFACE_API *SampleUpdated)(
             _In_ MediaSampleArgs *args);
 
@@ -142,7 +149,12 @@ namespace MixedRemoteViewCompositor
                 _In_ ModuleHandle captureHandle, 
                 _In_ IUnknown* pUnkSpatial);
 
-            STDMETHODIMP PlaybackCreate(
+			STDMETHODIMP CaptureGetCameraMatrices(
+				_In_ ModuleHandle captureHandle,
+				_In_ DWORD sourceIdx,
+				_Inout_ CameraMatrices *matrices);
+
+			STDMETHODIMP PlaybackCreate(
                 _In_ ModuleHandle connectionHandle,
                 _In_ PluginCallback createdCallback);
             STDMETHODIMP PlaybackAddClosed(
@@ -176,7 +188,7 @@ namespace MixedRemoteViewCompositor
                 _In_ ModuleHandle handle,
                 _Inout_ MediaSampleArgs* pSampleArgs);
 
-        private:
+		private:
             STDMETHODIMP_(void) Uninitialize();
 
             STDMETHODIMP_(void) CompletePluginCallback(

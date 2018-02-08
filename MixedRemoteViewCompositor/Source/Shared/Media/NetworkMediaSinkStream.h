@@ -7,7 +7,6 @@ namespace MixedRemoteViewCompositor
 {
     namespace Media
     {
-
         class NetworkMediaSinkStreamImpl
             : public RuntimeClass<RuntimeClassFlags<RuntimeClassType::ClassicCom>
             , IMFMediaEventGenerator
@@ -116,6 +115,10 @@ namespace MixedRemoteViewCompositor
                 _Inout_ MediaTypeDescription* pStreamDescription,
                 _Out_ IDataBuffer** ppDataBuffer);
 
+			HRESULT GetWorldToCameraMatrix(ABI::Windows::Foundation::Numerics::Matrix4x4 *m);
+			HRESULT GetCameraProjectionTransformMatrix(ABI::Windows::Foundation::Numerics::Matrix4x4 *m);
+			HRESULT GetCameraViewTransformMatrix(ABI::Windows::Foundation::Numerics::Matrix4x4 *m);
+
         private:
             HRESULT ValidateOperation(
                 _In_ SinkStreamOperation op);
@@ -189,6 +192,9 @@ namespace MixedRemoteViewCompositor
             // ValidStateMatrix: Defines a look-up table that says which operations
             // are valid from which states.
             static BOOL ValidStateMatrix[SinkStreamState_Count][SinkStreamOperation_Count];
+
+			ABI::Windows::Foundation::Numerics::Matrix4x4 _worldToCameraMatrix, _cameraProjectionTransform, _cameraViewTransform;
+
         };
     }
 }

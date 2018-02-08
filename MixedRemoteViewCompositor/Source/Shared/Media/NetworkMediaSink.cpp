@@ -872,3 +872,53 @@ HRESULT NetworkMediaSinkImpl::SampleUpdated(IMFSample* pSample)
     return S_OK;
 }
 
+HRESULT NetworkMediaSinkImpl::GetCameraMatrixSourcesCount(DWORD *count)
+{
+	NULL_CHK(count);
+
+	auto lock = _lock.Lock();
+
+	IFR(CheckShutdown());
+
+	*count = _streams.GetCount();
+
+	return S_OK;
+}
+
+HRESULT NetworkMediaSinkImpl::GetCameraMatrixSource(DWORD dwIndex, NetworkMediaSinkStreamImpl **ppSinkStreamImpl)
+{
+	NULL_CHK(ppSinkStreamImpl);
+
+	auto lock = _lock.Lock();
+
+	ComPtr<IMFStreamSink> spStream;
+	DWORD const cStreams = _streams.GetCount();
+	if (cStreams <= dwIndex)
+	{
+		IFR(MF_E_INVALIDINDEX);
+	}
+
+	IFR(CheckShutdown());
+
+	DWORD dwCurrent = 0;
+	StreamContainer::POSITION pos = _streams.FrontPosition();
+	StreamContainer::POSITION endPos = _streams.EndPosition();
+	for (; pos != endPos && dwCurrent < dwIndex; pos = _streams.Next(pos), ++dwCurrent)
+	{
+		// Just move to proper position
+	}
+
+	if (pos == endPos)
+	{
+		IFR(MF_E_UNEXPECTED);
+	}
+
+	IFR(_streams.GetItemPos(pos, &spStream));
+
+	IMFStreamSink *sink = nullptr;
+	return spStream.CopyTo(&sink);
+
+	*ppSinkStreamImpl = static_cast<NetworkMediaSinkStreamImpl*>(sink);
+}
+
+

@@ -423,3 +423,18 @@ MRVCDLL MrvcPlaybackClose(
 
     return RPC_E_WRONG_THREAD;
 }
+
+MRVCDLL MrvcCaptureGetCameraMatrices(
+	_In_ ModuleHandle handle,
+	_In_ INT64 idx,
+	_Inout_ CameraMatrices *cameraMatrices)
+{
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->CaptureGetCameraMatrices(handle, idx, cameraMatrices);
+	}
+
+	return RPC_E_WRONG_THREAD;
+
+}

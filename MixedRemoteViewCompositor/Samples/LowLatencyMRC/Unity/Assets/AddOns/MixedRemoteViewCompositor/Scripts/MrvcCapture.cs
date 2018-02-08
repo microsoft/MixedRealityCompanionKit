@@ -170,6 +170,15 @@ namespace MixedRemoteViewCompositor
             }
         }
 
+        public bool TryGetCameraMatrices(ref CameraMatrices matrices)
+        {
+            if (this.captureEngine != null && this.CaptureState == CaptureState.Started)
+            {
+                return this.captureEngine.TryGetCameraMatrices(ref matrices);
+            }
+            return false;
+        }
+
         private void CaptureInitialize(Connection connection)
         {
             if (connection == null)
