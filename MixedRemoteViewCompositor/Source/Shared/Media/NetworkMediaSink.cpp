@@ -916,9 +916,10 @@ HRESULT NetworkMediaSinkImpl::GetCameraMatrixSource(DWORD dwIndex, NetworkMediaS
 	IFR(_streams.GetItemPos(pos, &spStream));
 
 	IMFStreamSink *sink = nullptr;
-	return spStream.CopyTo(&sink);
+	IFR(spStream.CopyTo(&sink));
 
 	*ppSinkStreamImpl = static_cast<NetworkMediaSinkStreamImpl*>(sink);
+	return S_OK;
 }
 
 

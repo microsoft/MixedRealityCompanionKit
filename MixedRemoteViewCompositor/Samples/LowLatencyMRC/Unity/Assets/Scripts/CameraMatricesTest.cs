@@ -19,9 +19,9 @@ public class CameraMatricesTest : MonoBehaviour {
 		{
 			Debug.LogFormat(this, "[CameraMatricesTest] - We should have matrices, no idea about validity");
 		}
-		else
-		{
-			Debug.LogErrorFormat(this, "[CameraMatricesTest] - We were not delivered matrices");
-		}
+		//else
+		//{
+		//	Debug.LogErrorFormat(this, "[CameraMatricesTest] - We were not delivered matrices");
+		//}
 	}
 }

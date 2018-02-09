@@ -1256,15 +1256,33 @@ HRESULT PluginManagerImpl::CaptureGetCameraMatrices(
 	ComPtr<ICaptureEngine> spCaptureEngine;
 	IFR(GetCaptureEngine(captureHandle, &spCaptureEngine));
 
+	Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetCameraMatrices() - Got ComPtr<ICaptureEngine>\n");
+
 	CaptureEngineImpl *captureEngine = static_cast<CaptureEngineImpl*>(spCaptureEngine.Get());
 	NULL_CHK_HR(captureEngine, E_POINTER);
 
-	NetworkMediaSinkStreamImpl *sink = nullptr;
-	IFR(captureEngine->GetNetworkMediaSync()->GetCameraMatrixSource(sourceIdx, &sink));
+	Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetCameraMatrices() - Got CaptureEngineImpl*\n");
 
-	IFR(sink->GetWorldToCameraMatrix(&matrices->worldToCamera));
-	IFR(sink->GetCameraProjectionTransformMatrix(&matrices->projection));
-	IFR(sink->GetCameraViewTransformMatrix(&matrices->viewTransform));
+	ComPtr<NetworkMediaSinkImpl> sink = captureEngine->GetNetworkMediaSync();
+	NetworkMediaSinkImpl *sinkImpl = sink.Get();
+	NULL_CHK_HR(sinkImpl, E_POINTER);
+
+	Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetCameraMatrices() - Got NetworkMediaSinkImpl*\n");
+
+	NetworkMediaSinkStreamImpl *streamImpl;
+	IFR(sinkImpl->GetCameraMatrixSource(sourceIdx, &streamImpl));
+
+	NULL_CHK_HR(streamImpl, E_POINTER);
+
+	Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetCameraMatrices() - Got NetworkMediaSinkStreamImpl*\n");
+
+	IFR(streamImpl->GetWorldToCameraMatrix(&matrices->worldToCamera));
+	IFR(streamImpl->GetCameraProjectionTransformMatrix(&matrices->projection));
+	IFR(streamImpl->GetCameraViewTransformMatrix(&matrices->viewTransform));
+
+	Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetCameraMatrices() - Got all matrices, hopefully\n");
+
+	return S_OK;
 }
 
 
