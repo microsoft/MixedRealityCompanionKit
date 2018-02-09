@@ -35,4 +35,3 @@ EXPORTS
     MrvcPlaybackStop
     MrvcPlaybackClose
 	MrvcCaptureGetCameraMatrices
-	CavemanGetCameraMatrices

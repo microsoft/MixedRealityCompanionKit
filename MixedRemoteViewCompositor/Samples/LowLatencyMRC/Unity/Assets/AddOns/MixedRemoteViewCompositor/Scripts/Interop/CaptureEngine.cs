@@ -147,15 +147,12 @@ namespace MixedRemoteViewCompositor
                 return false;
             }
 
-            CameraMatrices cm = Wrapper.exCavementGetCameraMatrices(this.Handle, 0);
-            cameraMatrices = cm;
-
-//            int result = Wrapper.exGetCameraMatrices(this.Handle, 0, ref cameraMatrices);    
-//            if (result != 0)
-//            {
-//                Plugin.CheckResult(result, "CaptureEngine.TryGetCameraMatrices()");
-//                return false;
-//            }
+            int result = Wrapper.exGetCameraMatrices(this.Handle, 0, ref cameraMatrices);    
+            if (result != 0)
+            {
+                Plugin.CheckResult(result, "CaptureEngine.TryGetCameraMatrices()");
+                return false;
+            }
 
             return true;
         }
@@ -330,11 +327,7 @@ namespace MixedRemoteViewCompositor
             internal static extern int exClose(uint captureHandle);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureGetCameraMatrices")]
-            internal static extern int exGetCameraMatrices(uint captureHandle, uint idx, ref CameraMatrices mats);
-
-            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "CavemanGetCameraMatrices")]
-            internal static extern CameraMatrices exCavementGetCameraMatrices(uint captureHandle, int idx);
-
+            internal static extern int exGetCameraMatrices(uint captureHandle, Int64 idx, ref CameraMatrices mats);
         };
     }
 }

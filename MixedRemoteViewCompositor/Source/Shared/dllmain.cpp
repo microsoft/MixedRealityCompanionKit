@@ -435,28 +435,8 @@ MRVCDLL MrvcCaptureGetCameraMatrices(
 	if (nullptr != instance)
 	{
 		Log(Log_Level_Info, L"dllmain::MrvcCaptureGetCameraMatrices() - Got Plugin manager, calling CaptureGetCameraMatrices\n");
-		CameraMatrices matrices;
-		IFR(instance->CaptureGetCameraMatrices(handle, idx, &matrices));
-
-		*cameraMatrices = matrices;
-
-		return S_OK;
+		return instance->CaptureGetCameraMatrices(handle, idx, cameraMatrices);
 	}
 
 	return RPC_E_WRONG_THREAD;
-}
-
-__declspec(dllexport) CameraMatrices CavemanGetCameraMatrices(_In_ ModuleHandle handle, _In_ INT64 idx)
-{
-	Log(Log_Level_Info, L"dllmain::CavemanGetCameraMatrices()\n");
-
-	CameraMatrices matrices;
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		Log(Log_Level_Info, L"dllmain::CavemanGetCameraMatrices() - Got Plugin manager, calling CaptureGetCameraMatrices\n");
-		instance->CaptureGetCameraMatrices(handle, idx, &matrices);
-	}
-
-	return matrices;
 }
