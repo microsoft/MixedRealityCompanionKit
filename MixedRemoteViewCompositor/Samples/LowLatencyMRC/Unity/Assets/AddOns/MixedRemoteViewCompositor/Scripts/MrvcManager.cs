@@ -204,6 +204,17 @@ namespace MixedRemoteViewCompositor
             }
             this.StopCaptureNetworkComponent();
         }
+
+        public bool TryGetCaptureCameraMatrices(ref CameraMatrices matrices)
+        {
+            if (this.captureEngine != null)
+            {
+                return this.captureEngine.TryGetCameraMatrices(ref matrices);
+            }
+
+            return false;
+        }
+
         public void StartPlayback()
         {
             this.ManagerState = ManagerState.PlaybackStart;

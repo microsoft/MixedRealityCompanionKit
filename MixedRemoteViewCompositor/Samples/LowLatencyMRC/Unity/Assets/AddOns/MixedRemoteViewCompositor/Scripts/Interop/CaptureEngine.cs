@@ -8,6 +8,14 @@ using UnityEngine;
 
 namespace MixedRemoteViewCompositor
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CameraMatrices
+    {
+        public SpatialTranformHelper.Matrix4x4 viewTransform;
+        public SpatialTranformHelper.Matrix4x4 projection;
+        public SpatialTranformHelper.Matrix4x4 worldToCamera;
+    };
+
     public class CaptureEngine : IDisposable
     {
         public Action<object, EventArgs> Started;
@@ -25,6 +33,8 @@ namespace MixedRemoteViewCompositor
 
         private PluginCallbackHandler stoppedHandler;
         private GCHandle stoppedCallbackHandle;
+
+        private bool running = false;
 
         // IDisposable
         private bool disposedValue = false;
@@ -107,6 +117,8 @@ namespace MixedRemoteViewCompositor
             }
         }
 
+        public bool IsRunning { get { return running; }}
+
         public void Close()
         {
             if (this.Handle == Plugin.InvalidHandle)
@@ -126,6 +138,23 @@ namespace MixedRemoteViewCompositor
             }
 
             this.Handle = Plugin.InvalidHandle;
+        }
+
+        public bool TryGetCameraMatrices(ref CameraMatrices cameraMatrices)
+        {
+            if (this.Handle == Plugin.InvalidHandle)
+            {
+                return false;
+            }
+
+            int result = Wrapper.exGetCameraMatrices(this.Handle, 0, ref cameraMatrices);    
+            if (result != 0)
+            {
+                Plugin.CheckResult(result, "CaptureEngine.TryGetCameraMatrices()");
+                return false;
+            }
+
+            return true;
         }
 
         public void SetSpatialCoordinateSystem(IntPtr spatialCoordinateSystemPtr)
@@ -231,6 +260,7 @@ namespace MixedRemoteViewCompositor
         {
             if (this.Handle == Plugin.InvalidHandle)
             {
+                running = false;
                 if (this.Failed != null)
                 {
                     this.Failed(this, new FailedEventArgs(result, string.Format("PlaybackEngine.Created(): result: 0x{0} - {1}", result.ToString("X", NumberFormatInfo.InvariantInfo), message)));
@@ -243,6 +273,7 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
+            running = true;
             if (this.Started != null)
             {
                 this.Started(this, EventArgs.Empty);
@@ -251,6 +282,7 @@ namespace MixedRemoteViewCompositor
 
         private void OnStopped(uint handle, int result, string message)
         {
+            running = false;
             if (result != 0)
             {
                 if (this.Failed != null)
@@ -293,6 +325,9 @@ namespace MixedRemoteViewCompositor
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureClose")]
             internal static extern int exClose(uint captureHandle);
+
+            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureGetCameraMatrices")]
+            internal static extern int exGetCameraMatrices(uint captureHandle, Int64 idx, ref CameraMatrices mats);
         };
     }
 }

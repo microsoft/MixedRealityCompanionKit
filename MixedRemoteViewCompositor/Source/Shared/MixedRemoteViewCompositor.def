@@ -34,3 +34,4 @@ EXPORTS
     MrvcPlaybackStart
     MrvcPlaybackStop
     MrvcPlaybackClose
+	MrvcCaptureGetCameraMatrices

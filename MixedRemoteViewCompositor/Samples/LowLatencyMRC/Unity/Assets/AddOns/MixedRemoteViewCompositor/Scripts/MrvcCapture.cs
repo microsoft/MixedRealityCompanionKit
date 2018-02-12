@@ -3,7 +3,7 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.VR.WSA;
+using UnityEngine.XR.WSA;
 
 namespace MixedRemoteViewCompositor
 {
@@ -168,6 +168,15 @@ namespace MixedRemoteViewCompositor
             {
                 this.ConnectionClose();
             }
+        }
+
+        public bool TryGetCameraMatrices(ref CameraMatrices matrices)
+        {
+            if (this.captureEngine != null && this.CaptureState == CaptureState.Started)
+            {
+                return this.captureEngine.TryGetCameraMatrices(ref matrices);
+            }
+            return false;
         }
 
         private void CaptureInitialize(Connection connection)

@@ -1241,6 +1241,40 @@ HRESULT PluginManagerImpl::PlaybackGetFrameData(
     return pPlayerImpl->GetFrameData(args);
 }
 
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::CaptureGetCameraMatrices(
+	ModuleHandle captureHandle,
+	DWORD sourceIdx,
+	CameraMatrices *matrices)
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetCameraMatrices()\n");
+
+	NULL_CHK(matrices);
+
+	auto lock = _lock.Lock();
+
+	ComPtr<ICaptureEngine> spCaptureEngine;
+	IFR(GetCaptureEngine(captureHandle, &spCaptureEngine));
+
+	CaptureEngineImpl *captureEngine = static_cast<CaptureEngineImpl*>(spCaptureEngine.Get());
+	NULL_CHK_HR(captureEngine, E_POINTER);
+
+	ComPtr<NetworkMediaSinkImpl> sink = captureEngine->GetNetworkMediaSync();
+	NetworkMediaSinkImpl *sinkImpl = sink.Get();
+	NULL_CHK_HR(sinkImpl, E_POINTER);
+
+	NetworkMediaSinkStreamImpl *streamImpl;
+	IFR(sinkImpl->GetCameraMatrixSource(sourceIdx, &streamImpl));
+
+	NULL_CHK_HR(streamImpl, E_POINTER);
+	IFR(streamImpl->GetWorldToCameraMatrix(&matrices->worldToCamera));
+	IFR(streamImpl->GetCameraProjectionTransformMatrix(&matrices->projection));
+	IFR(streamImpl->GetCameraViewTransformMatrix(&matrices->viewTransform));
+
+	return S_OK;
+}
+
+
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::PlaybackStart(

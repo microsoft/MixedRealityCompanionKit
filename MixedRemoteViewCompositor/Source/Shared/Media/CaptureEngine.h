@@ -59,6 +59,8 @@ namespace MixedRemoteViewCompositor
             IFACEMETHOD(StopAsync)(
                 _Out_ ABI::Windows::Foundation::IAsyncAction** action);
 
+			ComPtr<NetworkMediaSinkImpl> GetNetworkMediaSync() const { return _networkMediaSink; }
+
         protected:
             // media capture callbacks
             HRESULT OnMediaCaptureFailed(
