@@ -5,9 +5,15 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 using HoloToolkit.Unity;
-using UnityEngine.VR.WSA.Sharing;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Sharing;
+using UnityEngine.XR.WSA.Persistence;
+#else
 using UnityEngine.VR.WSA;
+using UnityEngine.VR.WSA.Sharing;
 using UnityEngine.VR.WSA.Persistence;
+#endif
 using System;
 
 namespace SpectatorView

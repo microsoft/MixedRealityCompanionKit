@@ -6,7 +6,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using HoloToolkit.Unity.InputModule;
 using HoloToolkit.Unity;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA;
+#else
 using UnityEngine.VR.WSA;
+#endif
 
 namespace SpectatorView
 {

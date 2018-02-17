@@ -151,8 +151,6 @@ namespace SpectatorView
 
         void Start()
         {
-            UnityEngine.VR.WSA.HolographicSettings.ActivateLatentFramePresentation(true);
-
             computerName = GetLocalComputerName().Trim().ToLower();
 
             networkDiscovery = null;

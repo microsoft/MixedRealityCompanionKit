@@ -3,7 +3,11 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA.Input;
+#else
 using UnityEngine.VR.WSA.Input;
+#endif
 
 namespace HoloToolkit.Unity.InputModule
 {
@@ -159,16 +163,16 @@ namespace HoloToolkit.Unity.InputModule
         {
             // Update source position
             Vector3 sourcePosition;
-            if (interactionSource.properties.location.TryGetPosition(out sourcePosition))
+            if (interactionSource.sourcePose.TryGetPosition(out sourcePosition))
             {
                 sourceData.HasPosition = true;
                 sourceData.SourcePosition = sourcePosition;
             }
 
             // Check for source presses
-            if (interactionSource.pressed != sourceData.IsSourceDownPending)
+            if (interactionSource.selectPressed != sourceData.IsSourceDownPending)
             {
-                sourceData.IsSourceDownPending = interactionSource.pressed;
+                sourceData.IsSourceDownPending = interactionSource.selectPressed;
                 sourceData.SourceStateUpdateTimer = SourcePressDelay;
             }
 
