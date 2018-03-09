@@ -8,14 +8,76 @@ using UnityEngine;
 #if UNITY_WSA
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Persistence;
+using UnityEngine.XR.WSA.Sharing;
 #endif
 
 namespace Persistence
 {
+    public enum PersistenceEventType
+    {
+        /// <summary>
+        /// Atttempting to apply a shared anchor
+        /// </summary>
+        ApplyingShared,
+
+        /// <summary>
+        /// Successfully applied a shared anchor
+        /// </summary>
+        AppliedShared,
+
+        /// <summary>
+        /// An anchor was loaded from cached
+        /// </summary>
+        Loaded,
+
+        /// <summary>
+        /// An anchor was saved to the cache
+        /// </summary>
+        Saved,
+    }
+
+    /// <summary>
+    /// Holds data on the presistence event
+    /// </summary>
+    public class PersistenceEventArgs
+    {
+        /// <summary>
+        /// The type of the persistence event
+        /// </summary>
+        public PersistenceEventType Type { get; set; }
+
+        /// <summary>
+        /// The anchor id
+        /// </summary>
+        public string AnchorId { get; set; }
+
+
+        /// <summary>
+        /// The game object that owns this anchor
+        /// </summary>
+        public GameObject AnchorOwner { get; set; }
+    }
+
     [Serializable]
     public class PersistenceSaveLoad: ScriptableObject
     {
+        /// <summary>
+        /// Invoked when this object finished an action, like save or load.
+        /// </summary>
+        public delegate void OnPersistenceEvent(PersistenceSaveLoad source, PersistenceEventArgs args);
+        public event OnPersistenceEvent PersistenceEvent;
+
 #if UNITY_WSA
+        /// <summary>
+        /// The shared anchor id we're trying to apply
+        /// </summary>
+        private string applyingAnchorStorageId;
+
+        /// <summary>
+        /// The shared achor we're tyring apply
+        /// </summary>
+        private WorldAnchor applyingAnchor;
+
         private string GetPathForGameObject(GameObject gameObject)
         {
             var path = Path.Combine(Application.persistentDataPath.Replace("/", "\\"), string.Format("{0}.worldanchor", gameObject.name));
@@ -23,7 +85,7 @@ namespace Persistence
             return path;
         }
 
-        public bool DeleteAllWorldAnchorFiles(ref WorldAnchorStore store)
+        public bool DeleteAllWorldAnchorFiles(WorldAnchorStore store)
         {
             if (store == null)
             {
@@ -52,7 +114,7 @@ namespace Persistence
             return true;
         }
 
-        public bool DeleteLocation(GameObject gameObject, ref WorldAnchorStore store)
+        public bool DeleteLocation(GameObject gameObject, WorldAnchorStore store)
         {
             if (gameObject == null)
             {
@@ -96,7 +158,7 @@ namespace Persistence
             return true;
         }
 
-        public bool SaveLocation(GameObject gameObject, ref WorldAnchorStore store)
+        public bool SaveLocation(GameObject gameObject, WorldAnchorStore store)
         {
             if (gameObject == null)
             {
@@ -112,16 +174,102 @@ namespace Persistence
             Debug.Log("Attempting save world position\r\n   " + gameObject.transform.localPosition.ToString("0.00"));
 
             // delete any previous WorldAnchors on this object
-            DeleteLocation(gameObject, ref store);
-
-            bool success = false;
-
-            var storageId = Guid.NewGuid();
-            var storageIdString = storageId.ToString();
+            DeleteLocation(gameObject, store);
 
             // add a new anchor to gameObject
             gameObject.AddComponent<WorldAnchor>();
-            
+
+            // now save the new anchor
+            return SaveExistingLocation(Guid.NewGuid(), gameObject, store);
+        }
+
+        /// <summary>
+        /// Given a transfer batch, apply only the first anchor id to this object's gameObject.
+        /// </summary>
+        /// <param name="batch"></param>
+        /// <returns>True if gameObject is anchored</returns>
+        public bool ApplySharedLocation(GameObject gameObject, WorldAnchorTransferBatch batch, WorldAnchorStore store)
+        {
+            if (gameObject == null)
+            {
+                Debug.LogWarning("Cannot apply a shared WorldAnchor on null gameObject");
+                return false;
+            }
+
+            if (batch == null)
+            {
+                Debug.LogWarning("Cannot apply a shared WorldAnchor with null WorldAnchorTransferBatch");
+                return false;
+            }
+
+            var batchIds = batch.GetAllIds();
+            if (batchIds == null)
+            {
+                Debug.LogWarning("Cannot apply a shared WorldAnchor with an null id list on WorldAnchorTransferBatch");
+                return false;
+            }
+
+            if (batchIds.Length == 0)
+            {
+                Debug.LogWarning("Cannot apply a shared WorldAnchor with an empty WorldAnchorTransferBatch");
+                return false;
+            }
+
+            string storageIdString = batchIds[0];
+            Guid storageId;
+            try
+            {
+                 storageId = new Guid(storageIdString);
+            }
+            catch
+            {
+                Debug.LogWarning("Cannot apply a shared WorldAnchor with an invalid GUID");
+                return false;
+            }
+
+            if (store == null)
+            {
+                Debug.LogWarning("Cannot apply a shared WorldAnchor with null WorldAnchorStore");
+                return false;
+            }
+
+            Debug.Log("Attempting apply a shared world position: " + storageId);
+
+            // delete any previous WorldAnchors on this object
+            DeleteLocation(gameObject, store);
+
+            RaisePersistenceEvent(PersistenceEventType.ApplyingShared, gameObject, storageIdString);
+            WorldAnchor.OnTrackingChangedDelegate trackingChanged = null;
+            trackingChanged = (WorldAnchor self, bool located) =>
+            {
+                if (!located)
+                {
+                    Debug.Log("Haven't located anchor yet: " + storageId);
+                    return;
+                }
+
+
+                Debug.Log("Loocated anchor: " + storageId);
+                self.OnTrackingChanged -= trackingChanged;
+                RaisePersistenceEvent(PersistenceEventType.AppliedShared, gameObject, storageIdString);
+                SaveExistingLocation(storageId, gameObject, store);
+            };
+
+            // actually lock the game object to the batch's first anchor
+            WorldAnchor anchor = batch.LockObject(storageIdString, gameObject);
+            anchor.OnTrackingChanged += trackingChanged;
+            trackingChanged(applyingAnchor, applyingAnchor.isLocated);
+
+            // assume locating is successful. If a caller wants to trully know when anchor was located, they should
+            // listen for the "AppliedShared" and "Saved" events.
+            return true;
+        }
+
+        private bool SaveExistingLocation(Guid storageId, GameObject gameObject, WorldAnchorStore store)
+        {
+            bool success = false;
+            var storageIdString = storageId.ToString();
+
             // get instance of anchor to save in worldAnchor store
             var anchor = gameObject.GetComponent<WorldAnchor>();
             if (anchor != null)
@@ -150,12 +298,13 @@ namespace Persistence
                 }
             }
 
+            RaisePersistenceEvent(PersistenceEventType.Saved, gameObject, storageIdString);
             Debug.Log("Saved location:  " + storageId);
             Debug.Log("      position:  " + gameObject.transform.localPosition.ToString("0.00"));
             return true;
         }
 
-        public bool LoadLocation(GameObject gameObject, ref WorldAnchorStore store)
+        public bool LoadLocation(GameObject gameObject, WorldAnchorStore store)
         {
             if (gameObject == null)
             {
@@ -176,16 +325,19 @@ namespace Persistence
             var loadedScale = Vector3.one;
             if (TryGetSpaceAndScale(path, out loadedGuid, out loadedScale))
             {
-                if (store.Load(loadedGuid.ToString(), gameObject))
+                var loadedGuidString = loadedGuid.ToString();
+                if (store.Load(loadedGuidString, gameObject))
                 {
                     gameObject.transform.localScale = loadedScale;
                     Debug.Log("Found saved location, target position: " + gameObject.transform.localPosition + "\n  Scale: " + loadedScale.ToString("0.00"));
+                    RaisePersistenceEvent(PersistenceEventType.Loaded, gameObject, loadedGuidString);
                     return true;
                 }
 
                 Debug.Log("Guid not found in savedlocations.  Cleaning up.");
+
                 // failed to load the anchor info, so delete this id from the store
-                DeleteLocation(gameObject, ref store);
+                DeleteLocation(gameObject, store);
             }
 
             Debug.Log("Failed to get spaceID");
@@ -217,6 +369,19 @@ namespace Persistence
             guid = Guid.Empty;
             scale = Vector3.one;
             return false;
+        }
+
+        private void RaisePersistenceEvent(PersistenceEventType type, GameObject owner, string anchorId)
+        {
+            if (PersistenceEvent != null)
+            {
+                PersistenceEventArgs args = new PersistenceEventArgs();
+                args.AnchorId = anchorId;
+                args.AnchorOwner = owner;
+                args.Type = type;
+
+                PersistenceEvent(this, args);
+            }
         }
 #endif
     }

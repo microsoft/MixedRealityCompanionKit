@@ -2852,6 +2852,11 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: m_SpawnPrefabs.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4000012079502154, guid: 454898ddda01df748a6d5d77810261b3, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2889,6 +2894,28 @@ Prefab:
       propertyPath: StatusText
       value: 
       objectReference: {fileID: 2089205181}
+    - target: {fileID: 114000011280420136, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: m_BroadcastKey
+      value: 1982
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: m_SpawnPrefabs.Array.data[0]
+      value: 
+      objectReference: {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804,
+        type: 2}
+    - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: AutoStartDiscovery
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: SharedStage
+      value: 
+      objectReference: {fileID: 1078904591832736, guid: 0c93563dc189d034b998e666966c2e4e,
+        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 454898ddda01df748a6d5d77810261b3, type: 2}
   m_IsPrefabParent: 0

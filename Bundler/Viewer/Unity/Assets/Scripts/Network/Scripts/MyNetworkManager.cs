@@ -6,6 +6,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Networking.NetworkSystem;
+using UnityEngine.Networking.Match;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(MyNetworkDiscovery))]
@@ -14,19 +15,31 @@ public class MyNetworkManager : NetworkManager
     public bool AutoStartDiscovery = true;
     public PlayerList PlayerList;
     public Text StatusText;
+    public GameObject NetworkAnchorManager;
     bool checking;
     bool paused;
     bool isInDelayedStart = false;
 
     private MyNetworkDiscovery discovery;
 
+    private static MyNetworkManager instance;
+    public static MyNetworkManager Instance
+    {
+        get
+        {
+            return instance;
+        }
+    }
+
     void Start()
     {
+        instance = this;
         StartCoroutine(Startup(0));
     }
 
     void OnDestroy()
     {
+        instance = null;
         Cleanup();
     }
 
@@ -176,6 +189,18 @@ public class MyNetworkManager : NetworkManager
         base.OnClientDisconnect(conn);
 
         StartBroadcastDiscovery();
+    }
+
+    public override void OnServerSceneChanged(string sceneName)
+    {
+        base.OnServerSceneChanged(sceneName);
+
+        if (this.NetworkAnchorManager != null)
+        {
+            GameObject stage = Instantiate(NetworkAnchorManager, Vector3.zero, Quaternion.identity);
+            stage.name = "NetworkAnchorManager";
+            NetworkServer.Spawn(stage);
+        }
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
