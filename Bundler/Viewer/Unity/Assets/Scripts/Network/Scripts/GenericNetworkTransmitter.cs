@@ -88,12 +88,12 @@ public class GenericNetworkTransmitter
     {
         if (pendingStartRequest)
         {
-            Debug.Log("Unable to start as server, as there's a pending request.");
+            Debug.Log("[GenericNetworkTransmitter] Unable to start as server, as there's a pending request.");
             return;
         }
 
         pendingStartRequest = true;
-        Debug.Log("Starting as server.");
+        Debug.Log("[GenericNetworkTransmitter] Starting as server.");
 
         try
         {
@@ -105,7 +105,7 @@ public class GenericNetworkTransmitter
         }
         catch
         {
-            Debug.LogError("Failed to start as server.");
+            Debug.LogError("[GenericNetworkTransmitter] Failed to start as server.");
         }
 
         pendingStartRequest = false;
@@ -123,14 +123,14 @@ public class GenericNetworkTransmitter
     {
         if (sender != networkListener)
         {
-            Debug.LogWarning("Connection recieved on an old server. Not handling request.");
+            Debug.LogWarning("[GenericNetworkTransmitter] Connection recieved on an old server. Not handling request.");
             return;
         }
 
         // If we have data, send it. 
         if (mostRecentDataBuffer != null)
         {
-            Debug.Log("Sending the data " + mostRecentDataBuffer.Length);
+            Debug.LogFormat("[GenericNetworkTransmitter] Sending data ({0} bytes)", mostRecentDataBuffer.Length);
             IOutputStream stream = args.Socket.OutputStream;
             using (DataWriter writer = new DataWriter(stream))
             {
@@ -142,7 +142,7 @@ public class GenericNetworkTransmitter
         }
         else
         {
-            Debug.LogError("No data to send but we've been connected to. This is unexpected.");
+            Debug.LogError("[GenericNetworkTransmitter] No data to send but we've been connected to. This is unexpected.");
         }
     }
 
@@ -153,11 +153,11 @@ public class GenericNetworkTransmitter
     {
         if (pendingStartRequest)
         {
-            Debug.Log("Unable to start as client, as there's a pending request: " + serverIp);
+            Debug.LogFormat("[GenericNetworkTransmitter] Unable to start as client, as there's a pending request (host ip: {0})", serverIp);
             return;
         }
 
-        Debug.Log("Starting as client: " + serverIp);
+        Debug.LogFormat("[GenericNetworkTransmitter] Starting as client (host ip: {0})", serverIp);
         byte[] result = null;
         pendingStartRequest = true;
 
@@ -173,16 +173,16 @@ public class GenericNetworkTransmitter
         }
         catch
         {
-            Debug.LogError("Failed to start as client: " + serverIp);
+            Debug.LogErrorFormat("[GenericNetworkTransmitter] Failed to start as clients (host ip: {0})", serverIp);
         }
 
         mostRecentDataBuffer = result;
         pendingStartRequest = false;
-        Debug.Log("Stopping client: " + serverIp);
+        Debug.LogFormat("[GenericNetworkTransmitter] Stopping client (host ip: {0})", serverIp);
 
         if (result != null && this.RevievedData != null)
         {
-            Debug.Log("Invoking RevievedData from server: " + serverIp);
+            Debug.LogFormat("[GenericNetworkTransmitter] Invoking RevievedData from server (host ip: {0})", serverIp);
             this.RevievedData(result);
         }
     }
@@ -193,7 +193,8 @@ public class GenericNetworkTransmitter
     private async Task<byte[]> ReadInputStream(StreamSocket networkConnection)
     {
         byte[] result = null;
-        Debug.Log("Attemping to readh input stream: " + networkConnection.Information.RemoteAddress.ToString());
+        Debug.LogFormat("[GenericNetworkTransmitter] Attemping to read input stream (host ip: {0})",
+            networkConnection.Information.RemoteAddress.ToString());
 
         DataReader networkDataReader;
         // Since we are connected, we can read the data being sent to us.
@@ -209,7 +210,7 @@ public class GenericNetworkTransmitter
             int dataSize = networkDataReader.ReadInt32();
             if (dataSize < 0)
             {
-                Debug.LogError("Super bad super big datasize");
+                Debug.LogError("[GenericNetworkTransmitter] Super bad super big datasize");
             }
 
             // Need to allocate a new buffer with the dataSize.
@@ -218,12 +219,13 @@ public class GenericNetworkTransmitter
             // Read the data.
             await networkDataReader.LoadAsync((uint)dataSize);
             networkDataReader.ReadBytes(result);
-            Debug.Log("Finished to reading input stream (" + dataSize + " bytes): " + networkConnection.Information.RemoteAddress.ToString());
+            Debug.LogFormat("[GenericNetworkTransmitter] Finished to reading input stream ({0} bytes) (host ip: {1})",
+                dataSize,
+                networkConnection.Information.RemoteAddress.ToString());
         }
 
         return result;
     }
-
 #else
     public void StartAsServer(byte[] data)
     {

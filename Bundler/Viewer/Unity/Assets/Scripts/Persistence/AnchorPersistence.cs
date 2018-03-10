@@ -2,12 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using UnityEngine;
-
-#if UNITY_WSA
 using UnityEngine.XR.WSA.Persistence;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Sharing;
-#endif
 using System;
 
 
@@ -137,7 +134,6 @@ namespace Persistence
             return _isAnchored;
         }
 
-#if UNITY_WSA
         /// <summary>
         /// Given a transfer batch, apply only the first anchor id to this object's gameObject.
         /// </summary>
@@ -145,6 +141,7 @@ namespace Persistence
         /// <returns>True if gameObject is anchored</returns>
         public bool ApplyAnchor(WorldAnchorTransferBatch batch, bool saveAchor)
         {
+#if UNITY_WSA
             TargetGameObject = TargetGameObject == null ? gameObject : TargetGameObject;
 
             if (saveAchor)
@@ -165,10 +162,10 @@ namespace Persistence
                     _isAnchored = false;
                 }
             }
+#endif
 
             return _isAnchored;
         }
-#endif
 
         /// <summary>
         /// Re-boardcast the "saveLoad" events to this object's listeners

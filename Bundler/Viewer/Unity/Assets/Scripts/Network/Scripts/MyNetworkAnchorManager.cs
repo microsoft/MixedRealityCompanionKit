@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -33,7 +36,7 @@ public class MyNetworkAnchorManager : NetworkBehaviour
     {
         if (isServer)
         {
-            Debug.Log("Server is setting the anchor source: " + anchorSource.ToString());
+            Debug.Log("[MyNetworkAnchorManager] Server is setting the anchor source: " + anchorSource.ToString());
             AnchorSource = anchorSource;
         }
         else
@@ -48,7 +51,7 @@ public class MyNetworkAnchorManager : NetworkBehaviour
     [Command]
     private void CmdSetAnchorSource(SharedAnchorData anchorSource)
     {
-        Debug.Log("Command is setting the anchor source: " + anchorSource.ToString());
+        Debug.Log("[MyNetworkAnchorManager] Command is setting the anchor source: " + anchorSource.ToString());
         AnchorSource = anchorSource;
     }
 
@@ -63,11 +66,12 @@ public class MyNetworkAnchorManager : NetworkBehaviour
     /// <summary>
     /// Raise a change event so to notify listeners
     /// </summary>
-    private void AnchorSourceHook(SharedAnchorData data)
+    private void AnchorSourceHook(SharedAnchorData anchorSource)
     {
+        Debug.Log("[MyNetworkAnchorManager] AnchorSourceHook was invoked: " + anchorSource.ToString());
         if (AnchorSourceChanged != null)
         {
-            AnchorSourceChanged(this, data);
+            AnchorSourceChanged(this, anchorSource);
         }
     }
 }

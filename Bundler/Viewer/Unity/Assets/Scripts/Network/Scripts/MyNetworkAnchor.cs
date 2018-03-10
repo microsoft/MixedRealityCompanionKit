@@ -48,24 +48,7 @@ public class MyNetworkAnchor : MonoBehaviour
     /// <summary>
     /// Data on about which player the anchor is currently being served from.
     /// </summary>
-    private SharedAnchorData sharedAnchor;
-    public SharedAnchorData SharedAnchor
-    {
-        get
-        {
-            return sharedAnchor;
-        }
-
-        set
-        {
-            if (sharedAnchor.AnchorId != value.AnchorId ||
-                sharedAnchor.SourceIp != value.SourceIp)
-            {
-                sharedAnchor = value;
-                SharedAnchorChanged();
-            }
-        }
-    }
+    private SharedAnchorData anchorSource;
 
     /// <summary>
     /// Get the local ip address
@@ -92,18 +75,18 @@ public class MyNetworkAnchor : MonoBehaviour
     {
         get
         {
-            return SharedAnchor.IsValid;
+            return anchorSource.IsValid;
         }
     }
 
     /// <summary>
     /// Test is the LocalIp is the owner of the anchor source
     /// </summary>
-    public bool IsSharedAnchorOwner
+    public bool IsAnchourSourceOwner
     {
         get
         {
-            return SharedAnchor.SourceIp == LocalIp;
+            return anchorSource.SourceIp == LocalIp;
         }
     }
 
@@ -124,18 +107,13 @@ public class MyNetworkAnchor : MonoBehaviour
     private MyNetworkAnchorManager networkAnchorManager;
 
     /// <summary>
-    /// The last known binary anchor data to import
-    /// </summary>
-    private byte[] pendingAnchorData;
-
-    /// <summary>
     /// Initialization the Network Anchor. Note, this will search of an Anchor Persistence behavior. If not present,
     /// then this behavior will not function correctly.
     /// </summary>
     private void Start()
     {
         anchorTransmitter = new GenericNetworkTransmitter();
-        anchorTransmitter.RevievedData += RevievedAnchorData;
+        anchorTransmitter.RevievedData += ImportAnchorData;
 
         anchorPersistence = gameObject.GetComponent<AnchorPersistence>();
         if (anchorPersistence != null)
@@ -144,7 +122,7 @@ public class MyNetworkAnchor : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Network Anchor can't function correctly when there isn't a Anchor Persistence behavior also applied.");
+            Debug.LogError("[MyNetworkAnchor] Network Anchor can't function correctly when there isn't a Anchor Persistence behavior also applied.");
         }
 
         networkAnchorManager = MyNetworkAnchorManager.Instance;
@@ -154,7 +132,7 @@ public class MyNetworkAnchor : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Network Anchor can't function correctly when there isn't a Network Anchor Manager.");
+            Debug.LogError("[MyNetworkAnchor] Network Anchor can't function correctly when there isn't a Network Anchor Manager.");
         }
 
 #if !UNITY_EDITOR
@@ -162,7 +140,7 @@ public class MyNetworkAnchor : MonoBehaviour
         {
             if (hostName.DisplayName.Split(".".ToCharArray()).Length == 4)
             {
-                Debug.Log("Local IP " + hostName.DisplayName);
+                Debug.Log("[MyNetworkAnchor] Local IP " + hostName.DisplayName);
                 LocalIp = hostName.DisplayName;
                 break;
             }
@@ -175,7 +153,6 @@ public class MyNetworkAnchor : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        ImportAnchorData();
     }
 
     /// <summary>
@@ -186,24 +163,24 @@ public class MyNetworkAnchor : MonoBehaviour
     {
         if (args.AnchorOwner != gameObject)
         {
-            Debug.LogError("Unexcepted presistence event, anchor owener is not expected game object: " + args.AnchorId);
+            Debug.LogErrorFormat("[MyNetworkAnchor] Unexcepted presistence event, anchor owener is not expected game object: {0}", args.AnchorId);
             return;
         }
 
         if (args.Type == PersistenceEventType.Loaded)
         {
-            Debug.Log("Anchor Presistence behavior has loaded an anchor for storage: " + args.AnchorId);
+            Debug.LogFormat("[MyNetworkAnchor] Anchor Presistence behavior has loaded an anchor for storage: {0}", args.AnchorId);
             if (!IsSharedAnchorOwned)
             {
-                ShareAnchor(args.AnchorId);
+                ExportAnchorData(args.AnchorId);
             }
         }
         else if (args.Type == PersistenceEventType.Saved)
         {
-            Debug.Log("Anchor Presistence behavior has saved a new anchor: " + args.AnchorId);
-            if (!IsSharedAnchorOwned || SharedAnchor.AnchorId != args.AnchorId)
+            Debug.LogFormat("[MyNetworkAnchor] Anchor Presistence behavior has saved a new anchor: {0}", args.AnchorId);
+            if (!IsSharedAnchorOwned || anchorSource.AnchorId != args.AnchorId)
             {
-                ShareAnchor(args.AnchorId);
+                ExportAnchorData(args.AnchorId);
             }
         }
     }
@@ -215,22 +192,59 @@ public class MyNetworkAnchor : MonoBehaviour
     /// <param name="args"></param>
     private void OnAnchorSourceChanged(MyNetworkAnchorManager source, SharedAnchorData args)
     {
-        SharedAnchor = args;
+        SetAnchorSource(args);
+    }
+
+    /// <summary>
+    /// Set the anchor source, and either import external data or start exporting data.
+    /// </summary>
+    /// <param name="value">The new anchor name</param>
+    private void SetAnchorSource(SharedAnchorData args)
+    {
+        if (!args.IsValid)
+        {
+            Debug.Log("[MyNetworkAnchor] Attempting to share an invalid anchor");
+            return;
+        }
+
+        if (anchorSource.AnchorId == args.AnchorId &&
+            anchorSource.SourceIp == args.SourceIp)
+        {
+            Debug.Log("[MyNetworkAnchor] Setting anchor with not differences, so ignoring request");
+            return;
+        }
+
+        anchorSource = args;
+
+        if (!IsAnchourSourceOwner)
+        {
+            Debug.LogFormat("[MyNetworkAnchor] Requesting anchor binary data from anchor source: {0}", anchorSource.AnchorId);
+            anchorTransmitter.RequestData(anchorSource.SourceIp);
+        }
+        else if (networkAnchorManager != null)
+        {
+            Debug.LogFormat("[MyNetworkAnchor] Notifying listeners of a new anchor source: {0}", anchorSource.AnchorId);
+            networkAnchorManager.SetAnchorSource(anchorSource);
+        }
+        else
+        {
+            Debug.LogFormat("[MyNetworkAnchor] Unable to handle shareAnchor changes: {0}", anchorSource.AnchorId);
+        }
     }
 
     /// <summary>
     /// Take anchor ownership and share anchor data with other players.
     /// </summary>
-    private void ShareAnchor(String anchorId)
+    private void ExportAnchorData(String anchorId)
     {
         WorldAnchor worldAnchor = gameObject.GetComponent<WorldAnchor>();
         if (worldAnchor == null)
         {
-            Debug.LogError("Unable to share anchor with other players. Game object is missing an anchor: " + anchorId);
+            Debug.LogErrorFormat("[MyNetworkAnchor] Unable to acquire anchor ownership. Game object is missing an anchor: {0}", anchorId);
             return;
         }
 
-        Debug.Log("Attempting to share anchor with other players: " + anchorId);
+        Debug.LogFormat("[MyNetworkAnchor] Attempting to acquire anchor ownership and share anchor with other players: {0}", anchorId);
         List<byte> buffer = new List<byte>();
         WorldAnchorTransferBatch batch = new WorldAnchorTransferBatch();
         batch.AddWorldAnchor(anchorId, worldAnchor);
@@ -238,49 +252,6 @@ public class MyNetworkAnchor : MonoBehaviour
             batch,
             (byte[] data) => { buffer.AddRange(data); },
             (SerializationCompletionReason status) => { ExportAnchorDataComplete(status, buffer.ToArray(), anchorId); });
-    }
-
-    /// <summary>
-    /// Called we have recieved new anchor binary data
-    /// </summary>
-    /// <param name="data"></param>
-    private void RevievedAnchorData(byte[] data)
-    {
-        // If we were the source of the anchor data ignore
-        if (IsSharedAnchorOwner)
-        {
-            return;
-        }
-
-        pendingAnchorData = data;
-    }
-
-    /// <summary>
-    /// This is invoke by Unity when the networking SyncVar "AnchorSourceJson" changes.
-    /// </summary>
-    /// <param name="value">The new anchor name</param>
-    private void SharedAnchorChanged()
-    {
-        if (!SharedAnchor.IsValid)
-        {
-            Debug.Log("Attempting to share an invalid anchor");
-            return;
-        }
-
-        if (!IsSharedAnchorOwner)
-        {
-            Debug.Log("Requesting anchor from anchor source: " + sharedAnchor.AnchorId);
-            anchorTransmitter.RequestData(SharedAnchor.SourceIp);
-        }
-        else if (networkAnchorManager != null)
-        {
-            Debug.Log("Setting anchor manager's anchor source: " + sharedAnchor.AnchorId);
-            networkAnchorManager.SetAnchorSource(SharedAnchor);
-        }
-        else
-        {
-            Debug.Log("Unable to handle shareAnchor change: " + sharedAnchor.AnchorId);
-        }
     }
 
     /// <summary>
@@ -293,33 +264,41 @@ public class MyNetworkAnchor : MonoBehaviour
     {
         if (status == SerializationCompletionReason.Succeeded)
         {
-            Debug.Log("Exporting anchor succeeded: " + anchorId);
+            Debug.LogFormat("[MyNetworkAnchor] Exporting anchor succeeded: {0} ({1} bytes)", anchorId, data.Length);
 
             SharedAnchorData anchorSource;
             anchorSource.SourceIp = LocalIp;
             anchorSource.AnchorId = anchorId;
             anchorTransmitter.SendData(data);
-            SharedAnchor = anchorSource;
+            SetAnchorSource(anchorSource);
         }
         else
         {
-            Debug.Log("Exporting anchor failed: " + anchorId + "(" + status + ") (" + data.Length + ")");
+            Debug.LogFormat("[MyNetworkAnchor] Exporting anchor failed: {0} ({1}) ({2} bytes)", anchorId, status, data.Length);
         }
     }
 
     /// <summary>
     /// Call to begin the process of importing pending anchor data
     /// </summary>
-    private void ImportAnchorData()
+    private void ImportAnchorData(byte[] data)
     {
-        if (ImportingSharedAnchorData || pendingAnchorData == null || pendingAnchorData.Length == 0)
+        // If we were the source of the anchor data ignore
+        if (IsAnchourSourceOwner)
         {
+            Debug.Log("[MyNetworkAnchor] Owner of anchor, ignoring request to import anchor data.");
             return;
         }
 
+        if (data == null || data.Length == 0)
+        {
+            Debug.Log("[MyNetworkAnchor] Binary anchor data is null or empty, ignoring request to import anchor data.");
+            return;
+        }
+
+        Debug.LogFormat("[MyNetworkAnchor] Starting import of binary anchor data. ({0} bytes)", data.Length);
         ImportingSharedAnchorData = true;
-        WorldAnchorTransferBatch.ImportAsync(pendingAnchorData, ImportAnchorDataComplete);
-        pendingAnchorData = null;
+        WorldAnchorTransferBatch.ImportAsync(data, ImportAnchorDataComplete);
     }
 
     /// <summary>
@@ -334,30 +313,18 @@ public class MyNetworkAnchor : MonoBehaviour
         if (status != SerializationCompletionReason.Succeeded)
         {
             // if we failed, we can simply try again. (TODO)
-            Debug.Log("Anchor import has failed");
+            Debug.Log("[MyNetworkAnchor] Anchor import has failed");
         }
         else if (anchorPersistence != null)
         { 
-            Debug.Log("Anchor import has complete, applying achor via Anchor Persistence behavior");
+            Debug.Log("[MyNetworkAnchor] Anchor import has complete, applying achor via Anchor Persistence behavior");
             anchorPersistence.ApplyAnchor(batch, true);
         }
         else
         {
-            Debug.Log("Anchor import has complete, but can't apply since Anchor Persistence behavior is missing");
+            Debug.Log("[MyNetworkAnchor] Anchor import has complete, but can't apply since Anchor Persistence behavior is missing");
         }
 
         ImportingSharedAnchorData = false;
-    }
-    private void OnTrackingChanged(WorldAnchor self, bool located)
-    {
-        if (located)
-        {
-            self.OnTrackingChanged -= OnTrackingChanged;
-
-#if !UNITY_EDITOR
-            //AnchorEstablished = true;
-            //WorldAnchorManager.Instance.AnchorStore.Save(AnchorName, self);
-#endif
-        }
     }
 }
