@@ -43,6 +43,15 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     public event OnReceivedAnchor ReceivedAnchor;
 
     /// <summary>
+    /// Get if the local anchor player is in the process of receiving a shared anchor.
+    /// </summary>
+    public bool ReceivingAnchor
+    {
+        get;
+        private set;
+    }
+
+    /// <summary>
     /// Get the last received remote anchor
     /// </summary>
     public ReceivedAnchorArgs LastRecievedAnchor
@@ -90,30 +99,6 @@ public class MyNetworkAnchorClient : NetworkBehaviour
             isClient,
             hasAuthority,
             clientConnectionIp);
-    }
-
-    public override void OnStartLocalPlayer()
-    {
-        base.OnStartLocalPlayer();
-        Debug.LogFormat("[MyNetworkAnchorClient] OnStartLocalPlayer. {0}", DebugInfo());
-    }
-
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-        Debug.LogFormat("[MyNetworkAnchorClient] OnStartClient. {0}", DebugInfo());
-    }
-
-    public override void OnStopAuthority()
-    {
-        base.OnStopAuthority();
-        Debug.LogFormat("[MyNetworkAnchorClient] OnStopAuthority. {0}", DebugInfo());
-    }
-
-    public override void OnStartServer()
-    {
-        base.OnStartServer();
-        Debug.LogFormat("[MyNetworkAnchorClient] OnStartServer. {0}", DebugInfo());
     }
 
     public override void OnStartAuthority()
@@ -300,6 +285,7 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     private void ImportAnchorData(SharedAnchorData anchorSource)
     {
         Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1})", anchorSource.SourceIp, LocalAddress);
+        ReceivingAnchor = true;
         anchorTransmitter.RequestData(anchorSource.SourceIp);
     }
 
@@ -311,12 +297,14 @@ public class MyNetworkAnchorClient : NetworkBehaviour
         if (!args.Successful)
         {
             Debug.LogFormat("[MyNetworkAnchorClient] Failed to receive anchor data. {0}", DebugInfo());
+            ImportAnchorDataCompleted(null);
             return;
         }
 
         if (args.Data == null || args.Data.Length == 0)
         {
             Debug.LogFormat("[MyNetworkAnchorClient] Binary anchor data is null or empty, ignoring request to import anchor data. {0}", DebugInfo());
+            ImportAnchorDataCompleted(null);
             return;
         }
 
@@ -335,17 +323,34 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     {
         if (status != SerializationCompletionReason.Succeeded)
         {
-            // if we failed, we can simply try again. (TODO)
             Debug.Log("[MyNetworkAnchor] Anchor import has failed");
+            ImportAnchorDataCompleted(null);
         }
         else
         {
             Debug.Log("[MyNetworkAnchor] Anchor import has complete, and raising RevievedAnchor event");
+            ImportAnchorDataCompleted(batch);
+        }
+    }
+
+    /// <summary>
+    /// The final fuinction called once a network anchor has been imported.
+    /// </summary>
+    private void ImportAnchorDataCompleted(WorldAnchorTransferBatch batch)
+    {
+        ReceivingAnchor = false;
+        if (batch == null)
+        {
+            LastRecievedAnchor = null;
+        }
+        else
+        {
             LastRecievedAnchor = new ReceivedAnchorArgs(batch);
-            if (ReceivedAnchor != null)
-            {
-                ReceivedAnchor(this, LastRecievedAnchor);
-            }
+        }
+
+        if (ReceivedAnchor != null)
+        {
+            ReceivedAnchor(this, LastRecievedAnchor);
         }
     }
 }
