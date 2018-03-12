@@ -33,6 +33,17 @@ public class MyNetworkAnchor : MonoBehaviour
         {
             Debug.LogError("[MyNetworkAnchor] Network Anchor can't function correctly when there isn't a Anchor Persistence behavior also applied.");
         }
+
+        var networkAnchorManager = MyNetworkAnchorServer.Instance;
+        if (networkAnchorManager != null)
+        {
+            networkAnchorManager.ReceivedAnchor += OnReceivedRemoteAnchor;
+            OnReceivedRemoteAnchor(networkAnchorManager, networkAnchorManager.LastRecievedAnchor);
+        }
+        else
+        {
+            Debug.LogError("[MyNetworkAnchor] Network Anchor can't function correctly when there isn't a Network Anchor Manager.");
+        }
     }
 
     /// <summary>
@@ -43,11 +54,8 @@ public class MyNetworkAnchor : MonoBehaviour
         if (anchorPlayer == null)
         {
             anchorPlayer = MyNetworkAnchorClient.LocalInstance;
-
             if (anchorPlayer != null)
             {
-                anchorPlayer.ReceivedAnchor += OnReceivedRemoteAnchor;
-                OnReceivedRemoteAnchor(anchorPlayer, anchorPlayer.LastRecievedAnchor);
                 OnPersistenceEvent(anchorPersistence, pendingPersistenceEventArgs);
             }
         }
@@ -56,7 +64,7 @@ public class MyNetworkAnchor : MonoBehaviour
     /// <summary>
     /// When receiving a remote anchor, apply it to this game object.
     /// </summary>
-    private void OnReceivedRemoteAnchor(MyNetworkAnchorClient sender, ReceivedAnchorArgs args)
+    private void OnReceivedRemoteAnchor(MyNetworkAnchorServer sender, ReceivedAnchorArgs args)
     {
         if (args != null && anchorPersistence != null)
         {
@@ -93,12 +101,12 @@ public class MyNetworkAnchor : MonoBehaviour
         if (pendingPersistenceEventArgs.Type == PersistenceEventType.Loaded)
         {
             Debug.LogFormat("[MyNetworkAnchor] Anchor persistence behavior has loaded an anchor from storage: {0}", pendingPersistenceEventArgs.AnchorId);
-            anchorPlayer.ShareAnchorDefault(pendingPersistenceEventArgs.AnchorId, gameObject);
+            anchorPlayer.DefaultNetworkAnchor(pendingPersistenceEventArgs.AnchorId, gameObject);
         }
         else if (pendingPersistenceEventArgs.Type == PersistenceEventType.Saved)
         {
             Debug.LogFormat("[MyNetworkAnchor] Anchor persistence behavior has saved a new anchor: {0}", pendingPersistenceEventArgs.AnchorId);
-            anchorPlayer.ShareAnchor(pendingPersistenceEventArgs.AnchorId, gameObject);
+            anchorPlayer.ShareNetworkAnchor(pendingPersistenceEventArgs.AnchorId, gameObject);
         }
 
         pendingPersistenceEventArgs = null;

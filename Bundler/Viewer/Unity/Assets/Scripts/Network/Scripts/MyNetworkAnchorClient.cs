@@ -3,23 +3,8 @@
 
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.XR.WSA;
-using UnityEngine.XR.WSA.Sharing;
 using System;
 using System.Collections.Generic;
-
-public class ReceivedAnchorArgs
-{
-    public ReceivedAnchorArgs(WorldAnchorTransferBatch transferBatch)
-    {
-        TransferBatch = transferBatch;
-    }
-
-    /// <summary>
-    /// The transfer batch containing the anchor
-    /// </summary>
-    public WorldAnchorTransferBatch TransferBatch { get; private set; }
-}
 
 public class MyNetworkAnchorClient : NetworkBehaviour
 {
@@ -34,51 +19,6 @@ public class MyNetworkAnchorClient : NetworkBehaviour
             return localInstance;
         }
     }
-
-    /// <summary>
-    /// This event is raised When a new anchor arrives from a different player.
-    /// </summary>
-    /// <param name="data">The data that arrived.</param>
-    public delegate void OnReceivedAnchor(MyNetworkAnchorClient sender, ReceivedAnchorArgs args);
-    public event OnReceivedAnchor ReceivedAnchor;
-
-    /// <summary>
-    /// Get if the local anchor player is in the process of receiving a shared anchor.
-    /// </summary>
-    public bool ReceivingAnchor
-    {
-        get;
-        private set;
-    }
-
-    /// <summary>
-    /// Get the last received remote anchor
-    /// </summary>
-    public ReceivedAnchorArgs LastRecievedAnchor
-    {
-        get;
-        private set;
-    }
-
-    /// <summary>
-    /// Get the local IP address. If this is not local instance, this will be empty
-    /// </summary>
-    public String LocalAddress
-    {
-        get;
-        private set;
-    }
-
-    /// <summary>
-    /// This will send or receive the binary anchor data on the local instance
-    /// </summary>
-    private GenericNetworkTransmitter anchorTransmitter;
-
-    /// <summary>
-    /// For this to function, the network manager must spawn a game object with an anchor service behavior.
-    /// The anchor server will manage sync vars related to sharing anchors.
-    /// </summary>
-    private MyNetworkAnchorServer networkAnchorServer;
 
     /// <summary>
     /// Prevent client from being destroyed on scene changes.
@@ -110,20 +50,18 @@ public class MyNetworkAnchorClient : NetworkBehaviour
         {
             Debug.LogFormat("[MyNetworkAnchorClient] OnStartAuthority. Setting instance. {0}", DebugInfo());
             localInstance = this;
-            this.InitializeLocalAddress();
-            this.InitializeAnchorTransmitterOnce();
-            this.InitializeAnchorHostOnce();
         }
     }
     /// <summary>
     /// If anchor is unowned, export the anchor data stored in game object, take anchor ownership of the shared anchor,
     /// and share anchor with other players.
     /// </summary>
-    public void ShareAnchorDefault(String anchorId, GameObject gameObject)
+    public void DefaultNetworkAnchor(String anchorId, GameObject gameObject)
     {
-        if (networkAnchorServer == null || !networkAnchorServer.AnchorSource.IsValid)
+        if (MyNetworkAnchorServer.Instance != null && 
+            !MyNetworkAnchorServer.Instance.IsSharedAnchorOwned)
         {
-            ShareAnchor(anchorId, gameObject);
+            ShareNetworkAnchor(anchorId, gameObject);
         }
     }
 
@@ -131,123 +69,18 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     /// Export the anchor data stored in game object, take anchor ownership of the shared anchor, and share anchor with 
     /// other players.
     /// </summary>
-    public void ShareAnchor(String anchorId, GameObject gameObject)
+    public void ShareNetworkAnchor(String anchorId, GameObject gameObject)
     {
-        if (networkAnchorServer != null && networkAnchorServer.AnchorSource.AnchorId == anchorId)
+        if (MyNetworkAnchorServer.Instance != null)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] Ignoreing share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[MyNetworkAnchorClient] Ignoreing share anchor request, as there is no anchor server. (anchor id: {0})", anchorId);
             return;
         }
 
-        WorldAnchor worldAnchor = gameObject.GetComponent<WorldAnchor>();
-        if (worldAnchor == null)
+        if (MyNetworkAnchorServer.Instance.TrySharingAnchor(anchorId, gameObject))
         {
-            Debug.LogErrorFormat("[MyNetworkAnchorClient] Unable to acquire anchor ownership. Game object is missing an anchor. (anchor id: {0})", anchorId);
-            return;
-        }
-
-        Debug.LogFormat("[MyNetworkAnchorClient] Attempting to acquire anchor ownership and share anchor with other players. (anchor id: {0})", anchorId);
-
-        // The last received anchor will no longer be relevant since we're taking ownership
-        LastRecievedAnchor = null;
-
-        // Stop all pending work on the anchor transmitter
-        anchorTransmitter.StopAll();
-
-        // Start taking ownership of the anchor
-        SharedAnchorData anchorSource;
-        anchorSource.SourceIp = LocalAddress;
-        anchorSource.AnchorId = anchorId;
-        CmdSetAnchorSource(anchorSource);
-
-        // Export binary data
-        List<byte> buffer = new List<byte>();
-        WorldAnchorTransferBatch batch = new WorldAnchorTransferBatch();
-        batch.AddWorldAnchor(anchorId, worldAnchor);
-        WorldAnchorTransferBatch.ExportAsync(
-            batch,
-            (byte[] data) => { buffer.AddRange(data); },
-            (SerializationCompletionReason status) => { ExportAnchorDataComplete(status, buffer.ToArray(), anchorId); });
-    }
-
-    /// <summary>
-    /// Initialize the local IP address. This should only be called with authority.
-    /// </summary>
-    private void InitializeLocalAddress()
-    {
-        if (!hasAuthority)
-        {
-            return;
-        }
-
-#if !UNITY_EDITOR
-        foreach (Windows.Networking.HostName hostName in Windows.Networking.Connectivity.NetworkInformation.GetHostNames())
-        {
-            if (hostName.DisplayName.Split(".".ToCharArray()).Length == 4)
-            {
-                Debug.Log("[MyNetworkAnchor] Local IP " + hostName.DisplayName);
-                LocalAddress = hostName.DisplayName;
-                break;
-            }
-        }
-#else
-        LocalAddress = "editor" + UnityEngine.Random.Range(0, 999999).ToString();
-#endif
-    }
-
-    /// <summary>
-    /// Initialize the anchor transmitter only once
-    /// </summary>
-    private void InitializeAnchorTransmitterOnce()
-    {
-        if (anchorTransmitter == null)
-        {
-            anchorTransmitter = new GenericNetworkTransmitter();
-            anchorTransmitter.RequestDataCompleted += RequestAnchorDataCompleted;
-        }
-    }
-
-    /// <summary>
-    /// Initialize the anchor host and start listening to new anchor owners.
-    /// </summary>
-    private void InitializeAnchorHostOnce()
-    {
-        if (networkAnchorServer == null)
-        {
-            networkAnchorServer = MyNetworkAnchorServer.Instance;
-            if (networkAnchorServer != null)
-            {
-                networkAnchorServer.AnchorSourceChanged += AnchorSourceChanged;
-                AnchorSourceChanged(networkAnchorServer, networkAnchorServer.AnchorSource);
-            }
-            else
-            {
-                Debug.LogErrorFormat("[MyNetworkAnchorClient] For the anchor player to function correctly it needs a networkAnchorServer. {0}", DebugInfo());
-            }
-        }
-    }
-
-    /// <summary>
-    /// This is invoked once we've finished exported the binary anchor data to a byte array.
-    /// </summary>
-    private void ExportAnchorDataComplete(
-        SerializationCompletionReason status,
-        byte[] data,
-        String anchorId)
-    {
-        if (status == SerializationCompletionReason.Succeeded)
-        {
-            Debug.LogFormat("[MyNetworkAnchorClient] Exporting anchor succeeded: {0} ({1} bytes)", anchorId, data.Length);
-
-            //SharedAnchorData anchorSource;
-            //anchorSource.SourceIp = LocalAddress;
-            //anchorSource.AnchorId = anchorId;
-            anchorTransmitter.SendData(data);
-            //CmdSetAnchorSource(anchorSource);
-        }
-        else
-        {
-            Debug.LogFormat("[MyNetworkAnchorClient] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
+            // Start taking ownership of the anchor
+            CmdShareAnchor(SharedAnchorData.Create(anchorId));
         }
     }
 
@@ -255,7 +88,7 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     /// A network command to allow clients to change the anchor source.
     /// </summary>
     [Command]
-    private void CmdSetAnchorSource(SharedAnchorData anchorSource)
+    private void CmdShareAnchor(SharedAnchorData anchorSource)
     {
         if (MyNetworkAnchorServer.Instance != null)
         {
@@ -265,101 +98,6 @@ public class MyNetworkAnchorClient : NetworkBehaviour
         else
         {
             Debug.LogErrorFormat("[MyNetworkAnchorClient] Can't set anchor source, network anchor server is missing. {0} {1}", anchorSource.ToString(), DebugInfo());
-        }
-    }
-
-    /// <summary>
-    /// The anchor host's anchor source has changed.
-    /// </summary>
-    private void AnchorSourceChanged(MyNetworkAnchorServer source, SharedAnchorData args)
-    {
-        if (!args.IsValid)
-        {
-            Debug.Log("[MyNetworkAnchorClient] Ignoring anchor source since it's invalid.");
-            return;
-        }
-
-        if (args.SourceIp == LocalAddress)
-        {
-            Debug.Log("[MyNetworkAnchorClient] Ignoring anchor source since it originated from this player.");
-            return;
-        }
-
-        ImportAnchorData(args);
-    }
-
-    /// <summary>
-    /// Begin import anchor data from source.
-    /// </summary>
-    private void ImportAnchorData(SharedAnchorData anchorSource)
-    {
-        Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1})", anchorSource.SourceIp, LocalAddress);
-        ReceivingAnchor = true;
-        anchorTransmitter.RequestData(anchorSource.SourceIp);
-    }
-
-    /// <summary>
-    /// Called to begin the process of importing pending anchor data
-    /// </summary>
-    private void RequestAnchorDataCompleted(GenericNetworkTransmitter sender, RequestDataCompletedArgs args)
-    {
-        if (!args.Successful)
-        {
-            Debug.LogFormat("[MyNetworkAnchorClient] Failed to receive anchor data. {0}", DebugInfo());
-            ImportAnchorDataCompleted(null);
-            return;
-        }
-
-        if (args.Data == null || args.Data.Length == 0)
-        {
-            Debug.LogFormat("[MyNetworkAnchorClient] Binary anchor data is null or empty, ignoring request to import anchor data. {0}", DebugInfo());
-            ImportAnchorDataCompleted(null);
-            return;
-        }
-
-        Debug.LogFormat("[MyNetworkAnchorClient] Starting import of binary anchor data. ({0} bytes) {1}", args.Data.Length, DebugInfo());
-        WorldAnchorTransferBatch.ImportAsync(args.Data, ImportAnchorDataComplete);
-    }
-
-    /// <summary>
-    /// Called when a remote anchor has been de-serialized
-    /// </summary>
-    /// <param name="status">Tracks if the import worked</param>
-    /// <param name="batch">The WorldAnchorTransferBatch that has the anchor information.</param>
-    private void ImportAnchorDataComplete(
-        SerializationCompletionReason status,
-        WorldAnchorTransferBatch batch)
-    {
-        if (status != SerializationCompletionReason.Succeeded)
-        {
-            Debug.Log("[MyNetworkAnchor] Anchor import has failed");
-            ImportAnchorDataCompleted(null);
-        }
-        else
-        {
-            Debug.Log("[MyNetworkAnchor] Anchor import has complete, and raising RevievedAnchor event");
-            ImportAnchorDataCompleted(batch);
-        }
-    }
-
-    /// <summary>
-    /// The final fuinction called once a network anchor has been imported.
-    /// </summary>
-    private void ImportAnchorDataCompleted(WorldAnchorTransferBatch batch)
-    {
-        ReceivingAnchor = false;
-        if (batch == null)
-        {
-            LastRecievedAnchor = null;
-        }
-        else
-        {
-            LastRecievedAnchor = new ReceivedAnchorArgs(batch);
-        }
-
-        if (ReceivedAnchor != null)
-        {
-            ReceivedAnchor(this, LastRecievedAnchor);
         }
     }
 }
