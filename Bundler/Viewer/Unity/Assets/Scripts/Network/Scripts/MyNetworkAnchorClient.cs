@@ -279,7 +279,7 @@ public class MyNetworkAnchorClient : NetworkBehaviour
             return;
         }
 
-        if (args.AnchorId == LocalAddress)
+        if (args.SourceIp == LocalAddress)
         {
             Debug.Log("[MyNetworkAnchorClient] Ignoring anchor source since it originated from this player.");
             return;
@@ -293,7 +293,7 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     /// </summary>
     private void ImportAnchorData(SharedAnchorData anchorSource)
     {
-        Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0})", anchorSource.SourceIp);
+        Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1})", anchorSource.SourceIp, LocalAddress);
         anchorTransmitter.RequestData(anchorSource.SourceIp);
     }
 

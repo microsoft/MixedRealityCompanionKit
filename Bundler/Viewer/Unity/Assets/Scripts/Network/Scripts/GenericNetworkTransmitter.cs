@@ -90,6 +90,11 @@ public class GenericNetworkTransmitter
     private StreamSocketListener networkListener;
 
     /// <summary>
+    /// Cancel any pending receiving operations. 
+    /// </summary>
+    private CancellationTokenSource networkReceiverRetryCancellation = new CancellationTokenSource();
+
+    /// <summary>
     /// The current state of the transmitter.
     /// </summary>
     private TransmitterState state = TransmitterState.None;
@@ -127,11 +132,21 @@ public class GenericNetworkTransmitter
     }
 
     /// <summary>
+    /// Stop any pending client receive requests. This stops any further retry attempts.
+    /// </summary>
+    private void StopClient()
+    {
+        networkReceiverRetryCancellation.Cancel();
+    }
+
+    /// <summary>
     /// Configures the network transmitter as the source.
     /// </summary>
     public async void StartAsServer(byte[] data)
     {
         Debug.Log("[GenericNetworkTransmitter] Starting as server.");
+
+        StopClient();
 
         StreamSocketListener newNetworkListener = null;
         lock (stateLock)
@@ -140,7 +155,7 @@ public class GenericNetworkTransmitter
             newNetworkListener = networkListener;
             serverBuffer = data;
         }
- 
+
         try
         {
             if (newNetworkListener == null)
@@ -188,7 +203,7 @@ public class GenericNetworkTransmitter
         // If we have data, send it. 
         if (buffer != null)
         {
-            Debug.LogFormat("[GenericNetworkTransmitter] Sending data ({0} bytes)", serverBuffer.Length);
+            Debug.LogFormat("[GenericNetworkTransmitter] Sending data ({0} bytes)", buffer.Length);
             IOutputStream stream = args.Socket.OutputStream;
             using (DataWriter writer = new DataWriter(stream))
             {
@@ -211,12 +226,14 @@ public class GenericNetworkTransmitter
     {
         Debug.LogFormat("[GenericNetworkTransmitter] Attempting to connect to server (server IP: {0})", serverIp);
 
+        StopClient();
+        await StopServer();
+
         lock (stateLock)
         {
             state = TransmitterState.Client;
+            networkReceiverRetryCancellation = new CancellationTokenSource();
         }
-
-        await StopServer();
 
         byte[] result = null;
         try
@@ -228,9 +245,9 @@ public class GenericNetworkTransmitter
                 result = await ReadInputStream(networkConnection);
             }
         }
-        catch
+        catch (Exception exp)
         {
-            Debug.LogErrorFormat("[GenericNetworkTransmitter] Failed to receive data from server (server IP: {0})", serverIp);
+            Debug.LogErrorFormat("[GenericNetworkTransmitter] Failed to receive data from server (server IP: {0}) (error code: {1}), (exception: {2}) ", serverIp, exp.HResult, exp.Message);
         }
 
         lock (stateLock)
@@ -272,6 +289,7 @@ public class GenericNetworkTransmitter
             }
         }
 
+        RetryAsClientWorker(serverIp);
         return true;
     }
 
@@ -280,16 +298,22 @@ public class GenericNetworkTransmitter
     /// </summary>
     private async void RetryAsClientWorker(string serverIp)
     {
-        await Task.Delay(timeToDeferFailedConnectionsMS);
-        lock (stateLock)
+        CancellationToken cancellationToken = networkReceiverRetryCancellation.Token;
+
+        bool canceled = false;
+        try
         {
-            if (state != TransmitterState.Client)
-            {
-                return;
-            }
+            await Task.Delay(timeToDeferFailedConnectionsMS, cancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+            canceled = true;
         }
 
-        StartAsClient(serverIp);
+        if (!canceled)
+        {
+            StartAsClient(serverIp);
+        }
     }
 
     /// <summary>

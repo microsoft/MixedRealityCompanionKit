@@ -16,6 +16,8 @@ public class MyNetworkAnchor : MonoBehaviour
     /// </summary>
     private MyNetworkAnchorClient anchorPlayer;
 
+    private PersistenceEventArgs pendingPersistenceEventArgs = null;
+
     /// <summary>
     /// Initialization the Network Anchor. Note, this will search of an Anchor Persistence behavior. If not present,
     /// then this behavior will not function correctly.
@@ -46,6 +48,7 @@ public class MyNetworkAnchor : MonoBehaviour
             {
                 anchorPlayer.ReceivedAnchor += OnReceivedRemoteAnchor;
                 OnReceivedRemoteAnchor(anchorPlayer, anchorPlayer.LastRecievedAnchor);
+                OnPersistenceEvent(anchorPersistence, pendingPersistenceEventArgs);
             }
         }
     }
@@ -59,6 +62,7 @@ public class MyNetworkAnchor : MonoBehaviour
         {
             Debug.LogFormat("[MyNetworkAnchor] Applying remote anchor via anchor persistence");  
             anchorPersistence.ApplyAnchor(args.TransferBatch, true);
+            pendingPersistenceEventArgs = null;
         }
     }
 
@@ -68,27 +72,35 @@ public class MyNetworkAnchor : MonoBehaviour
     /// </summary>
     private void OnPersistenceEvent(AnchorPersistence source, PersistenceEventArgs args)
     {
+        if (args == null)
+        {
+            return;
+        }
+
         if (args.AnchorOwner != gameObject)
         {
             Debug.LogErrorFormat("[MyNetworkAnchor] Unexpected persistence event, anchor owner is not the expected game object (anchor id: {0})", args.AnchorId);
             return;
         }
 
+        pendingPersistenceEventArgs = args;
         if (anchorPlayer == null)
         {
-            Debug.LogErrorFormat("[MyNetworkAnchor] Unable to process persistence event without a local instance of the MyNetworkAnchorClient (anchor id: 0})", args.AnchorId);
+            Debug.LogErrorFormat("[MyNetworkAnchor] Unable to process persistence event without a local instance of the MyNetworkAnchorClient (anchor id: {0})", args.AnchorId);
             return;
         }
 
-        if (args.Type == PersistenceEventType.Loaded)
+        if (pendingPersistenceEventArgs.Type == PersistenceEventType.Loaded)
         {
-            Debug.LogFormat("[MyNetworkAnchor] Anchor persistence behavior has loaded an anchor from storage: {0}", args.AnchorId);
-            anchorPlayer.ShareAnchorDefault(args.AnchorId, gameObject);
+            Debug.LogFormat("[MyNetworkAnchor] Anchor persistence behavior has loaded an anchor from storage: {0}", pendingPersistenceEventArgs.AnchorId);
+            anchorPlayer.ShareAnchorDefault(pendingPersistenceEventArgs.AnchorId, gameObject);
         }
-        else if (args.Type == PersistenceEventType.Saved)
+        else if (pendingPersistenceEventArgs.Type == PersistenceEventType.Saved)
         {
-            Debug.LogFormat("[MyNetworkAnchor] Anchor persistence behavior has saved a new anchor: {0}", args.AnchorId);
-            anchorPlayer.ShareAnchor(args.AnchorId, gameObject);
+            Debug.LogFormat("[MyNetworkAnchor] Anchor persistence behavior has saved a new anchor: {0}", pendingPersistenceEventArgs.AnchorId);
+            anchorPlayer.ShareAnchor(pendingPersistenceEventArgs.AnchorId, gameObject);
         }
+
+        pendingPersistenceEventArgs = null;
     }
 }
