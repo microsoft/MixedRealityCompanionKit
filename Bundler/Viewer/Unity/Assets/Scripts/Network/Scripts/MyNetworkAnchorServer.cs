@@ -321,11 +321,6 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     /// </summary>
     private void InitializeLocalAddress()
     {
-        if (!hasAuthority)
-        {
-            return;
-        }
-
 #if !UNITY_EDITOR
         foreach (Windows.Networking.HostName hostName in Windows.Networking.Connectivity.NetworkInformation.GetHostNames())
         {

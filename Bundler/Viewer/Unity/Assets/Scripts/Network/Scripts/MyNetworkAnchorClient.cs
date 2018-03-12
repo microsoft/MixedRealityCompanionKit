@@ -71,9 +71,9 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     /// </summary>
     public void ShareNetworkAnchor(String anchorId, GameObject gameObject)
     {
-        if (MyNetworkAnchorServer.Instance != null)
+        if (MyNetworkAnchorServer.Instance == null)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] Ignoreing share anchor request, as there is no anchor server. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[MyNetworkAnchorClient] Ignoring share anchor request, as there is no anchor server. (anchor id: {0})", anchorId);
             return;
         }
 
