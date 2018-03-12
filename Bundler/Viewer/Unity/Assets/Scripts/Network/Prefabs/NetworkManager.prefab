@@ -181,6 +181,7 @@ MonoBehaviour:
   m_OnlineScene: Running
   m_SpawnPrefabs:
   - {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804, type: 2}
+  - {fileID: 1413809719884294, guid: b60a7ec9d5641a742b286cc09b46846f, type: 2}
   m_CustomConfig: 1
   m_MaxConnections: 15
   m_ConnectionConfig:
@@ -239,5 +240,7 @@ MonoBehaviour:
   AutoStartDiscovery: 1
   PlayerList: {fileID: 114000010940243502}
   StatusText: {fileID: 0}
-  NetworkAnchorManager: {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804,
+  NetworkAnchorServerPrefab: {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804,
+    type: 2}
+  NetworkAnchorClientPrefab: {fileID: 1413809719884294, guid: b60a7ec9d5641a742b286cc09b46846f,
     type: 2}

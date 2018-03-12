@@ -68,16 +68,6 @@ namespace Persistence
         public event OnPersistenceEvent PersistenceEvent;
 
 #if UNITY_WSA
-        /// <summary>
-        /// The shared anchor id we're trying to apply
-        /// </summary>
-        private string applyingAnchorStorageId;
-
-        /// <summary>
-        /// The shared achor we're tyring apply
-        /// </summary>
-        private WorldAnchor applyingAnchor;
-
         private string GetPathForGameObject(GameObject gameObject)
         {
             var path = Path.Combine(Application.persistentDataPath.Replace("/", "\\"), string.Format("{0}.worldanchor", gameObject.name));
@@ -127,7 +117,7 @@ namespace Persistence
                 return false;
             }
 
-            Debug.Log("Attempting delete world position\r\n   " + gameObject.transform.localPosition.ToString("0.00"));
+            Debug.Log("Attempting to delete world position\r\n   " + gameObject.transform.localPosition.ToString("0.00"));
 
             var anchor = gameObject.GetComponent<WorldAnchor>();
             if (anchor != null)
@@ -192,30 +182,37 @@ namespace Persistence
         {
             if (gameObject == null)
             {
-                Debug.LogWarning("Cannot apply a shared WorldAnchor on null gameObject");
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor on null gameObject");
                 return false;
             }
 
             if (batch == null)
             {
-                Debug.LogWarning("Cannot apply a shared WorldAnchor with null WorldAnchorTransferBatch");
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor with null WorldAnchorTransferBatch");
                 return false;
             }
 
             var batchIds = batch.GetAllIds();
             if (batchIds == null)
             {
-                Debug.LogWarning("Cannot apply a shared WorldAnchor with an null id list on WorldAnchorTransferBatch");
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor with an null id list on WorldAnchorTransferBatch");
                 return false;
             }
 
             if (batchIds.Length == 0)
             {
-                Debug.LogWarning("Cannot apply a shared WorldAnchor with an empty WorldAnchorTransferBatch");
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor with an empty WorldAnchorTransferBatch");
                 return false;
             }
 
             string storageIdString = batchIds[0];
+            if (String.IsNullOrEmpty(storageIdString))
+            {
+
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor with an empty storage id");
+                return false;
+            }
+
             Guid storageId;
             try
             {
@@ -223,17 +220,18 @@ namespace Persistence
             }
             catch
             {
-                Debug.LogWarning("Cannot apply a shared WorldAnchor with an invalid GUID");
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor with an invalid GUID");
                 return false;
             }
 
             if (store == null)
             {
-                Debug.LogWarning("Cannot apply a shared WorldAnchor with null WorldAnchorStore");
+                Debug.LogWarning("[PersistenceSaveLoad] Cannot apply a shared WorldAnchor with null WorldAnchorStore");
                 return false;
             }
 
-            Debug.Log("Attempting apply a shared world position: " + storageId);
+            Debug.Log("[PersistenceSaveLoad] Attempting to apply a shared world position: " + storageId);
+            bool successful = false;
 
             // delete any previous WorldAnchors on this object
             DeleteLocation(gameObject, store);
@@ -244,12 +242,12 @@ namespace Persistence
             {
                 if (!located)
                 {
-                    Debug.Log("Haven't located anchor yet: " + storageId);
+                    Debug.Log("[PersistenceSaveLoad] Haven't located anchor yet: " + storageId);
                     return;
                 }
 
 
-                Debug.Log("Loocated anchor: " + storageId);
+                Debug.Log("[PersistenceSaveLoad] Located anchor: " + storageId);
                 self.OnTrackingChanged -= trackingChanged;
                 RaisePersistenceEvent(PersistenceEventType.AppliedShared, gameObject, storageIdString);
                 SaveExistingLocation(storageId, gameObject, store);
@@ -257,12 +255,21 @@ namespace Persistence
 
             // actually lock the game object to the batch's first anchor
             WorldAnchor anchor = batch.LockObject(storageIdString, gameObject);
-            anchor.OnTrackingChanged += trackingChanged;
-            trackingChanged(applyingAnchor, applyingAnchor.isLocated);
+            if (anchor != null)
+            {
+                anchor.OnTrackingChanged += trackingChanged;
+                trackingChanged(anchor, anchor.isLocated);
 
-            // assume locating is successful. If a caller wants to trully know when anchor was located, they should
-            // listen for the "AppliedShared" and "Saved" events.
-            return true;
+                // assume locating is successful. If a caller wants to trully know when anchor was located, they should
+                // listen for the "AppliedShared" and "Saved" events
+                successful = true;
+            }
+            else
+            {
+                Debug.LogError("[PersistenceSaveLoad] Couldn't lock object with the given storage id: " + storageId);
+            }
+
+            return successful;
         }
 
         private bool SaveExistingLocation(Guid storageId, GameObject gameObject, WorldAnchorStore store)
@@ -373,6 +380,7 @@ namespace Persistence
 
         private void RaisePersistenceEvent(PersistenceEventType type, GameObject owner, string anchorId)
         {
+            Debug.LogFormat("[PersistenceSaveLoad] RaisePersistenceEvent (type: {0}) (anchor id: {1})", type, anchorId);
             if (PersistenceEvent != null)
             {
                 PersistenceEventArgs args = new PersistenceEventArgs();

@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 114032152135278526}
   - component: {fileID: 114052315740506970}
   m_Layer: 0
-  m_Name: NetworkAnchorManager
+  m_Name: NetworkAnchorServer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

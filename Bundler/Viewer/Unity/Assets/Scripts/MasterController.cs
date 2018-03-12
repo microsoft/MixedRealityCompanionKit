@@ -104,6 +104,7 @@ public class MasterController : ImprovedSingletonBehavior<MasterController>
     {
         if (isPlacingStage)
         {
+            Debug.Log("[ToDo ReMove ] [Anchor] Manually placing stage");
             SpatialMappingManager.StopObserver();
             isPlacingStage = false;
             StageManager.SetPreviewMode(false);

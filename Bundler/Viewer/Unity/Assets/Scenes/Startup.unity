@@ -2855,7 +2855,7 @@ Prefab:
     - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
         type: 2}
       propertyPath: m_SpawnPrefabs.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4000012079502154, guid: 454898ddda01df748a6d5d77810261b3, type: 2}
       propertyPath: m_LocalPosition.x
@@ -2915,6 +2915,17 @@ Prefab:
       propertyPath: SharedStage
       value: 
       objectReference: {fileID: 1078904591832736, guid: 0c93563dc189d034b998e666966c2e4e,
+        type: 2}
+    - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
+        type: 2}
+      propertyPath: m_SpawnPrefabs.Array.data[1]
+      value: 
+      objectReference: {fileID: 1413809719884294, guid: b60a7ec9d5641a742b286cc09b46846f,
         type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 454898ddda01df748a6d5d77810261b3, type: 2}

@@ -99,6 +99,8 @@ public class Player : NetworkBehaviour
                 transform.GetChild(i).gameObject.SetActive(false);
             }
         }
+
+        CmdSpawnNetworkAnchorClient();
     }
 
     public override void OnStartAuthority()
@@ -171,6 +173,12 @@ public class Player : NetworkBehaviour
         SetDirtyBit(1);
 
         UpdatePlayerList(PlayerAction.Update);
+    }
+
+    [Command]
+    void CmdSpawnNetworkAnchorClient()
+    {
+        MyNetworkManager.Instance.SpawnNetworkAnchor(gameObject);
     }
 
     void OnColorChanged(Color newColor)
