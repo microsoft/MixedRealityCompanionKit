@@ -77,6 +77,14 @@ public class GenericNetworkTransmitter
         StartAsClient(serverIp);
     }
 
+    /// <summary>
+    /// Stop any pending sends or requests
+    /// </summary>
+    public void StopAll()
+    {
+        StopServerAndClient();
+    }
+
     // A lot of the work done in this class can only be done in UWP. The editor is not a UWP app.
 #if !UNITY_EDITOR
     /// <summary>
@@ -108,6 +116,15 @@ public class GenericNetworkTransmitter
     /// If we cannot connect to the server, this is how long we will wait before retrying.
     /// </summary>
     private const int timeToDeferFailedConnectionsMS = 3000;
+
+    /// <summary>
+    /// Stop the server and client request.s
+    /// </summary>
+    private async void StopServerAndClient()
+    {
+        StopClient();
+        await StopServer();
+    }
 
     /// <summary>
     /// Stop the current server
@@ -371,7 +388,11 @@ public class GenericNetworkTransmitter
         return await task;
     }
 #else
-    public void StartAsServer(byte[] data)
+    private void StopServerAndClient()
+    {
+    }
+
+    private void StartAsServer(byte[] data)
     {
     }
 

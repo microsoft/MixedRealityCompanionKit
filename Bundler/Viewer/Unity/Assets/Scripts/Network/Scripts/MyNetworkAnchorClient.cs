@@ -151,7 +151,16 @@ public class MyNetworkAnchorClient : NetworkBehaviour
         // The last received anchor will no longer be relevant since we're taking ownership
         LastRecievedAnchor = null;
 
+        // Stop all pending work on the anchor transmitter
+        anchorTransmitter.StopAll();
+
         // Start taking ownership of the anchor
+        SharedAnchorData anchorSource;
+        anchorSource.SourceIp = LocalAddress;
+        anchorSource.AnchorId = anchorId;
+        CmdSetAnchorSource(anchorSource);
+
+        // Export binary data
         List<byte> buffer = new List<byte>();
         WorldAnchorTransferBatch batch = new WorldAnchorTransferBatch();
         batch.AddWorldAnchor(anchorId, worldAnchor);
@@ -230,11 +239,11 @@ public class MyNetworkAnchorClient : NetworkBehaviour
         {
             Debug.LogFormat("[MyNetworkAnchorClient] Exporting anchor succeeded: {0} ({1} bytes)", anchorId, data.Length);
 
-            SharedAnchorData anchorSource;
-            anchorSource.SourceIp = LocalAddress;
-            anchorSource.AnchorId = anchorId;
+            //SharedAnchorData anchorSource;
+            //anchorSource.SourceIp = LocalAddress;
+            //anchorSource.AnchorId = anchorId;
             anchorTransmitter.SendData(data);
-            CmdSetAnchorSource(anchorSource);
+            //CmdSetAnchorSource(anchorSource);
         }
         else
         {
