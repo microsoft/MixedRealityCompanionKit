@@ -257,10 +257,10 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     [Command]
     private void CmdSetAnchorSource(SharedAnchorData anchorSource)
     {
-        if (networkAnchorServer != null)
+        if (MyNetworkAnchorServer.Instance != null)
         {
             Debug.LogFormat("[MyNetworkAnchorClient] Command is setting the anchor source {0} {1}", anchorSource.ToString(), DebugInfo());
-            networkAnchorServer.SetAnchorSource(anchorSource);
+            MyNetworkAnchorServer.Instance.SetAnchorSource(anchorSource);
         }
         else
         {
