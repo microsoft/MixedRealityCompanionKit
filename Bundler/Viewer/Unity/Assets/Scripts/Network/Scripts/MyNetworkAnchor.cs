@@ -33,6 +33,33 @@ public class MyNetworkAnchor : MonoBehaviour
         {
             Debug.LogError("[MyNetworkAnchor] Network Anchor can't function correctly when there isn't a Anchor Persistence behavior also applied.");
         }
+    }
+
+    /// <summary>
+    /// Update anchor state.
+    /// </summary>
+    private void Update()
+    {
+        InitializeAnchorPlayerOnce();
+    }
+
+    /// <summary>
+    /// Check for a local instance of an anchor player. The local player may not exist at start.
+    /// </summary>
+    private void InitializeAnchorPlayerOnce()
+    {
+        // Check if already initialized
+        if (anchorPlayer != null)
+        {
+            return;
+        }
+
+        // Check if can initialize
+        anchorPlayer = MyNetworkAnchorClient.LocalInstance;
+        if (anchorPlayer == null)
+        {
+            return;
+        }
 
         var networkAnchorManager = MyNetworkAnchorServer.Instance;
         if (networkAnchorManager != null)
@@ -44,21 +71,10 @@ public class MyNetworkAnchor : MonoBehaviour
         {
             Debug.LogError("[MyNetworkAnchor] Network Anchor can't function correctly when there isn't a Network Anchor Manager.");
         }
-    }
 
-    /// <summary>
-    /// Check for a local instance of an anchor player. The local player may not exist at start.
-    /// </summary>
-    private void Update()
-    {
-        if (anchorPlayer == null)
-        {
-            anchorPlayer = MyNetworkAnchorClient.LocalInstance;
-            if (anchorPlayer != null)
-            {
-                OnPersistenceEvent(anchorPersistence, pendingPersistenceEventArgs);
-            }
-        }
+        OnPersistenceEvent(anchorPersistence, pendingPersistenceEventArgs);
+
+
     }
 
     /// <summary>

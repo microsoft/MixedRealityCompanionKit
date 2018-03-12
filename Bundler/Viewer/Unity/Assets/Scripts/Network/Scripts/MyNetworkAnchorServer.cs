@@ -152,7 +152,7 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     {
         if (AnchorSource.AnchorId == anchorId)
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Ignoreing share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
             return false;
         }
 
@@ -163,7 +163,7 @@ public class MyNetworkAnchorServer : NetworkBehaviour
             return false;
         }
 
-        Debug.LogFormat("[MyNetworkAnchorServer] Attempting to acquire anchor ownership and share anchor with other players. (anchor id: {0})", anchorId);
+        Debug.LogFormat("[MyNetworkAnchorServer] Attempting to acquire anchor ownership and share anchor with other players. (new anchor id: {0}) (old anchor id: {1})", anchorId, AnchorSource.AnchorId);
 
         // The last received anchor will no longer be relevant since we're taking ownership
         LastRecievedAnchor = null;
@@ -209,6 +209,7 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     /// </summary>
     public override void OnStartClient()
     {
+        Debug.Log("[MyNetworkAnchorServer] OnStartClient");
         base.OnStartClient();
         ImportAnchorData(AnchorSource);
     }
@@ -219,19 +220,20 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     private void ImportAnchorData(SharedAnchorData anchorSource)
     {
         Debug.Log("[MyNetworkAnchorServer] AnchorSourceChanged was invoked: " + anchorSource.ToString());
+
         if (!anchorSource.IsValid)
         {
-            Debug.Log("[MyNetworkAnchorServer] Ignoring anchor source since it's invalid.");
+            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring anchor source since it's invalid. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
             return;
         }
 
         if (anchorSource.SourceIp == LocalAddress)
         {
-            Debug.Log("[MyNetworkAnchorServer] Ignoring anchor source since it originated from this player.");
+            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring anchor source since it originated from this player. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
             return;
         }
 
-        Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1})", anchorSource.SourceIp, LocalAddress);
+        Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
         ReceivingAnchor = true;
         anchorTransmitter.RequestData(anchorSource.SourceIp);
     }
