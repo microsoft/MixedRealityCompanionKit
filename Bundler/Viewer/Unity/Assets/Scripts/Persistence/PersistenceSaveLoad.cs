@@ -249,8 +249,8 @@ namespace Persistence
 
                 Debug.Log("[PersistenceSaveLoad] Located anchor: " + storageId);
                 self.OnTrackingChanged -= trackingChanged;
-                RaisePersistenceEvent(PersistenceEventType.AppliedShared, gameObject, storageIdString);
                 SaveExistingLocation(storageId, gameObject, store);
+                RaisePersistenceEvent(PersistenceEventType.AppliedShared, gameObject, storageIdString);
             };
 
             // actually lock the game object to the batch's first anchor

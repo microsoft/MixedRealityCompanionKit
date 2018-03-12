@@ -148,14 +148,20 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     /// </summary>
     public void ShareAnchor(String anchorId, GameObject gameObject)
     {
+        if (networkAnchorServer != null && networkAnchorServer.AnchorSource.AnchorId == anchorId)
+        {
+            Debug.LogFormat("[MyNetworkAnchorClient] Ignoreing share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
+            ShareAnchor(anchorId, gameObject);
+        }
+
         WorldAnchor worldAnchor = gameObject.GetComponent<WorldAnchor>();
         if (worldAnchor == null)
         {
-            Debug.LogErrorFormat("[MyNetworkAnchorClient] Unable to acquire anchor ownership. Game object is missing an anchor: {0}", anchorId);
+            Debug.LogErrorFormat("[MyNetworkAnchorClient] Unable to acquire anchor ownership. Game object is missing an anchor. (anchor id: {0})", anchorId);
             return;
         }
 
-        Debug.LogFormat("[MyNetworkAnchorClient] Attempting to acquire anchor ownership and share anchor with other players: {0}", anchorId);
+        Debug.LogFormat("[MyNetworkAnchorClient] Attempting to acquire anchor ownership and share anchor with other players. (anchor id: {0})", anchorId);
 
         // The last received anchor will no longer be relevant since we're taking ownership
         LastRecievedAnchor = null;
