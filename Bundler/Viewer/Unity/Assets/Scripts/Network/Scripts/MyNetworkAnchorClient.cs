@@ -151,7 +151,7 @@ public class MyNetworkAnchorClient : NetworkBehaviour
         if (networkAnchorServer != null && networkAnchorServer.AnchorSource.AnchorId == anchorId)
         {
             Debug.LogFormat("[MyNetworkAnchorClient] Ignoreing share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
-            ShareAnchor(anchorId, gameObject);
+            return;
         }
 
         WorldAnchor worldAnchor = gameObject.GetComponent<WorldAnchor>();
