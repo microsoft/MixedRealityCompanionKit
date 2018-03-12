@@ -3867,7 +3867,6 @@ GameObject:
   - component: {fileID: 1084187210}
   - component: {fileID: 1084187209}
   - component: {fileID: 337301930}
-  - component: {fileID: 1084187213}
   - component: {fileID: 1084187212}
   m_Layer: 0
   m_Name: CalibratedRoot
@@ -3931,39 +3930,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b2a5e0ff6d568b468d090a4d18fa688, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SharedAnchorJson: 
---- !u!114 &1084187213
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1084187208}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SceneId:
-    m_Value: 0
-  m_AssetId:
-    i0: 57
-    i1: 128
-    i2: 194
-    i3: 89
-    i4: 239
-    i5: 100
-    i6: 249
-    i7: 68
-    i8: 89
-    i9: 145
-    i10: 247
-    i11: 131
-    i12: 74
-    i13: 167
-    i14: 103
-    i15: 35
-  m_ServerOnly: 0
-  m_LocalPlayerAuthority: 0
 --- !u!1 &1114519647
 GameObject:
   m_ObjectHideFlags: 0
