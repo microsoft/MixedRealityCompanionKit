@@ -61,6 +61,8 @@ public class MyNetworkAnchor : MonoBehaviour
             return;
         }
 
+        // Note, MyNetworkAnchorServer.Instance won't be ready at "Start", but it should be ready once there is an
+        // Anchor Player instance.
         var networkAnchorManager = MyNetworkAnchorServer.Instance;
         if (networkAnchorManager != null)
         {
