@@ -32,7 +32,6 @@ namespace Persistence
             
             keywords.Add("reset stage position", () =>
             {
-                Debug.Log("[todo REMOVE] [Anchor] voice command resetting position.");
                 MasterController.Instance.SetDefaultStagePosition();
             });
             
