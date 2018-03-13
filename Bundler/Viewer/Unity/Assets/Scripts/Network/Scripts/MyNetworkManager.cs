@@ -20,25 +20,14 @@ public class MyNetworkManager : NetworkManager
 
     private MyNetworkDiscovery discovery;
 
-    private static MyNetworkManager instance;
-    public static MyNetworkManager Instance
-    {
-        get
-        {
-            return instance;
-        }
-    }
-
     void Start()
     {
-        instance = this;
         StartCoroutine(Startup(0));
         GetComponent<NetworkAnchorHelper>().PrepareNetworkManager(this);
     }
 
     void OnDestroy()
     {
-        instance = null;
         Cleanup();
     }
 
