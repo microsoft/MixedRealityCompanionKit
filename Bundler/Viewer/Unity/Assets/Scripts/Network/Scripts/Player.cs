@@ -27,7 +27,7 @@ public class Player : NetworkBehaviour
     }
 
     [SyncVar(hook = "OnNameChanged")]
-    public string myName = "unitialized";
+    public string myName = "uninitialized";
 
     [SyncVar(hook = "OnColorChanged")]
     public Color myColor = Color.clear;
@@ -99,6 +99,9 @@ public class Player : NetworkBehaviour
                 transform.GetChild(i).gameObject.SetActive(false);
             }
         }
+
+        // Spawn a separate player object that can alter network anchors
+        CmdSpawnNetworkAnchorPlayer();
     }
 
     public override void OnStartAuthority()
@@ -171,6 +174,12 @@ public class Player : NetworkBehaviour
         SetDirtyBit(1);
 
         UpdatePlayerList(PlayerAction.Update);
+    }
+
+    [Command]
+    void CmdSpawnNetworkAnchorPlayer()
+    {
+        GetComponent<NetworkAnchorHelper>().SpawnNetworkAnchorPlayer(gameObject);
     }
 
     void OnColorChanged(Color newColor)

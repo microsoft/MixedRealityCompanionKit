@@ -39,6 +39,7 @@ GameObject:
   - component: {fileID: 114000010687447338}
   - component: {fileID: 114000011280420136}
   - component: {fileID: 114000014200457848}
+  - component: {fileID: 114185002873342754}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -238,3 +239,18 @@ MonoBehaviour:
   AutoStartDiscovery: 1
   PlayerList: {fileID: 114000010940243502}
   StatusText: {fileID: 0}
+--- !u!114 &114185002873342754
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013418881324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd427a6910a02054da6bbb35da453f45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NetworkAnchorManagerPrefab: {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804,
+    type: 2}
+  NetworkAnchorPlayerPrefab: {fileID: 1413809719884294, guid: b60a7ec9d5641a742b286cc09b46846f,
+    type: 2}

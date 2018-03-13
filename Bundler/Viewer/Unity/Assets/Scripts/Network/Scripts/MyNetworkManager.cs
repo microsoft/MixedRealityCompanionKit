@@ -23,6 +23,7 @@ public class MyNetworkManager : NetworkManager
     void Start()
     {
         StartCoroutine(Startup(0));
+        GetComponent<NetworkAnchorHelper>().PrepareNetworkManager(this);
     }
 
     void OnDestroy()
@@ -178,6 +179,12 @@ public class MyNetworkManager : NetworkManager
         StartBroadcastDiscovery();
     }
 
+    public override void OnServerReady(NetworkConnection conn)
+    {
+        base.OnServerReady(conn);
+        GetComponent<NetworkAnchorHelper>().SpawnNetworkAnchorManager();
+    }
+
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
     {
         base.OnServerAddPlayer(conn, playerControllerId);
@@ -210,7 +217,8 @@ public class MyNetworkManager : NetworkManager
             checking = true;
             // add in a random delay so that all clients don't try to do the same thing immediately on disconnect
             yield return new WaitForSeconds((float)new System.Random().NextDouble() * 2.0f);
-            if (migrationManager.hostWasShutdown)
+            if (migrationManager != null && 
+                migrationManager.hostWasShutdown)
             {
                 if (migrationManager.waitingReconnectToNewHost)
                 {
@@ -241,7 +249,9 @@ public class MyNetworkManager : NetworkManager
                 }
 
             }
-            else if (migrationManager.disconnectedFromHost && migrationManager.oldServerConnectionId != -1)
+            else if (migrationManager != null && 
+                migrationManager.disconnectedFromHost &&
+                migrationManager.oldServerConnectionId != -1)
             {
                 if (migrationManager.waitingToBecomeNewHost)
                 {
