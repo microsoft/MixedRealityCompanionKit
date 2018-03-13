@@ -15,8 +15,6 @@ public class MyNetworkManager : NetworkManager
     public bool AutoStartDiscovery = true;
     public PlayerList PlayerList;
     public Text StatusText;
-    public GameObject NetworkAnchorServerPrefab;
-    public GameObject NetworkAnchorClientPrefab;
     bool checking;
     bool paused;
     bool isInDelayedStart = false;
@@ -37,6 +35,7 @@ public class MyNetworkManager : NetworkManager
     {
         instance = this;
         StartCoroutine(Startup(0));
+        GetComponent<NetworkAnchorHelper>().PrepareNetworkManager(this);
     }
 
     void OnDestroy()
@@ -164,15 +163,12 @@ public class MyNetworkManager : NetworkManager
     public override void OnStartServer()
     {
         base.OnStartServer();
-        Debug.LogFormat("[MyNetworkManager] server started.");
 
         Shared_NetHandler.Server_Register();
     }
 
     public override void OnStopServer()
     {
-        Debug.LogFormat("[MyNetworkManager] server stopped.");
-
         Shared_NetHandler.Server_UnRegister();
 
         base.OnStopServer();
@@ -199,32 +195,7 @@ public class MyNetworkManager : NetworkManager
     public override void OnServerReady(NetworkConnection conn)
     {
         base.OnServerReady(conn);
-
-        if (NetworkAnchorServerPrefab != null && spawnedNetworkAnchorServer == null)
-        {
-            Debug.LogFormat("[MyNetworkManager] spawning anchor server.");
-            spawnedNetworkAnchorServer = Instantiate(NetworkAnchorServerPrefab, Vector3.zero, Quaternion.identity);
-            spawnedNetworkAnchorServer.name = "SpawnedNetworkAnchorServer";
-            NetworkServer.Spawn(spawnedNetworkAnchorServer);
-            Debug.LogFormat("[MyNetworkManager] spawned anchor server.");
-        }
-    }
-
-    public void SpawnNetworkAnchor(GameObject player)
-    {
-        if (NetworkAnchorClientPrefab != null)
-        {
-            Debug.LogFormat("[MyNetworkManager] spawning anchor client.");
-            GameObject spawnedNetworkAnchorClient = Instantiate(NetworkAnchorClientPrefab, Vector3.zero, Quaternion.identity);
-            spawnedNetworkAnchorClient.name = "SpawnedNetworkAnchorClient";
-            NetworkServer.SpawnWithClientAuthority(spawnedNetworkAnchorClient, player);
-            Debug.LogFormat("[MyNetworkManager] spawned anchor client.");
-        }
-    }
-
-    public override void OnServerSceneChanged(string sceneName)
-    {
-        base.OnServerSceneChanged(sceneName);
+        GetComponent<NetworkAnchorHelper>().SpawnNetworkAnchorManager();
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)

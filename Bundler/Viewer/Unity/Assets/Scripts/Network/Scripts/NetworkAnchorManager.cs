@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 
 /// <summary>
-/// Data describing the source of the anchor data.
+/// Data describing the source of the shared anchor data.
 /// </summary>
 [Serializable]
 public struct SharedAnchorData
@@ -18,7 +18,7 @@ public struct SharedAnchorData
     public static SharedAnchorData Create(string anchorId)
     {
         SharedAnchorData result;
-        result.SourceIp = MyNetworkAnchorServer.Instance == null ? "unknown" : MyNetworkAnchorServer.Instance.LocalAddress;
+        result.SourceIp = NetworkAnchorManager.Instance == null ? "unknown" : NetworkAnchorManager.Instance.LocalAddress;
         result.AnchorId = anchorId;
         return result;
     }
@@ -50,9 +50,9 @@ public struct SharedAnchorData
     }
 }
 
-public class ReceivedAnchorArgs
+public class LastReceivedAnchorArgs
 {
-    public ReceivedAnchorArgs(WorldAnchorTransferBatch transferBatch)
+    public LastReceivedAnchorArgs(WorldAnchorTransferBatch transferBatch)
     {
         TransferBatch = transferBatch;
     }
@@ -85,10 +85,13 @@ public class ReceivedAnchorArgs
     }
 }
 
-public class MyNetworkAnchorServer : NetworkBehaviour
+public class NetworkAnchorManager : NetworkBehaviour
 {
-    private static MyNetworkAnchorServer instance;
-    public static MyNetworkAnchorServer Instance
+    /// <summary>
+    /// Get the local instance of the anchor manager
+    /// </summary>
+    private static NetworkAnchorManager instance;
+    public static NetworkAnchorManager Instance
     {
         get
         {
@@ -97,11 +100,11 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     }
 
     /// <summary>
-    /// This event is raised When a new anchor arrives from a different player.
+    /// This event is raised when a new anchor arrives from a different player.
     /// </summary>
-    /// <param name="data">The data that arrived.</param>
-    public delegate void OnReceivedAnchor(MyNetworkAnchorServer sender, ReceivedAnchorArgs args);
-    public event OnReceivedAnchor ReceivedAnchor;
+    /// <param name="args">Contains the data that arrived.</param>
+    public delegate void OnLastReceivedAnchor(NetworkAnchorManager sender, LastReceivedAnchorArgs args);
+    public event OnLastReceivedAnchor LastReceivedAnchorChanged;
 
     /// <summary>
     /// Get if the local anchor player is in the process of receiving a shared anchor.
@@ -115,7 +118,7 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     /// <summary>
     /// Get the last received remote anchor
     /// </summary>
-    public ReceivedAnchorArgs LastRecievedAnchor
+    public LastReceivedAnchorArgs LastReceivedAnchor
     {
         get;
         private set;
@@ -159,12 +162,12 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     [Server]
     public void SetAnchorSource(SharedAnchorData anchorSource)
     {
-        Debug.Log("[MyNetworkAnchorServer] Server is setting the anchor source: " + anchorSource.ToString());
+        Debug.Log("[NetworkAnchorManager] Server is setting the anchor source: " + anchorSource.ToString());
         AnchorSource = anchorSource;
     }
 
     /// <summary>
-    /// Try exportong the anchor data stored in game object, and broadcast anchor data with other players.
+    /// Try exporting the anchor data stored in game object, and broadcast anchor data with other players.
     /// </summary>
     /// <summary>
     /// Return true if exporting was able to occur.
@@ -174,27 +177,27 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     {
         if (AnchorSource.AnchorId == anchorId)
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
             return false;
         }
 
-        if (LastRecievedAnchor != null && LastRecievedAnchor.AnchorId == anchorId)
+        if (LastReceivedAnchor != null && LastReceivedAnchor.AnchorId == anchorId)
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring share anchor request, as anchor was just received. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring share anchor request, as anchor was just received. (anchor id: {0})", anchorId);
             return false;
         }
 
         WorldAnchor worldAnchor = gameObject.GetComponent<WorldAnchor>();
         if (worldAnchor == null)
         {
-            Debug.LogErrorFormat("[MyNetworkAnchorServer] Unable to acquire anchor ownership. Game object is missing an anchor. (anchor id: {0})", anchorId);
+            Debug.LogErrorFormat("[NetworkAnchorManager] Unable to acquire anchor ownership. Game object is missing an anchor. (anchor id: {0})", anchorId);
             return false;
         }
 
-        Debug.LogFormat("[MyNetworkAnchorServer] Attempting to acquire anchor ownership and share anchor with other players. (new anchor id: {0}) (old anchor id: {1})", anchorId, AnchorSource.AnchorId);
+        Debug.LogFormat("[NetworkAnchorManager] Attempting to acquire anchor ownership and share anchor with other players. (new anchor id: {0}) (old anchor id: {1})", anchorId, AnchorSource.AnchorId);
 
         // The last received anchor will no longer be relevant since we're taking ownership
-        LastRecievedAnchor = null;
+        LastReceivedAnchor = null;
 
         // Stop all pending work on the anchor transmitter
         anchorTransmitter.StopAll();
@@ -221,12 +224,12 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     {
         if (status == SerializationCompletionReason.Succeeded)
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Exporting anchor succeeded: {0} ({1} bytes)", anchorId, data.Length);
+            Debug.LogFormat("[NetworkAnchorManager] Exporting anchor succeeded: {0} ({1} bytes)", anchorId, data.Length);
             anchorTransmitter.SendData(data);
         }
         else
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
+            Debug.LogFormat("[NetworkAnchorManager] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
         }
     }
     #endregion Exporting Anchor Methods
@@ -237,7 +240,7 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     /// </summary>
     public override void OnStartClient()
     {
-        Debug.Log("[MyNetworkAnchorServer] OnStartClient");
+        Debug.Log("[NetworkAnchorManager] OnStartClient");
         base.OnStartClient();
         ImportAnchorData(AnchorSource);
     }
@@ -247,17 +250,17 @@ public class MyNetworkAnchorServer : NetworkBehaviour
     /// </summary>
     private void ImportAnchorData(SharedAnchorData anchorSource)
     {
-        Debug.Log("[MyNetworkAnchorServer] AnchorSourceChanged was invoked: " + anchorSource.ToString());
+        Debug.Log("[NetworkAnchorManager] AnchorSourceChanged was invoked: " + anchorSource.ToString());
 
         if (!anchorSource.IsValid)
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring anchor source since it's invalid. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring anchor source since it's invalid. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
             return;
         }
 
         if (anchorSource.SourceIp == LocalAddress)
         {
-            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring anchor source since it originated from this player. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring anchor source since it originated from this player. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
             return;
         }
 
@@ -305,40 +308,39 @@ public class MyNetworkAnchorServer : NetworkBehaviour
         }
         else
         {
-            Debug.Log("[MyNetworkAnchor] Anchor import has complete, and raising RevievedAnchor event");
+            Debug.Log("[MyNetworkAnchor] Anchor import was successful");
             ImportAnchorDataCompleted(batch);
         }
     }
 
     /// <summary>
-    /// The final fuinction called once a network anchor has been imported.
+    /// The final function called once a network anchor has been imported.
     /// </summary>
     private void ImportAnchorDataCompleted(WorldAnchorTransferBatch batch)
     {
         ReceivingAnchor = false;
         if (batch == null)
         {
-            LastRecievedAnchor = null;
+            LastReceivedAnchor = null;
         }
         else
         {
-            LastRecievedAnchor = new ReceivedAnchorArgs(batch);
+            LastReceivedAnchor = new LastReceivedAnchorArgs(batch);
         }
 
-        if (ReceivedAnchor != null)
+        if (LastReceivedAnchorChanged != null)
         {
-            ReceivedAnchor(this, LastRecievedAnchor);
+            LastReceivedAnchorChanged(this, LastReceivedAnchor);
         }
     }
-    #endregion Importing Achor Methods
+    #endregion Importing Anchor Methods
 
     #region Initialization Methods
     /// <summary>
-    /// On creation save this an the static instance. There should be only one manager.
+    /// On creation save this as the static instance. There should be only one manager.
     /// </summary>
     private void Awake()
     {
-        Debug.Log("[MyNetworkAnchorServer] Awoke");
         DontDestroyOnLoad(gameObject);
         instance = this;
 
@@ -356,7 +358,7 @@ public class MyNetworkAnchorServer : NetworkBehaviour
         {
             if (hostName.DisplayName.Split(".".ToCharArray()).Length == 4)
             {
-                Debug.Log("[MyNetworkAnchor] Local IP " + hostName.DisplayName);
+                Debug.Log("[NetworkAnchorManager] Local IP " + hostName.DisplayName);
                 LocalAddress = hostName.DisplayName;
                 break;
             }

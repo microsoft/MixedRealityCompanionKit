@@ -310,10 +310,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handedness: 1
   direction: 0
+  lastDirection: 0
   gazeRay: {fileID: 0}
   gazeRaySize: {x: 0.005, y: 0.001}
   gazeMaterial: {fileID: 0}
-  lastDirection: 0
 --- !u!23 &134943139
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1784,10 +1784,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handedness: 2
   direction: 0
+  lastDirection: 0
   gazeRay: {fileID: 0}
   gazeRaySize: {x: 0.005, y: 0.001}
   gazeMaterial: {fileID: 0}
-  lastDirection: 0
 --- !u!23 &1662540105
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2855,7 +2855,7 @@ Prefab:
     - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
         type: 2}
       propertyPath: m_SpawnPrefabs.Array.size
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4000012079502154, guid: 454898ddda01df748a6d5d77810261b3, type: 2}
       propertyPath: m_LocalPosition.x
@@ -2903,8 +2903,7 @@ Prefab:
         type: 2}
       propertyPath: m_SpawnPrefabs.Array.data[0]
       value: 
-      objectReference: {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804,
-        type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 114000014200457848, guid: 454898ddda01df748a6d5d77810261b3,
         type: 2}
       propertyPath: AutoStartDiscovery
@@ -2925,8 +2924,7 @@ Prefab:
         type: 2}
       propertyPath: m_SpawnPrefabs.Array.data[1]
       value: 
-      objectReference: {fileID: 1413809719884294, guid: b60a7ec9d5641a742b286cc09b46846f,
-        type: 2}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 454898ddda01df748a6d5d77810261b3, type: 2}
   m_IsPrefabParent: 0

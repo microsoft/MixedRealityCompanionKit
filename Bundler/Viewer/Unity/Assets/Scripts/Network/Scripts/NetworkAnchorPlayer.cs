@@ -6,13 +6,13 @@ using UnityEngine.Networking;
 using System;
 using System.Collections.Generic;
 
-public class MyNetworkAnchorClient : NetworkBehaviour
+public class NetworkAnchorPlayer : NetworkBehaviour
 {
     /// <summary>
-    /// The local anchor client.
+    /// The local anchor player.
     /// </summary>
-    private static MyNetworkAnchorClient localInstance;
-    public static MyNetworkAnchorClient LocalInstance
+    private static NetworkAnchorPlayer localInstance;
+    public static NetworkAnchorPlayer LocalInstance
     {
         get
         {
@@ -25,7 +25,7 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     /// </summary>
     private void Awake()
     {
-        Debug.LogFormat("[MyNetworkAnchorClient] Awoke. isLocalPlayer: {0} isServer: {1} isClient: {2}", isLocalPlayer, isServer, isClient);
+        Debug.LogFormat("[NetworkAnchorPlayer] Awoke. isLocalPlayer: {0} isServer: {1} isClient: {2}", isLocalPlayer, isServer, isClient);
         DontDestroyOnLoad(gameObject);
     }
 
@@ -44,40 +44,40 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     public override void OnStartAuthority()
     {
         base.OnStartAuthority();
-        Debug.LogFormat("[MyNetworkAnchorClient] OnStartAuthority. {0}", DebugInfo());
+        Debug.LogFormat("[NetworkAnchorPlayer] OnStartAuthority. {0}", DebugInfo());
 
         if (hasAuthority)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] OnStartAuthority. Setting instance. {0}", DebugInfo());
+            Debug.LogFormat("[NetworkAnchorPlayer] OnStartAuthority. Setting instance. {0}", DebugInfo());
             localInstance = this;
         }
     }
     /// <summary>
     /// If anchor is unowned, export the anchor data stored in game object, take anchor ownership of the shared anchor,
-    /// and share anchor with other players.
+    /// and broadcast anchor data to other players.
     /// </summary>
     public void DefaultNetworkAnchor(String anchorId, GameObject gameObject)
     {
-        if (MyNetworkAnchorServer.Instance != null && 
-            !MyNetworkAnchorServer.Instance.IsSharedAnchorOwned)
+        if (NetworkAnchorManager.Instance != null && 
+            !NetworkAnchorManager.Instance.IsSharedAnchorOwned)
         {
             ShareNetworkAnchor(anchorId, gameObject);
         }
     }
 
     /// <summary>
-    /// Export the anchor data stored in game object, take anchor ownership of the shared anchor, and share anchor with 
-    /// other players.
+    /// Export the anchor data stored in game object, take anchor ownership of the shared anchor, and broadcast anchor
+    /// data to other players.
     /// </summary>
     public void ShareNetworkAnchor(String anchorId, GameObject gameObject)
     {
-        if (MyNetworkAnchorServer.Instance == null)
+        if (NetworkAnchorManager.Instance == null)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] Ignoring share anchor request, as there is no anchor server. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[NetworkAnchorPlayer] Ignoring share anchor request, as there is no anchor server. (anchor id: {0})", anchorId);
             return;
         }
 
-        if (MyNetworkAnchorServer.Instance.TrySharingAnchor(anchorId, gameObject))
+        if (NetworkAnchorManager.Instance.TrySharingAnchor(anchorId, gameObject))
         {
             // Start taking ownership of the anchor
             CmdShareAnchor(SharedAnchorData.Create(anchorId));
@@ -85,19 +85,19 @@ public class MyNetworkAnchorClient : NetworkBehaviour
     }
 
     /// <summary>
-    /// A network command to allow clients to change the anchor source.
+    /// A network command to allow local clients to change the anchor source.
     /// </summary>
     [Command]
     private void CmdShareAnchor(SharedAnchorData anchorSource)
     {
-        if (MyNetworkAnchorServer.Instance != null)
+        if (NetworkAnchorManager.Instance != null)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] Command is setting the anchor source {0} {1}", anchorSource.ToString(), DebugInfo());
-            MyNetworkAnchorServer.Instance.SetAnchorSource(anchorSource);
+            Debug.LogFormat("[NetworkAnchorPlayer] Command is setting the anchor source {0} {1}", anchorSource.ToString(), DebugInfo());
+            NetworkAnchorManager.Instance.SetAnchorSource(anchorSource);
         }
         else
         {
-            Debug.LogErrorFormat("[MyNetworkAnchorClient] Can't set anchor source, network anchor server is missing. {0} {1}", anchorSource.ToString(), DebugInfo());
+            Debug.LogErrorFormat("[NetworkAnchorPlayer] Can't set anchor source, network anchor server is missing. {0} {1}", anchorSource.ToString(), DebugInfo());
         }
     }
 }

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: cd427a6910a02054da6bbb35da453f45
+timeCreated: 1520917299
+licenseType: Pro
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - NetworkAnchorManagerPrefab: {fileID: 1873716241666308, guid: 6213c6f29f0a954418e162d9d8827804,
+      type: 2}
+  - NetworkAnchorPlayerPrefab: {fileID: 1413809719884294, guid: b60a7ec9d5641a742b286cc09b46846f,
+      type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
