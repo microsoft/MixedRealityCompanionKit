@@ -226,7 +226,7 @@ public class NetworkAnchorManager : NetworkBehaviour
     [Server]
     public void SetAnchorSource(SharedAnchorData anchorSource)
     {
-        Debug.Log("[NetworkAnchorManager] Server is setting the anchor source: " + anchorSource.ToString());
+        Debug.LogFormat("[NetworkAnchorManager] Server is setting the anchor source. {0} {1}", anchorSource.ToString(), DebugInfo());
         AnchorSource = anchorSource;
     }
 
@@ -264,7 +264,7 @@ public class NetworkAnchorManager : NetworkBehaviour
             return false;
         }
 
-        Debug.LogFormat("[NetworkAnchorManager] Attempting to acquire anchor ownership and share anchor with other players. (new anchor id: {0}) (old anchor id: {1})", anchorId, AnchorSource.AnchorId);
+        Debug.LogFormat("[NetworkAnchorManager] Attempting to acquire anchor ownership and share anchor with other players. (new anchor id: {0}) {1} {2}", anchorId, AnchorSource.ToString(), DebugInfo());
 
         // The last received anchor will no longer be relevant since we're taking ownership
         LastReceivedAnchor = null;
@@ -287,7 +287,7 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// <summary>
     /// This is invoked once we've finished exported the binary anchor data to a byte array.
     /// </summary>
-    private void  ExportAnchorDataComplete(
+    private void ExportAnchorDataComplete(
         SerializationCompletionReason status,
         byte[] data,
         String anchorId,
@@ -295,12 +295,12 @@ public class NetworkAnchorManager : NetworkBehaviour
     {
         if (status == SerializationCompletionReason.Succeeded)
         {
-            Debug.LogFormat("[NetworkAnchorManager] Exporting anchor succeeded: {0} ({1} bytes)", anchorId, data.Length);
+            Debug.LogFormat("[NetworkAnchorManager] Exporting anchor succeeded. (anchor id: {0}) (bytes: {1}) {2}", anchorId, data.Length, DebugInfo());
             anchorTransmitter.SendData(data);
         }
         else
         {
-            Debug.LogErrorFormat("[NetworkAnchorManager] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
+            Debug.LogErrorFormat("[NetworkAnchorManager] Exporting anchor failed, going to retrying. (anchor id: {0}) (status: {1}) (bytes: {2}) {3}", anchorId, status, data.Length, DebugInfo());
             StartCoroutine(RetrySharingAnchor(anchorId, gameObject));
         }
     }
@@ -326,7 +326,6 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// </summary>
     public override void OnStartClient()
     {
-        Debug.Log("[NetworkAnchorManager] OnStartClient");
         base.OnStartClient();
         ImportAnchorData(AnchorSource);
     }
@@ -338,25 +337,24 @@ public class NetworkAnchorManager : NetworkBehaviour
     {
         if (HolographicSettings.IsDisplayOpaque)
         {
-            Debug.LogFormat("[NetworkAnchorManager] Ignoring import anchor request, as this device doesn't support anchoring.(source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring import anchor request, as this device doesn't support anchoring. {0} {1}", anchorSource.ToString(), DebugInfo());
             return;
         }
 
         if (!anchorSource.IsValid)
         {
-            Debug.LogFormat("[NetworkAnchorManager] Ignoring anchor source since it's invalid. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring anchor source since it's invalid. {0} {1}", anchorSource.ToString(), DebugInfo());
             return;
         }
 
         if (anchorSource.SourceIp == LocalAddress)
         {
-            Debug.LogFormat("[NetworkAnchorManager] Ignoring anchor source since it originated from this player. (source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring anchor source since it originated from this player. {0} {1}", anchorSource.ToString(), DebugInfo());
             return;
         }
 
-        Debug.Log("[NetworkAnchorManager] AnchorSourceChanged was invoked: " + anchorSource.ToString());
+        Debug.LogFormat("[NetworkAnchorManager] Importing anchor. {0} {1}", anchorSource.ToString(), DebugInfo());
 
-        Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
         LoadingAnchor = true;
         anchorTransmitter.RequestData(anchorSource.SourceIp);
     }
@@ -368,19 +366,19 @@ public class NetworkAnchorManager : NetworkBehaviour
     {
         if (!args.Successful)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] Failed to receive anchor data. {0}", DebugInfo());
+            Debug.LogErrorFormat("[NetworkAnchorManager] Failed to receive anchor data. {0}", DebugInfo());
             ImportAnchorDataCompleted(null);
             return;
         }
 
         if (args.Data == null || args.Data.Length == 0)
         {
-            Debug.LogFormat("[MyNetworkAnchorClient] Binary anchor data is null or empty, ignoring request to import anchor data. {0}", DebugInfo());
+            Debug.LogErrorFormat("[NetworkAnchorManager] Binary anchor data is null or empty, ignoring request to import anchor data. {0}", DebugInfo());
             ImportAnchorDataCompleted(null);
             return;
         }
 
-        Debug.LogFormat("[MyNetworkAnchorClient] Starting import of binary anchor data. ({0} bytes) {1}", args.Data.Length, DebugInfo());
+        Debug.LogFormat("[NetworkAnchorManager] Starting import of binary anchor data. (bytes: {0}) {1}", args.Data.Length, DebugInfo());
         WorldAnchorTransferBatch.ImportAsync(args.Data, BatchImportAsyncCompleted);
     }
 
@@ -395,12 +393,12 @@ public class NetworkAnchorManager : NetworkBehaviour
     {
         if (status != SerializationCompletionReason.Succeeded)
         {
-            Debug.Log("[MyNetworkAnchor] Anchor import has failed");
+            Debug.LogErrorFormat("[NetworkAnchorManager] Anchor import has failed. (status: {0})", status);
             ImportAnchorDataCompleted(null);
         }
         else
         {
-            Debug.Log("[MyNetworkAnchor] Anchor import was successful");
+            Debug.Log("[NetworkAnchorManager] Anchor import was successful.");
             ImportAnchorDataCompleted(batch);
         }
     }
@@ -451,8 +449,8 @@ public class NetworkAnchorManager : NetworkBehaviour
         {
             if (hostName.DisplayName.Split(".".ToCharArray()).Length == 4)
             {
-                Debug.Log("[NetworkAnchorManager] Local IP " + hostName.DisplayName);
                 LocalAddress = hostName.DisplayName;
+                Debug.Log("[NetworkAnchorManager] Found local ip address. {0}" + DebugInfo());
                 break;
             }
         }
@@ -477,14 +475,13 @@ public class NetworkAnchorManager : NetworkBehaviour
 #region Debug Methods
     private string DebugInfo()
     {
-        string clientConnectionIp = connectionToClient == null ? "not server" : connectionToClient.address;
-        return string.Format("(netId: {0}) (isLocalPlayer: {1}) (isServer: {2}) (isClient: {3}) (hasAuthority: {4}) (connectionToClient address: {5})",
+        return string.Format("(netId: {0}) (isLocalPlayer: {1}) (isServer: {2}) (isClient: {3}) (hasAuthority: {4}) (local ip: {5})",
             netId,
             isLocalPlayer,
             isServer,
             isClient,
             hasAuthority,
-            clientConnectionIp);
+            LocalAddress);
     }
 #endregion Debug Methods
 }

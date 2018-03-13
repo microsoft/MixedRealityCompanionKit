@@ -25,14 +25,13 @@ public class NetworkAnchorPlayer : NetworkBehaviour
     /// </summary>
     private void Awake()
     {
-        Debug.LogFormat("[NetworkAnchorPlayer] Awoke. isLocalPlayer: {0} isServer: {1} isClient: {2}", isLocalPlayer, isServer, isClient);
         DontDestroyOnLoad(gameObject);
     }
 
     private string DebugInfo()
     {
         string clientConnectionIp = connectionToClient == null ? "not server" : connectionToClient.address;
-        return string.Format("(netId: {0}) (isLocalPlayer: {1}) (isServer: {2}) (isClient: {3}) (hasAuthority: {4}) (connectionToClient address: {5})",
+        return string.Format("(netId: {0}) (isLocalPlayer: {1}) (isServer: {2}) (isClient: {3}) (hasAuthority: {4}) (connection to client: {5})",
             netId,
             isLocalPlayer,
             isServer,
@@ -44,11 +43,9 @@ public class NetworkAnchorPlayer : NetworkBehaviour
     public override void OnStartAuthority()
     {
         base.OnStartAuthority();
-        Debug.LogFormat("[NetworkAnchorPlayer] OnStartAuthority. {0}", DebugInfo());
 
         if (hasAuthority)
         {
-            Debug.LogFormat("[NetworkAnchorPlayer] OnStartAuthority. Setting instance. {0}", DebugInfo());
             localInstance = this;
         }
     }
@@ -73,7 +70,7 @@ public class NetworkAnchorPlayer : NetworkBehaviour
     {
         if (NetworkAnchorManager.Instance == null)
         {
-            Debug.LogFormat("[NetworkAnchorPlayer] Ignoring share anchor request, as there is no anchor server. (anchor id: {0})", anchorId);
+            Debug.LogFormat("[NetworkAnchorPlayer] Ignoring share anchor request, as there is no anchor server. (anchor id: {0}) {1}", anchorId, DebugInfo());
             return;
         }
 

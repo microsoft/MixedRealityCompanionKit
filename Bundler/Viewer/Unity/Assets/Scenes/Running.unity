@@ -3642,7 +3642,7 @@ Prefab:
     - target: {fileID: 114157254398809156, guid: 1f9fb0c903566304eb8b9a4169f959f2,
         type: 2}
       propertyPath: m_Text
-      value: Finding Shared Stage...
+      value: Looking for shared stage...
       objectReference: {fileID: 0}
     - target: {fileID: 1157767864172852, guid: 1f9fb0c903566304eb8b9a4169f959f2, type: 2}
       propertyPath: m_IsActive

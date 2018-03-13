@@ -218,7 +218,7 @@ public class GenericNetworkTransmitter
         // If we have data, send it. 
         if (buffer != null)
         {
-            Debug.LogFormat("[GenericNetworkTransmitter] Sending data ({0} bytes)", buffer.Length);
+            Debug.LogFormat("[GenericNetworkTransmitter] Sending data (bytes: {0})", buffer.Length);
             IOutputStream stream = args.Socket.OutputStream;
             using (DataWriter writer = new DataWriter(stream))
             {
@@ -239,7 +239,7 @@ public class GenericNetworkTransmitter
     /// </summary>
     private async void StartAsClient(string serverIp)
     {
-        Debug.LogFormat("[GenericNetworkTransmitter] Attempting to connect to server (server IP: {0})", serverIp);
+        Debug.LogFormat("[GenericNetworkTransmitter] Attempting to connect to server (server ip: {0})", serverIp);
 
         StopClient();
         await StopServer();
@@ -262,14 +262,14 @@ public class GenericNetworkTransmitter
         }
         catch (Exception exp)
         {
-            Debug.LogErrorFormat("[GenericNetworkTransmitter] Failed to receive data from server (server IP: {0}) (error code: {1}), (exception: {2}) ", serverIp, exp.HResult, exp.Message);
+            Debug.LogErrorFormat("[GenericNetworkTransmitter] Failed to receive data from server (server ip: {0}) (error code: {1}) (exception: {2}) ", serverIp, exp.HResult, exp.Message);
         }
 
         lock (stateLock)
         {
             if (state != TransmitterState.Client)
             {
-                Debug.LogWarningFormat("[GenericNetworkTransmitter] No longer a client, releasing received data (server IP: {0})", serverIp);
+                Debug.LogWarningFormat("[GenericNetworkTransmitter] This is no longer a client, releasing received data (server ip: {0})", serverIp);
                 result = null;
             }
         }
@@ -277,16 +277,10 @@ public class GenericNetworkTransmitter
         bool success = result != null && result.Length > 0;
         if (!success && RetryAsClient(serverIp))
         {
-            Debug.LogWarningFormat("[GenericNetworkTransmitter] Failed to received data, but retrying (server IP: {0})", serverIp);
+            Debug.LogErrorFormat("[GenericNetworkTransmitter] Failed to receive data, but retrying (server ip: {0})", serverIp);
         }
         else if (this.RequestDataCompleted != null)
         {
-            Debug.LogFormat(
-                "[GenericNetworkTransmitter] Invoking RequestDataCompleted from server (host IP: {0}) (success: {1}) (bytes: {2})",
-                serverIp, 
-                success,
-                result != null ? result.Length : 0);
-
             this.RequestDataCompleted(this, new RequestDataCompletedArgs(success, result));
         }
     }
@@ -337,7 +331,7 @@ public class GenericNetworkTransmitter
     private async Task<byte[]> ReadInputStream(StreamSocket networkConnection)
     {
         byte[] result = null;
-        Debug.LogFormat("[GenericNetworkTransmitter] Attempting to read input stream (host IP: {0})",
+        Debug.LogFormat("[GenericNetworkTransmitter] Attempting to read input stream (server ip: {0})",
             networkConnection.Information.RemoteAddress.ToString());
         
         // Since we are connected, we can read the data being sent to us.
@@ -346,7 +340,7 @@ public class GenericNetworkTransmitter
             int dataSize = await ReadInputStreamSize(networkDataReader);
             if (dataSize < 0)
             {
-                Debug.LogError("[GenericNetworkTransmitter] data size was too big.");
+                Debug.LogError("[GenericNetworkTransmitter] Data size was too big.");
             }
             else
             {
@@ -356,7 +350,7 @@ public class GenericNetworkTransmitter
                 // Read the data.
                 await networkDataReader.LoadAsync((uint)dataSize);
                 networkDataReader.ReadBytes(result);
-                Debug.LogFormat("[GenericNetworkTransmitter] Finished to reading input stream ({0} bytes) (host IP: {1})",
+                Debug.LogFormat("[GenericNetworkTransmitter] Finished to reading input stream (bytes: {0}) (server ip: {1})",
                     dataSize,
                     networkConnection.Information.RemoteAddress.ToString());
             }
