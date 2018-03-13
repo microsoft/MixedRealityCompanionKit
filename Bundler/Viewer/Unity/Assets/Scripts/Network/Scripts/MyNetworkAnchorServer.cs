@@ -61,6 +61,28 @@ public class ReceivedAnchorArgs
     /// The transfer batch containing the anchor
     /// </summary>
     public WorldAnchorTransferBatch TransferBatch { get; private set; }
+
+    /// <summary>
+    /// The first anchor id in the transfer batch
+    /// </summary>
+    public string AnchorId
+    {
+        get
+        {
+            if (TransferBatch == null)
+            {
+                return String.Empty;
+            }
+
+            var ids = TransferBatch.GetAllIds();
+            if (ids == null || ids.Length == 0)
+            {
+                return String.Empty;
+            }
+
+            return ids[0];
+        }
+    }
 }
 
 public class MyNetworkAnchorServer : NetworkBehaviour
@@ -153,6 +175,12 @@ public class MyNetworkAnchorServer : NetworkBehaviour
         if (AnchorSource.AnchorId == anchorId)
         {
             Debug.LogFormat("[MyNetworkAnchorServer] Ignoring share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
+            return false;
+        }
+
+        if (LastRecievedAnchor != null && LastRecievedAnchor.AnchorId == anchorId)
+        {
+            Debug.LogFormat("[MyNetworkAnchorServer] Ignoring share anchor request, as anchor was just received. (anchor id: {0})", anchorId);
             return false;
         }
 
