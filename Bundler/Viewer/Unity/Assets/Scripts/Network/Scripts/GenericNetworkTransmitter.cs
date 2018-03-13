@@ -2,11 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using UnityEngine;
-using HoloToolkit.Unity;
 using System;
-using System.Collections.Generic;
 
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && UNITY_UWP
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using Windows.Networking;
@@ -86,7 +84,7 @@ public class GenericNetworkTransmitter
     }
 
     // A lot of the work done in this class can only be done in UWP. The editor is not a UWP app.
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && UNITY_UWP
     /// <summary>
     /// The connection port on the machine to use..
     /// </summary>

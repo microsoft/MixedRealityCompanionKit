@@ -6,7 +6,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Networking.NetworkSystem;
-using UnityEngine.Networking.Match;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(MyNetworkDiscovery))]
@@ -18,7 +17,6 @@ public class MyNetworkManager : NetworkManager
     bool checking;
     bool paused;
     bool isInDelayedStart = false;
-    GameObject spawnedNetworkAnchorServer;
 
     private MyNetworkDiscovery discovery;
 

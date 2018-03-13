@@ -4,10 +4,68 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.XR.WSA;
-using UnityEngine.XR.WSA.Sharing;
 using System;
 using System.Collections.Generic;
 
+#if UNITY_WSA
+using UnityEngine.XR.WSA.Sharing;
+#else
+/// <summary>
+/// Mock enum to allow building on non-uwp platforms.
+/// </summary>
+public enum SerializationCompletionReason
+{
+    Succeeded = 0,
+    NotSupported = 1,
+    AccessDenied = 2,
+    UnknownError = 3
+}
+
+/// <summary>
+/// Mock class to allow building on non-uwp platforms.
+/// </summary>
+public class WorldAnchorTransferBatch
+{
+    public delegate void SerializationDataAvailableDelegate(byte[] data);
+    public delegate void SerializationCompleteDelegate(SerializationCompletionReason completionReason);
+    public delegate void DeserializationCompleteDelegate(SerializationCompletionReason completionReason, WorldAnchorTransferBatch deserializedTransferBatch);
+
+    public string[] GetAllIds()
+    {
+        return new string[0];
+    }
+
+    public void AddWorldAnchor(string id, WorldAnchor anchor)
+    {
+    }
+
+    public WorldAnchor LockObject(string id, GameObject obj)
+    {
+        return null;
+    }
+
+    public static void ExportAsync(
+        WorldAnchorTransferBatch batch, 
+        SerializationDataAvailableDelegate dataBuffer,
+        SerializationCompleteDelegate completeCallback)
+    {
+        if (completeCallback != null)
+        {
+            completeCallback(SerializationCompletionReason.NotSupported);
+        }
+    }
+
+    public static void ImportAsync(
+        byte[] data,
+        DeserializationCompleteDelegate completeCallback)
+    {
+        if (completeCallback != null)
+        {
+            completeCallback(SerializationCompletionReason.NotSupported, null);
+        }
+    }
+}
+#endif
 
 /// <summary>
 /// Data describing the source of the shared anchor data.
@@ -109,7 +167,7 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// <summary>
     /// Get if the local anchor player is in the process of receiving a shared anchor.
     /// </summary>
-    public bool ReceivingAnchor
+    public bool LoadingAnchor
     {
         get;
         private set;
@@ -155,7 +213,7 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// </summary>
     private GenericNetworkTransmitter anchorTransmitter;
 
-    #region Exporting Anchor Methods
+#region Exporting Anchor Methods
     /// <summary>
     /// Set the anchor source.
     /// </summary>
@@ -175,6 +233,12 @@ public class NetworkAnchorManager : NetworkBehaviour
     [Client]
     public bool TrySharingAnchor(String anchorId, GameObject gameObject)
     {
+        if (HolographicSettings.IsDisplayOpaque)
+        {
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring share anchor request, as this device doesn't support anchoring. (anchor id: {0})", anchorId);
+            return false;
+        }
+
         if (AnchorSource.AnchorId == anchorId)
         {
             Debug.LogFormat("[NetworkAnchorManager] Ignoring share anchor request, as anchor is already being shared. (anchor id: {0})", anchorId);
@@ -232,9 +296,9 @@ public class NetworkAnchorManager : NetworkBehaviour
             Debug.LogFormat("[NetworkAnchorManager] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
         }
     }
-    #endregion Exporting Anchor Methods
+#endregion Exporting Anchor Methods
 
-    #region Importing Anchor Methods
+#region Importing Anchor Methods
     /// <summary>
     /// When client starts, check if an anchor needs to be imported
     /// </summary>
@@ -250,7 +314,11 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// </summary>
     private void ImportAnchorData(SharedAnchorData anchorSource)
     {
-        Debug.Log("[NetworkAnchorManager] AnchorSourceChanged was invoked: " + anchorSource.ToString());
+        if (HolographicSettings.IsDisplayOpaque)
+        {
+            Debug.LogFormat("[NetworkAnchorManager] Ignoring import anchor request, as this device doesn't support anchoring.(source IP: {0}) (local IP: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
+            return;
+        }
 
         if (!anchorSource.IsValid)
         {
@@ -264,8 +332,10 @@ public class NetworkAnchorManager : NetworkBehaviour
             return;
         }
 
+        Debug.Log("[NetworkAnchorManager] AnchorSourceChanged was invoked: " + anchorSource.ToString());
+
         Debug.LogFormat("[MyNetworkAnchorClient] Importing anchor (source IP: {0}) (local ID: {1}) (anchod ID: {2})", anchorSource.SourceIp, LocalAddress, anchorSource.AnchorId);
-        ReceivingAnchor = true;
+        LoadingAnchor = true;
         anchorTransmitter.RequestData(anchorSource.SourceIp);
     }
 
@@ -318,7 +388,7 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// </summary>
     private void ImportAnchorDataCompleted(WorldAnchorTransferBatch batch)
     {
-        ReceivingAnchor = false;
+        LoadingAnchor = false;
         if (batch == null)
         {
             LastReceivedAnchor = null;
@@ -333,9 +403,9 @@ public class NetworkAnchorManager : NetworkBehaviour
             LastReceivedAnchorChanged(this, LastReceivedAnchor);
         }
     }
-    #endregion Importing Anchor Methods
+#endregion Importing Anchor Methods
 
-    #region Initialization Methods
+#region Initialization Methods
     /// <summary>
     /// On creation save this as the static instance. There should be only one manager.
     /// </summary>
@@ -379,9 +449,9 @@ public class NetworkAnchorManager : NetworkBehaviour
             anchorTransmitter.RequestDataCompleted += RequestAnchorDataCompleted;
         }
     }
-    #endregion Initialization Methods
+#endregion Initialization Methods
 
-    #region Debug Methods
+#region Debug Methods
     private string DebugInfo()
     {
         string clientConnectionIp = connectionToClient == null ? "not server" : connectionToClient.address;
@@ -393,5 +463,5 @@ public class NetworkAnchorManager : NetworkBehaviour
             hasAuthority,
             clientConnectionIp);
     }
-    #endregion Debug Methods
+#endregion Debug Methods
 }

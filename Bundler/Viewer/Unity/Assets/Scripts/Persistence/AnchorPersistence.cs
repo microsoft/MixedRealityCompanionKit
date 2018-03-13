@@ -2,10 +2,13 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using UnityEngine;
+using System;
+
+#if UNITY_WSA
 using UnityEngine.XR.WSA.Persistence;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Sharing;
-using System;
+#endif
 
 
 namespace Persistence
@@ -41,7 +44,6 @@ namespace Persistence
             }
         }
 #if UNITY_WSA
-
         private WorldAnchorStore worldAnchorStore;
 #endif
         private PersistenceSaveLoad saveLoad;

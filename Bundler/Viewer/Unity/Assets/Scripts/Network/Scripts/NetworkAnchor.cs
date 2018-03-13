@@ -7,9 +7,24 @@ using Persistence;
 public class NetworkAnchor : MonoBehaviour
 {
     /// <summary>
+    /// The game object to enable when the initial network anchor is being loaded.
+    /// </summary>
+    public GameObject LoadingAnchorRoot;
+
+    /// <summary>
+    /// The game object to enable when the initial network anchor has been loaded.
+    /// </summary>
+    public GameObject FoundAnchorRoot;
+
+    /// <summary>
     /// For this to function, the game object must also have the AnchorPersistence behavior applied.
     /// </summary>
     private AnchorPersistence anchorPersistence;
+
+    /// <summary>
+    /// For this to function, there must be a global NetworkAnchorManager.
+    /// </summary>
+    private NetworkAnchorManager networkAnchorManager;
 
     /// <summary>
     /// For this to function, the game object must also have a local instance of an NetworkAnchorPlayer.
@@ -17,6 +32,19 @@ public class NetworkAnchor : MonoBehaviour
     private NetworkAnchorPlayer anchorPlayer;
 
     private PersistenceEventArgs pendingPersistenceEventArgs = null;
+
+    private void Awake()
+    {
+        if (FoundAnchorRoot != null)
+        {
+            FoundAnchorRoot.SetActive(false);
+        }
+
+        if (LoadingAnchorRoot != null)
+        {
+            LoadingAnchorRoot.SetActive(false);
+        }
+    }
 
     /// <summary>
     /// Initialization the Network Anchor. Note, this will search of an Anchor Persistence behavior. If not present,
@@ -40,11 +68,34 @@ public class NetworkAnchor : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        InitializeAnchorManagerOnce();
         InitializeAnchorPlayerOnce();
+        UpdateActiveGameObjects();
     }
 
     /// <summary>
-    /// Check for a local instance of an anchor player. The local player may not exist at start.
+    /// Inititialize the anchor manager usage. Note, the manager instance won't be ready at "Start".
+    /// </summary>
+    private void InitializeAnchorManagerOnce()
+    {
+        // Check if already initialized
+        if (networkAnchorManager != null)
+        {
+            return;
+        }
+
+        // Check if can initialize
+        networkAnchorManager = NetworkAnchorManager.Instance;
+        if (networkAnchorManager == null)
+        {
+            return;
+        }
+
+        networkAnchorManager.LastReceivedAnchorChanged += OnReceivedRemoteAnchor;
+    }
+
+    /// <summary>
+    /// Check for a local instance of an anchor player. The local player may not exist at "Start".
     /// </summary>
     private void InitializeAnchorPlayerOnce()
     {
@@ -61,12 +112,9 @@ public class NetworkAnchor : MonoBehaviour
             return;
         }
 
-        // Note, MyNetworkAnchorServer.Instance won't be ready at "Start", but it should be ready once there is an
-        // Anchor Player instance.
-        var networkAnchorManager = NetworkAnchorManager.Instance;
+        // If an anchor blob was received from another player, now's the time to handle this.
         if (networkAnchorManager != null)
         {
-            networkAnchorManager.LastReceivedAnchorChanged += OnReceivedRemoteAnchor;
             OnReceivedRemoteAnchor(networkAnchorManager, networkAnchorManager.LastReceivedAnchor);
         }
         else
@@ -75,6 +123,43 @@ public class NetworkAnchor : MonoBehaviour
         }
 
         OnPersistenceEvent(anchorPersistence, pendingPersistenceEventArgs);
+    }
+
+    /// <summary>
+    /// Update "root" object based on if anchors are being downloaded.
+    /// </summary>
+    private void UpdateActiveGameObjects()
+    {
+        // Check if we've recieved an anchor manager yet.
+        if (networkAnchorManager == null)
+        {
+            return;
+        }
+
+        if (LoadingAnchorRoot != null && networkAnchorManager.LoadingAnchor)
+        {
+            if (FoundAnchorRoot != null)
+            {
+                FoundAnchorRoot.SetActive(false);
+            }
+
+            LoadingAnchorRoot.SetActive(true);
+        }
+        else
+        {
+            // Only show "loading anchor root" once
+            if (LoadingAnchorRoot != null)
+            {
+                LoadingAnchorRoot.SetActive(false);
+                LoadingAnchorRoot = null;
+            }
+
+            // Show "found anchor root", if not loading or there is no "loading anchor root"
+            if (FoundAnchorRoot != null)
+            {
+                FoundAnchorRoot.SetActive(true);
+            }
+        }
     }
 
     /// <summary>
