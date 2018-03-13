@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.XR.WSA;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 
 #if UNITY_WSA
@@ -213,6 +214,11 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// </summary>
     private GenericNetworkTransmitter anchorTransmitter;
 
+    /// <summary>
+    /// Retry failed exports every second.
+    /// </summary>
+    private const float retryExportDelaySeconds = 1.0f;
+
 #region Exporting Anchor Methods
     /// <summary>
     /// Set the anchor source.
@@ -273,7 +279,7 @@ public class NetworkAnchorManager : NetworkBehaviour
         WorldAnchorTransferBatch.ExportAsync(
             batch,
             (byte[] data) => { buffer.AddRange(data); },
-            (SerializationCompletionReason status) => { ExportAnchorDataComplete(status, buffer.ToArray(), anchorId); });
+            (SerializationCompletionReason status) => { ExportAnchorDataComplete(status, buffer.ToArray(), anchorId, gameObject); });
 
         return true;
     }
@@ -281,10 +287,11 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// <summary>
     /// This is invoked once we've finished exported the binary anchor data to a byte array.
     /// </summary>
-    private void ExportAnchorDataComplete(
+    private void  ExportAnchorDataComplete(
         SerializationCompletionReason status,
         byte[] data,
-        String anchorId)
+        String anchorId,
+        GameObject gameObject)
     {
         if (status == SerializationCompletionReason.Succeeded)
         {
@@ -293,7 +300,22 @@ public class NetworkAnchorManager : NetworkBehaviour
         }
         else
         {
-            Debug.LogFormat("[NetworkAnchorManager] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
+            Debug.LogErrorFormat("[NetworkAnchorManager] Exporting anchor failed: (anchor id: {0}) (status: {1}) ({2} bytes)", anchorId, status, data.Length);
+            StartCoroutine(RetrySharingAnchor(anchorId, gameObject));
+        }
+    }
+
+    /// <summary>
+    /// Retry sharing anchor, if it's still possible to.
+    /// </summary>
+    private System.Collections.IEnumerator RetrySharingAnchor(String anchorId, GameObject gameObject)
+    {
+        yield return new WaitForSeconds(retryExportDelaySeconds);
+
+        // If loading and received an anchor, don't continue to try to share anchor data.
+        if (!LoadingAnchor && LastReceivedAnchor == null)
+        {
+            TrySharingAnchor(anchorId, gameObject);
         }
     }
 #endregion Exporting Anchor Methods
@@ -388,7 +410,6 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// </summary>
     private void ImportAnchorDataCompleted(WorldAnchorTransferBatch batch)
     {
-        LoadingAnchor = false;
         if (batch == null)
         {
             LastReceivedAnchor = null;
@@ -397,6 +418,8 @@ public class NetworkAnchorManager : NetworkBehaviour
         {
             LastReceivedAnchor = new LastReceivedAnchorArgs(batch);
         }
+
+        LoadingAnchor = false;
 
         if (LastReceivedAnchorChanged != null)
         {
