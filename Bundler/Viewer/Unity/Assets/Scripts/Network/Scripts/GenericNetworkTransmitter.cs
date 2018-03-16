@@ -116,7 +116,7 @@ public class GenericNetworkTransmitter
     private const int timeToDeferFailedConnectionsMS = 3000;
 
     /// <summary>
-    /// Stop the server and client request.s
+    /// Stop server and client requests.
     /// </summary>
     private async void StopServerAndClient()
     {

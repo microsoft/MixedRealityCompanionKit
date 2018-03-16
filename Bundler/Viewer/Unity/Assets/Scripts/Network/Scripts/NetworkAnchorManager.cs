@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.XR.WSA;
 using System;
-using System.Threading;
 using System.Collections.Generic;
 
 #if UNITY_WSA
@@ -158,6 +157,10 @@ public class NetworkAnchorManager : NetworkBehaviour
         }
     }
 
+    [SyncVar(hook = "ImportAnchorData")]
+    [Tooltip("The current source of the shared anchor.")]
+    public SharedAnchorData AnchorSource;
+
     /// <summary>
     /// This event is raised when a new anchor arrives from a different player.
     /// </summary>
@@ -168,35 +171,17 @@ public class NetworkAnchorManager : NetworkBehaviour
     /// <summary>
     /// Get if the local anchor player is in the process of receiving a shared anchor.
     /// </summary>
-    public bool LoadingAnchor
-    {
-        get;
-        private set;
-    }
+    public bool LoadingAnchor { get; private set; }
 
     /// <summary>
     /// Get the last received remote anchor
     /// </summary>
-    public LastReceivedAnchorArgs LastReceivedAnchor
-    {
-        get;
-        private set;
-    }
+    public LastReceivedAnchorArgs LastReceivedAnchor { get; private set; }
 
     /// <summary>
     /// Get the local IP address.
     /// </summary>
-    public String LocalAddress
-    {
-        get;
-        private set;
-    }
-
-    /// <summary>
-    /// The current source of the shared anchor 
-    /// </summary>
-    [SyncVar(hook = "ImportAnchorData")]
-    public SharedAnchorData AnchorSource;
+    public String LocalAddress { get; private set; }
 
     /// <summary>
     /// Get if the anchor is currently owned by a player.

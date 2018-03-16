@@ -6,14 +6,10 @@ using Persistence;
 
 public class NetworkAnchor : MonoBehaviour
 {
-    /// <summary>
-    /// The game object to enable when the initial network anchor is being loaded.
-    /// </summary>
+    [Tooltip("The game object to enable when the initial network anchor is being loaded.")]
     public GameObject LoadingAnchorRoot;
 
-    /// <summary>
-    /// The game object to enable when the initial network anchor has been loaded.
-    /// </summary>
+    [Tooltip("The game object to enable when the initial network anchor has been loaded.")]
     public GameObject FoundAnchorRoot;
 
     /// <summary>
@@ -68,15 +64,16 @@ public class NetworkAnchor : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        InitializeAnchorManagerOnce();
-        InitializeAnchorPlayerOnce();
+        WhenReadyInitializeAnchorManagerOnce();
+        WhenReadyInitializeAnchorPlayerOnce();
         UpdateActiveGameObjects();
     }
 
     /// <summary>
-    /// Inititialize the anchor manager usage. Note, the manager instance won't be ready at "Start".
+    /// Check if we can inititialize the anchor manager usage. If we can, only do the initialization work once. Note
+    /// that the anchor manager instance won't be ready at "Start".
     /// </summary>
-    private void InitializeAnchorManagerOnce()
+    private void WhenReadyInitializeAnchorManagerOnce()
     {
         // Check if already initialized
         if (networkAnchorManager != null)
@@ -95,9 +92,10 @@ public class NetworkAnchor : MonoBehaviour
     }
 
     /// <summary>
-    /// Check for a local instance of an anchor player. The local player may not exist at "Start".
+    /// Check if we can inititialize the local instance of an anchor player. If we can, only do the initialization work
+    /// once. Note that the local player may not exist at "Start".
     /// </summary>
-    private void InitializeAnchorPlayerOnce()
+    private void WhenReadyInitializeAnchorPlayerOnce()
     {
         // Check if already initialized
         if (anchorPlayer != null)

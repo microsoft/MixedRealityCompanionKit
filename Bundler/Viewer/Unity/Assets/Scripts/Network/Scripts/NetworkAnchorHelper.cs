@@ -6,7 +6,10 @@ using UnityEngine.Networking;
 
 public class NetworkAnchorHelper : MonoBehaviour
 {
+    [Tooltip("A prefab which contains all the \"network anchor manager\" behaviours. Only one of these will be spawned at launch.")]
     public GameObject NetworkAnchorManagerPrefab;
+
+    [Tooltip("A prefab which contains all the \"network anchor player\" behaviours. The server will be spawn one of these for each connected player.")]
     public GameObject NetworkAnchorPlayerPrefab;
 
     /// <summary>

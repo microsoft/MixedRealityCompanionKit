@@ -148,6 +148,12 @@ namespace Persistence
             return true;
         }
 
+        /// <summary>
+        /// Add an anchor to a game object and attempt to save this anchor to the app's local state. Note that this 
+        /// will delete the previously saved anchor before attempting to save the new anchor. Therefore if the save 
+        /// fails, the old saved anchor will be lost.
+        /// </summary>
+        /// <returns>True if game object is anchored</returns>
         public bool SaveLocation(GameObject gameObject, WorldAnchorStore store)
         {
             if (gameObject == null)
@@ -174,10 +180,11 @@ namespace Persistence
         }
 
         /// <summary>
-        /// Given a transfer batch, apply only the first anchor id to this object's gameObject.
+        /// Given a transfer batch, apply the batch's first anchor to the given game object. Once applied, attempt to 
+        /// save the new anchor to the app's local state. Note that this will delete the previously saved anchor before 
+        /// attempting to apply the new anchor. Therefore if the application fails, the old saved anchor will be lost.
         /// </summary>
-        /// <param name="batch"></param>
-        /// <returns>True if gameObject is anchored</returns>
+        /// <returns>True if game object is anchored</returns>
         public bool ApplySharedLocation(GameObject gameObject, WorldAnchorTransferBatch batch, WorldAnchorStore store)
         {
             if (gameObject == null)
