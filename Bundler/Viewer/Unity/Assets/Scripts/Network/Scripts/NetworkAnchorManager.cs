@@ -435,9 +435,14 @@ public class NetworkAnchorManager : NetworkBehaviour
             if (hostName.DisplayName.Split(".".ToCharArray()).Length == 4)
             {
                 LocalAddress = hostName.DisplayName;
-                Debug.Log("[NetworkAnchorManager] Found local ip address. {0}" + DebugInfo());
+                Debug.LogFormat("[NetworkAnchorManager] Found local ip address. {0}", DebugInfo());
                 break;
             }
+        }
+
+        if (string.IsNullOrEmpty(LocalAddress))
+        {
+            Debug.LogErrorFormat("[NetworkAnchorManager] Failed to find local ip address. {0}", DebugInfo());
         }
 #else
         LocalAddress = "editor" + UnityEngine.Random.Range(0, 999999).ToString();

@@ -31,10 +31,18 @@ public class NetworkAnchorHelper : MonoBehaviour
         {
             manager.spawnPrefabs.Add(NetworkAnchorManagerPrefab);
         }
+        else
+        {
+            Debug.LogError("[NetworkAnchorHelper] For the helper to function correctly, please set a NetworkAnchorManagerPrefab.");
+        }
 
         if (NetworkAnchorPlayerPrefab != null)
         {
             manager.spawnPrefabs.Add(NetworkAnchorPlayerPrefab);
+        }
+        else
+        {
+            Debug.LogError("[NetworkAnchorHelper] For the helper to function correctly, please set a NetworkAnchorPlayerPrefab.");
         }
     }
 
@@ -43,11 +51,21 @@ public class NetworkAnchorHelper : MonoBehaviour
     /// </summary>
     public void SpawnNetworkAnchorManager()
     {
-        if (NetworkAnchorManagerPrefab != null && spawnedNetworkAnchorManager == null)
+        if (spawnedNetworkAnchorManager != null)
+        {
+            Debug.LogWarning("[NetworkAnchorHelper] Ignoring request to spawn a network anchor manager, since one was already created.");
+            return;
+        }
+
+        if (NetworkAnchorManagerPrefab != null)
         {
             spawnedNetworkAnchorManager = Instantiate(NetworkAnchorManagerPrefab);
             spawnedNetworkAnchorManager.name = "NetworkAnchorManager";
             NetworkServer.Spawn(spawnedNetworkAnchorManager);
+        }
+        else
+        {
+            Debug.LogError("[NetworkAnchorHelper] Can't spawn a network anchor manager, since NetworkAnchorManagerPrefab is null.");
         }
     }
 
@@ -61,6 +79,10 @@ public class NetworkAnchorHelper : MonoBehaviour
             GameObject spawnedNetworkAnchorPlayer = Instantiate(NetworkAnchorPlayerPrefab);
             spawnedNetworkAnchorPlayer.name = "NetworkAnchorPlayer";
             NetworkServer.SpawnWithClientAuthority(spawnedNetworkAnchorPlayer, player);
+        }
+        else
+        {
+            Debug.LogError("[NetworkAnchorHelper] Can't spawn a network anchor player, since NetworkAnchorPlayerPrefab is null.");
         }
     }
 }
