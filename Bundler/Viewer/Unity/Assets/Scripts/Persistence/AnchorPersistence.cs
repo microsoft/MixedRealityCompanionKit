@@ -2,12 +2,13 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using UnityEngine;
+using System;
 
 #if UNITY_WSA
 using UnityEngine.XR.WSA.Persistence;
 using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Sharing;
 #endif
-using System;
 
 
 namespace Persistence
@@ -17,6 +18,15 @@ namespace Persistence
     /// </summary>
     public class AnchorPersistence : MonoBehaviour
     {
+        /// <summary>
+        /// Invoked when this object finished an action, like save or load.
+        /// </summary>
+        public delegate void OnPersistenceEvent(AnchorPersistence source, PersistenceEventArgs args);
+        public event OnPersistenceEvent PersistenceEvent;
+
+        /// <summary>
+        /// Invoked when the persitence behavior loads an anchor from cache
+        /// </summary>
         public event Action AnchorLoaded;
 
         [HideInInspector]
@@ -34,7 +44,6 @@ namespace Persistence
             }
         }
 #if UNITY_WSA
-
         private WorldAnchorStore worldAnchorStore;
 #endif
         private PersistenceSaveLoad saveLoad;
@@ -44,6 +53,7 @@ namespace Persistence
             if (saveLoad == null)
             {
                 saveLoad = ScriptableObject.CreateInstance("PersistenceSaveLoad") as PersistenceSaveLoad;
+                saveLoad.PersistenceEvent += SaveLoad_PersistenceEvent;
             }
 #if UNITY_WSA
             if (worldAnchorStore == null)
@@ -54,7 +64,9 @@ namespace Persistence
                     this.worldAnchorStore = store;
                     IsReady = true;
                     if (AutoLoadOnEnable)
+                    {
                         LoadAnchor();
+                    }
                 });
             }
             else
@@ -72,7 +84,7 @@ namespace Persistence
             TargetGameObject = TargetGameObject == null ? gameObject : TargetGameObject;
 
 #if UNITY_WSA
-            _isAnchored = saveLoad.LoadLocation(TargetGameObject, ref worldAnchorStore);
+            _isAnchored = saveLoad.LoadLocation(TargetGameObject, worldAnchorStore);
 #endif
             if (!_isAnchored)
             {
@@ -94,7 +106,7 @@ namespace Persistence
 #if UNITY_WSA
             if (removeSavedLocation)
             {
-                return saveLoad.DeleteLocation(TargetGameObject, ref worldAnchorStore);
+                return saveLoad.DeleteLocation(TargetGameObject, worldAnchorStore);
             }
 
             if (TargetGameObject.GetComponent<WorldAnchor>() != null)
@@ -111,7 +123,7 @@ namespace Persistence
 #if UNITY_WSA
             if (saveAchor)
             {
-                _isAnchored = saveLoad.SaveLocation(TargetGameObject, ref worldAnchorStore);
+                _isAnchored = saveLoad.SaveLocation(TargetGameObject, worldAnchorStore);
 
             }
             else
@@ -122,6 +134,50 @@ namespace Persistence
             }
 #endif
             return _isAnchored;
+        }
+
+        /// <summary>
+        /// Given a transfer batch, apply only the first anchor id to this object's gameObject.
+        /// </summary>
+        /// <param name="batch"></param>
+        /// <returns>True if gameObject is anchored</returns>
+        public bool ApplyAnchor(WorldAnchorTransferBatch batch, bool saveAchor)
+        {
+#if UNITY_WSA
+            TargetGameObject = TargetGameObject == null ? gameObject : TargetGameObject;
+
+            if (saveAchor)
+            {
+                _isAnchored = saveLoad.ApplySharedLocation(TargetGameObject, batch, worldAnchorStore);
+            }
+            else
+            {
+                ClearAnchor(false);
+                var batchIds = batch.GetAllIds();
+                if (batchIds.Length > 0)
+                {
+                    batch.LockObject(batchIds[0], TargetGameObject);
+                    _isAnchored = true;
+                }
+                else
+                {
+                    _isAnchored = false;
+                }
+            }
+#endif
+
+            return _isAnchored;
+        }
+
+        /// <summary>
+        /// Re-boardcast the "saveLoad" events to this object's listeners
+        /// </summary>
+        private void SaveLoad_PersistenceEvent(PersistenceSaveLoad source, PersistenceEventArgs args)
+        {
+            if (PersistenceEvent != null)
+            {
+                PersistenceEvent(this, args);
+            }
         }
     }
 }

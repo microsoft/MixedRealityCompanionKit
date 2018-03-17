@@ -23,6 +23,7 @@ public class MyNetworkManager : NetworkManager
     void Start()
     {
         StartCoroutine(Startup(0));
+        GetComponent<NetworkAnchorHelper>().PrepareNetworkManager(this);
     }
 
     void OnDestroy()
@@ -178,6 +179,12 @@ public class MyNetworkManager : NetworkManager
         StartBroadcastDiscovery();
     }
 
+    public override void OnServerReady(NetworkConnection conn)
+    {
+        base.OnServerReady(conn);
+        GetComponent<NetworkAnchorHelper>().SpawnNetworkAnchorManager();
+    }
+
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
     {
         base.OnServerAddPlayer(conn, playerControllerId);
@@ -210,67 +217,71 @@ public class MyNetworkManager : NetworkManager
             checking = true;
             // add in a random delay so that all clients don't try to do the same thing immediately on disconnect
             yield return new WaitForSeconds((float)new System.Random().NextDouble() * 2.0f);
-            if (migrationManager.hostWasShutdown)
+            if (migrationManager != null)
             {
-                if (migrationManager.waitingReconnectToNewHost)
+                if (migrationManager.hostWasShutdown)
                 {
-                    migrationManager.Reset(ClientScene.ReconnectIdHost);
-
-                    networkAddress = migrationManager.newHostAddress;
-
-                    StartClient();
-                }
-                else
-                {
-                    PeerInfoMessage m_NewHostInfo = new PeerInfoMessage();
-
-                    bool youAreNewHost;
-                    if (migrationManager.FindNewHost(out m_NewHostInfo, out youAreNewHost))
+                    if (migrationManager.waitingReconnectToNewHost)
                     {
-                        migrationManager.newHostAddress = m_NewHostInfo.address;
-                        if (youAreNewHost)
+                        migrationManager.Reset(ClientScene.ReconnectIdHost);
+
+                        networkAddress = migrationManager.newHostAddress;
+
+                        StartClient();
+                    }
+                    else
+                    {
+                        PeerInfoMessage m_NewHostInfo = new PeerInfoMessage();
+
+                        bool youAreNewHost;
+                        if (migrationManager.FindNewHost(out m_NewHostInfo, out youAreNewHost))
                         {
-                            // you cannot be the new host.. you were the old host..?
-                            Debug.LogWarning("MigrationManager FindNewHost - new host is self?");
-                        }
-                        else
-                        {
-                            migrationManager.waitingReconnectToNewHost = true;
+                            migrationManager.newHostAddress = m_NewHostInfo.address;
+                            if (youAreNewHost)
+                            {
+                                // you cannot be the new host.. you were the old host..?
+                                Debug.LogWarning("MigrationManager FindNewHost - new host is self?");
+                            }
+                            else
+                            {
+                                migrationManager.waitingReconnectToNewHost = true;
+                            }
                         }
                     }
-                }
 
-            }
-            else if (migrationManager.disconnectedFromHost && migrationManager.oldServerConnectionId != -1)
-            {
-                if (migrationManager.waitingToBecomeNewHost)
-                {
-                    migrationManager.BecomeNewHost(NetworkManager.singleton.networkPort);
-
-                    Debug.Log("Starting discovery server broadcast");
-                    discovery.StartBroadcastServer();
                 }
-                else if (migrationManager.waitingReconnectToNewHost)
+                else if (migrationManager.disconnectedFromHost &&
+                    migrationManager.oldServerConnectionId != -1)
                 {
-                    migrationManager.Reset(migrationManager.oldServerConnectionId);
-                    NetworkManager.singleton.networkAddress = migrationManager.newHostAddress;
-                    NetworkManager.singleton.client.ReconnectToNewHost(migrationManager.newHostAddress, NetworkManager.singleton.networkPort);
-                }
-                else
-                {
-                    PeerInfoMessage m_NewHostInfo = new PeerInfoMessage();
-
-                    bool youAreNewHost;
-                    if (migrationManager.FindNewHost(out m_NewHostInfo, out youAreNewHost))
+                    if (migrationManager.waitingToBecomeNewHost)
                     {
-                        migrationManager.newHostAddress = m_NewHostInfo.address.Replace("::ffff:", ""); ;
-                        if (youAreNewHost)
+                        migrationManager.BecomeNewHost(NetworkManager.singleton.networkPort);
+
+                        Debug.Log("Starting discovery server broadcast");
+                        discovery.StartBroadcastServer();
+                    }
+                    else if (migrationManager.waitingReconnectToNewHost)
+                    {
+                        migrationManager.Reset(migrationManager.oldServerConnectionId);
+                        NetworkManager.singleton.networkAddress = migrationManager.newHostAddress;
+                        NetworkManager.singleton.client.ReconnectToNewHost(migrationManager.newHostAddress, NetworkManager.singleton.networkPort);
+                    }
+                    else
+                    {
+                        PeerInfoMessage m_NewHostInfo = new PeerInfoMessage();
+
+                        bool youAreNewHost;
+                        if (migrationManager.FindNewHost(out m_NewHostInfo, out youAreNewHost))
                         {
-                            migrationManager.waitingToBecomeNewHost = true;
-                        }
-                        else
-                        {
-                            migrationManager.waitingReconnectToNewHost = true;
+                            migrationManager.newHostAddress = m_NewHostInfo.address.Replace("::ffff:", ""); ;
+                            if (youAreNewHost)
+                            {
+                                migrationManager.waitingToBecomeNewHost = true;
+                            }
+                            else
+                            {
+                                migrationManager.waitingReconnectToNewHost = true;
+                            }
                         }
                     }
                 }
