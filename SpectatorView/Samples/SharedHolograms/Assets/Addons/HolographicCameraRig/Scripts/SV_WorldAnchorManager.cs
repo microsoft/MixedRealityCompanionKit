@@ -3,8 +3,8 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VR.WSA.Persistence;
-using UnityEngine.VR.WSA;
+using UnityEngine.XR.WSA.Persistence;
+using UnityEngine.XR.WSA;
 using HoloToolkit.Unity.SpatialMapping;
 
 // This class was modified from the HoloToolkit to preserve the SingleInstance type of Singleton and use Start instead of Awake.
