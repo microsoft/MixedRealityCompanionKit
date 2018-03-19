@@ -4,8 +4,13 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Runtime.InteropServices;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Input;
+#else
 using UnityEngine.VR.WSA;
 using UnityEngine.VR.WSA.Input;
+#endif
 using System.Collections.Generic;
 using System;
 
