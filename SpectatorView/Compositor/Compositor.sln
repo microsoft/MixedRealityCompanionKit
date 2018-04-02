@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2002
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnityCompositorInterface", "UnityCompositorInterface\UnityCompositorInterface.vcxproj", "{909E6913-CA3C-47A3-9E88-24A7AA0ED362}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5B905181-128E-400F-A94D-B61F8926F3B6}"
+	ProjectSection(SolutionItems) = preProject
+		..\dependencies.props = ..\dependencies.props
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CompositorDLL", "CompositorDLL\CompositorDLL.vcxproj", "{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedHeaders", "SharedHeaders\SharedHeaders.vcxitems", "{0C2DFF51-C769-460F-B9D6-05C82FC60F56}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedHeaders\SharedHeaders.vcxitems*{0c2dff51-c769-460f-b9d6-05c82fc60f56}*SharedItemsImports = 9
+		SharedHeaders\SharedHeaders.vcxitems*{16fa1d9f-8c62-4a94-9a47-ee2e153dc625}*SharedItemsImports = 4
+		SharedHeaders\SharedHeaders.vcxitems*{909e6913-ca3c-47a3-9e88-24a7aa0ed362}*SharedItemsImports = 4
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Debug|x64.ActiveCfg = Debug|x64
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Debug|x64.Build.0 = Debug|x64
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Debug|x86.ActiveCfg = Debug|Win32
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Debug|x86.Build.0 = Debug|Win32
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Release|x64.ActiveCfg = Release|x64
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Release|x64.Build.0 = Release|x64
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Release|x86.ActiveCfg = Release|Win32
+		{909E6913-CA3C-47A3-9E88-24A7AA0ED362}.Release|x86.Build.0 = Release|Win32
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Debug|x64.ActiveCfg = Debug|x64
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Debug|x64.Build.0 = Debug|x64
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Debug|x86.ActiveCfg = Debug|Win32
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Debug|x86.Build.0 = Debug|Win32
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Release|x64.ActiveCfg = Release|x64
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Release|x64.Build.0 = Release|x64
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Release|x86.ActiveCfg = Release|Win32
+		{16FA1D9F-8C62-4A94-9A47-EE2E153DC625}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D4FE231F-DFD5-43B6-8034-C1F3183C371E}
+	EndGlobalSection
+EndGlobal
