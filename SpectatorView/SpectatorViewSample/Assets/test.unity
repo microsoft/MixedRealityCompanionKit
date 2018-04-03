@@ -225,7 +225,7 @@ Prefab:
     - target: {fileID: 114626149255860242, guid: cb19b562c50f2404095a4ce6fa7c09c7,
         type: 2}
       propertyPath: SpectatorViewHoloLensIP
-      value: 10.89.160.96
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}

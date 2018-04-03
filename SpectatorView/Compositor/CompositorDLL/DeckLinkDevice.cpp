@@ -177,7 +177,8 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
 		deckLinkAttributes->Release();
 	}
 
-	//TODO: Force Decklink output to always expect 8 bit bgra - Currently canon output has artifacts on adjacent horizontal lines.
+	// Set your camera to output in 1080p (This may be 24Hz instead of 60, depending on your camera)
+	// 1080i output causes horizontal artifacts on screen.
 	if (m_deckLinkOutput != NULL)
 	{
 		m_deckLinkOutput->CreateVideoFrame(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, bmdFormat8BitBGRA, bmdFrameFlagDefault, &outputFrame);
@@ -384,7 +385,9 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
 
 	if (supportsOutput && m_deckLinkOutput != NULL && outputFrame != NULL)
 	{
+		EnterCriticalSection(&m_outputCriticalSection);
 		m_deckLinkOutput->DisplayVideoFrameSync(outputFrame);
+		LeaveCriticalSection(&m_outputCriticalSection);
 	}
 
 	LeaveCriticalSection(&m_captureCardCriticalSection);
