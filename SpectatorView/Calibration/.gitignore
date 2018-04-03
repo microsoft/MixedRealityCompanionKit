@@ -1,0 +1,21 @@
+*.db
+*.opendb
+*.user
+*.suo
+*.obj
+
+x64/*
+packages/*
+Calibration/x64/*
+Release/*
+Debug/*
+ipch/*
+
+# Decklink
+Calibration/DeckLink*.idl
+Calibration/DeckLinkAPIVersion.h
+Calibration/DeckLinkAPI_h.h
+Calibration/DeckLinkAPI_i.c
+
+# OpenCV
+Calibration/opencv*.dll

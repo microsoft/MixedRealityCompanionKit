@@ -228,7 +228,6 @@ public:
 	bool SendData(byte* bytes, int len)
 	{
 		// TODO: Segment packet and send in a loop.
-		// If sending frame buffer, this will be necessary.
 		if (len > DEFAULT_BUFLEN)
 		{
 			OutputDebugString(L"Error, size is too large.");
