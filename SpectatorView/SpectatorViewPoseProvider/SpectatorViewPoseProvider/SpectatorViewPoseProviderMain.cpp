@@ -168,7 +168,7 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
     }
 #endif
 
-	SVSocket.SendPose(currentCoordinateSystem);
+    SVSocket.SendPose(currentCoordinateSystem);
 
     m_timer.Tick([&] ()
     {

@@ -87,14 +87,14 @@ LONGLONG ElgatoFrameProvider::GetTimestamp()
 
 LONGLONG ElgatoFrameProvider::GetDurationHNS()
 {
-	if (frameCallback != nullptr)
-	{
-		LONGLONG duration = frameCallback->GetDurationHNS();
-		if (duration != 0)
-		{
-			return duration;
-		}
-	}
+    if (frameCallback != nullptr)
+    {
+        LONGLONG duration = frameCallback->GetDurationHNS();
+        if (duration != 0)
+        {
+            return duration;
+        }
+    }
 
     return (LONGLONG)((1.0f / 30.0f) * S2HNS);
 }
@@ -115,8 +115,8 @@ void ElgatoFrameProvider::Dispose()
 
     isEnabled = false;
 
-	//TODO: check this
-	SafeRelease(&frameCallback);
+    //TODO: check this
+    SafeRelease(&frameCallback);
 }
 
 HRESULT ElgatoFrameProvider::InitGraph()

@@ -19,57 +19,57 @@
 class OpenCVFrameProvider : public IFrameProvider
 {
 public:
-	OpenCVFrameProvider();
-	~OpenCVFrameProvider();
+    OpenCVFrameProvider();
+    ~OpenCVFrameProvider();
 
-	// Inherited via IFrameProvider
-	virtual HRESULT Initialize(ID3D11ShaderResourceView* srv) override;
-	virtual bool IsEnabled() override;
-	virtual void Update() override;
-	virtual void Dispose() override;
+    // Inherited via IFrameProvider
+    virtual HRESULT Initialize(ID3D11ShaderResourceView* srv) override;
+    virtual bool IsEnabled() override;
+    virtual void Update() override;
+    virtual void Dispose() override;
 
-	virtual bool IsVideoFrameReady() override;
+    virtual bool IsVideoFrameReady() override;
 
-	virtual bool OutputYUV()
-	{
-		return false;
-	}
+    virtual bool OutputYUV()
+    {
+        return false;
+    }
 
-	virtual LONGLONG GetTimestamp()
-	{
-		return latestTimeStamp;
-	}
+    virtual LONGLONG GetTimestamp()
+    {
+        return latestTimeStamp;
+    }
 
-	virtual LONGLONG GetDurationHNS() override;
+    virtual LONGLONG GetDurationHNS() override;
 
-	//TODO: Measure this on your setup.
-	virtual LONGLONG GetFrameDelayMS()
-	{
-		return 0;
-	}
+    //TODO: Measure this on your setup.
+    virtual LONGLONG GetFrameDelayMS()
+    {
+        return 0;
+    }
 
 private:
-	std::mutex frameAccessLock;
-	std::mutex videoLock;
+    std::mutex frameAccessLock;
+    std::mutex videoLock;
 
-	LONGLONG prevTimeStamp = 0;
-	LONGLONG latestTimeStamp = 0;
-	LONGLONG frameDuration = 0;
+    LONGLONG prevTimeStamp = 0;
+    LONGLONG latestTimeStamp = 0;
+    LONGLONG frameDuration = 0;
 
-	LARGE_INTEGER freq;
+    LARGE_INTEGER freq;
 
-	cv::VideoCapture* videoCapture = nullptr;
-	ID3D11ShaderResourceView* _colorSRV;
-	ID3D11Device* _device;
+    cv::VideoCapture* videoCapture = nullptr;
+    ID3D11ShaderResourceView* _colorSRV;
+    ID3D11Device* _device;
 
-	bool isVideoFrameReady = false;
-	bool isFrameDirty = false;
+    bool isVideoFrameReady = false;
+    bool isFrameDirty = false;
 
-	BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
 
-	cv::Mat frame;
-	cv::Mat rgbaFrame;
-	int rgbaConversion[8];
+    cv::Mat frame;
+    cv::Mat rgbaFrame;
+    int rgbaConversion[8];
 };
 #endif
 

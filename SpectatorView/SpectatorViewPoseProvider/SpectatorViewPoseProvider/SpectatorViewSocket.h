@@ -18,32 +18,32 @@ using namespace Windows::Perception::Spatial;
 class SpectatorViewSocket
 {
 public:
-	SpectatorViewSocket();
-	~SpectatorViewSocket();
+    SpectatorViewSocket();
+    ~SpectatorViewSocket();
 
-	void SendPose(SpatialCoordinateSystem^ cs);
+    void SendPose(SpatialCoordinateSystem^ cs);
 
 private:
-	WSASession session;
-	TCPSocket tcp;
+    WSASession session;
+    TCPSocket tcp;
 
-	SpatialCoordinateSystem^ coordinateSystem = nullptr;
-	Windows::Globalization::Calendar^ calendar = nullptr;
-	SpatialLocator^ locator;
-	
-	SVPose currentPose;
-	int poseTimeOffset = 0;
+    SpatialCoordinateSystem^ coordinateSystem = nullptr;
+    Windows::Globalization::Calendar^ calendar = nullptr;
+    SpatialLocator^ locator;
+    
+    SVPose currentPose;
+    int poseTimeOffset = 0;
 
-	LONGLONG freq;
+    LONGLONG freq;
 
-	byte* recvbuf = new byte[DEFAULT_BUFLEN];
-	ClientToServerPacket packet;
+    byte* recvbuf = new byte[DEFAULT_BUFLEN];
+    ClientToServerPacket packet;
 
-	bool Listen();
+    bool Listen();
 
-	void SetCoordinateSystem(SpatialCoordinateSystem^ cs);
+    void SetCoordinateSystem(SpatialCoordinateSystem^ cs);
 
-	// Get time from compositor peer, find past pose, send pose back to peer.
-	void GetPose(SpatialCoordinateSystem^ cs, int nsPast);
+    // Get time from compositor peer, find past pose, send pose back to peer.
+    void GetPose(SpatialCoordinateSystem^ cs, int nsPast);
 };
 

@@ -38,112 +38,112 @@
 class DeckLinkDevice : public IDeckLinkInputCallback
 {
 private:
-	enum PixelFormat
-	{
-		YUV,
-		BGRA
-	};
+    enum PixelFormat
+    {
+        YUV,
+        BGRA
+    };
 
-	PixelFormat pixelFormat = PixelFormat::YUV;
+    PixelFormat pixelFormat = PixelFormat::YUV;
 
-	ULONG                     m_refCount;
-	IDeckLink*                m_deckLink;
-	IDeckLinkInput*           m_deckLinkInput;
-	IDeckLinkOutput*          m_deckLinkOutput;
-	IDeckLinkVideoConversion* m_deckLinkVideoConversion;
-	BMDTimeScale              m_playbackTimeScale;
-	BOOL                      m_supportsFormatDetection;
-	bool                      m_currentlyCapturing;
-	CRITICAL_SECTION          m_captureCardCriticalSection;
-	CRITICAL_SECTION          m_frameAccessCriticalSection;
-	CRITICAL_SECTION          m_outputCriticalSection;
+    ULONG                     m_refCount;
+    IDeckLink*                m_deckLink;
+    IDeckLinkInput*           m_deckLinkInput;
+    IDeckLinkOutput*          m_deckLinkOutput;
+    IDeckLinkVideoConversion* m_deckLinkVideoConversion;
+    BMDTimeScale              m_playbackTimeScale;
+    BOOL                      m_supportsFormatDetection;
+    bool                      m_currentlyCapturing;
+    CRITICAL_SECTION          m_captureCardCriticalSection;
+    CRITICAL_SECTION          m_frameAccessCriticalSection;
+    CRITICAL_SECTION          m_outputCriticalSection;
 
-	BYTE* localFrameBuffer;
-	BYTE* rawBuffer = new BYTE[FRAME_BUFSIZE_RAW];
+    BYTE* localFrameBuffer;
+    BYTE* rawBuffer = new BYTE[FRAME_BUFSIZE_RAW];
 
-	BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
-	BYTE* outputBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* outputBuffer = new BYTE[FRAME_BUFSIZE];
 
-	IDeckLinkMutableVideoFrame* outputFrame = NULL;
+    IDeckLinkMutableVideoFrame* outputFrame = NULL;
 
-	BMDTimeValue frameDuration = 0;
+    BMDTimeValue frameDuration = 0;
 
-	LONGLONG latestTimeStamp = 0;
+    LONGLONG latestTimeStamp = 0;
 
-	bool dirtyFrame = true;
-	bool isVideoFrameReady = false;
+    bool dirtyFrame = true;
+    bool isVideoFrameReady = false;
 
-	ID3D11ShaderResourceView* _colorSRV = nullptr;
-	ID3D11Texture2D* _outputTexture = nullptr;
-	ID3D11Device* device = nullptr;
+    ID3D11ShaderResourceView* _colorSRV = nullptr;
+    ID3D11Texture2D* _outputTexture = nullptr;
+    ID3D11Device* device = nullptr;
 
 public:
-	DeckLinkDevice(IDeckLink* device);
-	virtual ~DeckLinkDevice();
+    DeckLinkDevice(IDeckLink* device);
+    virtual ~DeckLinkDevice();
 
-	bool                                Init(ID3D11ShaderResourceView* colorSRV);
-	bool                                IsCapturing() { return m_currentlyCapturing; };
-	bool                                SupportsFormatDetection() { return (m_supportsFormatDetection == TRUE); };
-	bool                                StartCapture(BMDDisplayMode videoDisplayMode);
-	void                                StopCapture();
-	IDeckLink*                          DeckLinkInstance() { return m_deckLink; }
+    bool                                Init(ID3D11ShaderResourceView* colorSRV);
+    bool                                IsCapturing() { return m_currentlyCapturing; };
+    bool                                SupportsFormatDetection() { return (m_supportsFormatDetection == TRUE); };
+    bool                                StartCapture(BMDDisplayMode videoDisplayMode);
+    void                                StopCapture();
+    IDeckLink*                          DeckLinkInstance() { return m_deckLink; }
 
-	void Update();
+    void Update();
 
-	bool supportsOutput = true;
+    bool supportsOutput = true;
 
-	// IUnknown interface
-	virtual HRESULT  STDMETHODCALLTYPE    QueryInterface(REFIID iid, LPVOID *ppv);
-	virtual ULONG    STDMETHODCALLTYPE    AddRef();
-	virtual ULONG    STDMETHODCALLTYPE    Release();
+    // IUnknown interface
+    virtual HRESULT  STDMETHODCALLTYPE    QueryInterface(REFIID iid, LPVOID *ppv);
+    virtual ULONG    STDMETHODCALLTYPE    AddRef();
+    virtual ULONG    STDMETHODCALLTYPE    Release();
 
-	// IDeckLinkInputCallback interface
-	virtual HRESULT  STDMETHODCALLTYPE    VideoInputFormatChanged(/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */ IDeckLinkDisplayMode *newDisplayMode, /* in */ BMDDetectedVideoInputFormatFlags detectedSignalFlags);
-	virtual HRESULT  STDMETHODCALLTYPE    VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket);
+    // IDeckLinkInputCallback interface
+    virtual HRESULT  STDMETHODCALLTYPE    VideoInputFormatChanged(/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */ IDeckLinkDisplayMode *newDisplayMode, /* in */ BMDDetectedVideoInputFormatFlags detectedSignalFlags);
+    virtual HRESULT  STDMETHODCALLTYPE    VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket);
 
-	LONGLONG GetTimestamp()
-	{
-		return latestTimeStamp;
-	}
+    LONGLONG GetTimestamp()
+    {
+        return latestTimeStamp;
+    }
 
-	LONGLONG GetDurationHNS()
-	{
-		return frameDuration;
-	}
+    LONGLONG GetDurationHNS()
+    {
+        return frameDuration;
+    }
 
-	bool OutputYUV();
+    bool OutputYUV();
 
-	bool IsVideoFrameReady();
+    bool IsVideoFrameReady();
 
-	void SetOutputTexture(ID3D11Texture2D* outputTexture)
-	{
-		_outputTexture = outputTexture;
-	}
+    void SetOutputTexture(ID3D11Texture2D* outputTexture)
+    {
+        _outputTexture = outputTexture;
+    }
 };
 
 class DeckLinkDeviceDiscovery : public IDeckLinkDeviceNotificationCallback
 {
 private:
-	IDeckLinkDiscovery * m_deckLinkDiscovery;
-	ULONG                               m_refCount;
-	IDeckLink*                          m_deckLink = nullptr;
+    IDeckLinkDiscovery * m_deckLinkDiscovery;
+    ULONG                               m_refCount;
+    IDeckLink*                          m_deckLink = nullptr;
 
 public:
-	DeckLinkDeviceDiscovery();
-	virtual ~DeckLinkDeviceDiscovery();
+    DeckLinkDeviceDiscovery();
+    virtual ~DeckLinkDeviceDiscovery();
 
-	IDeckLink*                          GetDeckLink() { return m_deckLink; }
+    IDeckLink*                          GetDeckLink() { return m_deckLink; }
 
-	bool                                Enable();
-	void                                Disable();
+    bool                                Enable();
+    void                                Disable();
 
-	// IDeckLinkDeviceNotificationCallback interface
-	virtual HRESULT  STDMETHODCALLTYPE    DeckLinkDeviceArrived(/* in */ IDeckLink* deckLink);
-	virtual HRESULT  STDMETHODCALLTYPE    DeckLinkDeviceRemoved(/* in */ IDeckLink* deckLink);
+    // IDeckLinkDeviceNotificationCallback interface
+    virtual HRESULT  STDMETHODCALLTYPE    DeckLinkDeviceArrived(/* in */ IDeckLink* deckLink);
+    virtual HRESULT  STDMETHODCALLTYPE    DeckLinkDeviceRemoved(/* in */ IDeckLink* deckLink);
 
-	virtual HRESULT  STDMETHODCALLTYPE    QueryInterface(REFIID iid, LPVOID *ppv);
-	virtual ULONG    STDMETHODCALLTYPE    AddRef();
-	virtual ULONG    STDMETHODCALLTYPE    Release();
+    virtual HRESULT  STDMETHODCALLTYPE    QueryInterface(REFIID iid, LPVOID *ppv);
+    virtual ULONG    STDMETHODCALLTYPE    AddRef();
+    virtual ULONG    STDMETHODCALLTYPE    Release();
 };
 
 #endif

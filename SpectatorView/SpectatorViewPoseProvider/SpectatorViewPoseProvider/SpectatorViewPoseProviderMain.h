@@ -100,6 +100,6 @@ namespace SpectatorViewPoseProvider
         Windows::Foundation::EventRegistrationToken                     m_cameraRemovedToken;
         Windows::Foundation::EventRegistrationToken                     m_locatabilityChangedToken;
 
-		SpectatorViewSocket SVSocket;
+        SpectatorViewSocket SVSocket;
     };
 }

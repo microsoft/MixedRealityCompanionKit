@@ -14,7 +14,7 @@
 #define USE_OPENCV              FALSE
 
 static_assert((USE_ELGATO + USE_DECKLINK + USE_DECKLINK_SHUTTLE + USE_OPENCV == 1),
-	"Exactly 1 FrameProvider must be set");
+    "Exactly 1 FrameProvider must be set");
 
 // Frame Dimensions and buffer lengths
 //TODO: change this to match video dimensions from your camera.

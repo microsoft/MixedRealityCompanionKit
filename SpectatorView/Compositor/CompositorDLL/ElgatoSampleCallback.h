@@ -59,10 +59,10 @@ public:
         return latestTimeStamp;
     }
 
-	LONGLONG GetDurationHNS()
-	{
-		return frameDuration;
-	}
+    LONGLONG GetDurationHNS()
+    {
+        return frameDuration;
+    }
 
     bool IsVideoFrameReady();
     bool IsEnabled()
@@ -76,11 +76,11 @@ private:
     ID3D11Device* _device;
     BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
 
-	LONGLONG prevTimeStamp = 0;
+    LONGLONG prevTimeStamp = 0;
     LONGLONG latestTimeStamp = 0;
 
-	LARGE_INTEGER freq;
-	LONGLONG frameDuration = 0;
+    LARGE_INTEGER freq;
+    LONGLONG frameDuration = 0;
 
     CRITICAL_SECTION frameAccessCriticalSection;
     bool isVideoFrameReady = false;

@@ -9,7 +9,7 @@ ElgatoSampleCallback::ElgatoSampleCallback(ID3D11Device* device) :
     _device(device)
 {
     InitializeCriticalSection(&frameAccessCriticalSection);
-	QueryPerformanceFrequency(&freq);
+    QueryPerformanceFrequency(&freq);
 }
 
 ElgatoSampleCallback::~ElgatoSampleCallback()
@@ -22,15 +22,15 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
     isEnabled = true;
 
     // Get frame time.
-	prevTimeStamp = latestTimeStamp;
+    prevTimeStamp = latestTimeStamp;
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);
     latestTimeStamp = t.QuadPart;
 
-	if (prevTimeStamp != 0 && latestTimeStamp != 0)
-	{
-		frameDuration = ((latestTimeStamp - prevTimeStamp) * S2HNS) / freq.QuadPart;
-	}
+    if (prevTimeStamp != 0 && latestTimeStamp != 0)
+    {
+        frameDuration = ((latestTimeStamp - prevTimeStamp) * S2HNS) / freq.QuadPart;
+    }
 
     int copyLength = length;
     if (copyLength > FRAME_BUFSIZE)

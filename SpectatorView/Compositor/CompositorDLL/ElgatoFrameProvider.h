@@ -69,11 +69,11 @@ public:
 
     virtual bool IsVideoFrameReady() override;
 
-	//TODO: Measure this on your setup.
-	virtual LONGLONG GetFrameDelayMS()
-	{
-		return 0;
-	}
+    //TODO: Measure this on your setup.
+    virtual LONGLONG GetFrameDelayMS()
+    {
+        return 0;
+    }
 
 private:
     ID3D11ShaderResourceView* _colorSRV;

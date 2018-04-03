@@ -106,7 +106,7 @@ private:
     void DeleteOutputFiles();
     bool HasChessBoard(cv::Mat image, cv::Mat& grayscaleImage, std::vector<cv::Point2f>& corners);
 
-	void Blit(ID3D11ShaderResourceView* source, ID3D11RenderTargetView* dest, ID3D11PixelShader* shader);
+    void Blit(ID3D11ShaderResourceView* source, ID3D11RenderTargetView* dest, ID3D11PixelShader* shader);
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources> deviceResources;
@@ -118,12 +118,12 @@ private:
 
     // Textures
     ID3D11Texture2D* colorTexture;
-	ID3D11Texture2D* convertedColorTexture;
+    ID3D11Texture2D* convertedColorTexture;
 
-	ID3D11ShaderResourceView* srv;
-	ID3D11ShaderResourceView* convertedSrv;
-	
-	ID3D11RenderTargetView* convertedRT;
+    ID3D11ShaderResourceView* srv;
+    ID3D11ShaderResourceView* convertedSrv;
+    
+    ID3D11RenderTargetView* convertedRT;
 
     cv::Mat latestColorMat;
     cv::Mat cachedColorMat;
@@ -160,18 +160,18 @@ private:
     DirectX::Keyboard::State keyState;
     DirectX::Keyboard::State prevKeyState;
 
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> yuv2rgbPS;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> yuv2rgbPS;
 
-	struct CONVERSION_PARAMETERS
-	{
-		int width;
-		int height;
-		byte na[8];
-	};
+    struct CONVERSION_PARAMETERS
+    {
+        int width;
+        int height;
+        byte na[8];
+    };
 
-	static_assert(!(sizeof(CONVERSION_PARAMETERS) % 16),
-		"CONVERSION_PARAMETERS needs to be 16 bytes aligned");
+    static_assert(!(sizeof(CONVERSION_PARAMETERS) % 16),
+        "CONVERSION_PARAMETERS needs to be 16 bytes aligned");
 
-	CONVERSION_PARAMETERS yuv2rgbParameters;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> conversionParamBuffer;
+    CONVERSION_PARAMETERS yuv2rgbParameters;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> conversionParamBuffer;
 };

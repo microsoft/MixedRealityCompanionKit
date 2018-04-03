@@ -35,521 +35,521 @@ using namespace std;
 
 
 DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
-	m_deckLink(device),
-	m_deckLinkInput(NULL),
-	m_deckLinkOutput(NULL),
-	m_supportsFormatDetection(false),
-	m_refCount(1),
-	m_currentlyCapturing(false),
-	m_playbackTimeScale(600)
+    m_deckLink(device),
+    m_deckLinkInput(NULL),
+    m_deckLinkOutput(NULL),
+    m_supportsFormatDetection(false),
+    m_refCount(1),
+    m_currentlyCapturing(false),
+    m_playbackTimeScale(600)
 {
-	if (m_deckLink != NULL)
-	{
-		m_deckLink->AddRef();
-	}
+    if (m_deckLink != NULL)
+    {
+        m_deckLink->AddRef();
+    }
 
-	InitializeCriticalSection(&m_captureCardCriticalSection);
-	InitializeCriticalSection(&m_frameAccessCriticalSection);
-	InitializeCriticalSection(&m_outputCriticalSection);
+    InitializeCriticalSection(&m_captureCardCriticalSection);
+    InitializeCriticalSection(&m_frameAccessCriticalSection);
+    InitializeCriticalSection(&m_outputCriticalSection);
 }
 
 DeckLinkDevice::~DeckLinkDevice()
 {
-	StopCapture();
+    StopCapture();
 
-	if (m_deckLinkInput != NULL)
-	{
-		m_deckLinkInput->Release();
-		m_deckLinkInput = NULL;
-	}
+    if (m_deckLinkInput != NULL)
+    {
+        m_deckLinkInput->Release();
+        m_deckLinkInput = NULL;
+    }
 
-	if (supportsOutput && m_deckLinkOutput != NULL)
-	{
-		m_deckLinkOutput->Release();
-		m_deckLinkOutput = NULL;
-	}
+    if (supportsOutput && m_deckLinkOutput != NULL)
+    {
+        m_deckLinkOutput->Release();
+        m_deckLinkOutput = NULL;
+    }
 
-	if (m_deckLink != NULL)
-	{
-		m_deckLink->Release();
-		m_deckLink = NULL;
-	}
+    if (m_deckLink != NULL)
+    {
+        m_deckLink->Release();
+        m_deckLink = NULL;
+    }
 
-	DeleteCriticalSection(&m_captureCardCriticalSection);
-	DeleteCriticalSection(&m_outputCriticalSection);
-	DeleteCriticalSection(&m_frameAccessCriticalSection);
+    DeleteCriticalSection(&m_captureCardCriticalSection);
+    DeleteCriticalSection(&m_outputCriticalSection);
+    DeleteCriticalSection(&m_frameAccessCriticalSection);
 
-	delete[] latestBuffer;
-	delete[] outputBuffer;
+    delete[] latestBuffer;
+    delete[] outputBuffer;
 }
 
 HRESULT    STDMETHODCALLTYPE DeckLinkDevice::QueryInterface(REFIID iid, LPVOID *ppv)
 {
-	HRESULT result = E_NOINTERFACE;
+    HRESULT result = E_NOINTERFACE;
 
-	if (ppv == NULL)
-	{
-		return E_INVALIDARG;
-	}
+    if (ppv == NULL)
+    {
+        return E_INVALIDARG;
+    }
 
-	// Initialise the return result
-	*ppv = NULL;
+    // Initialise the return result
+    *ppv = NULL;
 
-	// Obtain the IUnknown interface and compare it the provided REFIID
-	if (iid == IID_IUnknown)
-	{
-		*ppv = this;
-		AddRef();
-		result = S_OK;
-	}
-	else if (iid == IID_IDeckLinkInputCallback)
-	{
-		*ppv = (IDeckLinkInputCallback*)this;
-		AddRef();
-		result = S_OK;
-	}
-	else if (iid == IID_IDeckLinkNotificationCallback)
-	{
-		*ppv = (IDeckLinkNotificationCallback*)this;
-		AddRef();
-		result = S_OK;
-	}
+    // Obtain the IUnknown interface and compare it the provided REFIID
+    if (iid == IID_IUnknown)
+    {
+        *ppv = this;
+        AddRef();
+        result = S_OK;
+    }
+    else if (iid == IID_IDeckLinkInputCallback)
+    {
+        *ppv = (IDeckLinkInputCallback*)this;
+        AddRef();
+        result = S_OK;
+    }
+    else if (iid == IID_IDeckLinkNotificationCallback)
+    {
+        *ppv = (IDeckLinkNotificationCallback*)this;
+        AddRef();
+        result = S_OK;
+    }
 
-	return result;
+    return result;
 }
 
 ULONG STDMETHODCALLTYPE DeckLinkDevice::AddRef(void)
 {
-	return InterlockedIncrement((LONG*)&m_refCount);
+    return InterlockedIncrement((LONG*)&m_refCount);
 }
 
 ULONG STDMETHODCALLTYPE DeckLinkDevice::Release(void)
 {
-	int newRefValue;
+    int newRefValue;
 
-	newRefValue = InterlockedDecrement((LONG*)&m_refCount);
-	if (newRefValue == 0)
-	{
-		delete this;
-		return 0;
-	}
+    newRefValue = InterlockedDecrement((LONG*)&m_refCount);
+    if (newRefValue == 0)
+    {
+        delete this;
+        return 0;
+    }
 
-	return newRefValue;
+    return newRefValue;
 }
 
 bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
 {
-	IDeckLinkAttributes*            deckLinkAttributes = NULL;
-	IDeckLinkDisplayModeIterator*   displayModeIterator = NULL;
-	IDeckLinkDisplayMode*           displayMode = NULL;
-	BSTR                            deviceNameBSTR = NULL;
+    IDeckLinkAttributes*            deckLinkAttributes = NULL;
+    IDeckLinkDisplayModeIterator*   displayModeIterator = NULL;
+    IDeckLinkDisplayMode*           displayMode = NULL;
+    BSTR                            deviceNameBSTR = NULL;
 
-	ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
-	ZeroMemory(latestBuffer, FRAME_BUFSIZE);
-	ZeroMemory(outputBuffer, FRAME_BUFSIZE);
+    ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
+    ZeroMemory(latestBuffer, FRAME_BUFSIZE);
+    ZeroMemory(outputBuffer, FRAME_BUFSIZE);
 
-	_colorSRV = colorSRV;
+    _colorSRV = colorSRV;
 
-	if (colorSRV != nullptr)
-	{
-		colorSRV->GetDevice(&device);
-	}
+    if (colorSRV != nullptr)
+    {
+        colorSRV->GetDevice(&device);
+    }
 
-	// Get input interface
-	if (m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_deckLinkInput) != S_OK)
-	{
-		return false;
-	}
+    // Get input interface
+    if (m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_deckLinkInput) != S_OK)
+    {
+        return false;
+    }
 
-	if (m_deckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&m_deckLinkOutput) != S_OK)
-	{
-		supportsOutput = false;
-	}
+    if (m_deckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&m_deckLinkOutput) != S_OK)
+    {
+        supportsOutput = false;
+    }
 
-	// Check if input mode detection is supported.
-	if (m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes) == S_OK)
-	{
-		if (deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &m_supportsFormatDetection) != S_OK)
-		{
-			m_supportsFormatDetection = false;
-		}
+    // Check if input mode detection is supported.
+    if (m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes) == S_OK)
+    {
+        if (deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &m_supportsFormatDetection) != S_OK)
+        {
+            m_supportsFormatDetection = false;
+        }
 
-		deckLinkAttributes->Release();
-	}
+        deckLinkAttributes->Release();
+    }
 
-	// Set your camera to output in 1080p (This may be 24Hz instead of 60, depending on your camera)
-	// 1080i output causes horizontal artifacts on screen.
-	if (m_deckLinkOutput != NULL)
-	{
-		m_deckLinkOutput->CreateVideoFrame(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, bmdFormat8BitBGRA, bmdFrameFlagDefault, &outputFrame);
-		outputFrame->GetBytes((void**)&outputBuffer);
-	}
+    // Set your camera to output in 1080p (This may be 24Hz instead of 60, depending on your camera)
+    // 1080i output causes horizontal artifacts on screen.
+    if (m_deckLinkOutput != NULL)
+    {
+        m_deckLinkOutput->CreateVideoFrame(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, bmdFormat8BitBGRA, bmdFrameFlagDefault, &outputFrame);
+        outputFrame->GetBytes((void**)&outputBuffer);
+    }
 
-	return true;
+    return true;
 }
 
 bool DeckLinkDevice::StartCapture(BMDDisplayMode videoDisplayMode)
 {
-	if (m_deckLinkInput == NULL)
-	{
-		return false;
-	}
+    if (m_deckLinkInput == NULL)
+    {
+        return false;
+    }
 
-	OutputDebugString(L"Start Capture.\n");
-	BMDVideoInputFlags videoInputFlags = bmdVideoInputFlagDefault;
-	BMDVideoOutputFlags videoOutputFlags = bmdVideoOutputFlagDefault;
+    OutputDebugString(L"Start Capture.\n");
+    BMDVideoInputFlags videoInputFlags = bmdVideoInputFlagDefault;
+    BMDVideoOutputFlags videoOutputFlags = bmdVideoOutputFlagDefault;
 
-	// Enable input video mode detection if the device supports it
-	if (m_supportsFormatDetection == TRUE)
-	{
-		videoInputFlags |= bmdVideoInputEnableFormatDetection;
-	}
+    // Enable input video mode detection if the device supports it
+    if (m_supportsFormatDetection == TRUE)
+    {
+        videoInputFlags |= bmdVideoInputEnableFormatDetection;
+    }
 
-	// Set capture callback
-	m_deckLinkInput->SetCallback(this);
+    // Set capture callback
+    m_deckLinkInput->SetCallback(this);
 
-	// Set the video input mode
-	if (m_deckLinkInput->EnableVideoInput(videoDisplayMode, bmdFormat8BitYUV, videoInputFlags) != S_OK)
-	{
-		OutputDebugString(L"Unable to set the chosen video mode.\n");
-		return false;
-	}
+    // Set the video input mode
+    if (m_deckLinkInput->EnableVideoInput(videoDisplayMode, bmdFormat8BitYUV, videoInputFlags) != S_OK)
+    {
+        OutputDebugString(L"Unable to set the chosen video mode.\n");
+        return false;
+    }
 
-	if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(videoDisplayMode, videoOutputFlags) != S_OK)
-	{
-		OutputDebugString(L"Unable to set video output.\n");
-		supportsOutput = false;
-	}
+    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(videoDisplayMode, videoOutputFlags) != S_OK)
+    {
+        OutputDebugString(L"Unable to set video output.\n");
+        supportsOutput = false;
+    }
 
-	if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
-	{
-		OutputDebugString(L"Unable to start output playback.\n");
-		supportsOutput = false;
-	}
+    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
+    {
+        OutputDebugString(L"Unable to start output playback.\n");
+        supportsOutput = false;
+    }
 
-	// Start the capture
-	if (m_deckLinkInput->StartStreams() != S_OK)
-	{
-		OutputDebugString(L"Unable to start capture.\n");
-		return false;
-	}
+    // Start the capture
+    if (m_deckLinkInput->StartStreams() != S_OK)
+    {
+        OutputDebugString(L"Unable to start capture.\n");
+        return false;
+    }
 
-	m_currentlyCapturing = true;
+    m_currentlyCapturing = true;
 
-	return true;
+    return true;
 }
 
 void DeckLinkDevice::StopCapture()
 {
-	EnterCriticalSection(&m_captureCardCriticalSection);
+    EnterCriticalSection(&m_captureCardCriticalSection);
 
-	OutputDebugString(L"Stop Capture.\n");
+    OutputDebugString(L"Stop Capture.\n");
 
-	if (m_deckLinkInput != NULL)
-	{
-		// Stop the capture
-		m_deckLinkInput->StopStreams();
+    if (m_deckLinkInput != NULL)
+    {
+        // Stop the capture
+        m_deckLinkInput->StopStreams();
 
-		// Delete capture callback
-		m_deckLinkInput->SetCallback(NULL);
-	}
+        // Delete capture callback
+        m_deckLinkInput->SetCallback(NULL);
+    }
 
-	if (supportsOutput && m_deckLinkOutput != NULL)
-	{
-		m_deckLinkOutput->StopScheduledPlayback(0, NULL, 0);
-		m_deckLinkOutput->DisableVideoOutput();
-	}
+    if (supportsOutput && m_deckLinkOutput != NULL)
+    {
+        m_deckLinkOutput->StopScheduledPlayback(0, NULL, 0);
+        m_deckLinkOutput->DisableVideoOutput();
+    }
 
-	m_currentlyCapturing = false;
-	LeaveCriticalSection(&m_captureCardCriticalSection);
+    m_currentlyCapturing = false;
+    LeaveCriticalSection(&m_captureCardCriticalSection);
 }
 
 HRESULT DeckLinkDevice::VideoInputFormatChanged(/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */ IDeckLinkDisplayMode *newMode, /* in */ BMDDetectedVideoInputFormatFlags detectedSignalFlags)
 {
-	EnterCriticalSection(&m_captureCardCriticalSection);
-	EnterCriticalSection(&m_outputCriticalSection);
+    EnterCriticalSection(&m_captureCardCriticalSection);
+    EnterCriticalSection(&m_outputCriticalSection);
 
-	OutputDebugString(L"Changing Formats to: ");
-	OutputDebugString(std::to_wstring(newMode->GetDisplayMode()).c_str());
-	OutputDebugString(L"\n");
+    OutputDebugString(L"Changing Formats to: ");
+    OutputDebugString(std::to_wstring(newMode->GetDisplayMode()).c_str());
+    OutputDebugString(L"\n");
 
-	// If we do not have the correct dimension frames - loop until user changes camera settings.
-	if (newMode->GetWidth() != FRAME_WIDTH || newMode->GetHeight() != FRAME_HEIGHT)
-	{
-		OutputDebugString(L"Invalid frame dimensions detected.\n");
-		OutputDebugString(L"Actual Frame Dimensions: ");
-		OutputDebugString(std::to_wstring(newMode->GetWidth()).c_str());
-		OutputDebugString(L", ");
-		OutputDebugString(std::to_wstring(newMode->GetHeight()).c_str());
-		OutputDebugString(L"\n");
+    // If we do not have the correct dimension frames - loop until user changes camera settings.
+    if (newMode->GetWidth() != FRAME_WIDTH || newMode->GetHeight() != FRAME_HEIGHT)
+    {
+        OutputDebugString(L"Invalid frame dimensions detected.\n");
+        OutputDebugString(L"Actual Frame Dimensions: ");
+        OutputDebugString(std::to_wstring(newMode->GetWidth()).c_str());
+        OutputDebugString(L", ");
+        OutputDebugString(std::to_wstring(newMode->GetHeight()).c_str());
+        OutputDebugString(L"\n");
 
-		OutputDebugString(L"Expected Frame Dimensions: ");
-		OutputDebugString(std::to_wstring(FRAME_WIDTH).c_str());
-		OutputDebugString(L", ");
-		OutputDebugString(std::to_wstring(FRAME_HEIGHT).c_str());
-		OutputDebugString(L"\n");
+        OutputDebugString(L"Expected Frame Dimensions: ");
+        OutputDebugString(std::to_wstring(FRAME_WIDTH).c_str());
+        OutputDebugString(L", ");
+        OutputDebugString(std::to_wstring(FRAME_HEIGHT).c_str());
+        OutputDebugString(L"\n");
 
-		LeaveCriticalSection(&m_captureCardCriticalSection);
-		LeaveCriticalSection(&m_outputCriticalSection);
-		return E_PENDING;
-	}
+        LeaveCriticalSection(&m_captureCardCriticalSection);
+        LeaveCriticalSection(&m_outputCriticalSection);
+        return E_PENDING;
+    }
 
-	pixelFormat = PixelFormat::YUV;
-	BMDPixelFormat bmdPixelFormat = bmdFormat8BitYUV;
+    pixelFormat = PixelFormat::YUV;
+    BMDPixelFormat bmdPixelFormat = bmdFormat8BitYUV;
 
-	if ((detectedSignalFlags & bmdDetectedVideoInputRGB444) != 0)
-	{
-		pixelFormat = PixelFormat::BGRA;
-		bmdPixelFormat = bmdFormat8BitBGRA;
-	}
+    if ((detectedSignalFlags & bmdDetectedVideoInputRGB444) != 0)
+    {
+        pixelFormat = PixelFormat::BGRA;
+        bmdPixelFormat = bmdFormat8BitBGRA;
+    }
 
-	// Stop the capture
-	m_currentlyCapturing = false;
+    // Stop the capture
+    m_currentlyCapturing = false;
 
-	m_deckLinkInput->StopStreams();
-	m_deckLinkInput->FlushStreams();
+    m_deckLinkInput->StopStreams();
+    m_deckLinkInput->FlushStreams();
 
-	if (supportsOutput && m_deckLinkOutput != NULL)
-	{
-		m_deckLinkOutput->StopScheduledPlayback(0, NULL, 0);
-		m_deckLinkOutput->DisableVideoOutput();
-	}
+    if (supportsOutput && m_deckLinkOutput != NULL)
+    {
+        m_deckLinkOutput->StopScheduledPlayback(0, NULL, 0);
+        m_deckLinkOutput->DisableVideoOutput();
+    }
 
-	// Set the video input mode
-	if (m_deckLinkInput->EnableVideoInput(newMode->GetDisplayMode(), bmdPixelFormat, bmdVideoInputEnableFormatDetection) != S_OK)
-	{
-		OutputDebugString(L"Could not enable video input when restarting capture with detected input.\n");
-		goto bail;
-	}
+    // Set the video input mode
+    if (m_deckLinkInput->EnableVideoInput(newMode->GetDisplayMode(), bmdPixelFormat, bmdVideoInputEnableFormatDetection) != S_OK)
+    {
+        OutputDebugString(L"Could not enable video input when restarting capture with detected input.\n");
+        goto bail;
+    }
 
-	// Start the capture
-	if (m_deckLinkInput->StartStreams() != S_OK)
-	{
-		OutputDebugString(L"Could not start streams when restarting capture with detected input.\n");
-		goto bail;
-	}
+    // Start the capture
+    if (m_deckLinkInput->StartStreams() != S_OK)
+    {
+        OutputDebugString(L"Could not start streams when restarting capture with detected input.\n");
+        goto bail;
+    }
 
-	if (m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(newMode->GetDisplayMode(), bmdVideoOutputFlagDefault) != S_OK)
-	{
-		OutputDebugString(L"Unable to set video output.\n");
-		supportsOutput = false;
-	}
+    if (m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(newMode->GetDisplayMode(), bmdVideoOutputFlagDefault) != S_OK)
+    {
+        OutputDebugString(L"Unable to set video output.\n");
+        supportsOutput = false;
+    }
 
-	m_currentlyCapturing = true;
+    m_currentlyCapturing = true;
 
 bail:
-	OutputDebugString(L"Done changing formats.\n");
+    OutputDebugString(L"Done changing formats.\n");
 
-	LeaveCriticalSection(&m_captureCardCriticalSection);
-	LeaveCriticalSection(&m_outputCriticalSection);
-	return S_OK;
+    LeaveCriticalSection(&m_captureCardCriticalSection);
+    LeaveCriticalSection(&m_outputCriticalSection);
+    return S_OK;
 }
 
 //TODO: get texture from IDeckLinkVideoInputFrame instead of bytes.
 HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket)
 {
-	LARGE_INTEGER time;
-	QueryPerformanceCounter(&time);
+    LARGE_INTEGER time;
+    QueryPerformanceCounter(&time);
 
-	if (frame == nullptr)
-	{
-		return S_OK;
-	}
+    if (frame == nullptr)
+    {
+        return S_OK;
+    }
 
-	BMDPixelFormat framePixelFormat = frame->GetPixelFormat();
+    BMDPixelFormat framePixelFormat = frame->GetPixelFormat();
 
-	EnterCriticalSection(&m_captureCardCriticalSection);
+    EnterCriticalSection(&m_captureCardCriticalSection);
 
-	if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
-	{
-		if (frame->GetBytes((void**)&rawBuffer) == S_OK)
-		{
-			memcpy(latestBuffer, rawBuffer, FRAME_BUFSIZE_RAW);
-		}
-	}
-	else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
-	{
-		if (frame->GetBytes((void**)&localFrameBuffer) == S_OK)
-		{
-			memcpy(latestBuffer, localFrameBuffer, FRAME_BUFSIZE);
-		}
-	}
+    if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
+    {
+        if (frame->GetBytes((void**)&rawBuffer) == S_OK)
+        {
+            memcpy(latestBuffer, rawBuffer, FRAME_BUFSIZE_RAW);
+        }
+    }
+    else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
+    {
+        if (frame->GetBytes((void**)&localFrameBuffer) == S_OK)
+        {
+            memcpy(latestBuffer, localFrameBuffer, FRAME_BUFSIZE);
+        }
+    }
 
-	LONGLONG t;
-	frame->GetStreamTime(&t, &frameDuration, S2HNS);
+    LONGLONG t;
+    frame->GetStreamTime(&t, &frameDuration, S2HNS);
 
-	// Get frame time.
-	latestTimeStamp = time.QuadPart;
+    // Get frame time.
+    latestTimeStamp = time.QuadPart;
 
-	dirtyFrame = false;
+    dirtyFrame = false;
 
-	if (supportsOutput && m_deckLinkOutput != NULL && outputFrame != NULL)
-	{
-		EnterCriticalSection(&m_outputCriticalSection);
-		m_deckLinkOutput->DisplayVideoFrameSync(outputFrame);
-		LeaveCriticalSection(&m_outputCriticalSection);
-	}
+    if (supportsOutput && m_deckLinkOutput != NULL && outputFrame != NULL)
+    {
+        EnterCriticalSection(&m_outputCriticalSection);
+        m_deckLinkOutput->DisplayVideoFrameSync(outputFrame);
+        LeaveCriticalSection(&m_outputCriticalSection);
+    }
 
-	LeaveCriticalSection(&m_captureCardCriticalSection);
+    LeaveCriticalSection(&m_captureCardCriticalSection);
 
-	return S_OK;
+    return S_OK;
 }
 
 void DeckLinkDevice::Update()
 {
-	if (_colorSRV != nullptr &&
-		device != nullptr)
-	{
-		if (!dirtyFrame)
-		{
-			dirtyFrame = true;
-			DirectXHelper::UpdateSRV(device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
+    if (_colorSRV != nullptr &&
+        device != nullptr)
+    {
+        if (!dirtyFrame)
+        {
+            dirtyFrame = true;
+            DirectXHelper::UpdateSRV(device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
 
-			EnterCriticalSection(&m_frameAccessCriticalSection);
-			isVideoFrameReady = true;
-			LeaveCriticalSection(&m_frameAccessCriticalSection);
+            EnterCriticalSection(&m_frameAccessCriticalSection);
+            isVideoFrameReady = true;
+            LeaveCriticalSection(&m_frameAccessCriticalSection);
 
-			if (supportsOutput && device != nullptr && _outputTexture != nullptr)
-			{
-				EnterCriticalSection(&m_outputCriticalSection);
-				//TODO: can we get a texture from a frame and copyregion?
-				DirectXHelper::GetBytesFromTexture(device, _outputTexture, FRAME_BPP, outputBuffer);
-				LeaveCriticalSection(&m_outputCriticalSection);
-			}
-		}
-	}
+            if (supportsOutput && device != nullptr && _outputTexture != nullptr)
+            {
+                EnterCriticalSection(&m_outputCriticalSection);
+                //TODO: can we get a texture from a frame and copyregion?
+                DirectXHelper::GetBytesFromTexture(device, _outputTexture, FRAME_BPP, outputBuffer);
+                LeaveCriticalSection(&m_outputCriticalSection);
+            }
+        }
+    }
 }
 
 bool DeckLinkDevice::OutputYUV()
 {
-	return (pixelFormat == PixelFormat::YUV);
+    return (pixelFormat == PixelFormat::YUV);
 }
 
 bool DeckLinkDevice::IsVideoFrameReady()
 {
-	EnterCriticalSection(&m_frameAccessCriticalSection);
-	bool ret = isVideoFrameReady;
-	if (isVideoFrameReady)
-	{
-		isVideoFrameReady = false;
-	}
-	LeaveCriticalSection(&m_frameAccessCriticalSection);
+    EnterCriticalSection(&m_frameAccessCriticalSection);
+    bool ret = isVideoFrameReady;
+    if (isVideoFrameReady)
+    {
+        isVideoFrameReady = false;
+    }
+    LeaveCriticalSection(&m_frameAccessCriticalSection);
 
-	return ret;
+    return ret;
 }
 
 DeckLinkDeviceDiscovery::DeckLinkDeviceDiscovery()
-	: m_deckLinkDiscovery(NULL), m_refCount(1)
+    : m_deckLinkDiscovery(NULL), m_refCount(1)
 {
-	if (CoCreateInstance(CLSID_CDeckLinkDiscovery, NULL, CLSCTX_ALL, IID_IDeckLinkDiscovery, (void**)&m_deckLinkDiscovery) != S_OK)
-	{
-		m_deckLinkDiscovery = NULL;
-	}
+    if (CoCreateInstance(CLSID_CDeckLinkDiscovery, NULL, CLSCTX_ALL, IID_IDeckLinkDiscovery, (void**)&m_deckLinkDiscovery) != S_OK)
+    {
+        m_deckLinkDiscovery = NULL;
+    }
 }
 
 DeckLinkDeviceDiscovery::~DeckLinkDeviceDiscovery()
 {
-	if (m_deckLinkDiscovery != NULL)
-	{
-		// Uninstall device arrival notifications and release discovery object
-		m_deckLinkDiscovery->UninstallDeviceNotifications();
-		m_deckLinkDiscovery->Release();
-		m_deckLinkDiscovery = NULL;
-	}
+    if (m_deckLinkDiscovery != NULL)
+    {
+        // Uninstall device arrival notifications and release discovery object
+        m_deckLinkDiscovery->UninstallDeviceNotifications();
+        m_deckLinkDiscovery->Release();
+        m_deckLinkDiscovery = NULL;
+    }
 
-	if (m_deckLink != nullptr)
-	{
-		m_deckLink->Release();
-		m_deckLink = NULL;
-	}
+    if (m_deckLink != nullptr)
+    {
+        m_deckLink->Release();
+        m_deckLink = NULL;
+    }
 }
 
 bool DeckLinkDeviceDiscovery::Enable()
 {
-	HRESULT result = E_FAIL;
+    HRESULT result = E_FAIL;
 
-	// Install device arrival notifications
-	if (m_deckLinkDiscovery != NULL)
-	{
-		result = m_deckLinkDiscovery->InstallDeviceNotifications(this);
-	}
+    // Install device arrival notifications
+    if (m_deckLinkDiscovery != NULL)
+    {
+        result = m_deckLinkDiscovery->InstallDeviceNotifications(this);
+    }
 
-	return result == S_OK;
+    return result == S_OK;
 }
 
 void DeckLinkDeviceDiscovery::Disable()
 {
-	// Uninstall device arrival notifications
-	if (m_deckLinkDiscovery != NULL)
-	{
-		m_deckLinkDiscovery->UninstallDeviceNotifications();
-	}
+    // Uninstall device arrival notifications
+    if (m_deckLinkDiscovery != NULL)
+    {
+        m_deckLinkDiscovery->UninstallDeviceNotifications();
+    }
 }
 
 HRESULT DeckLinkDeviceDiscovery::DeckLinkDeviceArrived(/* in */ IDeckLink* deckLink)
 {
-	if (m_deckLink == nullptr)
-	{
-		deckLink->AddRef();
+    if (m_deckLink == nullptr)
+    {
+        deckLink->AddRef();
 
-		m_deckLink = deckLink;
-	}
+        m_deckLink = deckLink;
+    }
 
-	return S_OK;
+    return S_OK;
 }
 
 HRESULT DeckLinkDeviceDiscovery::DeckLinkDeviceRemoved(/* in */ IDeckLink* deckLink)
 {
-	deckLink->Release();
-	return S_OK;
+    deckLink->Release();
+    return S_OK;
 }
 
 HRESULT    STDMETHODCALLTYPE DeckLinkDeviceDiscovery::QueryInterface(REFIID iid, LPVOID *ppv)
 {
-	HRESULT result = E_NOINTERFACE;
+    HRESULT result = E_NOINTERFACE;
 
-	if (ppv == NULL)
-	{
-		return E_INVALIDARG;
-	}
+    if (ppv == NULL)
+    {
+        return E_INVALIDARG;
+    }
 
-	// Initialise the return result
-	*ppv = NULL;
+    // Initialise the return result
+    *ppv = NULL;
 
-	// Obtain the IUnknown interface and compare it the provided REFIID
-	if (iid == IID_IUnknown)
-	{
-		*ppv = this;
-		AddRef();
-		result = S_OK;
-	}
-	else if (iid == IID_IDeckLinkDeviceNotificationCallback)
-	{
-		*ppv = (IDeckLinkDeviceNotificationCallback*)this;
-		AddRef();
-		result = S_OK;
-	}
+    // Obtain the IUnknown interface and compare it the provided REFIID
+    if (iid == IID_IUnknown)
+    {
+        *ppv = this;
+        AddRef();
+        result = S_OK;
+    }
+    else if (iid == IID_IDeckLinkDeviceNotificationCallback)
+    {
+        *ppv = (IDeckLinkDeviceNotificationCallback*)this;
+        AddRef();
+        result = S_OK;
+    }
 
-	return result;
+    return result;
 }
 
 ULONG STDMETHODCALLTYPE DeckLinkDeviceDiscovery::AddRef(void)
 {
-	return InterlockedIncrement((LONG*)&m_refCount);
+    return InterlockedIncrement((LONG*)&m_refCount);
 }
 
 ULONG STDMETHODCALLTYPE DeckLinkDeviceDiscovery::Release(void)
 {
-	ULONG newRefValue;
+    ULONG newRefValue;
 
-	newRefValue = InterlockedDecrement((LONG*)&m_refCount);
-	if (newRefValue == 0)
-	{
-		delete this;
-		return 0;
-	}
+    newRefValue = InterlockedDecrement((LONG*)&m_refCount);
+    if (newRefValue == 0)
+    {
+        delete this;
+        return 0;
+    }
 
-	return newRefValue;
+    return newRefValue;
 }
 
 #endif

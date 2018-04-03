@@ -302,9 +302,9 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
             return;
         }
 
-		LONG cbWidth = frameWidth;
-		DWORD cbBuffer = (int)(1.5f * frameWidth * frameHeight);
-		DWORD imageHeight = (int)(1.5f * frameHeight);
+        LONG cbWidth = frameWidth;
+        DWORD cbBuffer = (int)(1.5f * frameWidth * frameHeight);
+        DWORD imageHeight = (int)(1.5f * frameHeight);
 
         IMFSample* pVideoSample = NULL;
         IMFMediaBuffer* pVideoBuffer = NULL;

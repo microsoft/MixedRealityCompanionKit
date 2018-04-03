@@ -11,34 +11,34 @@
 class DeckLinkManager : public IFrameProvider
 {
 public:
-	DeckLinkManager();
-	~DeckLinkManager();
+    DeckLinkManager();
+    ~DeckLinkManager();
 
-	// Inherited via IFrameProvider
-	HRESULT Initialize(ID3D11ShaderResourceView* srv);
-	virtual LONGLONG GetTimestamp() override;
-	virtual LONGLONG GetDurationHNS() override;
+    // Inherited via IFrameProvider
+    HRESULT Initialize(ID3D11ShaderResourceView* srv);
+    virtual LONGLONG GetTimestamp() override;
+    virtual LONGLONG GetDurationHNS() override;
 
-	//TODO: Measure this on your setup.
-	virtual LONGLONG GetFrameDelayMS()
-	{
-		return 192;
-	}
+    //TODO: Measure this on your setup.
+    virtual LONGLONG GetFrameDelayMS()
+    {
+        return 192;
+    }
 
-	virtual bool IsEnabled() override;
-	virtual void Update() override;
-	virtual void Dispose() override;
+    virtual bool IsEnabled() override;
+    virtual void Update() override;
+    virtual void Dispose() override;
 
-	virtual bool OutputYUV() override;
-	virtual bool IsVideoFrameReady() override;
+    virtual bool OutputYUV() override;
+    virtual bool IsVideoFrameReady() override;
 
-	virtual void SetOutputTexture(ID3D11Texture2D* outputTexture) override;
+    virtual void SetOutputTexture(ID3D11Texture2D* outputTexture) override;
 
 private:
-	DeckLinkDeviceDiscovery* deckLinkDiscovery = nullptr;
-	DeckLinkDevice* deckLinkDevice = nullptr;
-	IDeckLink* deckLink = nullptr;
-	bool supportsBlackMagic = true;
+    DeckLinkDeviceDiscovery* deckLinkDiscovery = nullptr;
+    DeckLinkDevice* deckLinkDevice = nullptr;
+    IDeckLink* deckLink = nullptr;
+    bool supportsBlackMagic = true;
 };
 #endif
 

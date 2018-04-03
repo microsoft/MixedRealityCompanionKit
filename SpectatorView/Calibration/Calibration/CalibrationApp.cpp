@@ -87,17 +87,17 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     // Start the application with no MRC captures on the Hololens.
     DeleteAllMRCFiles();
 
-	// Create textures, RT's and SRV's
-	auto device = deviceResources->GetD3DDevice();
-	CD3D11_TEXTURE2D_DESC rtDesc(DXGI_FORMAT_R8G8B8A8_UNORM, FRAME_WIDTH, FRAME_HEIGHT,
-		1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
-	
-	device->CreateTexture2D(&rtDesc, nullptr, &colorTexture);
-	device->CreateShaderResourceView(colorTexture, nullptr, &srv);
+    // Create textures, RT's and SRV's
+    auto device = deviceResources->GetD3DDevice();
+    CD3D11_TEXTURE2D_DESC rtDesc(DXGI_FORMAT_R8G8B8A8_UNORM, FRAME_WIDTH, FRAME_HEIGHT,
+        1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+    
+    device->CreateTexture2D(&rtDesc, nullptr, &colorTexture);
+    device->CreateShaderResourceView(colorTexture, nullptr, &srv);
 
-	device->CreateTexture2D(&rtDesc, nullptr, &convertedColorTexture);
-	device->CreateRenderTargetView(convertedColorTexture, nullptr, &convertedRT);
-	device->CreateShaderResourceView(convertedColorTexture, nullptr, &convertedSrv);
+    device->CreateTexture2D(&rtDesc, nullptr, &convertedColorTexture);
+    device->CreateRenderTargetView(convertedColorTexture, nullptr, &convertedRT);
+    device->CreateShaderResourceView(convertedColorTexture, nullptr, &convertedSrv);
 
 #if USE_ELGATO
     frameProvider = new ElgatoFrameProvider();
@@ -111,14 +111,14 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
 
     frameProvider->Initialize(srv);
 
-	yuv2rgbParameters.width = FRAME_WIDTH;
-	yuv2rgbParameters.height = FRAME_HEIGHT;
+    yuv2rgbParameters.width = FRAME_WIDTH;
+    yuv2rgbParameters.height = FRAME_HEIGHT;
 
-	CD3D11_BUFFER_DESC cbDesc(sizeof(CONVERSION_PARAMETERS), D3D11_BIND_CONSTANT_BUFFER);
-	device->CreateBuffer(&cbDesc, nullptr, conversionParamBuffer.ReleaseAndGetAddressOf());
+    CD3D11_BUFFER_DESC cbDesc(sizeof(CONVERSION_PARAMETERS), D3D11_BIND_CONSTANT_BUFFER);
+    device->CreateBuffer(&cbDesc, nullptr, conversionParamBuffer.ReleaseAndGetAddressOf());
 
-	deviceResources->GetD3DDeviceContext()->UpdateSubresource(conversionParamBuffer.Get(), 0, nullptr,
-		&yuv2rgbParameters, sizeof(CONVERSION_PARAMETERS), 0);
+    deviceResources->GetD3DDeviceContext()->UpdateSubresource(conversionParamBuffer.Get(), 0, nullptr,
+        &yuv2rgbParameters, sizeof(CONVERSION_PARAMETERS), 0);
 }
 
 // Executes the basic game loop.
@@ -482,91 +482,91 @@ void CalibrationApp::PerformCalibration()
 
 void CalibrationApp::Blit(ID3D11ShaderResourceView* source, ID3D11RenderTargetView* dest, ID3D11PixelShader* shader)
 {
-	auto device = deviceResources->GetD3DDevice();
-	auto context = deviceResources->GetD3DDeviceContext();
+    auto device = deviceResources->GetD3DDevice();
+    auto context = deviceResources->GetD3DDeviceContext();
 
-	ID3D11RenderTargetView* prevRT;
-	ID3D11DepthStencilView* prevDepth;
-	context->OMGetRenderTargets(1, &prevRT, &prevDepth);
+    ID3D11RenderTargetView* prevRT;
+    ID3D11DepthStencilView* prevDepth;
+    context->OMGetRenderTargets(1, &prevRT, &prevDepth);
 
-	// Clear out existing render targets
-	ID3D11ShaderResourceView *const nullSRV[1] = { nullptr };
-	context->PSSetShaderResources(0, 1, nullSRV);
+    // Clear out existing render targets
+    ID3D11ShaderResourceView *const nullSRV[1] = { nullptr };
+    context->PSSetShaderResources(0, 1, nullSRV);
 
-	// Set our new render target.
-	context->OMSetRenderTargets(1, &dest, nullptr);
-	spriteBatch->Begin(SpriteSortMode_Immediate,
-		nullptr, nullptr, nullptr, nullptr,
-		[=]() {
-		context->PSSetConstantBuffers(0, 1, conversionParamBuffer.GetAddressOf());
-		context->PSSetShader(shader, nullptr, 0);
-	});
+    // Set our new render target.
+    context->OMSetRenderTargets(1, &dest, nullptr);
+    spriteBatch->Begin(SpriteSortMode_Immediate,
+        nullptr, nullptr, nullptr, nullptr,
+        [=]() {
+        context->PSSetConstantBuffers(0, 1, conversionParamBuffer.GetAddressOf());
+        context->PSSetShader(shader, nullptr, 0);
+    });
 
-	// Render the source texture to the dest RT with the desired shader.
-	spriteBatch->Draw(source, colorSourceRect, &colorSourceRect,
-		Colors::White, 0.0f, XMFLOAT2(0, 0),
-		SpriteEffects::SpriteEffects_None);
+    // Render the source texture to the dest RT with the desired shader.
+    spriteBatch->Draw(source, colorSourceRect, &colorSourceRect,
+        Colors::White, 0.0f, XMFLOAT2(0, 0),
+        SpriteEffects::SpriteEffects_None);
 
-	spriteBatch->End();
+    spriteBatch->End();
 
-	// Clear out render target
-	context->PSSetShaderResources(0, 1, nullSRV);
+    // Clear out render target
+    context->PSSetShaderResources(0, 1, nullSRV);
 
-	// Reset previous render target.
-	context->OMSetRenderTargets(1, &prevRT, prevDepth);
+    // Reset previous render target.
+    context->OMSetRenderTargets(1, &prevRT, prevDepth);
 }
 
 
 // Draws the scene.
 void CalibrationApp::Render()
 {
-	// Don't try to render anything before the first Update.
-	if (timer.GetFrameCount() == 0)
-	{
-		return;
-	}
+    // Don't try to render anything before the first Update.
+    if (timer.GetFrameCount() == 0)
+    {
+        return;
+    }
 
-	Clear();
+    Clear();
 
-	// Render live camera texture.
-	// Get the latest camera frame.
-	if (colorTexture != nullptr && frameProvider != nullptr && frameProvider->IsEnabled())
-	{
-		if (frameProvider->OutputYUV())
-		{
-			// Convert camera's source yuv image to rgb.
-			Blit(srv, convertedRT, yuv2rgbPS.Get());
+    // Render live camera texture.
+    // Get the latest camera frame.
+    if (colorTexture != nullptr && frameProvider != nullptr && frameProvider->IsEnabled())
+    {
+        if (frameProvider->OutputYUV())
+        {
+            // Convert camera's source yuv image to rgb.
+            Blit(srv, convertedRT, yuv2rgbPS.Get());
 
-			// Draw converted image to screen.
-			spriteBatch->Begin(SpriteSortMode_Immediate);
-			spriteBatch->Draw(convertedSrv, screenRect, &colorSourceRect,
-				Colors::White, 0.0f, XMFLOAT2(0, 0),
-				SpriteEffects::SpriteEffects_None);
-			spriteBatch->End();
+            // Draw converted image to screen.
+            spriteBatch->Begin(SpriteSortMode_Immediate);
+            spriteBatch->Draw(convertedSrv, screenRect, &colorSourceRect,
+                Colors::White, 0.0f, XMFLOAT2(0, 0),
+                SpriteEffects::SpriteEffects_None);
+            spriteBatch->End();
 
-			// Get bytes from converted image.
-			DirectXHelper::GetBytesFromTexture(deviceResources->GetD3DDevice(), convertedColorTexture, FRAME_BPP, colorBytes);
-		}
-		else
-		{
-			// Render rgb texture directly.
-			spriteBatch->Begin(SpriteSortMode_Immediate);
-			spriteBatch->Draw(srv, screenRect, &colorSourceRect,
-				Colors::White, 0.0f, XMFLOAT2(0, 0),
-				SpriteEffects::SpriteEffects_None);
-			spriteBatch->End();
+            // Get bytes from converted image.
+            DirectXHelper::GetBytesFromTexture(deviceResources->GetD3DDevice(), convertedColorTexture, FRAME_BPP, colorBytes);
+        }
+        else
+        {
+            // Render rgb texture directly.
+            spriteBatch->Begin(SpriteSortMode_Immediate);
+            spriteBatch->Draw(srv, screenRect, &colorSourceRect,
+                Colors::White, 0.0f, XMFLOAT2(0, 0),
+                SpriteEffects::SpriteEffects_None);
+            spriteBatch->End();
 
-			// Get bytes from original rgb image.
-			DirectXHelper::GetBytesFromTexture(deviceResources->GetD3DDevice(), colorTexture, FRAME_BPP, colorBytes);
-		}
+            // Get bytes from original rgb image.
+            DirectXHelper::GetBytesFromTexture(deviceResources->GetD3DDevice(), colorTexture, FRAME_BPP, colorBytes);
+        }
 
-		// Cache the latest camera picture in memory to quickly check if there is a chess board in view.
-		EnterCriticalSection(&photoTextureCriticalSection);
-		latestColorMat.data = colorBytes;
-		LeaveCriticalSection(&photoTextureCriticalSection);
+        // Cache the latest camera picture in memory to quickly check if there is a chess board in view.
+        EnterCriticalSection(&photoTextureCriticalSection);
+        latestColorMat.data = colorBytes;
+        LeaveCriticalSection(&photoTextureCriticalSection);
 
-		deviceResources->Present();
-	}
+        deviceResources->Present();
+    }
 }
 
 // Helper method to clear the back buffers.
@@ -611,9 +611,9 @@ void CalibrationApp::OnResuming()
 
 void CalibrationApp::OnWindowSizeChanged(int width, int height)
 {
-	// Do not resize anything here, the presentation is just to visualize that the calibration card is in frame.
-	// All calibration calculations will be done on original texture dimensions or aspect ratios.
-	return;
+    // Do not resize anything here, the presentation is just to visualize that the calibration card is in frame.
+    // All calibration calculations will be done on original texture dimensions or aspect ratios.
+    return;
 }
 
 // Properties
@@ -636,15 +636,15 @@ void CalibrationApp::CreateDeviceDependentResources()
     colorSourceRect.right = FRAME_WIDTH;
     colorSourceRect.bottom = FRAME_HEIGHT;
 
-	auto device = deviceResources->GetD3DDevice();
-	auto blob = DX::ReadData(L"YUV2RGB.cso");
-	HRESULT hr = device->CreatePixelShader(blob.data(), blob.size(),
-		nullptr, yuv2rgbPS.ReleaseAndGetAddressOf());
+    auto device = deviceResources->GetD3DDevice();
+    auto blob = DX::ReadData(L"YUV2RGB.cso");
+    HRESULT hr = device->CreatePixelShader(blob.data(), blob.size(),
+        nullptr, yuv2rgbPS.ReleaseAndGetAddressOf());
 
-	if FAILED(hr)
-	{
-		OutputDebugString(L"Error compiling yuv2rgb shader.");
-	}
+    if FAILED(hr)
+    {
+        OutputDebugString(L"Error compiling yuv2rgb shader.");
+    }
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -664,7 +664,7 @@ void CalibrationApp::OnDeviceLost()
     frameProvider->Dispose();
     SafeRelease(srv);
 
-	yuv2rgbPS.Reset();
+    yuv2rgbPS.Reset();
 }
 
 void CalibrationApp::OnDeviceRestored()
