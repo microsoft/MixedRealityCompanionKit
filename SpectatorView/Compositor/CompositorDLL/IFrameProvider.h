@@ -9,8 +9,6 @@ class IFrameProvider
 public:
     virtual HRESULT Initialize(ID3D11ShaderResourceView* srv) = 0;
     
-    // 4 frames are caches for reliable hologram stability:
-    // Get the timestamp of the currently rendered cached frame.
     virtual LONGLONG GetTimestamp(int frame) = 0;
     virtual LONGLONG GetDurationHNS() = 0;
 
