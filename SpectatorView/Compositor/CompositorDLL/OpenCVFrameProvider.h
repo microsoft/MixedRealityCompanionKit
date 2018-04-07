@@ -28,8 +28,6 @@ public:
     virtual void Update() override;
     virtual void Dispose() override;
 
-    virtual bool IsVideoFrameReady() override;
-
     virtual bool OutputYUV()
     {
         return false;
@@ -62,7 +60,6 @@ private:
     ID3D11ShaderResourceView* _colorSRV;
     ID3D11Device* _device;
 
-    bool isVideoFrameReady = false;
     bool isFrameDirty = false;
 
     BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];

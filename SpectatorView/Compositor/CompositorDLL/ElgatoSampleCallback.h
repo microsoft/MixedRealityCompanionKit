@@ -64,7 +64,6 @@ public:
         return frameDuration;
     }
 
-    bool IsVideoFrameReady();
     bool IsEnabled()
     {
         return isEnabled;
@@ -83,7 +82,6 @@ private:
     LONGLONG frameDuration = 0;
 
     CRITICAL_SECTION frameAccessCriticalSection;
-    bool isVideoFrameReady = false;
     bool isEnabled = false;
 };
 

@@ -65,16 +65,6 @@ void ElgatoFrameProvider::Update()
     frameCallback->UpdateSRV(_colorSRV);
 }
 
-bool ElgatoFrameProvider::IsVideoFrameReady()
-{
-    if (frameCallback != nullptr)
-    {
-        return frameCallback->IsVideoFrameReady();
-    }
-
-    return false;
-}
-
 LONGLONG ElgatoFrameProvider::GetTimestamp()
 {
     if (frameCallback != nullptr)

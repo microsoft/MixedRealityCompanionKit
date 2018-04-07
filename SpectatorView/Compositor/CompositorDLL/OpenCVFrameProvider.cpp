@@ -121,9 +121,6 @@ void OpenCVFrameProvider::Update()
         std::lock_guard<std::mutex> lock(frameAccessLock);
         DirectXHelper::UpdateSRV(_device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
         isFrameDirty = false;
-
-        std::lock_guard<std::mutex> _lock(videoLock);
-        isVideoFrameReady = true;
     }
 }
 
@@ -144,19 +141,6 @@ void OpenCVFrameProvider::Dispose()
         videoCapture->release();
         videoCapture = nullptr;
     }
-}
-
-bool OpenCVFrameProvider::IsVideoFrameReady()
-{
-    std::lock_guard<std::mutex> lock(videoLock);
-    
-    bool ret = isVideoFrameReady;
-    if (isVideoFrameReady)
-    {
-        isVideoFrameReady = false;
-    }
-
-    return ret;
 }
 #endif
 

@@ -199,15 +199,15 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4895781923028960, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4895781923028960, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4895781923028960, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4895781923028960, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}
       propertyPath: m_LocalRotation.w
@@ -216,16 +216,6 @@ Prefab:
     - target: {fileID: 4895781923028960, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}
       propertyPath: m_RootOrder
       value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 114554014783948646, guid: cb19b562c50f2404095a4ce6fa7c09c7,
-        type: 2}
-      propertyPath: debugColorTex
-      value: 
-      objectReference: {fileID: 2800000, guid: 321c3bd822c405344a702f1e940f388a, type: 3}
-    - target: {fileID: 114626149255860242, guid: cb19b562c50f2404095a4ce6fa7c09c7,
-        type: 2}
-      propertyPath: SpectatorViewHoloLensIP
-      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}

@@ -34,6 +34,7 @@
 #include "DeckLinkAPI_h.h"
 #include "DirectXHelper.h"
 #include <string>
+#include "BufferedTextureFetch.h"
 
 class DeckLinkDevice : public IDeckLinkInputCallback
 {
@@ -50,7 +51,6 @@ private:
     IDeckLink*                m_deckLink;
     IDeckLinkInput*           m_deckLinkInput;
     IDeckLinkOutput*          m_deckLinkOutput;
-    IDeckLinkVideoConversion* m_deckLinkVideoConversion;
     BMDTimeScale              m_playbackTimeScale;
     BOOL                      m_supportsFormatDetection;
     bool                      m_currentlyCapturing;
@@ -68,14 +68,26 @@ private:
 
     BMDTimeValue frameDuration = 0;
 
-    LONGLONG latestTimeStamp = 0;
+    class BufferCache
+    {
+    public:
+        BYTE * buffer;
+        LONGLONG timeStamp;
+    };
+
+    #define MAX_NUM_CACHED_BUFFERS 20
+    BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
+    int captureFrameIndex;
+
+    BufferCache& GetOldestBuffer();
 
     bool dirtyFrame = true;
-    bool isVideoFrameReady = false;
 
     ID3D11ShaderResourceView* _colorSRV = nullptr;
     ID3D11Texture2D* _outputTexture = nullptr;
     ID3D11Device* device = nullptr;
+
+    BufferedTextureFetch outputTextureBuffer;
 
 public:
     DeckLinkDevice(IDeckLink* device);
@@ -88,7 +100,7 @@ public:
     void                                StopCapture();
     IDeckLink*                          DeckLinkInstance() { return m_deckLink; }
 
-    void Update();
+    void Update(int compositeFrameIndex);
 
     bool supportsOutput = true;
 
@@ -101,9 +113,9 @@ public:
     virtual HRESULT  STDMETHODCALLTYPE    VideoInputFormatChanged(/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */ IDeckLinkDisplayMode *newDisplayMode, /* in */ BMDDetectedVideoInputFormatFlags detectedSignalFlags);
     virtual HRESULT  STDMETHODCALLTYPE    VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket);
 
-    LONGLONG GetTimestamp()
+    LONGLONG GetTimestamp(int frame)
     {
-        return latestTimeStamp;
+        return bufferCache[frame % MAX_NUM_CACHED_BUFFERS].timeStamp;
     }
 
     LONGLONG GetDurationHNS()
@@ -111,9 +123,12 @@ public:
         return frameDuration;
     }
 
-    bool OutputYUV();
+    int GetCaptureFrameIndex()
+    {
+        return captureFrameIndex;
+    }
 
-    bool IsVideoFrameReady();
+    bool OutputYUV();
 
     void SetOutputTexture(ID3D11Texture2D* outputTexture)
     {

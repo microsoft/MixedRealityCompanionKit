@@ -91,6 +91,7 @@ namespace SpectatorView
 
                             // Convert from OpenCV space to Unity space.
                             Translation = new Vector3(Translation.x, Translation.y, -1 * Translation.z);
+                            Translation *= -1;
 
                             Debug.Log("Loaded calibration translation: " + Translation.x + ", " + Translation.y + ", " + Translation.z);
                         }

@@ -33,7 +33,6 @@
 
 using namespace std;
 
-
 DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
     m_deckLink(device),
     m_deckLinkInput(NULL),
@@ -43,6 +42,14 @@ DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
     m_currentlyCapturing(false),
     m_playbackTimeScale(600)
 {
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
+        bufferCache[i].timeStamp = 0;
+    }
+
+    captureFrameIndex = 0;
+
     if (m_deckLink != NULL)
     {
         m_deckLink->AddRef();
@@ -79,8 +86,18 @@ DeckLinkDevice::~DeckLinkDevice()
     DeleteCriticalSection(&m_outputCriticalSection);
     DeleteCriticalSection(&m_frameAccessCriticalSection);
 
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        delete[] bufferCache[i].buffer;
+    }
+
     delete[] latestBuffer;
     delete[] outputBuffer;
+}
+
+DeckLinkDevice::BufferCache& DeckLinkDevice::GetOldestBuffer()
+{
+    return bufferCache[(captureFrameIndex + 1) % MAX_NUM_CACHED_BUFFERS];
 }
 
 HRESULT    STDMETHODCALLTYPE DeckLinkDevice::QueryInterface(REFIID iid, LPVOID *ppv)
@@ -147,6 +164,13 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
     ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
     ZeroMemory(latestBuffer, FRAME_BUFSIZE);
     ZeroMemory(outputBuffer, FRAME_BUFSIZE);
+
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        ZeroMemory(bufferCache[i].buffer, FRAME_BUFSIZE);
+    }
+
+    captureFrameIndex = 0;
 
     _colorSRV = colorSRV;
 
@@ -235,6 +259,7 @@ bool DeckLinkDevice::StartCapture(BMDDisplayMode videoDisplayMode)
     }
 
     m_currentlyCapturing = true;
+    captureFrameIndex = 0;
 
     return true;
 }
@@ -345,41 +370,35 @@ bail:
     return S_OK;
 }
 
-//TODO: get texture from IDeckLinkVideoInputFrame instead of bytes.
 HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket)
 {
-    LARGE_INTEGER time;
-    QueryPerformanceCounter(&time);
-
     if (frame == nullptr)
     {
         return S_OK;
     }
 
+    LARGE_INTEGER time;
+    QueryPerformanceCounter(&time);
+
     BMDPixelFormat framePixelFormat = frame->GetPixelFormat();
 
     EnterCriticalSection(&m_captureCardCriticalSection);
 
-    if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
+    if (frame->GetBytes((void**)&localFrameBuffer) == S_OK)
     {
-        if (frame->GetBytes((void**)&rawBuffer) == S_OK)
-        {
-            memcpy(latestBuffer, rawBuffer, FRAME_BUFSIZE_RAW);
-        }
+        captureFrameIndex++;
+        BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
+
+        memcpy(buffer, localFrameBuffer, frame->GetRowBytes() * frame->GetHeight());
     }
-    else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
-    {
-        if (frame->GetBytes((void**)&localFrameBuffer) == S_OK)
-        {
-            memcpy(latestBuffer, localFrameBuffer, FRAME_BUFSIZE);
-        }
-    }
+    
 
     LONGLONG t;
     frame->GetStreamTime(&t, &frameDuration, S2HNS);
 
+    
     // Get frame time.
-    latestTimeStamp = time.QuadPart;
+    bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = t;
 
     dirtyFrame = false;
 
@@ -395,27 +414,26 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
     return S_OK;
 }
 
-void DeckLinkDevice::Update()
+void DeckLinkDevice::Update(int compositeFrameIndex)
 {
     if (_colorSRV != nullptr &&
         device != nullptr)
     {
-        if (!dirtyFrame)
+        const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
+        if (buffer.buffer != nullptr)
         {
-            dirtyFrame = true;
-            DirectXHelper::UpdateSRV(device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
+            DirectXHelper::UpdateSRV(device, _colorSRV, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
+        }
 
-            EnterCriticalSection(&m_frameAccessCriticalSection);
-            isVideoFrameReady = true;
-            LeaveCriticalSection(&m_frameAccessCriticalSection);
-
-            if (supportsOutput && device != nullptr && _outputTexture != nullptr)
+        if (supportsOutput && device != nullptr && _outputTexture != nullptr)
+        {
+            EnterCriticalSection(&m_outputCriticalSection);
+            if (outputTextureBuffer.IsDataAvailable())
             {
-                EnterCriticalSection(&m_outputCriticalSection);
-                //TODO: can we get a texture from a frame and copyregion?
-                DirectXHelper::GetBytesFromTexture(device, _outputTexture, FRAME_BPP, outputBuffer);
-                LeaveCriticalSection(&m_outputCriticalSection);
+                outputTextureBuffer.FetchTextureData(device, outputBuffer, FRAME_BPP);
             }
+            outputTextureBuffer.PrepareTextureFetch(device, _outputTexture);
+            LeaveCriticalSection(&m_outputCriticalSection);
         }
     }
 }
@@ -423,19 +441,6 @@ void DeckLinkDevice::Update()
 bool DeckLinkDevice::OutputYUV()
 {
     return (pixelFormat == PixelFormat::YUV);
-}
-
-bool DeckLinkDevice::IsVideoFrameReady()
-{
-    EnterCriticalSection(&m_frameAccessCriticalSection);
-    bool ret = isVideoFrameReady;
-    if (isVideoFrameReady)
-    {
-        isVideoFrameReady = false;
-    }
-    LeaveCriticalSection(&m_frameAccessCriticalSection);
-
-    return ret;
 }
 
 DeckLinkDeviceDiscovery::DeckLinkDeviceDiscovery()

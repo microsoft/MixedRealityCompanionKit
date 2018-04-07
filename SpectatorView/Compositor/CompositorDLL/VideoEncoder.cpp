@@ -65,9 +65,7 @@ void VideoEncoder::StartRecording(LPCWSTR videoPath, bool encodeAudio)
     prevVideoTime = INVALID_TIMESTAMP;
     prevAudioTime = INVALID_TIMESTAMP;
 
-    LARGE_INTEGER time;
-    QueryPerformanceCounter(&time);
-    startTime = time.QuadPart;
+    startTime = INVALID_TIMESTAMP;
 
     HRESULT hr = E_PENDING;
 
@@ -185,21 +183,14 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
     }
 
     LONGLONG sampleTimeNow = timestamp;
-    if (sampleTimeNow < 0) { sampleTimeNow *= -1; }
     LONGLONG sampleTimeStart = startTime;
-    if (sampleTimeStart < 0) { sampleTimeStart *= -1; }
 
     LONGLONG sampleTime = sampleTimeNow - sampleTimeStart;
-    if (sampleTime < 0) { sampleTime *= -1; }
 
     LONGLONG duration = AUDIO_POLLING_RATE_HNS;
     if (prevAudioTime != INVALID_TIMESTAMP)
     {
         duration = sampleTime - prevAudioTime;
-        if (duration < 0) { duration *= -1; }
-
-        duration *= S2HNS;
-        duration /= freq.QuadPart;
     }
 
     // Copy frame to a temporary buffer and process on a background thread.
@@ -235,8 +226,6 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
 
         if (SUCCEEDED(hr)) { hr = MFCreateSample(&pAudioSample); }
         LONGLONG t = sampleTime;
-        t *= S2HNS;
-        t /= freq.QuadPart;
         if (SUCCEEDED(hr)) { hr = pAudioSample->SetSampleTime(t); }
         if (SUCCEEDED(hr)) { hr = pAudioSample->SetSampleDuration(duration); }
         if (SUCCEEDED(hr)) { hr = pAudioBuffer->SetCurrentLength(cbAudioBuffer); }
@@ -256,7 +245,6 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
     });
 
     prevAudioTime = sampleTime;
-    if (prevAudioTime < 0) { prevAudioTime *= -1; }
 #endif
 }
 
@@ -264,27 +252,27 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
 {
     std::shared_lock<std::shared_mutex> lock(videoStateLock);
 
-    if (!isRecording || startTime == INVALID_TIMESTAMP || timestamp < startTime)
+    if (!isRecording)
     {
         return;
     }
 
+    if(startTime == INVALID_TIMESTAMP)
+        startTime = timestamp;
+    else if (timestamp < startTime)
+    {
+        return;
+    }
+
+    if (timestamp == prevVideoTime)
+    {
+        return;
+    }
+    
     LONGLONG sampleTimeNow = timestamp;
-    if (sampleTimeNow < 0) { sampleTimeNow *= -1; }
     LONGLONG sampleTimeStart = startTime;
-    if (sampleTimeStart < 0) { sampleTimeStart *= -1; }
 
     LONGLONG sampleTime = sampleTimeNow - sampleTimeStart;
-    if (sampleTime < 0) { sampleTime *= -1; }
-
-    if (prevVideoTime != INVALID_TIMESTAMP)
-    {
-        duration = sampleTime - prevVideoTime;
-        if (duration < 0) { duration *= -1; }
-
-        duration *= S2HNS;
-        duration /= freq.QuadPart;
-    }
 
     // Copy frame to a temporary buffer and process on a background thread.
     BYTE* tmpVideoBuffer = new BYTE[(int)(1.5f * frameHeight * frameWidth)];
@@ -341,12 +329,8 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
         if (SUCCEEDED(hr)) { hr = MFCreateSample(&pVideoSample); }
         if (SUCCEEDED(hr)) { hr = pVideoSample->AddBuffer(pVideoBuffer); }
 
-        // Set the frame timestamp.
-        LONGLONG t = sampleTime;
-        t *= S2HNS;
-        t /= freq.QuadPart;
-        if (SUCCEEDED(hr)) { hr = pVideoSample->SetSampleTime(t); }
-        if (SUCCEEDED(hr)) { hr = pVideoSample->SetSampleDuration(duration); }
+        if (SUCCEEDED(hr)) { hr = pVideoSample->SetSampleTime(sampleTime); } //100-nanosecond units
+        if (SUCCEEDED(hr)) { hr = pVideoSample->SetSampleDuration(duration); } //100-nanosecond units
 
         // Send the sample to the Sink Writer.
         if (SUCCEEDED(hr)) { hr = sinkWriter->WriteSample(videoStreamIndex, pVideoSample); }
@@ -362,7 +346,6 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
     });
 
     prevVideoTime = sampleTime;
-    if (prevVideoTime < 0) { prevVideoTime *= -1; }
 }
 
 void VideoEncoder::StopRecording()
@@ -463,8 +446,7 @@ void VideoEncoder::Update()
         if (isRecording)
         {
             VideoInput input = videoQueue.front();
-            WriteVideo(input.buffer, input.timestamp, input.duration);
-            delete[] input.buffer;
+            WriteVideo(input.sharedBuffer, input.timestamp, input.duration);
             videoQueue.pop();
         }
     }

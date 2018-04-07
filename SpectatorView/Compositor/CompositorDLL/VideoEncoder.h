@@ -53,14 +53,14 @@ private:
     class VideoInput
     {
     public:
-        byte* buffer = new byte[(int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT)];
+        byte * sharedBuffer;
 
         LONGLONG timestamp;
         LONGLONG duration;
 
         VideoInput(byte* buffer, LONGLONG timestamp, LONGLONG duration)
         {
-            memcpy(this->buffer, buffer, (int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT));
+            this->sharedBuffer = buffer;
             this->timestamp = timestamp;
             this->duration = duration;
         }

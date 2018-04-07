@@ -26,6 +26,14 @@ SpectatorViewPoseProviderMain::SpectatorViewPoseProviderMain(const std::shared_p
 {
     // Register to be notified if the device is lost or recreated.
     m_deviceResources->RegisterDeviceNotify(this);
+
+    create_task([=]
+    {
+        while (true)
+        {
+            SVSocket.Listen();
+        }
+    });
 }
 
 void SpectatorViewPoseProviderMain::SetHolographicSpace(HolographicSpace^ holographicSpace)

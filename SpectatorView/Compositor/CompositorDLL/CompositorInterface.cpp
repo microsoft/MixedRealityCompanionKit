@@ -22,7 +22,6 @@ CompositorInterface::CompositorInterface()
 #if USE_OPENCV
     frameProvider = new OpenCVFrameProvider();
 #endif
-
 }
 
 CompositorInterface::~CompositorInterface()
@@ -48,6 +47,11 @@ bool CompositorInterface::Initialize(ID3D11Device* device, ID3D11ShaderResourceV
     if (SUCCEEDED(hr))
     {
         frameProvider->SetOutputTexture(outputTexture);
+        timeSynchronizer.Reset();
+        poseCache.Reset();
+        CurrentCompositeFrame = 0;
+
+        AllocateVideoBuffers();
     }
     return SUCCEEDED(hr);
 }
@@ -57,7 +61,7 @@ void CompositorInterface::UpdateFrameProvider()
 {
     if (frameProvider != nullptr)
     {
-        frameProvider->Update();
+        frameProvider->Update(CurrentCompositeFrame);
     }
 }
 
@@ -75,26 +79,93 @@ void CompositorInterface::StopFrameProvider()
     {
         frameProvider->Dispose();
     }
+
+    poseCache.Reset();
+    timeSynchronizer.Reset();
+    CurrentCompositeFrame = 0;
+    VideoTextureBuffer.ReleaseTextures();
+    FreeVideoBuffers();
 }
 
-LONGLONG CompositorInterface::GetTimestamp()
+LONGLONG CompositorInterface::GetTimestamp(int frame)
 {
     if (frameProvider != nullptr)
     {
-        return frameProvider->GetTimestamp();
+        return frameProvider->GetTimestamp(frame);
     }
 
     return INVALID_TIMESTAMP;
 }
 
-LONGLONG CompositorInterface::GetFrameDelayMS()
+LONGLONG CompositorInterface::GetColorDuration()
 {
     if (frameProvider != nullptr)
     {
-        return frameProvider->GetFrameDelayMS();
+        return frameProvider->GetDurationHNS();
     }
 
-    return 0;
+    return (LONGLONG)((1.0f / 30.0f) * S2HNS);
+}
+
+void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float UnityTimeS, int frameOffset, float timeOffsetS)
+{
+    int captureFrameIndex = GetCaptureFrameIndex();
+
+    // Assume 60Hz camera.
+    int minStep = 8;
+    int maxStep = 16;
+
+    if (frameProvider != nullptr &&
+        frameProvider->GetDurationHNS() > 20 * MS2HNS)
+    {
+        // Compensate for 30Hz camera.
+        minStep *= 2;
+        maxStep *= 2;
+    }
+
+    // Set our current frame towards the latest captured frame. 
+    // Don't get too close to it, and dont fall too far behind.
+    int step = (captureFrameIndex - CurrentCompositeFrame);
+    if (step < minStep) { step = 0; }
+    else if (step > maxStep) { step -= maxStep; }
+    else { step = 1; }
+
+    CurrentCompositeFrame += step;
+
+    // Update time synchronizer.
+    float captureTime = GetTimeFromFrame(captureFrameIndex);
+
+    PoseData* poseData = poseCache.GetLatestPose();
+    if (poseData != nullptr)
+    {
+        timeSynchronizer.Update(GetCaptureFrameIndex(), captureTime, poseData->Index, poseData->TimeStamp, UnityTimeS);
+    }
+
+    // Set camera transform for the currently composited frame.
+    float cameraTime = GetTimeFromFrame(CurrentCompositeFrame);
+
+    float poseTime = timeSynchronizer.GetPoseTimeFromCameraTime(cameraTime);
+
+    poseTime += timeOffsetS;
+    if (frameProvider != nullptr)
+    {
+        // Compensate for camera capture latency in seconds.
+        poseTime -= (float)(0.0001f * (frameOffset * (float)frameProvider->GetDurationHNS()) / 1000.0f);
+
+        //TODO: This probably isn't needed since holo time is timestamped from SV HoloLens.
+        // Compensate for RTT network latency.
+        //poseTime -= networkLatencyS;
+
+        // Compensate for initial SV pose offset.
+        poseTime -= 0.016f;
+    }
+
+    if (captureFrameIndex <= 0) // No frames captured yet, let's use the very latest camera transform.
+    {
+        poseTime = std::numeric_limits<float>::max();
+    }
+
+    poseCache.GetPose(position, rotation, poseTime);
 }
 
 #pragma region
@@ -147,58 +218,87 @@ void CompositorInterface::StopRecording()
     }
 
     videoEncoder->StopRecording();
+    VideoTextureBuffer.Reset();
+    queuedVideoFrameCount = 0;
+    lastRecordedVideoFrame = -1;
+    lastVideoFrame = -1;
 }
 
-bool CompositorInterface::IsVideoFrameReady()
+void CompositorInterface::UpdateVideoRecordingFrame(ID3D11Texture2D* videoTexture)
 {
-    if (frameProvider == nullptr)
+    // We have an old frame, lets get the data and queue it now.
+    if (VideoTextureBuffer.IsDataAvailable())
     {
-        return false;
+        videoBufferIndex = (videoBufferIndex + 1) % NUM_VIDEO_BUFFERS;
+        float bpp = 1.5f;
+
+        VideoTextureBuffer.FetchTextureData(_device, videoBytes[videoBufferIndex], bpp);
+        RecordFrameAsync(videoBytes[videoBufferIndex], queuedVideoFrameTime, queuedVideoFrameCount);
     }
 
-    // Allow for stub video frames when frame provider is not enabled.
-    // A frame provider may not be enabled if it is reporting that it is not enabled or 
-    // if its reported frame time is invalid.
-    LONGLONG frameTime = frameProvider->GetTimestamp();
-    if (!frameProvider->IsEnabled() ||
-        frameTime == 0 || frameTime == INVALID_TIMESTAMP)
+    if (lastVideoFrame >= 0 && lastRecordedVideoFrame != lastVideoFrame)
     {
-        LARGE_INTEGER time;
-        LARGE_INTEGER freq;
-        QueryPerformanceCounter(&freq);
-        QueryPerformanceCounter(&time);
+        queuedVideoFrameCount = GetCurrentCompositeFrame() - lastVideoFrame;
+        if (queuedVideoFrameCount <= 0)
+            queuedVideoFrameCount = lastVideoFrame - lastRecordedVideoFrame;
+        if (queuedVideoFrameCount <= 0)
+            queuedVideoFrameCount = 1;
 
-        // If elapsed time exceeds frame duration, allow for a video frame.
-        LONGLONG elapsedTime = ((time.QuadPart - stubVideoTime) * S2HNS) / freq.QuadPart;
-        if (elapsedTime >= (LONGLONG)((1.0f / 30.0f) * S2HNS))
-        {
-            stubVideoTime = time.QuadPart;
-            return true;
-        }
+        lastRecordedVideoFrame = lastVideoFrame;
+        queuedVideoFrameTime = lastVideoFrame * GetColorDuration();
+        VideoTextureBuffer.PrepareTextureFetch(_device, videoTexture);
     }
 
-    return frameProvider->IsVideoFrameReady();
+    lastVideoFrame = GetCurrentCompositeFrame();
 }
 
-void CompositorInterface::RecordFrameAsync(ID3D11Texture2D* texture)
+void CompositorInterface::AllocateVideoBuffers()
+{
+    if (videoBytes != nullptr)
+    {
+        return;
+    }
+
+    videoBytes = new byte*[NUM_VIDEO_BUFFERS];
+
+    for (int i = 0; i < NUM_VIDEO_BUFFERS; i++)
+    {
+        videoBytes[i] = new byte[(int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT)];
+    }
+}
+
+void CompositorInterface::FreeVideoBuffers()
+{
+    if (videoBytes == nullptr)
+    {
+        return;
+    }
+
+    for (int i = 0; i < NUM_VIDEO_BUFFERS; i++)
+    {
+        delete[] videoBytes[i];
+    }
+    delete[] videoBytes;
+    videoBytes = nullptr;
+}
+
+void CompositorInterface::RecordFrameAsync(byte* bytes, LONGLONG frameTime, int numFrames)
 {
     if (frameProvider == nullptr || videoEncoder == nullptr || _device == nullptr)
     {
         return;
     }
 
-    DirectXHelper::GetBytesFromTexture(_device, texture, 1.5f, videoBytes);
-    LONGLONG frameTime = GetTimestamp();
-    if (frameTime == INVALID_TIMESTAMP ||
-        frameTime == 0)
+    if (numFrames < 1)
     {
-        // To record frames before a camera source is present, we must have a valid timestamp.
-        LARGE_INTEGER time;
-        QueryPerformanceCounter(&time);
-        frameTime = time.QuadPart;
+        numFrames = 1;
+    }
+    else if (numFrames > 5)
+    {
+        numFrames = 5;
     }
 
-    videoEncoder->QueueVideoFrame(videoBytes, frameTime, frameProvider->GetDurationHNS());
+    videoEncoder->QueueVideoFrame(bytes, frameTime, numFrames * frameProvider->GetDurationHNS());
 }
 
 void CompositorInterface::RecordAudioFrameAsync(BYTE* audioFrame, LONGLONG frameTime)

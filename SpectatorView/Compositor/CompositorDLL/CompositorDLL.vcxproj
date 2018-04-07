@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BufferedTextureFetch.h" />
     <ClInclude Include="CompositorInterface.h" />
     <ClInclude Include="DeckLinkDevice.h" />
     <ClInclude Include="DeckLinkManager.h" />
@@ -27,9 +28,11 @@
     <ClInclude Include="ElgatoSampleCallback.h" />
     <ClInclude Include="IFrameProvider.h" />
     <ClInclude Include="OpenCVFrameProvider.h" />
+    <ClInclude Include="PoseCache.h" />
     <ClInclude Include="ScreenGrab.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TimeSynchronizer.h" />
     <ClInclude Include="VideoEncoder.h" />
   </ItemGroup>
   <ItemGroup Condition="Exists('$(Elgato_Filter)')">

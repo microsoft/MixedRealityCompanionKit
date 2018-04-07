@@ -14,7 +14,7 @@ namespace SpectatorView
 #if UNITY_EDITOR
         #region DLLImports
         [DllImport("UnityCompositorInterface")]
-        private static extern void GetPose(int nsPast, out Vector3 pos, out Quaternion rot);
+        private static extern void GetPose(out Vector3 pos, out Quaternion rot, float UnityTimeS, int frameOffset, float timeOffsetS);
 
         [DllImport("UnityCompositorInterface")]
         private static extern void SetSpectatorViewIP(string ip);
@@ -41,23 +41,26 @@ namespace SpectatorView
         private static extern void StopRecording();
         #endregion
 
+        [Header("Visuals")]
         [Tooltip("Hologram transparency.")]
         [Range(0, 1)]
         public float Alpha = 0.95f;
         private float prevAlpha;
 
+        [Header("Timing")]
+        [Tooltip("Number of frames of latency between camera capture and frame delivery.")]
+        [Range(0, 10)]
+        public int FrameOffset = 3;
+
+        // If the hologram texture moves earlier than the color texture, choose a lower value.
+        // If the color texture moves earlier than the hologram texture, choose a higher value.
         [Tooltip("Manual additional time offset to compensate for any latency in the capture pipeline.")]
-        [Range(0, 1)]
+        [Range(-0.25f, 0.25f)]
         public float AdditionalTimeOffsetSeconds = 0;
 
+        [Header("Connection")]
         [Tooltip("IP of the spectator view device.")]
         public string SpectatorViewHoloLensIP;
-
-        [Header("DEBUG")]
-        [Tooltip("Debug flag to simulate low app framerate to check that holograms remain stable in the compositor even under load.")]
-        public bool SimulateLowFramerate = false;
-
-        const int S2NS = 1000000000;
 
         Vector3 pos = Vector3.zero;
         Quaternion rot = Quaternion.identity;
@@ -121,16 +124,12 @@ namespace SpectatorView
 
         void Update()
         {
-            //DEBUG: Simulate low frame rate.
-            if (SimulateLowFramerate)
-            {
-                System.Threading.Thread.Sleep(40);
-            }
+            GetPose(out pos, out rot, Time.time, FrameOffset, AdditionalTimeOffsetSeconds);
 
-            GetPose((int)(AdditionalTimeOffsetSeconds * S2NS), out pos, out rot);
-
-            gameObject.transform.position = pos;
-            gameObject.transform.rotation = rot;
+            // Update local transform with pose data from the network.
+            // Use local transform, so we can attach this object to a parent and position anywhere in our scene.
+            gameObject.transform.localPosition = pos;
+            gameObject.transform.localRotation = rot;
 
             if (!frameProviderInitialized)
             {

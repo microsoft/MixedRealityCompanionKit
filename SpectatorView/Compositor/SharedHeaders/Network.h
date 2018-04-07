@@ -199,6 +199,11 @@ public:
     // TODO: caller should re-establish connection if failed.
     bool ReceiveData(byte*& bytes, int numBytes)
     {
+        if (connectSocket == INVALID_SOCKET)
+        {
+            return false;
+        }
+
         int iResult = recv(connectSocket, recvbuf, numBytes, 0);
         if (iResult < 0)
         {

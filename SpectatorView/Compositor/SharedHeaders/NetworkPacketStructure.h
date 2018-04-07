@@ -4,10 +4,16 @@
 #pragma once
 #include <windows.h>
 
+// Time values are in HNS
+
 struct SVPose
 {
+    // Find RTT
     LONGLONG sentTime;
+    // Computed from previous packet.
+    LONGLONG RTT = 0;
 
+    // Pose
     float rotX = 0;
     float rotY = 0;
     float rotZ = 0;
@@ -20,7 +26,6 @@ struct SVPose
 
 struct ClientToServerPacket
 {
+    // to find RTT
     LONGLONG sentTime = 0;
-    LONGLONG captureLatency = 0;
-    LONGLONG additionalOffsetTime = 0;
 };

@@ -44,7 +44,7 @@ Shader "Hidden/CompositeOutput"
             sampler2D _MainTex;
 
             // Output is expecting an 8 bit bgra texture.
-            fixed3 frag (v2f i) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
                 // Flip image for output.
                 i.uv.y = 1 - i.uv.y;
@@ -52,8 +52,7 @@ Shader "Hidden/CompositeOutput"
                 fixed4 col = tex2D(_MainTex, i.uv);
 
                 // Convert back to expected color space.
-                col.rgba = col.bgra;
-                return col.rgb;
+                return col.bgra;
             }
             ENDCG
         }

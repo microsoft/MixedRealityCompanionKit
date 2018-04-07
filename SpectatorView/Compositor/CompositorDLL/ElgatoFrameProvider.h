@@ -67,8 +67,6 @@ public:
         return true;
     }
 
-    virtual bool IsVideoFrameReady() override;
-
     //TODO: Measure this on your setup.
     virtual LONGLONG GetFrameDelayMS()
     {

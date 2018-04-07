@@ -41,9 +41,6 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
 
     memcpy(latestBuffer, pBuffer, copyLength);
 
-    EnterCriticalSection(&frameAccessCriticalSection);
-    isVideoFrameReady = true;
-    LeaveCriticalSection(&frameAccessCriticalSection);
     return S_OK;
 }
 
@@ -51,17 +48,4 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
 void ElgatoSampleCallback::UpdateSRV(ID3D11ShaderResourceView* srv)
 {
     DirectXHelper::UpdateSRV(_device, srv, latestBuffer, FRAME_WIDTH * FRAME_BPP);
-}
-
-bool ElgatoSampleCallback::IsVideoFrameReady()
-{
-    EnterCriticalSection(&frameAccessCriticalSection);
-    bool ret = isVideoFrameReady;
-    if (isVideoFrameReady)
-    {
-        isVideoFrameReady = false;
-    }
-    LeaveCriticalSection(&frameAccessCriticalSection);
-
-    return ret;
 }

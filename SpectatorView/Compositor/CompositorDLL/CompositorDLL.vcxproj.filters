@@ -54,6 +54,15 @@
     <ClInclude Include="DeckLinkAPI_h.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PoseCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeSynchronizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferedTextureFetch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

@@ -22,6 +22,7 @@ public:
     ~SpectatorViewSocket();
 
     void SendPose(SpatialCoordinateSystem^ cs);
+    bool Listen();
 
 private:
     WSASession session;
@@ -32,14 +33,14 @@ private:
     SpatialLocator^ locator;
     
     SVPose currentPose;
-    int poseTimeOffset = 0;
+    LONGLONG RTT = 0;
+
+    bool connectionEstablished = false;
 
     LONGLONG freq;
 
     byte* recvbuf = new byte[DEFAULT_BUFLEN];
     ClientToServerPacket packet;
-
-    bool Listen();
 
     void SetCoordinateSystem(SpatialCoordinateSystem^ cs);
 

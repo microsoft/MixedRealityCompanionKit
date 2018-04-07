@@ -23,6 +23,8 @@ SpectatorViewSocket::SpectatorViewSocket()
             // blocks, so this can be safely looped without sleeping.
             tcp.ServerEstablishConnection();
             OutputDebugString(L"Connection Created!\n");
+
+            connectionEstablished = true;
         }
     });
 }
@@ -39,25 +41,33 @@ void SpectatorViewSocket::SetCoordinateSystem(SpatialCoordinateSystem^ cs)
     }
 }
 
-// TODO: how often to listen?
 bool SpectatorViewSocket::Listen()
 {
-    int recvLen = sizeof(ClientToServerPacket);
-    if (tcp.ReceiveData(recvbuf, recvLen))
+    try
     {
-        memcpy(&packet, recvbuf, recvLen);
+        if (connectionEstablished)
+        {
+            int recvLen = sizeof(ClientToServerPacket);
+            if (tcp.ReceiveData(recvbuf, recvLen))
+            {
+                LARGE_INTEGER qpc;
+                QueryPerformanceCounter(&qpc);
 
-        LARGE_INTEGER qpc;
-        QueryPerformanceCounter(&qpc);
+                memcpy(&packet, recvbuf, recvLen);
 
-        LONGLONG now = (qpc.QuadPart * S2HNS) / freq;
-        LONGLONG networkLatency = ((now - packet.sentTime) * HNS2NS);
-        LONGLONG captureLatency = packet.captureLatency * MS2NS;
-        LONGLONG offset = (captureLatency - networkLatency);
-        if (offset < 0) { offset = 0; } //TODO: may need to implement cached color frames if this is the case.
-        poseTimeOffset = (int)(offset + packet.additionalOffsetTime);
-        return true;
+                LONGLONG now = (qpc.QuadPart * S2HNS) / freq;
+                LONGLONG networkLatency = now - packet.sentTime;
+
+                RTT = networkLatency;
+                return true;
+            }
+            else
+            {
+                connectionEstablished = false;
+            }
+        }
     }
+    catch (...) { }
 
     return false;
 }
@@ -116,6 +126,7 @@ void SpectatorViewSocket::GetPose(SpatialCoordinateSystem^ cs, int nsPast)
         QueryPerformanceCounter(&qpc);
 
         currentPose.sentTime = (qpc.QuadPart * S2HNS) / freq;
+        currentPose.RTT = RTT;
 
         // Convert position and rotation to Unity space.
         Windows::Foundation::Numerics::quaternion rot = headPose->Orientation;
@@ -129,24 +140,24 @@ void SpectatorViewSocket::GetPose(SpatialCoordinateSystem^ cs, int nsPast)
         currentPose.posY = pos.y;
         currentPose.posZ = -pos.z;
     }
-    catch (...)
-    {
-    }
+    catch (...) { }
 }
 
-//TODO: send after every listen, or send in a loop on first time offset?
-//TODO: peer will need to decide on how often to send offsets too!
 void SpectatorViewSocket::SendPose(SpatialCoordinateSystem^ cs)
 {
-    // No connections have been made.
-    /*if (!Listen())
+    try
     {
-        return;
-    }*/
-    Listen();
-
-    GetPose(cs, poseTimeOffset);
-    tcp.SendData((byte*)&currentPose, sizeof(currentPose));
+        if (connectionEstablished)
+        {
+            // Find a pose at least 16 ms in the past to guarantee that it isn't a predicted pose.
+            GetPose(cs, -16000000);
+            if (!tcp.SendData((byte*)&currentPose, sizeof(currentPose)))
+            {
+                connectionEstablished = false;
+            }
+        }
+    }
+    catch (...) { }
 }
 
 

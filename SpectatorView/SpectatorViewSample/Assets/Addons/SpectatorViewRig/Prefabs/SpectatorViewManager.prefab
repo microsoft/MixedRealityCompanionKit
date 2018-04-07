@@ -67,7 +67,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1967187189628242}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -129,6 +129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f447c10b991cd647a34ebb2bd8a6ceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  passthroughColorMat: {fileID: 0}
   alphaBlendPreviewMat: {fileID: 0}
   yuv2rgbMat: {fileID: 0}
   compositeOutputMat: {fileID: 0}
@@ -138,7 +139,6 @@ MonoBehaviour:
   previewTexRT: {fileID: 0}
   videoTexRT: {fileID: 0}
   convertedColor: {fileID: 0}
-  debugColorTex: {fileID: 0}
 --- !u!114 &114570146326577306
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -166,9 +166,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Alpha: 0.95
+  FrameOffset: 3
   AdditionalTimeOffsetSeconds: 0
-  SpectatorViewHoloLensIP: 
-  SimulateLowFramerate: 0
+  SpectatorViewHoloLensIP: 10.89.160.96
   frameProviderInitialized: 0
 --- !u!114 &114934227484146090
 MonoBehaviour:
