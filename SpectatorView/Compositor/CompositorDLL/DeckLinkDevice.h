@@ -75,7 +75,6 @@ private:
         LONGLONG timeStamp;
     };
 
-    #define MAX_NUM_CACHED_BUFFERS 20
     BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
     int captureFrameIndex;
 

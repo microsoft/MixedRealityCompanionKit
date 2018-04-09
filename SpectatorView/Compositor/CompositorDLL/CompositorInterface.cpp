@@ -107,7 +107,7 @@ LONGLONG CompositorInterface::GetColorDuration()
     return (LONGLONG)((1.0f / 30.0f) * S2HNS);
 }
 
-void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float UnityTimeS, int frameOffset, float timeOffsetS)
+void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float UnityTimeS, int frameOffset)
 {
     int captureFrameIndex = GetCaptureFrameIndex();
 
@@ -145,16 +145,10 @@ void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float 
     float cameraTime = GetTimeFromFrame(CurrentCompositeFrame);
 
     float poseTime = timeSynchronizer.GetPoseTimeFromCameraTime(cameraTime);
-
-    poseTime += timeOffsetS;
     if (frameProvider != nullptr)
     {
         // Compensate for camera capture latency in seconds.
         poseTime -= (float)(0.0001f * (frameOffset * (float)frameProvider->GetDurationHNS()) / 1000.0f);
-
-        //TODO: This probably isn't needed since holo time is timestamped from SV HoloLens.
-        // Compensate for RTT network latency.
-        //poseTime -= networkLatencyS;
 
         // Compensate for initial SV pose offset.
         poseTime -= 0.016f;
@@ -181,7 +175,7 @@ void CompositorInterface::TakePicture(ID3D11Texture2D* outputTexture)
 
     // Get bytes from texture because screengrab does not support texture format provided by Unity.
     DirectXHelper::GetBytesFromTexture(_device, outputTexture, FRAME_BPP, photoBytes);
-    ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, photoBytes, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BPP, DXGI_FORMAT_B8G8R8A8_UNORM);
+    ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, photoBytes, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BPP, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
 
     photoIndex++;
     std::wstring photoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"Photo", L".png", photoIndex);

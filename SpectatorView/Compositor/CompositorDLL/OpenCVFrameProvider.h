@@ -18,41 +18,11 @@
 
 class OpenCVFrameProvider : public IFrameProvider
 {
-public:
-    OpenCVFrameProvider();
-    ~OpenCVFrameProvider();
-
-    // Inherited via IFrameProvider
-    virtual HRESULT Initialize(ID3D11ShaderResourceView* srv) override;
-    virtual bool IsEnabled() override;
-    virtual void Update() override;
-    virtual void Dispose() override;
-
-    virtual bool OutputYUV()
-    {
-        return false;
-    }
-
-    virtual LONGLONG GetTimestamp()
-    {
-        return latestTimeStamp;
-    }
-
-    virtual LONGLONG GetDurationHNS() override;
-
-    //TODO: Measure this on your setup.
-    virtual LONGLONG GetFrameDelayMS()
-    {
-        return 0;
-    }
-
 private:
     std::mutex frameAccessLock;
     std::mutex videoLock;
 
-    LONGLONG prevTimeStamp = 0;
     LONGLONG latestTimeStamp = 0;
-    LONGLONG frameDuration = 0;
 
     LARGE_INTEGER freq;
 
@@ -60,13 +30,51 @@ private:
     ID3D11ShaderResourceView* _colorSRV;
     ID3D11Device* _device;
 
-    bool isFrameDirty = false;
-
-    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
-
     cv::Mat frame;
     cv::Mat rgbaFrame;
     int rgbaConversion[8];
+
+    class BufferCache
+    {
+    public:
+        BYTE * buffer;
+        LONGLONG timeStamp;
+    };
+
+    BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
+    int captureFrameIndex = 0;
+
+    BufferCache& GetOldestBuffer();
+
+public:
+    OpenCVFrameProvider();
+    ~OpenCVFrameProvider();
+
+    // Inherited via IFrameProvider
+    virtual HRESULT Initialize(ID3D11ShaderResourceView* srv) override;
+    virtual bool IsEnabled() override;
+    virtual void Update(int compositeFrameIndex) override;
+    virtual void Dispose() override;
+
+    virtual bool OutputYUV()
+    {
+        return false;
+    }
+
+    virtual LONGLONG GetTimestamp(int frame)
+    {
+        return bufferCache[frame % MAX_NUM_CACHED_BUFFERS].timeStamp;
+    }
+
+    virtual LONGLONG GetDurationHNS()
+    {
+        return (LONGLONG)((1.0f / 60.0f) * S2HNS);
+    }
+
+    virtual int GetCaptureFrameIndex()
+    {
+        return captureFrameIndex;
+    }
 };
 #endif
 

@@ -22,5 +22,5 @@ public:
 
     virtual void SetOutputTexture(ID3D11Texture2D* outputTexture) { }
 
-    virtual int GetCaptureFrameIndex() { return 0; }
+    virtual int GetCaptureFrameIndex() = 0;
 };

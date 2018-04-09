@@ -65,7 +65,7 @@ public:
     DLLEXPORT void UpdateVideoRecordingFrame(ID3D11Texture2D* videoTexture);
 
     // Poses
-    DLLEXPORT void GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float UnityTimeS, int frameOffset, float timeOffsetS);
+    DLLEXPORT void GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float UnityTimeS, int frameOffset);
     DLLEXPORT void AddPoseToPoseCache(XMFLOAT3 position, XMFLOAT4 rotation, float time)
     {
         poseCache.AddPose(position, rotation, time);
@@ -130,8 +130,7 @@ private:
     {
         if (frameProvider != nullptr)
         {
-            //return (float)(0.0001f * frameProvider->GetDurationHNS() / 1000.0f) * frame;
-            return (float)(0.0001f * frameProvider->GetTimestamp(frame) / 1000.0f);
+            return (float)(0.0001f * frameProvider->GetDurationHNS() / 1000.0f) * frame;
         }
 
         return (1.0f / 30) * frame;

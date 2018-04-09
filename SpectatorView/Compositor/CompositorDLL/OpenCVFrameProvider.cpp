@@ -16,10 +16,27 @@ OpenCVFrameProvider::OpenCVFrameProvider()
         rgbaConversion[i * 2] = i;
         rgbaConversion[(i * 2) + 1] = i;
     }
+
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
+        bufferCache[i].timeStamp = 0;
+    }
+
+    captureFrameIndex = 0;
 }
 
 OpenCVFrameProvider::~OpenCVFrameProvider()
 {
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        delete[] bufferCache[i].buffer;
+    }
+}
+
+OpenCVFrameProvider::BufferCache& OpenCVFrameProvider::GetOldestBuffer()
+{
+    return bufferCache[(captureFrameIndex + 1) % MAX_NUM_CACHED_BUFFERS];
 }
 
 HRESULT OpenCVFrameProvider::Initialize(ID3D11ShaderResourceView* srv)
@@ -38,17 +55,26 @@ HRESULT OpenCVFrameProvider::Initialize(ID3D11ShaderResourceView* srv)
     HRESULT hr = E_PENDING;
     videoCapture = new cv::VideoCapture(CAMERA_ID);
 
-    videoCapture->open(CAMERA_ID);
-
-    // Attempt to update camera resolution to desired resolution.
-    // Note: This may fail, and your capture will resume at the camera's native resolution.
-    // In this case, the Update loop will print an error with the expected frame resolution.
-    videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    videoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
-
-    if (IsEnabled())
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
-        hr = S_OK;
+        ZeroMemory(bufferCache[i].buffer, FRAME_BUFSIZE);
+    }
+
+    captureFrameIndex = 0;
+
+    if (videoCapture->open(CAMERA_ID))
+    {
+        // Attempt to update camera resolution to desired resolution.
+        // This must be called after opening.
+        // Note: This may fail, and your capture will resume at the camera's native resolution.
+        // In this case, the Update loop will print an error with the expected frame resolution.
+        videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+        videoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+
+        if (IsEnabled())
+        {
+            hr = S_OK;
+        }
     }
 
     return hr;
@@ -64,7 +90,7 @@ bool OpenCVFrameProvider::IsEnabled()
     return false;
 }
 
-void OpenCVFrameProvider::Update()
+void OpenCVFrameProvider::Update(int compositeFrameIndex)
 {
     if (!IsEnabled() ||
         _colorSRV == nullptr ||
@@ -77,61 +103,46 @@ void OpenCVFrameProvider::Update()
     {
         if (videoCapture->grab())
         {
-            // Get frame time and duration.
             LARGE_INTEGER time;
             QueryPerformanceCounter(&time);
 
-            prevTimeStamp = latestTimeStamp;
-            latestTimeStamp = time.QuadPart;
-
-            if (prevTimeStamp != 0 && latestTimeStamp != 0)
+            if (videoCapture->retrieve(frame))
             {
-                frameDuration = ((latestTimeStamp - prevTimeStamp) * S2HNS) / freq.QuadPart;
+                latestTimeStamp = time.QuadPart;
+
+                double width = videoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
+                double height = videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT);
+
+                if (width != FRAME_WIDTH)
+                {
+                    OutputDebugString(L"ERROR: captured width does not equal FRAME_WIDTH.  Expecting: ");
+                    OutputDebugString(std::to_wstring(width).c_str());
+                    OutputDebugString(L"\n");
+                }
+
+                if (height != FRAME_HEIGHT)
+                {
+                    OutputDebugString(L"ERROR: captured height does not equal FRAME_HEIGHT.  Expecting: ");
+                    OutputDebugString(std::to_wstring(height).c_str());
+                    OutputDebugString(L"\n");
+                }
+
+                // Convert from rgb to rgba
+                mixChannels(&frame, 2, &rgbaFrame, 1, rgbaConversion, 4);
+
+                captureFrameIndex++;
+                BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
+                memcpy(buffer, rgbaFrame.data, FRAME_BUFSIZE);
+                bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = latestTimeStamp * S2HNS / freq.QuadPart;
             }
-
-            videoCapture->retrieve(frame);
-
-            double width = videoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
-            double height = videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT);
-
-            if (width != FRAME_WIDTH)
-            {
-                OutputDebugString(L"ERROR: captured width does not equal FRAME_WIDTH.  Expecting: ");
-                OutputDebugString(std::to_wstring(width).c_str());
-                OutputDebugString(L"\n");
-            }
-
-            if (height != FRAME_HEIGHT)
-            {
-                OutputDebugString(L"ERROR: captured height does not equal FRAME_HEIGHT.  Expecting: ");
-                OutputDebugString(std::to_wstring(height).c_str());
-                OutputDebugString(L"\n");
-            }
-
-            // Convert to rgba
-            std::lock_guard<std::mutex> lock(frameAccessLock);
-            mixChannels(&frame, 2, &rgbaFrame, 1, rgbaConversion, 4);
-            memcpy(latestBuffer, rgbaFrame.data, FRAME_BUFSIZE);
-            isFrameDirty = true;
         }
     });
 
-    if (isFrameDirty)
+    const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
+    if (buffer.buffer != nullptr)
     {
-        std::lock_guard<std::mutex> lock(frameAccessLock);
-        DirectXHelper::UpdateSRV(_device, _colorSRV, latestBuffer, FRAME_WIDTH * FRAME_BPP);
-        isFrameDirty = false;
+        DirectXHelper::UpdateSRV(_device, _colorSRV, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
     }
-}
-
-LONGLONG OpenCVFrameProvider::GetDurationHNS()
-{
-    if (frameDuration != 0)
-    {
-        return frameDuration;
-    }
-
-    return (LONGLONG)((1.0f / 30.0f) * S2HNS);
 }
 
 void OpenCVFrameProvider::Dispose()
@@ -141,6 +152,8 @@ void OpenCVFrameProvider::Dispose()
         videoCapture->release();
         videoCapture = nullptr;
     }
+
+    captureFrameIndex = 0;
 }
 #endif
 
