@@ -16,7 +16,7 @@
     <RootNamespace>Calibration</RootNamespace>
     <ProjectGuid>{70239410-43ff-4f2b-acbb-e640437f7289}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -51,13 +51,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include;</IncludePath>
+    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\..\..\Compositor\CompositorDLL;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include</IncludePath>
     <LibraryPath>$(KINECTSDK20_DIR)\lib\x64;$(LibraryPath);$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include;</IncludePath>
+    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\..\..\Compositor\CompositorDLL;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include</IncludePath>
     <LibraryPath>$(KINECTSDK20_DIR)\lib\x64;$(LibraryPath);$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>

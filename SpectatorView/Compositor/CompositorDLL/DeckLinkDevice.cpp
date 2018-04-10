@@ -95,11 +95,6 @@ DeckLinkDevice::~DeckLinkDevice()
     delete[] outputBuffer;
 }
 
-DeckLinkDevice::BufferCache& DeckLinkDevice::GetOldestBuffer()
-{
-    return bufferCache[(captureFrameIndex + 1) % MAX_NUM_CACHED_BUFFERS];
-}
-
 HRESULT    STDMETHODCALLTYPE DeckLinkDevice::QueryInterface(REFIID iid, LPVOID *ppv)
 {
     HRESULT result = E_NOINTERFACE;

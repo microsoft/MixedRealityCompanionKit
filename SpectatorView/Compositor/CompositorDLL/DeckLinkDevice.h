@@ -78,8 +78,6 @@ private:
     BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
     int captureFrameIndex;
 
-    BufferCache& GetOldestBuffer();
-
     bool dirtyFrame = true;
 
     ID3D11ShaderResourceView* _colorSRV = nullptr;

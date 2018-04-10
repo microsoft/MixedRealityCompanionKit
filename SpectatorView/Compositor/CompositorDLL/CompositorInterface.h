@@ -4,11 +4,6 @@
 #pragma once
 #include "stdafx.h"
 
-#if USE_ELGATO
-// Disable warnings in downloaded Elgato Filter code.
-#pragma warning (disable : 4091 )
-#endif
-
 #define DLLEXPORT __declspec(dllexport)
 
 #include "IFrameProvider.h"
@@ -43,7 +38,7 @@ public:
     DLLEXPORT void StopFrameProvider();
 
     DLLEXPORT LONGLONG GetTimestamp(int frame);
-	DLLEXPORT LONGLONG GetColorDuration();
+    DLLEXPORT LONGLONG GetColorDuration();
 
     DLLEXPORT bool OutputYUV()
     {

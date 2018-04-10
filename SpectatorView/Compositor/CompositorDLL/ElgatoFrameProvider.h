@@ -3,6 +3,8 @@
 
 #pragma once
 #if USE_ELGATO
+// Disable warnings in downloaded Elgato Filter code.
+#pragma warning (disable : 4091 )
 
 #include "DirectXHelper.h"
 #include "IVideoCaptureFilterTypes.h"
@@ -16,8 +18,7 @@
 #include <mmreg.h>
 #include <dvdmedia.h> 
 #include <bdaiface.h>
-//TODO: needed?
-//#include "qedit.h"
+#include "qedit.h"
 
 #include <atlcomcli.h>
 
@@ -44,35 +45,8 @@ template <class T> void SafeRelease(T **ppT)
         *ppT = NULL;
     }
 }
-
 class ElgatoFrameProvider : public IFrameProvider
 {
-public:
-    ElgatoFrameProvider();
-    ~ElgatoFrameProvider();
-
-    virtual HRESULT Initialize(ID3D11ShaderResourceView* colorSRV) override;
-    virtual LONGLONG GetTimestamp() override;
-
-    virtual LONGLONG GetDurationHNS() override;
-
-    virtual void Update() override;
-
-    virtual bool IsEnabled() override;
-
-    virtual void Dispose() override;
-
-    bool OutputYUV()
-    {
-        return true;
-    }
-
-    //TODO: Measure this on your setup.
-    virtual LONGLONG GetFrameDelayMS()
-    {
-        return 0;
-    }
-
 private:
     ID3D11ShaderResourceView* _colorSRV;
     ID3D11Device* _device;
@@ -104,6 +78,48 @@ private:
     IBaseFilter *pNullF = NULL;
     ElgatoSampleCallback *frameCallback = NULL;
     IElgatoVideoCaptureFilter6 *filter = NULL;
+
+public:
+    ElgatoFrameProvider();
+    ~ElgatoFrameProvider();
+
+    virtual HRESULT Initialize(ID3D11ShaderResourceView* colorSRV) override;
+    
+    virtual LONGLONG GetTimestamp(int frame)
+    {
+        if (frameCallback != nullptr)
+        {
+            return frameCallback->GetTimestamp(frame);
+        }
+
+        return INVALID_TIMESTAMP;
+    }
+
+    virtual LONGLONG GetDurationHNS()
+    {
+        return (LONGLONG)((1.0f / 30.0f) * S2HNS);
+    }
+
+    virtual int GetCaptureFrameIndex()
+    {
+        if (frameCallback != nullptr)
+        {
+            return frameCallback->GetCaptureFrameIndex();
+        }
+
+        return 0;
+    }
+
+    virtual void Update(int compositeFrameIndex) override;
+
+    virtual bool IsEnabled() override;
+
+    virtual void Dispose() override;
+
+    bool OutputYUV()
+    {
+        return true;
+    }
 };
 
 #endif

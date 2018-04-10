@@ -57,6 +57,14 @@ CalibrationApp::CalibrationApp() :
     }
 }
 
+CalibrationApp::~CalibrationApp()
+{
+    if (frameProvider != nullptr)
+    {
+        frameProvider->Dispose();
+    }
+}
+
 // Initialize the Direct3D resources required to run.
 void CalibrationApp::Initialize(HWND window, int width, int height)
 {
@@ -109,10 +117,20 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     frameProvider = new OpenCVFrameProvider();
 #endif
 
-    if (SUCCEEDED(frameProvider->Initialize(srv)))
+    HRESULT hr = E_PENDING;
+    while (!SUCCEEDED(hr))
     {
-        frameProvider->SetOutputTexture(convertedColorTexture);
+        // Must be done on the main thread.
+        hr = frameProvider->Initialize(srv);
+        if (FAILED(hr))
+        {
+            OutputDebugString(L"Failed to initialize frame provider, trying again.\n");
+            frameProvider->Dispose();
+            Sleep(100);
+        }
     }
+
+    frameProvider->SetOutputTexture(convertedColorTexture);
 
     yuv2rgbParameters.width = FRAME_WIDTH;
     yuv2rgbParameters.height = FRAME_HEIGHT;
@@ -140,18 +158,6 @@ void CalibrationApp::Update(DX::StepTimer const& timer)
 {
     prevKeyState = keyState;
     keyState = keyboard->GetState();
-
-    if (srv != nullptr && frameProvider != nullptr && !frameProvider->IsEnabled())
-    {
-        if (SUCCEEDED(frameProvider->Initialize(srv)))
-        {
-            frameProvider->SetOutputTexture(convertedColorTexture);
-        }
-    }
-    else
-    {
-        frameProvider->Update(frameProvider->GetCaptureFrameIndex());
-    }
 
     // Take calibration pictures at a predetermined interval.
     TakeCalibrationPictureAtInterval(timer);
@@ -538,6 +544,8 @@ void CalibrationApp::Render()
     // Get the latest camera frame.
     if (colorTexture != nullptr && frameProvider != nullptr && frameProvider->IsEnabled())
     {
+        frameProvider->Update(frameProvider->GetCaptureFrameIndex());
+
         if (frameProvider->OutputYUV())
         {
             // Convert camera's source yuv image to rgb.

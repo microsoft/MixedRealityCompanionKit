@@ -21,7 +21,7 @@ VideoEncoder::VideoEncoder(UINT frameWidth, UINT frameHeight, UINT frameStride, 
     videoEncodingFormat(MFVideoFormat_H264),
     isRecording(false)
 {
-  inputFormat = MFVideoFormat_NV12;
+    inputFormat = MFVideoFormat_NV12;
 }
 
 VideoEncoder::~VideoEncoder()
@@ -360,7 +360,6 @@ void VideoEncoder::StopRecording()
 
     // Clear any async frames.
     acceptQueuedFrames = false;
-    isRecording = false;
 
     std::mutex completion_mutex;
 
@@ -411,6 +410,8 @@ void VideoEncoder::StopRecording()
 
     sinkWriter->Finalize();
     SafeRelease(sinkWriter);
+
+    isRecording = false;
 }
 
 void VideoEncoder::QueueVideoFrame(byte* buffer, LONGLONG timestamp, LONGLONG duration)

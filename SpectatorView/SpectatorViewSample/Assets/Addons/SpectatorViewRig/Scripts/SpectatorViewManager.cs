@@ -54,7 +54,8 @@ namespace SpectatorView
         // Suggested default frame offsets for each frame provider using this camera/ capture card configuration:
         // DeckLink: 3
         // OpenCV: 6
-        // Elgato: TBD
+        // Elgato: 3
+        // Your frame offsets may be different depending on your camera and capture card.
         [Header("Timing")]
         [Tooltip("Number of frames of latency between camera capture and frame delivery.")]
         [Range(0, 10)]

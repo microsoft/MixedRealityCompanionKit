@@ -16,7 +16,11 @@ ElgatoFrameProvider::~ElgatoFrameProvider()
 
     isEnabled = false;
 
-    SafeRelease(&frameCallback);
+    if (frameCallback != NULL)
+    {
+        delete frameCallback;
+        frameCallback = NULL;
+    }
 }
 
 HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV)
@@ -42,17 +46,16 @@ HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV)
         OutputDebugString(L"Failed on InitGraph.\n");
     }
 
-    isEnabled = true;
-
     if (IsEnabled())
     {
+        isEnabled = true;
         hr = S_OK;
     }
 
     return hr;
 }
 
-void ElgatoFrameProvider::Update()
+void ElgatoFrameProvider::Update(int compositeFrameIndex)
 {
     if (!IsEnabled() ||
         _colorSRV == nullptr ||
@@ -62,31 +65,7 @@ void ElgatoFrameProvider::Update()
         return;
     }
     
-    frameCallback->UpdateSRV(_colorSRV);
-}
-
-LONGLONG ElgatoFrameProvider::GetTimestamp()
-{
-    if (frameCallback != nullptr)
-    {
-        return frameCallback->GetTimestamp();
-    }
-
-    return -1;
-}
-
-LONGLONG ElgatoFrameProvider::GetDurationHNS()
-{
-    if (frameCallback != nullptr)
-    {
-        LONGLONG duration = frameCallback->GetDurationHNS();
-        if (duration != 0)
-        {
-            return duration;
-        }
-    }
-
-    return (LONGLONG)((1.0f / 30.0f) * S2HNS);
+    frameCallback->UpdateSRV(_colorSRV, compositeFrameIndex);
 }
 
 bool ElgatoFrameProvider::IsEnabled()
@@ -105,8 +84,11 @@ void ElgatoFrameProvider::Dispose()
 
     isEnabled = false;
 
-    //TODO: check this
-    SafeRelease(&frameCallback);
+    if (frameCallback != NULL)
+    {
+        delete frameCallback;
+        frameCallback = NULL;
+    }
 }
 
 HRESULT ElgatoFrameProvider::InitGraph()

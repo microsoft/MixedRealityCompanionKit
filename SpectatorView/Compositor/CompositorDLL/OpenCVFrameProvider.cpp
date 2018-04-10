@@ -34,11 +34,6 @@ OpenCVFrameProvider::~OpenCVFrameProvider()
     }
 }
 
-OpenCVFrameProvider::BufferCache& OpenCVFrameProvider::GetOldestBuffer()
-{
-    return bufferCache[(captureFrameIndex + 1) % MAX_NUM_CACHED_BUFFERS];
-}
-
 HRESULT OpenCVFrameProvider::Initialize(ID3D11ShaderResourceView* srv)
 {
     if (IsEnabled())
@@ -133,7 +128,7 @@ void OpenCVFrameProvider::Update(int compositeFrameIndex)
                 captureFrameIndex++;
                 BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
                 memcpy(buffer, rgbaFrame.data, FRAME_BUFSIZE);
-                bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = latestTimeStamp * S2HNS / freq.QuadPart;
+                bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = (latestTimeStamp * S2HNS) / freq.QuadPart;
             }
         }
     });

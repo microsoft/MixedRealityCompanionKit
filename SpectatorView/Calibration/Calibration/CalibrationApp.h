@@ -60,6 +60,7 @@ class CalibrationApp : public DX::IDeviceNotify
 public:
 
     CalibrationApp();
+    ~CalibrationApp();
 
     // Initialization and management
     void Initialize(HWND window, int width, int height);

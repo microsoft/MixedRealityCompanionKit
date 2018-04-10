@@ -44,8 +44,6 @@ private:
     BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
     int captureFrameIndex = 0;
 
-    BufferCache& GetOldestBuffer();
-
 public:
     OpenCVFrameProvider();
     ~OpenCVFrameProvider();
