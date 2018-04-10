@@ -13,8 +13,4 @@ WindowsStoreApp/*
 Temp/*
 
 # dlls
-Assets/Addons/SpectatorViewRig/Plugins/WSA/x64/*
-Assets/Addons/SpectatorViewRig/Plugins/WSA/x86/*
-
 Assets/Addons/SpectatorViewRig/Plugins/x64/*
-Assets/Addons/SpectatorViewRig/Plugins/x86/*
