@@ -11,6 +11,7 @@ namespace SpectatorView
 {
     public class ShaderManager : SV_Singleton<ShaderManager>
     {
+#if UNITY_EDITOR
         #region DLLImports
         [DllImport("UnityCompositorInterface")]
         private static extern int GetFrameWidth();
@@ -246,4 +247,5 @@ namespace SpectatorView
         }
         #endregion
     }
+#endif
 }

@@ -7,8 +7,9 @@ using System;
 
 namespace SpectatorView
 {
-    public class Calibration : SpectatorView.SV_Singleton<Calibration>
+    public class Calibration : SV_Singleton<Calibration>
     {
+#if UNITY_EDITOR
         [Tooltip("Enable this checkbox if your camera is mounted below or to the left of your camera.")]
         public bool RotateCalibration = false;
         private bool prevRotateCalibration;
@@ -158,4 +159,5 @@ namespace SpectatorView
             }
         }
     }
+#endif
 }

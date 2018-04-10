@@ -167,8 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Alpha: 0.95
   FrameOffset: 3
-  AdditionalTimeOffsetSeconds: 0
-  SpectatorViewHoloLensIP: 10.89.160.96
+  SpectatorViewHoloLensIP: 
   frameProviderInitialized: 0
 --- !u!114 &114934227484146090
 MonoBehaviour:

@@ -42,6 +42,8 @@ if %returnValue% NEQ 0 (
 pause
 goto:eof
 
+REM Only copying x64 DLLs since Unity is now only an x64 executable.
+REM Spectator view DLLs are only meant to run in the editor.
 :CopyDLL
 ECHO.
 ECHO ===================================================
@@ -59,12 +61,6 @@ if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
 copy "%~dp0\x64\Release\UnityCompositorInterface.pdb" "%~1\Addons\SpectatorViewRig\Plugins\x64\"
 if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
 
-REM x86
-copy "%~dp0\Release\UnityCompositorInterface.dll" "%~1\Addons\SpectatorViewRig\Plugins\x86\"
-if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
-copy "%~dp0\Release\UnityCompositorInterface.pdb" "%~1\Addons\SpectatorViewRig\Plugins\x86\"
-if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
-
 
 REM Copy CompositorDLL
 ECHO.
@@ -74,22 +70,16 @@ copy /y "%~dp0\x64\Release\CompositorDLL.dll" "%~1\Addons\SpectatorViewRig\Plugi
 if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
 copy /y "%~dp0\x64\Release\CompositorDLL.pdb" "%~1\Addons\SpectatorViewRig\Plugins\x64\"
 if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
-
-copy /y "%~dp0\Release\CompositorDLL.dll" "%~1\Addons\SpectatorViewRig\Plugins\x86\"
-if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
-copy /y "%~dp0\Release\CompositorDLL.pdb" "%~1\Addons\SpectatorViewRig\Plugins\x86\"
-if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
 	
 	
 REM Copy OpenCV
-REM NOTE: x64 only unless built from source.
 REM NOTE: This copy can be removed if not using an OpenCV frame provider.
 ECHO.
 ECHO ---------------------------------------------------
 ECHO Copy OpenCV:
 copy /y "%~dp0\x64\Release\OpenCV*.dll" "%~1\Addons\SpectatorViewRig\Plugins\x64\"
 if !ERRORLEVEL! NEQ 0 ( set /a returnValue += 1 )
-	
+
 
 ECHO ===================================================
 
@@ -111,24 +101,9 @@ IF NOT EXIST "%~1\Addons\SpectatorViewRig\Plugins\" (
 	MKDIR "%~1\Addons\SpectatorViewRig\Plugins\"
 )
 
-IF NOT EXIST "%~1\Addons\SpectatorViewRig\Plugins\x86\" (
-	ECHO Creating Plugins x86 directory.
-	MKDIR "%~1\Addons\SpectatorViewRig\Plugins\x86\"
-)
-
 IF NOT EXIST "%~1\Addons\SpectatorViewRig\Plugins\x64\" (
 	ECHO Creating Plugins x64 directory.
 	MKDIR "%~1\Addons\SpectatorViewRig\Plugins\x64\"
-)
-
-IF NOT EXIST "%~1\Addons\SpectatorViewRig\Plugins\WSA\" (
-	ECHO Creating Plugins WSA directory.
-	MKDIR "%~1\Addons\SpectatorViewRig\Plugins\WSA\"
-)
-
-IF NOT EXIST "%~1\Addons\SpectatorViewRig\Plugins\WSA\x86\" (
-	ECHO Creating Plugins WSA x86 directory.
-	MKDIR "%~1\Addons\SpectatorViewRig\Plugins\WSA\x86\"
 )
 
 goto:eof

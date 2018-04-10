@@ -11,7 +11,7 @@ namespace SpectatorView
 {
     public enum AntiAliasLevel
     {
-        Zero = 0,
+        One = 1,
         Two = 2,
         Four = 4,
         Eight = 8
@@ -33,7 +33,7 @@ namespace SpectatorView
 
         [Header("Hologram resolution settings.")]
         public AntiAliasLevel antiAliasLevel = AntiAliasLevel.Four;
-        [Range(0, 16)]
+        [Range(1, 16)]
         public int anisotropicFilteringLevel = 16;
         public FilterMode textureFilterMode = FilterMode.Bilinear;
 
