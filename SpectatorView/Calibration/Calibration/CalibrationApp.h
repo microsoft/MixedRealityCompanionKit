@@ -161,6 +161,7 @@ private:
     DirectX::Keyboard::State prevKeyState;
 
     Microsoft::WRL::ComPtr<ID3D11PixelShader> yuv2rgbPS;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> forceOpaquePS;
 
     struct CONVERSION_PARAMETERS
     {

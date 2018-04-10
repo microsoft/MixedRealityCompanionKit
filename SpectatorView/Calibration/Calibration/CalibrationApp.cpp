@@ -109,7 +109,10 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     frameProvider = new OpenCVFrameProvider();
 #endif
 
-    frameProvider->Initialize(srv);
+    if (SUCCEEDED(frameProvider->Initialize(srv)))
+    {
+        frameProvider->SetOutputTexture(convertedColorTexture);
+    }
 
     yuv2rgbParameters.width = FRAME_WIDTH;
     yuv2rgbParameters.height = FRAME_HEIGHT;
@@ -140,11 +143,14 @@ void CalibrationApp::Update(DX::StepTimer const& timer)
 
     if (srv != nullptr && frameProvider != nullptr && !frameProvider->IsEnabled())
     {
-        frameProvider->Initialize(srv);
+        if (SUCCEEDED(frameProvider->Initialize(srv)))
+        {
+            frameProvider->SetOutputTexture(convertedColorTexture);
+        }
     }
     else
     {
-        frameProvider->Update();
+        frameProvider->Update(frameProvider->GetCaptureFrameIndex());
     }
 
     // Take calibration pictures at a predetermined interval.
@@ -550,7 +556,12 @@ void CalibrationApp::Render()
         else
         {
             // Render rgb texture directly.
-            spriteBatch->Begin(SpriteSortMode_Immediate);
+            spriteBatch->Begin(SpriteSortMode_Immediate,
+                nullptr, nullptr, nullptr, nullptr,
+                [=]() {
+                deviceResources->GetD3DDeviceContext()->PSSetShader(forceOpaquePS.Get(), nullptr, 0);
+            });
+            
             spriteBatch->Draw(srv, screenRect, &colorSourceRect,
                 Colors::White, 0.0f, XMFLOAT2(0, 0),
                 SpriteEffects::SpriteEffects_None);
@@ -640,10 +651,17 @@ void CalibrationApp::CreateDeviceDependentResources()
     auto blob = DX::ReadData(L"YUV2RGB.cso");
     HRESULT hr = device->CreatePixelShader(blob.data(), blob.size(),
         nullptr, yuv2rgbPS.ReleaseAndGetAddressOf());
-
     if FAILED(hr)
     {
         OutputDebugString(L"Error compiling yuv2rgb shader.");
+    }
+
+    blob = DX::ReadData(L"ForceOpaque.cso");
+    hr = device->CreatePixelShader(blob.data(), blob.size(),
+        nullptr, forceOpaquePS.ReleaseAndGetAddressOf());
+    if FAILED(hr)
+    {
+        OutputDebugString(L"Error compiling ForceOpaque shader.");
     }
 }
 
@@ -665,6 +683,7 @@ void CalibrationApp::OnDeviceLost()
     SafeRelease(srv);
 
     yuv2rgbPS.Reset();
+    forceOpaquePS.Reset();
 }
 
 void CalibrationApp::OnDeviceRestored()
