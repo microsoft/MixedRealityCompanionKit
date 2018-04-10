@@ -117,6 +117,7 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     frameProvider = new OpenCVFrameProvider();
 #endif
 
+    // Elgato does not initialize correctly on a background thread.
     if (USE_ELGATO)
     {
         HRESULT hr = E_PENDING;
@@ -164,10 +165,12 @@ void CalibrationApp::Update(DX::StepTimer const& timer)
     {
         if (frameProvider != nullptr && !frameProvider->IsEnabled())
         {
-            if (SUCCEEDED(frameProvider->Initialize(srv)))
+            if (FAILED(frameProvider->Initialize(srv)))
             {
-                frameProvider->SetOutputTexture(convertedColorTexture);
+                return;
             }
+
+            frameProvider->SetOutputTexture(convertedColorTexture);
         }
     }
 

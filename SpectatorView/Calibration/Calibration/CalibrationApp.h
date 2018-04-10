@@ -42,7 +42,12 @@
 #include "opencv2/opencv.hpp"
 
 //TODO: Update with the 3.x version of OpenCV you are using.
+#if _DEBUG
+#pragma comment(lib, "opencv_world341d")
+#endif
+#if !_DEBUG
 #pragma comment(lib, "opencv_world341")
+#endif
 
 // For REST calls
 using namespace web::json;
