@@ -117,20 +117,21 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     frameProvider = new OpenCVFrameProvider();
 #endif
 
-    HRESULT hr = E_PENDING;
-    while (!SUCCEEDED(hr))
+    if (USE_ELGATO)
     {
-        // Must be done on the main thread.
-        hr = frameProvider->Initialize(srv);
-        if (FAILED(hr))
+        HRESULT hr = E_PENDING;
+        while (!SUCCEEDED(hr))
         {
-            OutputDebugString(L"Failed to initialize frame provider, trying again.\n");
-            frameProvider->Dispose();
-            Sleep(100);
+            // Must be done on the main thread.
+            hr = frameProvider->Initialize(srv);
+            if (FAILED(hr))
+            {
+                OutputDebugString(L"Failed to initialize frame provider, trying again.\n");
+                frameProvider->Dispose();
+                Sleep(100);
+            }
         }
     }
-
-    frameProvider->SetOutputTexture(convertedColorTexture);
 
     yuv2rgbParameters.width = FRAME_WIDTH;
     yuv2rgbParameters.height = FRAME_HEIGHT;
@@ -158,6 +159,17 @@ void CalibrationApp::Update(DX::StepTimer const& timer)
 {
     prevKeyState = keyState;
     keyState = keyboard->GetState();
+
+    if (!USE_ELGATO)
+    {
+        if (frameProvider != nullptr && !frameProvider->IsEnabled())
+        {
+            if (SUCCEEDED(frameProvider->Initialize(srv)))
+            {
+                frameProvider->SetOutputTexture(convertedColorTexture);
+            }
+        }
+    }
 
     // Take calibration pictures at a predetermined interval.
     TakeCalibrationPictureAtInterval(timer);
