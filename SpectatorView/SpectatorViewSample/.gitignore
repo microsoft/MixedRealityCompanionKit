@@ -11,6 +11,7 @@ ipch/*
 App/*
 WindowsStoreApp/*
 Temp/*
+build*/*
 
 # dlls
 Assets/Addons/SpectatorViewRig/Plugins/x64/*
