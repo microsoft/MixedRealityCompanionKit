@@ -158,6 +158,6 @@ namespace SpectatorView
                 }
             }
         }
-    }
 #endif
+    }
 }

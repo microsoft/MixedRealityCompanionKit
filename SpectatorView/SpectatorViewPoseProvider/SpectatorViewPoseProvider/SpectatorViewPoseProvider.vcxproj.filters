@@ -65,6 +65,7 @@
     </ClCompile>
     <ClCompile Include="SpectatorViewPoseProviderMain.cpp" />
     <ClCompile Include="SpectatorViewSocket.cpp" />
+    <ClCompile Include="AnchorImporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -80,6 +81,7 @@
     </ClInclude>
     <ClInclude Include="SpectatorViewPoseProviderMain.h" />
     <ClInclude Include="SpectatorViewSocket.h" />
+    <ClInclude Include="AnchorImporter.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\VertexShader.hlsl">

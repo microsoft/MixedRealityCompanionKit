@@ -65,6 +65,9 @@ namespace SpectatorView
         [Tooltip("IP of the spectator view device.")]
         public string SpectatorViewHoloLensIP;
 
+        [Tooltip("IP of the HoloLens that created the anchor in the shared experience you are spectating.")]
+        public string AnchorOwnerIP;
+
         Vector3 pos = Vector3.zero;
         Quaternion rot = Quaternion.identity;
 

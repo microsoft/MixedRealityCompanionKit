@@ -246,6 +246,6 @@ namespace SpectatorView
             }
         }
         #endregion
-    }
 #endif
+    }
 }

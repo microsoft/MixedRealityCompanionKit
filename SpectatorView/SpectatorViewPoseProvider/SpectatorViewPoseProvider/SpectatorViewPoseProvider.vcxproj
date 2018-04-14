@@ -144,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppView.h" />
+    <ClInclude Include="AnchorImporter.h" />
     <ClInclude Include="SpectatorViewPoseProviderMain.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
@@ -157,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppView.cpp" />
+    <ClCompile Include="AnchorImporter.cpp" />
     <ClCompile Include="SpectatorViewPoseProviderMain.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Common\CameraResources.cpp" />
