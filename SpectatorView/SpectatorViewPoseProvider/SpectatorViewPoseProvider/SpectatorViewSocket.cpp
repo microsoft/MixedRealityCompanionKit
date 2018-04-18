@@ -35,10 +35,7 @@ SpectatorViewSocket::~SpectatorViewSocket()
 
 void SpectatorViewSocket::SetCoordinateSystem(SpatialCoordinateSystem^ cs)
 {
-    if (coordinateSystem == nullptr)
-    {
-        coordinateSystem = cs;
-    }
+    coordinateSystem = cs;
 }
 
 bool SpectatorViewSocket::Listen()

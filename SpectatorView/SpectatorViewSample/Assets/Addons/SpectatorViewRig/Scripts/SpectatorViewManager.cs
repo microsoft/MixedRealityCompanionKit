@@ -128,14 +128,49 @@ namespace SpectatorView
             ResetSV();
         }
 
+        private float UpdateSVTransformFromParentScale(float inputComponent, float scale)
+        {
+            // Undefined, so just return the input component.
+            if (scale == 0)
+            {
+                return inputComponent;
+            }
+
+            return inputComponent / scale;
+        }
+
         void Update()
         {
             GetPose(out pos, out rot, Time.time, FrameOffset);
 
             // Update local transform with pose data from the network.
-            // Use local transform, so we can attach this object to a parent and position anywhere in our scene.
-            gameObject.transform.localPosition = pos;
-            gameObject.transform.localRotation = rot;
+            // Use local transform, so we can child this gameobject to the scene anchor.
+            try
+            {
+                if (gameObject.transform.parent != null &&
+                    gameObject.transform.parent.lossyScale != Vector3.one)
+                {
+                    // If the object we are anchored to has a non-identity scale, 
+                    // the anchor we get from the pose provider will be off by the scale factor.
+                    Vector3 scale = gameObject.transform.parent.lossyScale;
+                    gameObject.transform.localPosition = new Vector3(
+                        UpdateSVTransformFromParentScale(pos.x, scale.x),
+                        UpdateSVTransformFromParentScale(pos.y, scale.y),
+                        UpdateSVTransformFromParentScale(pos.z, scale.z)
+                        );
+                }
+                else
+                {
+                    // Otherwise, our scale is one and we can set the position as we got it.
+                    gameObject.transform.localPosition = pos;
+                }
+
+                gameObject.transform.localRotation = rot;
+            }
+            catch(Exception ex)
+            {
+                Debug.LogWarning("Error getting position and rotation from SV: " + ex.Message);
+            }
 
             if (!frameProviderInitialized)
             {

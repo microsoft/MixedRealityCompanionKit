@@ -142,13 +142,25 @@ namespace SimpleSharing
 #region Send Client Data to Server
         private Vector3 GetVectorInAnchorSpace(Vector3 input)
         {
-            // Assumes anchor is attached to this gameobject.
+            // Get rotation relative to the shared anchor's rotation if available.
+            if (AnchorManager.Instance != null && AnchorManager.Instance.objectToAnchor != null)
+            {
+                return AnchorManager.Instance.objectToAnchor.transform.InverseTransformPoint(input);
+            }
+
+            // Otherwise get position relative to this gameObject, which shares a transform to the AnchorManager.
             return transform.InverseTransformPoint(input);
         }
 
         private Quaternion GetQuaternionInAnchorSpace(Quaternion input)
         {
-            // Assumes anchor is attached to this gameobject.
+            // Get rotation relative to the shared anchor's rotation if available.
+            if (AnchorManager.Instance != null && AnchorManager.Instance.objectToAnchor != null)
+            {
+                return Quaternion.Inverse(AnchorManager.Instance.objectToAnchor.transform.rotation) * input;
+            }
+
+            // Otherwise get rotation relative to this gameObject, which shares a transform to the AnchorManager.
             return Quaternion.Inverse(transform.rotation) * input;
         }
 

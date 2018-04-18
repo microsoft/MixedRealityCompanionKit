@@ -158,7 +158,7 @@ namespace SimpleSharing
             HostName networkHost = new HostName(AnchorOwnerIP);
             networkConnection = new StreamSocket();
 
-            //TODO: this is failing to connect:
+            //NOTE: This fails to connect when using Unity 2017.3, but works with Unity 2017.4.
             IAsyncAction outstandingAction = networkConnection.ConnectAsync(networkHost, SendConnectionPort.ToString());
             AsyncActionCompletedHandler aach = new AsyncActionCompletedHandler(RcvNetworkConnectedHandler);
             outstandingAction.Completed = aach;

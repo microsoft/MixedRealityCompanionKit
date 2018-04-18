@@ -27,6 +27,9 @@ SpectatorViewPoseProviderMain::SpectatorViewPoseProviderMain(const std::shared_p
     // Register to be notified if the device is lost or recreated.
     m_deviceResources->RegisterDeviceNotify(this);
 
+    //TODO: React to socket input:
+    anchorImporter.ConnectToServer("10.89.160.72");
+
     create_task([=]
     {
         while (true)
@@ -176,8 +179,6 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
     }
 #endif
 
-    SVSocket.SendPose(currentCoordinateSystem);
-
     m_timer.Tick([&] ()
     {
         //
@@ -187,6 +188,24 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
         // but if you change the StepTimer to use a fixed time step this code will
         // run as many times as needed to get to the current step.
         //
+
+        //Send pose relative to shared anchor's coordinate system.
+        SpatialCoordinateSystem^ anchorCoordSystem = anchorImporter.GetSharedAnchorCoordinateSystem();
+        if (anchorCoordSystem != nullptr &&
+            anchorCoordSystem->TryGetTransformTo(currentCoordinateSystem) != nullptr)
+        {
+            SVSocket.SendPose(anchorCoordSystem);
+        }
+        else
+        {
+            if (anchorCoordSystem != nullptr &&
+                anchorCoordSystem->TryGetTransformTo(currentCoordinateSystem) == nullptr)
+            {
+                OutputDebugString(L"Anchor established, but cannot be localized.\n");
+            }
+
+            SVSocket.SendPose(currentCoordinateSystem);
+        }
 
 #ifdef DRAW_SAMPLE_CONTENT
         m_spinningCubeRenderer->Update(m_timer);

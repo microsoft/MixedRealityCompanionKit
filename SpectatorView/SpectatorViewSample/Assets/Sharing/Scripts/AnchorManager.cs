@@ -44,6 +44,11 @@ namespace SimpleSharing
         private AnchorNetworkTransmitter networkTransmitter;
 
         /// <summary>
+        /// The object to attach the anchor to when created or imported.
+        /// </summary>
+        public GameObject objectToAnchor;
+
+        /// <summary>
         /// The anchorData to import.
         /// </summary>
         private byte[] anchorData = null;
@@ -71,6 +76,13 @@ namespace SimpleSharing
         public bool DownloadingAnchor { get; private set; }
 
 
+        private void Awake()
+        {
+            if (objectToAnchor == null)
+            {
+                objectToAnchor = gameObject;
+            }
+        }
 
         private void Start()
         {
@@ -87,12 +99,6 @@ namespace SimpleSharing
                 }
             }
 #endif
-
-            WorldAnchor anchor = GetComponent<WorldAnchor>();
-            if (anchor == null)
-            {
-                gameObject.AddComponent<WorldAnchor>();
-            }
 
             networkTransmitter = AnchorNetworkTransmitter.Instance;
             networkTransmitter.dataReadyEvent += NetworkTransmitter_dataReadyEvent;
@@ -136,11 +142,12 @@ namespace SimpleSharing
             AnchorNetworkTransmitter.Instance.SetData(null);
             AnchorName = Guid.NewGuid().ToString();
 
+            Debug.Log("Creating anchor for " + objectToAnchor.name);
             WorldAnchorTransferBatch watb = new WorldAnchorTransferBatch();
-            WorldAnchor worldAnchor = gameObject.GetComponent<WorldAnchor>();
+            WorldAnchor worldAnchor = objectToAnchor.GetComponent<WorldAnchor>();
             if (worldAnchor == null)
             {
-                worldAnchor = gameObject.AddComponent<WorldAnchor>();
+                worldAnchor = objectToAnchor.AddComponent<WorldAnchor>();
             }
 
             Debug.Log("exporting " + AnchorName);
@@ -187,13 +194,13 @@ namespace SimpleSharing
                 string first = wat.GetAllIds()[0];
                 Debug.Log("Anchor name: " + first);
 
-                WorldAnchor existingAnchor = gameObject.GetComponent<WorldAnchor>();
+                WorldAnchor existingAnchor = objectToAnchor.GetComponent<WorldAnchor>();
                 if (existingAnchor != null)
                 {
                     DestroyImmediate(existingAnchor);
                 }
 
-                wat.LockObject(first, gameObject);
+                wat.LockObject(first, objectToAnchor);
 
                 ImportInProgress = false;
             }
@@ -232,7 +239,7 @@ namespace SimpleSharing
             {
                 Debug.Log("Create anchor failed " + status + " " + exportingAnchorBytes.Count);
                 exportingAnchorBytes.Clear();
-                DestroyImmediate(gameObject.GetComponent<WorldAnchor>());
+                DestroyImmediate(objectToAnchor.GetComponent<WorldAnchor>());
                 CreateAnchor();
             }
         }

@@ -26,6 +26,16 @@ struct SVPose
 
 struct ClientToServerPacket
 {
-    // to find RTT
+    // Find RTT
     LONGLONG sentTime = 0;
+
+    //TODO:
+    // Connect to anchor owner if:
+    // 1. We do not have an anchor, or 
+    // 2. The anchor owner's IP has changed.
+    //char* anchorOwnwerIP[15];
+    //int anchorPort;
+
+    // Set to true if anchor has changed and we need to download a new one from the existing owner.
+    //bool forceAnchorReconnect;
 };

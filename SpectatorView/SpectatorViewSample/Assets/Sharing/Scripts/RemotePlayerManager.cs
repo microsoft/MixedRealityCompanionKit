@@ -24,7 +24,17 @@ namespace SimpleSharing
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.transform.localScale = Vector3.one * 0.2f;
             go.name = "RemotePlayer_" + connectionID.ToString();
-            go.transform.SetParent(gameObject.transform);
+
+            // Child remote players to the shared anchored object if available.
+            if (AnchorManager.Instance != null && AnchorManager.Instance.objectToAnchor != null)
+            {
+                go.transform.SetParent(AnchorManager.Instance.objectToAnchor.transform);
+            }
+            else
+            {
+                // Otherwise child remote players to this gameObject, which shares a transform to the AnchorManager.
+                go.transform.SetParent(gameObject.transform);
+            }
 
             // All remote interaction will be keyed off of the connectionID.
             remotePlayers.Add(connectionID, go);

@@ -17,6 +17,7 @@
 #include "Common\StepTimer.h"
 
 #include "SpectatorViewSocket.h"
+#include "AnchorImporter.h"
 
 #ifdef DRAW_SAMPLE_CONTENT
 #include "Content\SpinningCubeRenderer.h"
@@ -101,5 +102,6 @@ namespace SpectatorViewPoseProvider
         Windows::Foundation::EventRegistrationToken                     m_locatabilityChangedToken;
 
         SpectatorViewSocket SVSocket;
+        AnchorImporter anchorImporter;
     };
 }
