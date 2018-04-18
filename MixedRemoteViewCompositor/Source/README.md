@@ -10,6 +10,7 @@ This folder contatins all source files required to compile the Win32 and UWP com
 
 ### Build Instructions
 Load the MixedRemoteViewCompositor.sln file from the MixedRemoteViewCompositor/PluginSource folder. There should be three projects listed in the Solution Explorer. 
+***Note:** This solution requires building against the 10.0.10586 version of the Windows SDK, which will not be installed by default when Visual Studio 2017 is installed on a fresh workstation running Fall Creators Update or newer*
 
 ![](../images/Solution.png)
 
