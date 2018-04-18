@@ -20,6 +20,8 @@ namespace SimpleSharing
         [Header("IP of the local PC running this instance of Unity.")]
         public string ServerIP;
 
+        public string AnchorName { get; private set; }
+
         int channelId;
         int socketId;
         int connectionId;
@@ -32,6 +34,7 @@ namespace SimpleSharing
 
         void Start()
         {
+            AnchorName = string.Empty;
             NetworkTransport.Init();
 
             ConnectionConfig config = new ConnectionConfig();
@@ -97,21 +100,24 @@ namespace SimpleSharing
                     // Find the type of message we have received, and deserialize network data to properties in teh NetworkData class.
                     NetworkData.MessageType type = networkPoseData.DeserializeData(recBuffer, dataSize);
 
-                    if (type == NetworkData.MessageType.Pose)
+                    switch (type)
                     {
-                        if (RemotePlayerManager.Instance != null)
-                        {
-                            RemotePlayerManager.Instance.UpdateRemotePlayer(recConnectionId, networkPoseData.Position, networkPoseData.Rotation);
-                        }
-                    }
-                    if (type == NetworkData.MessageType.AirTap)
-                    {
-                        if (RemotePlayerManager.Instance != null)
-                        {
-                            RemotePlayerManager.Instance.PerformRemoteAirTap(recConnectionId, networkPoseData.AirTapLocation, networkPoseData.AirTapDirection, networkPoseData.AirTapHitLocation);
-                        }
-                    }
-
+                        case NetworkData.MessageType.Pose:
+                            if (RemotePlayerManager.Instance != null)
+                            {
+                                RemotePlayerManager.Instance.UpdateRemotePlayer(recConnectionId, networkPoseData.Position, networkPoseData.Rotation);
+                            }
+                            break;
+                        case NetworkData.MessageType.AirTap:
+                            if (RemotePlayerManager.Instance != null)
+                            {
+                                RemotePlayerManager.Instance.PerformRemoteAirTap(recConnectionId, networkPoseData.AirTapLocation, networkPoseData.AirTapDirection, networkPoseData.AirTapHitLocation);
+                            }
+                            break;
+                        case NetworkData.MessageType.AnchorName:
+                            AnchorName = networkPoseData.AnchorName;
+                            break;
+                    };
                     break;
                 case NetworkEventType.DisconnectEvent:
                     if (RemotePlayerManager.Instance != null)
@@ -181,6 +187,15 @@ namespace SimpleSharing
                 GetVectorInAnchorSpace(position),
                 GetVectorInAnchorSpace(rotation),
                 GetVectorInAnchorSpace(hitLocation));
+
+            SendMessage(networkData);
+        }
+
+        public void SendAnchorName(String anchorName)
+        {
+            // Use a different NetworkData instance so we do not overwrite our pose data.
+            NetworkData networkData = new NetworkData();
+            networkData.SerializeAnchorName(anchorName);
 
             SendMessage(networkData);
         }

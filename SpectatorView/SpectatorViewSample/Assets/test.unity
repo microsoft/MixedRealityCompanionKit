@@ -406,6 +406,11 @@ Prefab:
       propertyPath: objectToAnchor
       value: 
       objectReference: {fileID: 152278778}
+    - target: {fileID: 114946369477324342, guid: 4b7061699b99fe543a7eb45e1e7861eb,
+        type: 2}
+      propertyPath: anchorName
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114105315919278770, guid: 4b7061699b99fe543a7eb45e1e7861eb, type: 2}
     - {fileID: 114859525842351264, guid: 4b7061699b99fe543a7eb45e1e7861eb, type: 2}

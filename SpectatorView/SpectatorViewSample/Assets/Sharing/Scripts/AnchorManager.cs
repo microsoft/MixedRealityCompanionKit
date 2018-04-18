@@ -233,6 +233,9 @@ namespace SimpleSharing
                 AnchorNetworkTransmitter.Instance.SetData(anchorData);
                 Debug.Log("Anchor ready " + exportingAnchorBytes.Count);
                 AnchorNetworkTransmitter.Instance.ConfigureAsServer();
+                // Let server know our anchor is ready.
+                SharingManager.Instance.SendAnchorName(AnchorName);
+                InvokeRepeating("SendAnchorName", 5, 5);
                 AnchorEstablished = true;
             }
             else
@@ -242,6 +245,22 @@ namespace SimpleSharing
                 DestroyImmediate(objectToAnchor.GetComponent<WorldAnchor>());
                 CreateAnchor();
             }
+        }
+
+        // Periodically tell the server our anchor name.
+        // Only sending the name once may cause our server to miss the name if the server was started after the anchor was created.
+        //NOTE: You may not need to do this if you are using UNET's HLAPI syncvars in your networking stack.
+        private void SendAnchorName()
+        {
+            if (AnchorEstablished)
+            {
+                SharingManager.Instance.SendAnchorName(AnchorName);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            CancelInvoke("SendAnchorName");
         }
 
     }

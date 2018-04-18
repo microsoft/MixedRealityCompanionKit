@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // To keep spectator view and the shared experience networking stack independent, some data will need to be shared in this adapter.
+// Your version of this file may be different depending on your networking stack, but the data that needs to be shared will be the same.
+
 public class SharingToSVAdapter : MonoBehaviour
 {
+#if UNITY_EDITOR
     [Header("Scene Objects")]
     [Tooltip("The SpectatorViewManager gameobject.")]
     public GameObject SpectatorViewGO;
@@ -23,6 +26,7 @@ public class SharingToSVAdapter : MonoBehaviour
     [Tooltip("The IP of the HoloLens in the shared experience that is currently sharing an anchor.")]
     public string AnchorOwnderIP;
 
+    private string previousAnchorName = string.Empty;
 
     void Start()
     {
@@ -40,6 +44,36 @@ public class SharingToSVAdapter : MonoBehaviour
 
     void Update()
     {
-
+        if (CheckForUpdatedAnchor())
+        {
+            //TODO: Send a message to the SVPoseProvider that we need to import the new anchor.
+        }
     }
+
+    // Check if our anchor has changed so we can react to it in the SVPoseProvider.
+    //NOTE: You may choose to instead use a syncvar with a hook if that works better in your network stack.
+    bool CheckForUpdatedAnchor()
+    {
+        if (SimpleSharing.SharingManager.Instance != null)
+        {
+            string anchorName = SimpleSharing.SharingManager.Instance.AnchorName;
+            if (anchorName != previousAnchorName)
+            {
+                Debug.Log("We have a new anchor: " + anchorName);
+                previousAnchorName = anchorName;
+
+                // We got a null anchor, do not update the remote anchor.
+                if (anchorName.Trim() == string.Empty)
+                {
+                    return false;
+                }
+
+                // Update the remote anchor.
+                return true;
+            }
+        }
+
+        return false;
+    }
+#endif
 }

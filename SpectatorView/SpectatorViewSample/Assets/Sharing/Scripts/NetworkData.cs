@@ -2,8 +2,10 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 
 // If you want to add more network message types:
@@ -21,6 +23,7 @@ namespace SimpleSharing
         {
             Pose = 0,
             AirTap = 1,
+            AnchorName = 2,
         };
 
         int WriteHeader(MessageType type)
@@ -64,6 +67,13 @@ namespace SimpleSharing
         }
         #endregion
 
+        #region AnchorName Properties
+        public String AnchorName
+        {
+            get; private set;
+        }
+        #endregion
+
         #region Serialize Helpers
         private void SerializeVector(Vector3 input, ref int dstOffset)
         {
@@ -101,6 +111,30 @@ namespace SimpleSharing
             srcOffset += 4 * sizeof(float);
 
             return new Quaternion(x, y, z, w);
+        }
+
+        private void SerializeString(String input, ref int dstOffset)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(input);
+
+            // First write string length so we can deserialize.
+            Buffer.BlockCopy(BitConverter.GetBytes(bytes.Length), 0, buffer, dstOffset, sizeof(Int32));
+            dstOffset += sizeof(Int32);
+
+            Buffer.BlockCopy(bytes, 0, buffer, dstOffset, bytes.Length);
+            dstOffset += input.Length;
+        }
+
+        private string DeserializeString(ref int srcOffset)
+        {
+            Int32 length = BitConverter.ToInt32(buffer, srcOffset);
+            srcOffset += sizeof(Int32);
+
+            byte[] buf = new byte[length];
+            Buffer.BlockCopy(buffer, srcOffset, buf, 0, length);
+
+            srcOffset += length;
+            return Encoding.ASCII.GetString(buf);
         }
         #endregion
 
@@ -150,6 +184,22 @@ namespace SimpleSharing
         }
         #endregion
 
+        #region AnchorName
+        public int SerializeAnchorName(String name)
+        {
+            int bufferOffset = WriteHeader(MessageType.AnchorName);
+            SerializeString(name, ref bufferOffset);
+
+            return bufferOffset;
+        }
+
+        private void DeSerializeAnchorName()
+        {
+            int bufferOffset = 0;
+            AnchorName = DeserializeString(ref bufferOffset);
+        }
+        #endregion
+
         public MessageType DeserializeData(byte[] input, int size)
         {
             MessageType header = (MessageType)BitConverter.ToInt32(input, 0);
@@ -171,6 +221,9 @@ namespace SimpleSharing
                     break;
                 case MessageType.AirTap:
                     DeSerializeAirTap();
+                    break;
+                case MessageType.AnchorName:
+                    DeSerializeAnchorName();
                     break;
             };
 
