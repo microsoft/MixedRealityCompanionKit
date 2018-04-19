@@ -54,14 +54,10 @@ namespace SpectatorView
         public float Alpha = 0.95f;
         private float prevAlpha;
 
-        // If the hologram texture moves earlier than the color texture, choose a lower value.
-        // If the color texture moves earlier than the hologram texture, choose a higher value.
+        // If the hologram texture moves earlier than the color texture, choose a higher value.
+        // If the color texture moves earlier than the hologram texture, choose a lower value.
         // 
-        // Default frame offset was found with a Canon 5D MkIII using a Blackmagic DeckLink Intensity Pro 4K or Elgato HD 60S.
-        // Suggested default frame offsets for each frame provider using this camera/ capture card configuration:
-        // DeckLink: 3
-        // OpenCV: 6
-        // Elgato: 3
+        // Default frame offset was found with a Canon 5D MkIII using a Blackmagic DeckLink Intensity Pro 4K.
         // Your frame offsets may be different depending on your camera and capture card.
         [Header("Timing")]
         [Tooltip("Number of frames of latency between camera capture and frame delivery.")]

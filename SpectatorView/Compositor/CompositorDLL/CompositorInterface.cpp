@@ -149,9 +149,6 @@ void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float 
     {
         // Compensate for camera capture latency in seconds.
         poseTime -= (float)(0.0001f * (frameOffset * (float)frameProvider->GetDurationHNS()) / 1000.0f);
-
-        // Compensate for initial SV pose offset.
-        poseTime -= 0.016f;
     }
 
     if (captureFrameIndex <= 0) // No frames captured yet, let's use the very latest camera transform.

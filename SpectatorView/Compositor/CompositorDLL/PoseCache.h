@@ -106,7 +106,6 @@ public:
             float lerpVal = (poseTime - prev.TimeStamp) / (next.TimeStamp - prev.TimeStamp);
             if (lerpVal > 1) { lerpVal = 1; }
             if (lerpVal < 0) { lerpVal = 0; }
-            lerpVal = 1 - lerpVal;
 
             XMStoreFloat3(&position, 
                 XMVectorLerp(XMLoadFloat3(&prev.Position), XMLoadFloat3(&next.Position), lerpVal)

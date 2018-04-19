@@ -168,8 +168,7 @@ void SpectatorViewSocket::SendPose(SpatialCoordinateSystem^ cs)
     {
         if (connectionEstablished)
         {
-            // Find a pose at least 16 ms in the past to guarantee that it isn't a predicted pose.
-            GetPose(cs, -16 * MS2NS);
+            GetPose(cs, 0);
             if (!tcp.SendData((byte*)&currentPose, sizeof(currentPose)))
             {
                 connectionEstablished = false;

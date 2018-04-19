@@ -166,7 +166,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Alpha: 0.95
-  FrameOffset: 3
+  FrameOffset: 4
   SpectatorViewHoloLensIP: 
   AnchorOwnerIP: 
   AnchorPort: 11000
