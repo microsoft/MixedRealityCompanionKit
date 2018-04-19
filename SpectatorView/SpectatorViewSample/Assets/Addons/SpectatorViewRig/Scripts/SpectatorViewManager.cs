@@ -198,9 +198,22 @@ namespace SpectatorView
             return new Quaternion(q.x * f, q.y * f, q.z * f, q.w * f);
         }
 
+        void ValidatePose(ref Vector3 pos, ref Quaternion rot)
+        {
+            // Unity will fail if position values are too small.
+            float epsilon = 0.00001f;
+            if (Mathf.Abs(pos.x) < epsilon) { pos.x = 0; }
+            if (Mathf.Abs(pos.y) < epsilon) { pos.y = 0; }
+            if (Mathf.Abs(pos.z) < epsilon) { pos.z = 0; }
+
+            // Unity will fail if a transform's rotation is not normalized.
+            rot = GetNormalizedQuaternion(rot);
+        }
+
         void Update()
         {
             GetPose(out pos, out rot, Time.time, FrameOffset);
+            ValidatePose(ref pos, ref rot);
 
             // Update local transform with pose data from the network.
             // Use local transform, so we can child this gameobject to the scene anchor.
@@ -224,7 +237,7 @@ namespace SpectatorView
                     gameObject.transform.localPosition = pos;
                 }
 
-                gameObject.transform.localRotation = GetNormalizedQuaternion(rot);
+                gameObject.transform.localRotation = rot;
             }
             catch(Exception ex)
             {

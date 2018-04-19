@@ -27,7 +27,7 @@ struct ClientToServerPacket
     // 1. We do not have an anchor 
     // 2. The anchor owner's IP has changed.
     // 3. The anchor's name has changed.
-    // 3. A force reconnect message has been sent.
+    // 4. A force reconnect message has been sent.
     char anchorOwnerIP[15];
     int anchorIPLength;
     int anchorPort;
