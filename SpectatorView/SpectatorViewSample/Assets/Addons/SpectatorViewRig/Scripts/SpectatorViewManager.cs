@@ -62,7 +62,7 @@ namespace SpectatorView
         [Header("Timing")]
         [Tooltip("Number of frames of latency between camera capture and frame delivery.")]
         [Range(0, 10)]
-        public int FrameOffset = 3;
+        public int FrameOffset = 4;
 
         [Header("Connection")]
         [Tooltip("IP of the spectator view device.")]
@@ -191,6 +191,13 @@ namespace SpectatorView
             return inputComponent / scale;
         }
 
+        // Unity requires quaternions to be normalized.
+        Quaternion GetNormalizedQuaternion(Quaternion q)
+        {
+            float f = 1.0f / Mathf.Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+            return new Quaternion(q.x * f, q.y * f, q.z * f, q.w * f);
+        }
+
         void Update()
         {
             GetPose(out pos, out rot, Time.time, FrameOffset);
@@ -217,7 +224,7 @@ namespace SpectatorView
                     gameObject.transform.localPosition = pos;
                 }
 
-                gameObject.transform.localRotation = rot;
+                gameObject.transform.localRotation = GetNormalizedQuaternion(rot);
             }
             catch(Exception ex)
             {

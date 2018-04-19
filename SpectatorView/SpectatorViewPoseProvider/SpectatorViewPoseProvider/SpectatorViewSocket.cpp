@@ -20,7 +20,7 @@ SpectatorViewSocket::SpectatorViewSocket()
         {
             tcp.CreateServerListener();
 
-            // blocks, so this can be safely looped without sleeping.
+            // Blocks, so this can be safely looped without sleeping.
             tcp.ServerEstablishConnection();
             OutputDebugString(L"Connection Created!\n");
 
