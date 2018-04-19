@@ -17,6 +17,10 @@ namespace SimpleSharing
     {
         Dictionary<int, GameObject> remotePlayers = new Dictionary<int, GameObject>();
 
+        // Simple example showing how to respond to remote user's interaction.
+        // See LocalPlayerManager.
+        GameObject placedObject = null;
+
         private void AddRemotePlayer(int connectionID)
         {
             // In this simple example, this will add a cube to the remote player's head.
@@ -66,6 +70,19 @@ namespace SimpleSharing
         public void PerformRemoteAirTap(int connectionID, Vector3 airTapLocation, Vector3 airTapDirection, Vector3 airTapHitLocation)
         {
             Debug.Log(String.Format("Client {0} performed air tap at location {1}, which hit location {2}", connectionID, airTapLocation.ToString(), airTapHitLocation.ToString()));
+
+            if (AnchorManager.Instance != null
+                && AnchorManager.Instance.objectToAnchor != null)
+            {
+                if (placedObject == null)
+                {
+                    placedObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    placedObject.transform.parent = AnchorManager.Instance.objectToAnchor.transform;
+                    placedObject.transform.localScale = Vector3.one * 0.2f;
+                }
+
+                placedObject.transform.localPosition = airTapHitLocation;
+            }
         }
     }
 }

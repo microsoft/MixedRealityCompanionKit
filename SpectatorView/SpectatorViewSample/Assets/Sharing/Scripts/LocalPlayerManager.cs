@@ -13,6 +13,10 @@ namespace SimpleSharing
 #if WINDOWS_UWP
         GestureRecognizer gr;
 
+        // Simple example showing how to respond to remote user's interaction.
+        // See RemotePlayerManager.
+        GameObject placedObject = null;
+
         void Start()
         {
             // Send pose data less frequently than Update frequency.
@@ -34,11 +38,25 @@ namespace SimpleSharing
                 Vector3 position = Camera.main.transform.position;
                 Vector3 direction = Camera.main.transform.forward;
                 RaycastHit hitInfo;
+                Vector3 hitPoint = Vector3.zero;
 
                 if (Physics.Raycast(position, direction, out hitInfo))
                 {
-                    SharingManager.Instance.SendAirTap(position, direction, hitInfo.point);
+                    hitPoint = hitInfo.point;
                 }
+                else
+                {
+                    hitPoint = position + direction * 2;
+                }
+
+                SharingManager.Instance.SendAirTap(position, direction, hitPoint);
+                if (placedObject == null)
+                {
+                    placedObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    placedObject.transform.localScale = Vector3.one * 0.2f;
+                }
+
+                placedObject.transform.position = hitPoint;
             }
         }
 
