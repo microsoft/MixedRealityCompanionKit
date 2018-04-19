@@ -136,7 +136,7 @@ public class SharingToSVAdapter : MonoBehaviour
             //Send a message to the SVPoseProvider that we need to import the new anchor.
             if (SpectatorView.SpectatorViewManager.Instance != null)
             {
-                SpectatorView.SpectatorViewManager.Instance.SetAnchorIP(AnchorOwnerIP, AnchorPort);
+                SpectatorView.SpectatorViewManager.Instance.SetAnchorInformation(AnchorOwnerIP, AnchorPort, previousAnchorName);
             }
         }
 #endif

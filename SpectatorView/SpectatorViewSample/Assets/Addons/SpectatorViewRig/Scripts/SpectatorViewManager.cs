@@ -41,7 +41,10 @@ namespace SpectatorView
         private static extern void StopRecording();
 
         [DllImport("UnityCompositorInterface")]
-        private static extern void SetAnchorOwnerIP(string ip, int port);
+        private static extern bool SetAnchorData(string ip, int port, string name);
+
+        [DllImport("UnityCompositorInterface")]
+        private static extern bool ForceAnchorReconnect();
 
         #endregion
 
@@ -74,6 +77,8 @@ namespace SpectatorView
 
         public int AnchorPort = 11000;
 
+        private string AnchorName;
+
         Vector3 pos = Vector3.zero;
         Quaternion rot = Quaternion.identity;
 
@@ -91,6 +96,8 @@ namespace SpectatorView
                     listener.enabled = false;
                 }
             }
+
+            InvokeRepeating("SendAnchorInformationToPoseProvider", 10, 10);
         }
 
         private void OnEnable()
@@ -100,9 +107,9 @@ namespace SpectatorView
                 SetSpectatorViewIP(SpectatorViewHoloLensIP.Trim());
             }
 
-            if (AnchorOwnerIP != string.Empty)
+            if (AnchorOwnerIP != string.Empty && AnchorName != string.Empty)
             {
-                SetAnchorIP(AnchorOwnerIP, AnchorPort);
+                SetAnchorInformation(AnchorOwnerIP, AnchorPort, AnchorName);
             }
 
             prevAlpha = Alpha;
@@ -114,12 +121,31 @@ namespace SpectatorView
             SetSpectatorViewIP(SpectatorViewHoloLensIP.Trim());
         }
 
-        public void SetAnchorIP(string ip, int port)
+        public void SetAnchorInformation(string ip, int port, string name)
         {
             AnchorOwnerIP = ip;
             AnchorPort = port;
+            AnchorName = name;
 
-            SetAnchorOwnerIP(ip, port);
+            SetAnchorData(ip, port, name);
+        }
+
+        public void ForceSVAnchorReconnect()
+        {
+            if (!ForceAnchorReconnect())
+            {
+                Invoke("ForceSVAnchorReconnect", 5);
+            }
+        }
+
+        // Periodically run this to ensure pose provider has valid data.
+        private void SendAnchorInformationToPoseProvider()
+        {
+            if (AnchorOwnerIP != string.Empty &&
+                AnchorName != string.Empty)
+            {
+                SetAnchorData(AnchorOwnerIP, AnchorPort, AnchorName);
+            }
         }
 
         private void OnValidate()
@@ -138,6 +164,7 @@ namespace SpectatorView
         private void OnDestroy()
         {
             ResetCompositor();
+            CancelInvoke("SendAnchorInformationToPoseProvider");
         }
 
         public void ResetCompositor()

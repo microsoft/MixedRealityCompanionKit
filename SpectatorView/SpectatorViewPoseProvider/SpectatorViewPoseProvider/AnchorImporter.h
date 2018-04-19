@@ -24,15 +24,6 @@ using namespace Windows::Storage::Streams;
 class AnchorImporter
 {
 private:
-    enum AnchorImportStatus
-    {
-        Disconnected,
-        WaitingForConnection,
-        FailedToImport,
-    };
-
-    AnchorImportStatus importStatus = AnchorImportStatus::Disconnected;
-
     SpatialAnchor^ sharedAnchor = nullptr;
     
     //TODO: Get this data from SV compositor.

@@ -55,28 +55,25 @@ bool SpectatorViewSocket::Listen()
             int recvLen = sizeof(ClientToServerPacket);
             if (tcp.ReceiveData(recvbuf, recvLen))
             {
-                LARGE_INTEGER qpc;
-                QueryPerformanceCounter(&qpc);
-
                 memcpy(&packet, recvbuf, recvLen);
-
-                // Get network latency
-                LONGLONG now = (qpc.QuadPart * S2HNS) / freq;
-                LONGLONG networkLatency = now - packet.sentTime;
-
-                RTT = networkLatency;
 
                 // Get anchor owner information
                 std::string ip = std::string(packet.anchorOwnerIP, packet.anchorIPLength);
-                if (ip != anchorOwnerIP)
+                std::string name = std::string(packet.anchorName, packet.anchorNameLength);
+                if (ip != anchorOwnerIP 
+                    || name != anchorName 
+                    || packet.forceAnchorReconnect)
                 {
                     OutputDebugString(L"Found a new anchor owner: ");
                     OutputDebugString(StringHelper::s2ws(ip).c_str());
-                    OutputDebugString(L" On port: ");
+                    OutputDebugString(L", On port: ");
                     OutputDebugString(std::to_wstring(packet.anchorPort).c_str());
+                    OutputDebugString(L", Named: ");
+                    OutputDebugString(StringHelper::s2ws(name).c_str());
                     OutputDebugString(L"\n");
 
                     anchorOwnerIP = ip;
+                    anchorName = name;
                     anchorPort = packet.anchorPort;
 
                     ConnectToAnchorOwner = true;
@@ -149,7 +146,6 @@ void SpectatorViewSocket::GetPose(SpatialCoordinateSystem^ cs, int nsPast)
         QueryPerformanceCounter(&qpc);
 
         currentPose.sentTime = (qpc.QuadPart * S2HNS) / freq;
-        currentPose.RTT = RTT;
 
         // Convert position and rotation to Unity space.
         Windows::Foundation::Numerics::quaternion rot = headPose->Orientation;

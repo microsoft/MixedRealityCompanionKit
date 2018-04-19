@@ -11,17 +11,8 @@ AnchorImporter::~AnchorImporter()
 {
 }
 
-//TODO: use AnchorImportStatus and reconnect in Update loop.
 bool AnchorImporter::ConnectToServer(Platform::String^ serverIP, int port)
 {
-    if (importStatus == AnchorImportStatus::WaitingForConnection)
-    {
-        OutputDebugString(L"Currently waiting for a connection.");
-        return false;
-    }
-
-    importStatus = AnchorImportStatus::WaitingForConnection;
-
     anchorOwnerIP = serverIP;
     anchorPort = port;
 

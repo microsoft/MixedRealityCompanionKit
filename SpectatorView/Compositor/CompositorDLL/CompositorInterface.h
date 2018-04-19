@@ -86,11 +86,6 @@ public:
         return poseCache.LastSelectedIndex;
     }
 
-    DLLEXPORT void SetNetworkLatency(LONGLONG RTT)
-    {
-        networkLatencyS = (float)(0.0001f * RTT / 1000.0f);
-    }
-
 private:
     IFrameProvider* frameProvider;
     std::wstring outputPath;
@@ -117,7 +112,6 @@ private:
     PoseCache poseCache;
     TimeSynchronizer timeSynchronizer;
 
-    float networkLatencyS = 0;
     int CurrentCompositeFrame = 0;
 
     // Abstracts time in seconds from frame index based on known duration.

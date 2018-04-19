@@ -8,10 +8,7 @@
 
 struct SVPose
 {
-    // Find RTT
     LONGLONG sentTime;
-    // Computed from previous packet.
-    LONGLONG RTT = 0;
 
     // Pose
     float rotX = 0;
@@ -26,18 +23,18 @@ struct SVPose
 
 struct ClientToServerPacket
 {
-    // Find RTT
-    LONGLONG sentTime = 0;
-
-    //TODO:
     // Connect to anchor owner if:
     // 1. We do not have an anchor 
     // 2. The anchor owner's IP has changed.
+    // 3. The anchor's name has changed.
     // 3. A force reconnect message has been sent.
     char anchorOwnerIP[15];
     int anchorIPLength;
     int anchorPort;
 
+    char anchorName[32];
+    int anchorNameLength;
+
     // Set to true if anchor has changed and we need to download a new one from the existing owner.
-    //bool forceAnchorReconnect;
+    bool forceAnchorReconnect;
 };

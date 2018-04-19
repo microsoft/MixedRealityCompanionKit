@@ -26,6 +26,7 @@ public:
     bool Listen();
 
     std::string anchorOwnerIP;
+    std::string anchorName;
     int anchorPort;
     bool ConnectToAnchorOwner = false;
 
@@ -38,7 +39,6 @@ private:
     SpatialLocator^ locator;
     
     SVPose currentPose;
-    LONGLONG RTT = 0;
 
     bool connectionEstablished = false;
 
