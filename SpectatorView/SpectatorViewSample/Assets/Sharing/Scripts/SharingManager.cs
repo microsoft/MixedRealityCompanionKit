@@ -11,6 +11,7 @@ namespace SimpleSharing
 {
     public class SharingManager : SimpleSharing.Singleton<SharingManager>
     {
+        // Use a different port than your anchor and SV Pose data is being sent on.
         public int Port = 11024;
 
         // In this simple example of sharing, traffic is routed through Unity running on the local PC.
@@ -23,8 +24,9 @@ namespace SimpleSharing
         public string AnchorName { get; private set; }
 
         int channelId;
-        int socketId;
+        int socketId = -1;
         int connectionId;
+        HostTopology topology;
 
         bool connected = false;
 
@@ -41,11 +43,12 @@ namespace SimpleSharing
             channelId = config.AddChannel(QosType.UnreliableSequenced);
 
             int maxConnections = 10;
-            HostTopology topology = new HostTopology(config, maxConnections);
+            topology = new HostTopology(config, maxConnections);
 
-            socketId = NetworkTransport.AddHost(topology, Port);
-
-            connected = Connect();
+            if (ServerIP != string.Empty)
+            {
+                connected = Connect();
+            }
         }
 
         private void OnDestroy()
@@ -63,6 +66,12 @@ namespace SimpleSharing
 
         public bool Connect()
         {
+            Debug.Log(String.Format("Connecting to {0} on port {1}", ServerIP, Port));
+            if (socketId == -1)
+            {
+                socketId = NetworkTransport.AddHost(topology, Port);
+            }
+
             byte error;
             connectionId = NetworkTransport.Connect(socketId, ServerIP, Port, 0, out error);
 
@@ -128,7 +137,7 @@ namespace SimpleSharing
 
 #if WINDOWS_UWP
                     // Server has disconnected, queue another connection request.
-                    Connect();
+                    connected = Connect();
 #endif
 
                     break;
@@ -137,9 +146,9 @@ namespace SimpleSharing
 
         void Update()
         {
-            if (!connected)
+            if (!connected && ServerIP != string.Empty)
             {
-                Connect();
+                connected = Connect();
             }
 
             ReceiveMessage();

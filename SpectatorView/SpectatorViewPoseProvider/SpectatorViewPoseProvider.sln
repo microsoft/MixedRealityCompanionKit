@@ -8,6 +8,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedHeaders", "..\Compositor\SharedHeaders\SharedHeaders.vcxitems", "{0C2DFF51-C769-460F-B9D6-05C82FC60F56}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\Compositor\SharedHeaders\SharedHeaders.vcxitems*{0c2dff51-c769-460f-b9d6-05c82fc60f56}*SharedItemsImports = 9
+		..\Compositor\SharedHeaders\SharedHeaders.vcxitems*{ea8425b7-98d8-4e42-99a6-7f0a9cbb4dfb}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86

@@ -5,6 +5,7 @@
 #include "Network.h"
 #include "NetworkPacketStructure.h"
 #include "CompositorConstants.h"
+#include "StringHelper.h"
 
 #include <ppltasks.h>
 using namespace concurrency;
@@ -23,6 +24,10 @@ public:
 
     void SendPose(SpatialCoordinateSystem^ cs);
     bool Listen();
+
+    std::string anchorOwnerIP;
+    int anchorPort;
+    bool ConnectToAnchorOwner = false;
 
 private:
     WSASession session;

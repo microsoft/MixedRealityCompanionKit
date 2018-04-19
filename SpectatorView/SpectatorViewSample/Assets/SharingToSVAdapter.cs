@@ -7,7 +7,6 @@ using UnityEngine;
 
 public class SharingToSVAdapter : MonoBehaviour
 {
-#if UNITY_EDITOR
     [Header("Scene Objects")]
     [Tooltip("The SpectatorViewManager gameobject.")]
     public GameObject SpectatorViewGO;
@@ -16,7 +15,7 @@ public class SharingToSVAdapter : MonoBehaviour
     public GameObject AnchorGO;
 
 
-    [Header("IPs")]
+    [Header("IPs - Rebuild if these change.")]
     [Tooltip("The IP of the shared experience server, you may not need this if your shared experience uses UDP broadcasting for network discovery.")]
     public string ServerIP;
 
@@ -24,11 +23,23 @@ public class SharingToSVAdapter : MonoBehaviour
     public string SpectatorViewIP;
 
     [Tooltip("The IP of the HoloLens in the shared experience that is currently sharing an anchor.")]
-    public string AnchorOwnderIP;
+    public string AnchorOwnerIP;
+
+    public int AnchorPort = 11000;
 
     private string previousAnchorName = string.Empty;
 
+    bool allIPsSet = false;
+
     void Start()
+    {
+        SetTransforms();
+        allIPsSet = SetIPs();
+    }
+
+    // If transforms are null, populate them with default values.
+    // If transform are not null, overwrite other gameobjects.
+    void SetTransforms()
     {
         if (SpectatorViewGO == null)
         {
@@ -42,11 +53,97 @@ public class SharingToSVAdapter : MonoBehaviour
         SpectatorViewGO.transform.SetParent(AnchorGO.transform);
     }
 
+    // If IPs are valid, overwrite other gameobjects.
+    // If IPs are empty, populate from other gameobjects.
+    bool SetIPs()
+    {
+        // Check that all gameobjects we need have been initialized.
+        if (SimpleSharing.SharingManager.Instance == null
+            || SpectatorView.SpectatorViewManager.Instance == null
+            || SimpleSharing.AnchorNetworkTransmitter.Instance == null)
+        {
+            return false;
+        }
+
+        // Server
+        if (ServerIP == string.Empty)
+        {
+            ServerIP = SimpleSharing.SharingManager.Instance.ServerIP;
+        }
+        else
+        {
+            SimpleSharing.SharingManager.Instance.ServerIP = ServerIP;
+        }
+
+#if UNITY_EDITOR
+        // Spectator View
+        if (SpectatorViewIP == string.Empty)
+        {
+            SpectatorViewIP = SpectatorView.SpectatorViewManager.Instance.SpectatorViewHoloLensIP;
+        }
+        else
+        {
+            SpectatorView.SpectatorViewManager.Instance.CreateSpectatorViewConnection(SpectatorViewIP);
+        }
+#endif
+
+        // Anchor
+        //NOTE: Depending on your network stack, the anchor owner may be shared to you, so this script should be updated.
+        if (AnchorOwnerIP == string.Empty)
+        {
+            AnchorOwnerIP = SimpleSharing.AnchorNetworkTransmitter.Instance.AnchorOwnerIP;
+            // If we did not set our anchor owner here, then the port may be wrong too.
+            AnchorPort = SimpleSharing.AnchorNetworkTransmitter.Instance.SendConnectionPort;
+        }
+        else
+        {
+            SimpleSharing.AnchorNetworkTransmitter.Instance.AnchorOwnerIP = AnchorOwnerIP;
+            SimpleSharing.AnchorNetworkTransmitter.Instance.SendConnectionPort = AnchorPort;
+        }
+
+        // All IPs have been set, but we may potentially have received empty strings from other prefabs.
+        ValidateIPs();
+
+        return true;
+    }
+
+    // Log any errors for IPs that could not be established.
+    // This will require user input to address.
+    void ValidateIPs()
+    {
+        if (ServerIP == string.Empty)
+        {
+            Debug.LogError("ServerIP is null, but it should not be at this time.  Please check this script or the sharing manager.");
+        }
+
+        if (SpectatorViewIP == string.Empty)
+        {
+            Debug.LogError("SpectatorViewIP is null, but it should not be at this time.  Please check this script or the spectator view manager.");
+        }
+
+        //NOTE: Depending on your network stack, the anchor owner may be shared to you, so this script should be updated.
+        if (AnchorOwnerIP == string.Empty)
+        {
+            Debug.LogError("AnchorOwnerIP is null, but it should not be at this time.  Please check this script or the AnchorNetworkTransmitter.");
+        }
+    }
+
     void Update()
     {
+#if UNITY_EDITOR
         if (CheckForUpdatedAnchor())
         {
-            //TODO: Send a message to the SVPoseProvider that we need to import the new anchor.
+            //Send a message to the SVPoseProvider that we need to import the new anchor.
+            if (SpectatorView.SpectatorViewManager.Instance != null)
+            {
+                SpectatorView.SpectatorViewManager.Instance.SetAnchorIP(AnchorOwnerIP, AnchorPort);
+            }
+        }
+#endif
+
+        if (!allIPsSet)
+        {
+            allIPsSet = SetIPs();
         }
     }
 
@@ -75,5 +172,4 @@ public class SharingToSVAdapter : MonoBehaviour
 
         return false;
     }
-#endif
 }

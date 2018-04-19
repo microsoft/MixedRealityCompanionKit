@@ -168,6 +168,8 @@ MonoBehaviour:
   Alpha: 0.95
   FrameOffset: 3
   SpectatorViewHoloLensIP: 
+  AnchorOwnerIP: 
+  AnchorPort: 11000
   frameProviderInitialized: 0
 --- !u!114 &114934227484146090
 MonoBehaviour:

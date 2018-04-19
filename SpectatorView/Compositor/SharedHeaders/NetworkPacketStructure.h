@@ -31,10 +31,12 @@ struct ClientToServerPacket
 
     //TODO:
     // Connect to anchor owner if:
-    // 1. We do not have an anchor, or 
+    // 1. We do not have an anchor 
     // 2. The anchor owner's IP has changed.
-    //char* anchorOwnwerIP[15];
-    //int anchorPort;
+    // 3. A force reconnect message has been sent.
+    char anchorOwnerIP[15];
+    int anchorIPLength;
+    int anchorPort;
 
     // Set to true if anchor has changed and we need to download a new one from the existing owner.
     //bool forceAnchorReconnect;

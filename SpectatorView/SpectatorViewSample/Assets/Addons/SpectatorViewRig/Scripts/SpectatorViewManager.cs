@@ -39,6 +39,10 @@ namespace SpectatorView
 
         [DllImport("UnityCompositorInterface")]
         private static extern void StopRecording();
+
+        [DllImport("UnityCompositorInterface")]
+        private static extern void SetAnchorOwnerIP(string ip, int port);
+
         #endregion
 
         [Header("Visuals")]
@@ -68,6 +72,8 @@ namespace SpectatorView
         [Tooltip("IP of the HoloLens that created the anchor in the shared experience you are spectating.")]
         public string AnchorOwnerIP;
 
+        public int AnchorPort = 11000;
+
         Vector3 pos = Vector3.zero;
         Quaternion rot = Quaternion.identity;
 
@@ -89,8 +95,31 @@ namespace SpectatorView
 
         private void OnEnable()
         {
-            SetSpectatorViewIP(SpectatorViewHoloLensIP.Trim());
+            if (SpectatorViewHoloLensIP != String.Empty)
+            {
+                SetSpectatorViewIP(SpectatorViewHoloLensIP.Trim());
+            }
+
+            if (AnchorOwnerIP != string.Empty)
+            {
+                SetAnchorIP(AnchorOwnerIP, AnchorPort);
+            }
+
             prevAlpha = Alpha;
+        }
+
+        public void CreateSpectatorViewConnection(string ip)
+        {
+            SpectatorViewHoloLensIP = ip;
+            SetSpectatorViewIP(SpectatorViewHoloLensIP.Trim());
+        }
+
+        public void SetAnchorIP(string ip, int port)
+        {
+            AnchorOwnerIP = ip;
+            AnchorPort = port;
+
+            SetAnchorOwnerIP(ip, port);
         }
 
         private void OnValidate()

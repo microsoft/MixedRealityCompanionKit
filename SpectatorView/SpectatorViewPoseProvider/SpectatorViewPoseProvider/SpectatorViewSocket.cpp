@@ -27,6 +27,14 @@ SpectatorViewSocket::SpectatorViewSocket()
             connectionEstablished = true;
         }
     });
+
+    create_task([&]
+    {
+        while (1)
+        {
+            Listen();
+        }
+    });
 }
 
 SpectatorViewSocket::~SpectatorViewSocket()
@@ -52,10 +60,28 @@ bool SpectatorViewSocket::Listen()
 
                 memcpy(&packet, recvbuf, recvLen);
 
+                // Get network latency
                 LONGLONG now = (qpc.QuadPart * S2HNS) / freq;
                 LONGLONG networkLatency = now - packet.sentTime;
 
                 RTT = networkLatency;
+
+                // Get anchor owner information
+                std::string ip = std::string(packet.anchorOwnerIP, packet.anchorIPLength);
+                if (ip != anchorOwnerIP)
+                {
+                    OutputDebugString(L"Found a new anchor owner: ");
+                    OutputDebugString(StringHelper::s2ws(ip).c_str());
+                    OutputDebugString(L" On port: ");
+                    OutputDebugString(std::to_wstring(packet.anchorPort).c_str());
+                    OutputDebugString(L"\n");
+
+                    anchorOwnerIP = ip;
+                    anchorPort = packet.anchorPort;
+
+                    ConnectToAnchorOwner = true;
+                }
+
                 return true;
             }
             else

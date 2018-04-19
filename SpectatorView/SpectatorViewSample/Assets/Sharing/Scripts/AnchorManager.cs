@@ -109,7 +109,9 @@ namespace SimpleSharing
 #if WINDOWS_UWP
             // Check if we should create an anchor.
             if (!anchorOwner.HasValue && 
-                AnchorNetworkTransmitter.Instance != null)
+                AnchorNetworkTransmitter.Instance != null &&
+                AnchorNetworkTransmitter.Instance.AnchorOwnerIP != string.Empty
+            )
             {
                 if (localIPs.Contains(AnchorNetworkTransmitter.Instance.AnchorOwnerIP))
                 {

@@ -9,7 +9,7 @@ using System.Text;
 using UnityEngine;
 
 // If you want to add more network message types:
-// 1. Add a new entry to the MessageType enume.
+// 1. Add a new entry to the MessageType enum.
 // 2. Add a new Serialize and Deserialize method to this class, following the existing method patterns.
 // 3. Call your new deserialize method in DeserializeData if the header matches your new message type.
 // 3. Update SharingManager.ReceiveMessage to react to your new message type.

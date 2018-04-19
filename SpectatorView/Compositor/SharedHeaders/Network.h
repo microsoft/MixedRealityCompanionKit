@@ -12,7 +12,7 @@
 
 #pragma comment (lib, "Ws2_32.lib")
 
-#define DEFAULT_BUFLEN 48
+#define DEFAULT_BUFLEN 128
 // Use an unassigned port in the 9000 range.
 // https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?=&skey=-2&page=17
 // This must match between SpectatorViewPoseProvider and UnityCompositorInterface.

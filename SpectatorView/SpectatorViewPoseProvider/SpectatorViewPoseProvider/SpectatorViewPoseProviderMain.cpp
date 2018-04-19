@@ -27,9 +27,6 @@ SpectatorViewPoseProviderMain::SpectatorViewPoseProviderMain(const std::shared_p
     // Register to be notified if the device is lost or recreated.
     m_deviceResources->RegisterDeviceNotify(this);
 
-    //TODO: React to socket input:
-    anchorImporter.ConnectToServer("10.89.160.72");
-
     create_task([=]
     {
         while (true)
@@ -141,6 +138,13 @@ SpectatorViewPoseProviderMain::~SpectatorViewPoseProviderMain()
     UnregisterHolographicEventHandlers();
 }
 
+void SpectatorViewPoseProviderMain::ConnectToAnchorOwner()
+{
+    anchorImporter.ConnectToServer(
+        ref new Platform::String(StringHelper::s2ws(SVSocket.anchorOwnerIP).c_str()),
+        SVSocket.anchorPort);
+}
+
 // Updates the application state once per frame.
 HolographicFrame^ SpectatorViewPoseProviderMain::Update()
 {
@@ -188,6 +192,13 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
         // but if you change the StepTimer to use a fixed time step this code will
         // run as many times as needed to get to the current step.
         //
+
+        if (SVSocket.ConnectToAnchorOwner)
+        {
+            SVSocket.ConnectToAnchorOwner = false;
+            
+            ConnectToAnchorOwner();
+        }
 
         //Send pose relative to shared anchor's coordinate system.
         SpatialCoordinateSystem^ anchorCoordSystem = anchorImporter.GetSharedAnchorCoordinateSystem();

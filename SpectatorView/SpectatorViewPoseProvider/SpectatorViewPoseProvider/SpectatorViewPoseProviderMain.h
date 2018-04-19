@@ -103,5 +103,7 @@ namespace SpectatorViewPoseProvider
 
         SpectatorViewSocket SVSocket;
         AnchorImporter anchorImporter;
+
+        void ConnectToAnchorOwner();
     };
 }
