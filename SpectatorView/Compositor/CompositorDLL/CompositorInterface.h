@@ -86,6 +86,12 @@ public:
         return poseCache.LastSelectedIndex;
     }
 
+    DLLEXPORT void ResetPoseCache()
+    {
+        poseCache.Reset();
+        timeSynchronizer.Reset();
+    }
+
 private:
     IFrameProvider* frameProvider;
     std::wstring outputPath;

@@ -46,6 +46,9 @@ namespace SpectatorView
         [DllImport("UnityCompositorInterface")]
         private static extern bool ForceAnchorReconnect();
 
+        [DllImport("UnityCompositorInterface")]
+        private static extern void ResetPoseCache();
+
         #endregion
 
         [Header("Visuals")]
@@ -63,6 +66,9 @@ namespace SpectatorView
         [Tooltip("Number of frames of latency between camera capture and frame delivery.")]
         [Range(0, 10)]
         public int FrameOffset = 4;
+
+        [Tooltip("If poses to color frames have de-synced, force a reset.")]
+        public bool ResetHologramSynchronization = false;
 
         [Header("Connection")]
         [Tooltip("IP of the spectator view device.")]
@@ -92,6 +98,8 @@ namespace SpectatorView
                     listener.enabled = false;
                 }
             }
+
+            ResetHologramSynchronization = false;
 
             InvokeRepeating("SendAnchorInformationToPoseProvider", 10, 10);
         }
@@ -154,6 +162,13 @@ namespace SpectatorView
                     ShaderManager.Instance.alphaBlendPreviewMat.SetFloat("_Alpha", Alpha);
                 }
                 prevAlpha = Alpha;
+            }
+
+            if (ResetHologramSynchronization)
+            {
+                Debug.Log("Resetting hologram synchronization.");
+                ResetHologramSynchronization = false;
+                ResetPoseCache();
             }
         }
 
