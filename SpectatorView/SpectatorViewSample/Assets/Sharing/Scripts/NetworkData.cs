@@ -12,8 +12,8 @@ using UnityEngine;
 // 1. Add a new entry to the MessageType enum.
 // 2. Add a new Serialize and Deserialize method to this class, following the existing method patterns.
 // 3. Call your new deserialize method in DeserializeData if the header matches your new message type.
-// 3. Update SharingManager.ReceiveMessage to react to your new message type.
-// 4. Update RemotePlayerManager or any relevant game state to react to your new message data.
+// 4. Update SharingManager.ReceiveMessage to react to your new message type.
+// 5. Update RemotePlayerManager or any relevant game state to react to your new message data.
 
 namespace SimpleSharing
 {
