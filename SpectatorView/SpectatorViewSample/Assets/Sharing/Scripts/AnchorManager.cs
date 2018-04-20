@@ -29,6 +29,7 @@ namespace SimpleSharing
         private const uint minTrustworthySerializedAnchorDataSize = 500000;
 
         List<string> localIPs;
+        string localIPv4 = string.Empty;
 #pragma warning disable 0414
         bool? anchorOwner = null;
 #pragma warning restore 0414
@@ -96,6 +97,12 @@ namespace SimpleSharing
                 if (aName.Type == HostNameType.Ipv4)
                 {
                     localIPs.Add(aName.ToString().Trim());
+
+                    if (aName.ToString().Split('.').Length == 4)
+                    {
+                        localIPv4 = aName.ToString().Trim();
+                        Debug.Log("Setting local IP to " + localIPv4);
+                    }
                 }
             }
 #endif
@@ -110,10 +117,12 @@ namespace SimpleSharing
             // Check if we should create an anchor.
             if (!anchorOwner.HasValue && 
                 AnchorNetworkTransmitter.Instance != null &&
-                AnchorNetworkTransmitter.Instance.AnchorOwnerIP != string.Empty
+                (AnchorNetworkTransmitter.Instance.AnchorOwnerIP != string.Empty
+                || AnchorNetworkTransmitter.Instance.ForceCreateAnchor)
             )
             {
-                if (localIPs.Contains(AnchorNetworkTransmitter.Instance.AnchorOwnerIP))
+                if (localIPs.Contains(AnchorNetworkTransmitter.Instance.AnchorOwnerIP) 
+                    || AnchorNetworkTransmitter.Instance.ForceCreateAnchor)
                 {
                     anchorOwner = true;
                     CreateAnchor();
@@ -236,7 +245,7 @@ namespace SimpleSharing
                 Debug.Log("Anchor ready " + exportingAnchorBytes.Count);
                 AnchorNetworkTransmitter.Instance.ConfigureAsServer();
                 // Let server know our anchor is ready.
-                SharingManager.Instance.SendAnchorName(AnchorName);
+                SharingManager.Instance.SendAnchorName(AnchorName, localIPv4);
                 InvokeRepeating("SendAnchorName", 5, 5);
                 AnchorEstablished = true;
             }
@@ -256,7 +265,7 @@ namespace SimpleSharing
         {
             if (AnchorEstablished)
             {
-                SharingManager.Instance.SendAnchorName(AnchorName);
+                SharingManager.Instance.SendAnchorName(AnchorName, localIPv4);
             }
         }
 

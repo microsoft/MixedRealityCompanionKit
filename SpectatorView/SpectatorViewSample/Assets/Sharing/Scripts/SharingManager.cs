@@ -22,6 +22,7 @@ namespace SimpleSharing
         public string ServerIP;
 
         public string AnchorName { get; private set; }
+        public string AnchorIP { get; private set; }
 
         int channelId;
         int socketId = -1;
@@ -125,6 +126,7 @@ namespace SimpleSharing
                             break;
                         case NetworkData.MessageType.AnchorName:
                             AnchorName = networkPoseData.AnchorName;
+                            AnchorIP = networkPoseData.AnchorIP;
                             break;
                     };
                     break;
@@ -200,11 +202,11 @@ namespace SimpleSharing
             SendMessage(networkData);
         }
 
-        public void SendAnchorName(String anchorName)
+        public void SendAnchorName(String anchorName, String anchorOwnerIP)
         {
             // Use a different NetworkData instance so we do not overwrite our pose data.
             NetworkData networkData = new NetworkData();
-            networkData.SerializeAnchorName(anchorName);
+            networkData.SerializeAnchorName(anchorName, anchorOwnerIP);
 
             SendMessage(networkData);
         }

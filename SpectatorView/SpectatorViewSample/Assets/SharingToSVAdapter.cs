@@ -25,10 +25,11 @@ public class SharingToSVAdapter : MonoBehaviour
     [Tooltip("The IP of the HoloLens running the SpectatorViewPoseProvider application.")]
     public string SpectatorViewIP;
 
+    public int AnchorPort = 11000;
+
+    [Header("Leave this blank to always create a new anchor with the last HoloLens to join.")]
     [Tooltip("The IP of the HoloLens in the shared experience that is currently sharing an anchor.")]
     public string AnchorOwnerIP;
-
-    public int AnchorPort = 11000;
 
     private string previousAnchorName = string.Empty;
 
@@ -127,7 +128,8 @@ public class SharingToSVAdapter : MonoBehaviour
         //NOTE: Depending on your network stack, the anchor owner may be shared to you, so this script should be updated.
         if (AnchorOwnerIP == string.Empty)
         {
-            Debug.LogError("AnchorOwnerIP is null, but it should not be at this time.  Please check this script or the AnchorNetworkTransmitter.");
+            Debug.LogWarning("AnchorOwnerIP is null, so new HoloLens devices to join will always create a new anchor.  This will only allow for 1 HoloLens client in your experience.  Please check this script or the AnchorNetworkTransmitter if this is not your intended behavior.");
+            SimpleSharing.AnchorNetworkTransmitter.Instance.ForceCreateAnchor = true;
         }
     }
 
@@ -139,6 +141,12 @@ public class SharingToSVAdapter : MonoBehaviour
             //Send a message to the SVPoseProvider that we need to import the new anchor.
             if (SpectatorView.SpectatorViewManager.Instance != null)
             {
+                if (AnchorOwnerIP == string.Empty)
+                {
+                    AnchorOwnerIP = SimpleSharing.SharingManager.Instance.AnchorIP;
+                    SimpleSharing.AnchorNetworkTransmitter.Instance.AnchorOwnerIP = AnchorOwnerIP;
+                }
+
                 SpectatorView.SpectatorViewManager.Instance.SetAnchorInformation(AnchorOwnerIP, AnchorPort, previousAnchorName);
             }
         }

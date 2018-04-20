@@ -72,6 +72,11 @@ namespace SimpleSharing
         {
             get; private set;
         }
+
+        public String AnchorIP
+        {
+            get; private set;
+        }
         #endregion
 
         #region Serialize Helpers
@@ -185,10 +190,11 @@ namespace SimpleSharing
         #endregion
 
         #region AnchorName
-        public int SerializeAnchorName(String name)
+        public int SerializeAnchorName(String name, String ip)
         {
             int bufferOffset = WriteHeader(MessageType.AnchorName);
             SerializeString(name, ref bufferOffset);
+            SerializeString(ip, ref bufferOffset);
 
             return bufferOffset;
         }
@@ -197,6 +203,7 @@ namespace SimpleSharing
         {
             int bufferOffset = 0;
             AnchorName = DeserializeString(ref bufferOffset);
+            AnchorIP = DeserializeString(ref bufferOffset);
         }
         #endregion
 

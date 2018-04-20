@@ -27,6 +27,10 @@ namespace SimpleSharing
         [Tooltip("The IP of the HoloLens that should own the creation and distribution of the anchor.")]
         public string AnchorOwnerIP;
 
+        // Set this to true if joining device should create an anchor instead of checking the AnchorOwnerIP.
+        [HideInInspector]
+        public bool ForceCreateAnchor = false;
+
         /// <summary>
         /// When data arrives, this event is raised.
         /// </summary>

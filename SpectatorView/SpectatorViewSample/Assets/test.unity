@@ -384,8 +384,8 @@ MonoBehaviour:
   AnchorGO: {fileID: 1596627241}
   ServerIP: 10.124.206.215
   SpectatorViewIP: 10.89.160.89
-  AnchorOwnerIP: 10.89.160.96
   AnchorPort: 11000
+  AnchorOwnerIP: 
 --- !u!4 &1852082304
 Transform:
   m_ObjectHideFlags: 0
