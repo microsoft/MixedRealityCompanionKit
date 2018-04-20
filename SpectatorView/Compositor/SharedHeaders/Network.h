@@ -208,7 +208,6 @@ public:
         if (iResult < 0)
         {
             PrintSocketError(L"Receive");
-            closesocket(connectSocket);
             return false;
         }
         else if (iResult == 0)
