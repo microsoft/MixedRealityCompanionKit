@@ -252,6 +252,9 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
         {
             SVSocket.SendSpatialMappingData = false;
 
+            // When requesting new data, start the surface observer again.
+            m_spatialMappingManager.StartSurfaceObserver();
+
             SendSpatialMappingData();
         }
 

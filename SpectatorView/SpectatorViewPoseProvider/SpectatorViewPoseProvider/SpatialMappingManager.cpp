@@ -45,9 +45,10 @@ void SpatialMappingManager::UnregisterHolographicEventHandlers()
     m_surfaceObserver->ObservedSurfacesChanged -= m_surfacesChangedToken;
 }
 
-void SpatialMappingManager::RegisterSurfaceEventHandler()
+void SpatialMappingManager::StartSurfaceObserver()
 {
-    if (m_surfaceObserver == nullptr)
+    if (m_surfaceObserver == nullptr || 
+        isSpatialMappingActive)
     {
         return;
     }
@@ -210,7 +211,7 @@ void SpatialMappingManager::Update(SpatialCoordinateSystem^ currentCoordinateSys
                 }
 
                 // We then subcribe to an event to receive up-to-date data.
-                RegisterSurfaceEventHandler();
+                void StartSurfaceObserver();
             }
         }
 

@@ -21,7 +21,6 @@ class SpatialMappingManager
 private:
     // Handle surface change events.
     void OnSurfacesChanged(Windows::Perception::Spatial::Surfaces::SpatialSurfaceObserver^ sender, Platform::Object^ args);
-    void RegisterSurfaceEventHandler();
 
     void Reset();
 
@@ -70,5 +69,7 @@ public:
     void ReleaseDeviceDependentResources();
 
     byte* GetMeshData(int& length, SpatialCoordinateSystem^ cs);
+
+    void StartSurfaceObserver();
 };
 
