@@ -3,18 +3,11 @@
 
 #pragma once
 
+#include "Content\ShaderStructures.h"
+
 namespace DX
 {
     class DeviceResources;
-
-    // Constant buffer used to send the view-projection matrices to the shader pipeline.
-    struct ViewProjectionConstantBuffer
-    {
-        DirectX::XMFLOAT4X4 viewProjection[2];
-    };
-
-    // Assert that the constant buffer remains 16-byte aligned (best practice).
-    static_assert((sizeof(ViewProjectionConstantBuffer) % (sizeof(float) * 4)) == 0, "ViewProjection constant buffer size must be 16-byte aligned (16 bytes is the length of four floats).");
 
     // Manages DirectX device resources that are specific to a holographic camera, such as the
     // back buffer, ViewProjection constant buffer, and viewport.

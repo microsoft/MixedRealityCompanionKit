@@ -41,11 +41,6 @@ SpectatorViewSocket::~SpectatorViewSocket()
 {
 }
 
-void SpectatorViewSocket::SetCoordinateSystem(SpatialCoordinateSystem^ cs)
-{
-    coordinateSystem = cs;
-}
-
 bool SpectatorViewSocket::Listen()
 {
     try
@@ -79,6 +74,12 @@ bool SpectatorViewSocket::Listen()
                     ConnectToAnchorOwner = true;
                 }
 
+                if (packet.requestSpatialMapping)
+                {
+                    OutputDebugString(L"Sending Spatial Mapping Information.\n");
+                    SendSpatialMappingData = true;
+                }
+
                 return true;
             }
             else
@@ -96,10 +97,8 @@ void SpectatorViewSocket::GetPose(SpatialCoordinateSystem^ cs, int nsPast)
 {
     try
     {
-        SetCoordinateSystem(cs);
-
         // Cannot find position if we do not have a coordinate system.
-        if (coordinateSystem == nullptr)
+        if (cs == nullptr)
         {
             return;
         }
@@ -136,7 +135,7 @@ void SpectatorViewSocket::GetPose(SpatialCoordinateSystem^ cs, int nsPast)
         }
 
         SpatialLocation^ headPose = nullptr;
-        headPose = locator->TryLocateAtTimestamp(perceptionTimestamp, coordinateSystem);
+        headPose = locator->TryLocateAtTimestamp(perceptionTimestamp, cs);
         if (headPose == nullptr)
         {
             return;
@@ -176,6 +175,44 @@ void SpectatorViewSocket::SendPose(SpatialCoordinateSystem^ cs)
         }
     }
     catch (...) { }
+}
+
+void SpectatorViewSocket::SendSpatialMapping(byte* bytes, int length)
+{
+    // Segment bytes into packet sized chunks.
+    SpatialMappingPacket packet;
+
+    int numPackets = (int)ceil((float)length / (float)SPATIAL_MAPPING_BUFSIZE);
+    int numBytesWritten = 0;
+
+    try
+    {
+        if (connectionEstablished)
+        {
+            for (int i = 0; i < numPackets; i++)
+            {
+                int currentPacketLength = SPATIAL_MAPPING_BUFSIZE;
+                if (numBytesWritten + currentPacketLength > length)
+                {
+                    currentPacketLength = length - numBytesWritten;
+                }
+
+                packet.packetStartIndex = numBytesWritten;
+                packet.bytesWrittenThisPacket = currentPacketLength;
+                packet.totalSpatialMappingBytes = length;
+                packet.numSpatialMappingPackets = numPackets;
+
+                memcpy(&packet.payload[0], &bytes[packet.packetStartIndex], currentPacketLength);
+                numBytesWritten += currentPacketLength;
+
+                if (!tcp.SendData((byte*)&packet, sizeof(packet)))
+                {
+                    connectionEstablished = false;
+                }
+            }
+        }
+    }
+    catch (...) {}
 }
 
 

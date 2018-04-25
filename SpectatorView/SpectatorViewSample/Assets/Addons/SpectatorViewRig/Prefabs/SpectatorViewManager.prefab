@@ -167,10 +167,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Alpha: 0.95
   FrameOffset: 4
+  ResetHologramSynchronization: 0
   SpectatorViewHoloLensIP: 
   AnchorOwnerIP: 
   AnchorPort: 11000
   frameProviderInitialized: 0
+  SpatialMappingMaterial: {fileID: 2100000, guid: 718c1672d65e99d49879fbd18dde2d9e,
+    type: 2}
 --- !u!114 &114934227484146090
 MonoBehaviour:
   m_ObjectHideFlags: 1

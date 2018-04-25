@@ -10,9 +10,12 @@
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
+using namespace Windows::Foundation::Numerics;
 using namespace Windows::Graphics::DirectX::Direct3D11;
 using namespace Windows::Graphics::Holographic;
 using namespace Windows::Perception::Spatial;
+
+using namespace SpectatorViewPoseProvider;
 
 DX::CameraResources::CameraResources(HolographicCamera^ camera) :
     m_holographicCamera(camera),
@@ -187,7 +190,7 @@ void DX::CameraResources::UpdateViewProjectionBuffer(
     // This usually means that positional tracking is not active for the current frame, in
     // which case it is possible to use a SpatialLocatorAttachedFrameOfReference to render
     // content that is not world-locked instead.
-    DX::ViewProjectionConstantBuffer viewProjectionConstantBufferData;
+    ViewProjectionConstantBuffer viewProjectionConstantBufferData;
     bool viewTransformAcquired = viewTransformContainer != nullptr;
     if (viewTransformAcquired)
     {
@@ -205,6 +208,18 @@ void DX::CameraResources::UpdateViewProjectionBuffer(
             &viewProjectionConstantBufferData.viewProjection[1],
             XMMatrixTranspose(XMLoadFloat4x4(&viewCoordinateSystemTransform.Right) * XMLoadFloat4x4(&cameraProjectionTransform.Right))
             );
+
+        float4x4 viewInverse;
+        bool invertible = Windows::Foundation::Numerics::invert(viewCoordinateSystemTransform.Left, &viewInverse);
+        if (invertible)
+        {
+            // For the purposes of this sample, use the camera position as a light source.
+            float4 cameraPosition = float4(viewInverse.m41, viewInverse.m42, viewInverse.m43, 0.f);
+            float4 lightPosition = cameraPosition + float4(0.f, 0.25f, 0.f, 0.f);
+
+            XMStoreFloat4(&viewProjectionConstantBufferData.cameraPosition, DirectX::XMLoadFloat4(&cameraPosition));
+            XMStoreFloat4(&viewProjectionConstantBufferData.lightPosition, DirectX::XMLoadFloat4(&lightPosition));
+        }
     }
 
     // Use the D3D device context to update Direct3D device-based resources.
@@ -258,18 +273,12 @@ bool DX::CameraResources::AttachViewProjectionBuffer(
         m_viewProjectionConstantBuffer.GetAddressOf()
         );
 
-    // The template includes a pass-through geometry shader that is used by
-    // default on systems that don't support the D3D11_FEATURE_D3D11_OPTIONS3::
-    // VPAndRTArrayIndexFromAnyShaderFeedingRasterizer extension. The shader 
-    // will be enabled at run-time on systems that require it.
-    // If your app will also use the geometry shader for other tasks and those
-    // tasks require the view/projection matrix, uncomment the following line 
-    // of code to send the constant buffer to the geometry shader as well.
-    /*context->GSSetConstantBuffers(
+    // Send the constant buffer to the pixel shader.
+    context->PSSetConstantBuffers(
         1,
         1,
         m_viewProjectionConstantBuffer.GetAddressOf()
-        );*/
+        );
 
     m_framePending = false;
 

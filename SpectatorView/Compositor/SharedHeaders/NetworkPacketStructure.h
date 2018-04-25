@@ -3,11 +3,21 @@
 
 #pragma once
 #include <windows.h>
+#include "Network.h"
 
-// Time values are in HNS
+#define IP_LENGTH 15
+#define ANCHOR_NAME_LENGTH 36
+
+enum PacketType
+{
+    Pose = 0,
+    SpatialMapping = 1,
+};
 
 struct SVPose
 {
+    int header = (int)PacketType::Pose;
+
     LONGLONG sentTime;
 
     // Pose
@@ -20,6 +30,24 @@ struct SVPose
     float posY = 0;
     float posZ = 0;
 };
+static_assert(sizeof(SVPose) <= DEFAULT_BUFLEN, 
+    "SVPose cannot exceed network buffer size limit.");
+
+
+struct SpatialMappingPacket
+{
+    int header = (int)PacketType::SpatialMapping;
+
+    int packetStartIndex;
+    int bytesWrittenThisPacket;
+    int totalSpatialMappingBytes;
+    int numSpatialMappingPackets;
+
+    byte payload[SPATIAL_MAPPING_BUFSIZE];
+};
+static_assert(sizeof(SpatialMappingPacket) <= DEFAULT_BUFLEN,
+    "SpatialMappingPacket cannot exceed network buffer size limit.");
+
 
 struct ClientToServerPacket
 {
@@ -28,13 +56,18 @@ struct ClientToServerPacket
     // 2. The anchor owner's IP has changed.
     // 3. The anchor's name has changed.
     // 4. A force reconnect message has been sent.
-    char anchorOwnerIP[15];
+    char anchorOwnerIP[IP_LENGTH];
     int anchorIPLength;
     int anchorPort;
 
-    char anchorName[32];
+    char anchorName[ANCHOR_NAME_LENGTH];
     int anchorNameLength;
 
     // Set to true if anchor has changed and we need to download a new one from the existing owner.
     bool forceAnchorReconnect;
+
+    // Set to true to get spatial mapping information from SV HoloLens
+    bool requestSpatialMapping;
 };
+static_assert(sizeof(ClientToServerPacket) <= DEFAULT_BUFLEN,
+    "ClientToServerPacket cannot exceed network buffer size limit.");

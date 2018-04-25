@@ -66,6 +66,9 @@
     <ClCompile Include="SpectatorViewPoseProviderMain.cpp" />
     <ClCompile Include="SpectatorViewSocket.cpp" />
     <ClCompile Include="AnchorImporter.cpp" />
+    <ClCompile Include="SpatialMappingManager.cpp" />
+    <ClCompile Include="RealtimeSurfaceMeshRenderer.cpp" />
+    <ClCompile Include="SurfaceMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -82,6 +85,16 @@
     <ClInclude Include="SpectatorViewPoseProviderMain.h" />
     <ClInclude Include="SpectatorViewSocket.h" />
     <ClInclude Include="AnchorImporter.h" />
+    <ClInclude Include="SpatialMappingManager.h" />
+    <ClInclude Include="RealtimeSurfaceMeshRenderer.h" />
+    <ClInclude Include="SurfaceMesh.h" />
+    <ClInclude Include="GetDataFromIBuffer.h" />
+    <ClInclude Include="SolidColorPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="SurfaceGeometryShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\VertexShader.hlsl">
@@ -94,6 +107,15 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\VPRTVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SimpleLightingPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfaceVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfaceVPRTVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

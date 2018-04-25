@@ -24,6 +24,8 @@
 #include "Content\SpatialInputHandler.h"
 #endif
 
+#include "SpatialMappingManager.h"
+
 // Updates, renders, and presents holographic content using Direct3D.
 namespace SpectatorViewPoseProvider
 {
@@ -103,7 +105,9 @@ namespace SpectatorViewPoseProvider
 
         SpectatorViewSocket SVSocket;
         AnchorImporter anchorImporter;
+        SpatialMappingManager m_spatialMappingManager;
 
         void ConnectToAnchorOwner();
+        void SendSpatialMappingData();
     };
 }

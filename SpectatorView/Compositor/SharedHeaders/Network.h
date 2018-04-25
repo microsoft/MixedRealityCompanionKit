@@ -12,7 +12,9 @@
 
 #pragma comment (lib, "Ws2_32.lib")
 
-#define DEFAULT_BUFLEN 128
+#define DEFAULT_BUFLEN 80
+#define SPATIAL_MAPPING_BUFSIZE 60
+
 // Use an unassigned port in the 9000 range.
 // https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?=&skey=-2&page=17
 // This must match between SpectatorViewPoseProvider and UnityCompositorInterface.
@@ -204,7 +206,7 @@ public:
             return false;
         }
 
-        int iResult = recv(connectSocket, recvbuf, numBytes, 0);
+        int iResult = recv(connectSocket, recvbuf, numBytes, MSG_WAITALL);
         if (iResult < 0)
         {
             PrintSocketError(L"Receive");

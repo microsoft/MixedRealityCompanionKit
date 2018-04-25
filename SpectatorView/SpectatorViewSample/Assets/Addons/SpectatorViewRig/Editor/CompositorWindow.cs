@@ -38,6 +38,9 @@ namespace SpectatorView
 
         [DllImport("UnityCompositorInterface")]
         private static extern void StopRecording();
+
+        [DllImport("UnityCompositorInterface")]
+        private static extern bool RequestSpatialMapping();
         #endregion
 
         private static CompositorWindow window = null;
@@ -144,6 +147,19 @@ namespace SpectatorView
             RenderCompositeFrame();
         }
 
+        void RequestSpatialMappingFromSV()
+        {
+            if (GUILayout.Button("Request Spatial Mapping"))
+            {
+                // Send message to SV device requesting spatial mapping data.
+                if (!RequestSpatialMapping())
+                {
+                    UnityEngine.Debug.LogWarning("Spatial mapping message was not sent.");
+                    return;
+                }
+            }
+        }
+
         void ToggleFullScreen()
         {
             if (Event.current != null &&
@@ -157,45 +173,40 @@ namespace SpectatorView
             }
 
             // Toggle Fullscreen.
-            EditorGUILayout.BeginVertical("Box");
+            if (GUILayout.Button("Toggle Full Screen"))
             {
-                // This seems to work best if the compositor window is not docked.
-                if (GUILayout.Button("Toggle Full Screen"))
+                isFullScreen = !isFullScreen;
+                if (isFullScreen)
                 {
-                    isFullScreen = !isFullScreen;
-                    if (isFullScreen)
-                    {
-                        cachedPosition = window.position;
-                        cachedMinSize = window.minSize;
-                        cachedMaxSize = window.maxSize;
+                    cachedPosition = window.position;
+                    cachedMinSize = window.minSize;
+                    cachedMaxSize = window.maxSize;
 
-                        // Hide top menu bar
-                        int topBuffer = 22;
-                        // Hide left border.
-                        int leftBuffer = 5 + (int)(topBuffer * aspect);
+                    // Hide top menu bar
+                    int topBuffer = 22;
+                    // Hide left border.
+                    int leftBuffer = 5 + (int)(topBuffer * aspect);
 
-                        // These values may need to be changed manually depending on your resolution or DPI settings.
-                        int width = (Screen.currentResolution.width + leftBuffer);
-                        int height = (Screen.currentResolution.height + topBuffer);
+                    // These values may need to be changed manually depending on your resolution or DPI settings.
+                    int width = (Screen.currentResolution.width + leftBuffer);
+                    int height = (Screen.currentResolution.height + topBuffer);
 
-                        // Render on a different monitor by changing the x and y values below:
-                        Rect newPos = new Rect(0 - leftBuffer / 2, 0 - topBuffer, width, height + topBuffer);
+                    // Render on a different monitor by changing the x and y values below:
+                    Rect newPos = new Rect(0 - leftBuffer / 2, 0 - topBuffer, width, height + topBuffer);
 
-                        window.minSize = new Vector2(width, height + topBuffer);
-                        window.maxSize = window.minSize;
-                        window.position = newPos;
+                    window.minSize = new Vector2(width, height + topBuffer);
+                    window.maxSize = window.minSize;
+                    window.position = newPos;
 
-                        Screen.fullScreen = true;
-                    }
-                    else
-                    {
-                        // This button will not be visible when full screen unless we do not have a valid texture.
-                        // Use Escape to restore instead.
-                        RestoreWindowSize();
-                    }
+                    Screen.fullScreen = true;
+                }
+                else
+                {
+                    // This button will not be visible when full screen unless we do not have a valid texture.
+                    // Use Escape to restore instead.
+                    RestoreWindowSize();
                 }
             }
-            EditorGUILayout.EndVertical();
         }
 
         void RestoreWindowSize()
@@ -260,7 +271,12 @@ namespace SpectatorView
             {
                 RenderTitle("Preview");
 
-                ToggleFullScreen();
+                EditorGUILayout.BeginVertical("Box");
+                {
+                    ToggleFullScreen();
+                    RequestSpatialMappingFromSV();
+                }
+                EditorGUILayout.EndVertical();
 
                 // Render preview.
                 Rect spacing = GUILayoutUtility.GetRect(1, 1);

@@ -22,6 +22,7 @@ public:
     SpectatorViewSocket();
     ~SpectatorViewSocket();
 
+    void SendSpatialMapping(byte* bytes, int length);
     void SendPose(SpatialCoordinateSystem^ cs);
     bool Listen();
 
@@ -29,12 +30,12 @@ public:
     std::string anchorName;
     int anchorPort;
     bool ConnectToAnchorOwner = false;
+    bool SendSpatialMappingData = false;
 
 private:
     WSASession session;
     TCPSocket tcp;
 
-    SpatialCoordinateSystem^ coordinateSystem = nullptr;
     Windows::Globalization::Calendar^ calendar = nullptr;
     SpatialLocator^ locator;
     
@@ -46,8 +47,6 @@ private:
 
     byte* recvbuf = new byte[DEFAULT_BUFLEN];
     ClientToServerPacket packet;
-
-    void SetCoordinateSystem(SpatialCoordinateSystem^ cs);
 
     // Get time from compositor peer, find past pose, send pose back to peer.
     void GetPose(SpatialCoordinateSystem^ cs, int nsPast);

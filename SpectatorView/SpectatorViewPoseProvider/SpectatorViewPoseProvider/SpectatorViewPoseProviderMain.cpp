@@ -103,6 +103,8 @@ void SpectatorViewPoseProviderMain::SetHolographicSpace(HolographicSpace^ hologr
     //   indicates to be of special interest. Anchor positions do not drift, but can be corrected; the
     //   anchor will use the corrected position starting in the next frame after the correction has
     //   occurred.
+
+    m_spatialMappingManager.Initialize(m_deviceResources);
 }
 
 void SpectatorViewPoseProviderMain::UnregisterHolographicEventHandlers()
@@ -128,6 +130,8 @@ void SpectatorViewPoseProviderMain::UnregisterHolographicEventHandlers()
     {
         m_locator->LocatabilityChanged -= m_locatabilityChangedToken;
     }
+
+    m_spatialMappingManager.UnregisterHolographicEventHandlers();
 }
 
 SpectatorViewPoseProviderMain::~SpectatorViewPoseProviderMain()
@@ -143,6 +147,36 @@ void SpectatorViewPoseProviderMain::ConnectToAnchorOwner()
     anchorImporter.ConnectToServer(
         ref new Platform::String(StringHelper::s2ws(SVSocket.anchorOwnerIP).c_str()),
         SVSocket.anchorPort);
+}
+
+void SpectatorViewPoseProviderMain::SendSpatialMappingData()
+{
+    // Get spatial mapping data relative to coordinate system.
+    int length;
+    byte* bytes = nullptr;
+    SpatialCoordinateSystem^ anchorCoordSystem = anchorImporter.GetSharedAnchorCoordinateSystem();
+    if (anchorCoordSystem != nullptr &&
+        anchorCoordSystem->TryGetTransformTo(m_referenceFrame->CoordinateSystem) != nullptr)
+    {
+        bytes = m_spatialMappingManager.GetMeshData(length, anchorCoordSystem);
+    }
+    else
+    {
+        bytes = m_spatialMappingManager.GetMeshData(length, m_referenceFrame->CoordinateSystem);
+    }
+
+    if (length == 0 || bytes == nullptr)
+    {
+        return;
+    }
+
+    OutputDebugString(L"Sending ");
+    OutputDebugString(std::to_wstring(length).c_str());
+    OutputDebugString(L" bytes of spatial mapping data.\n");
+
+    // Send serialized data to compositor.
+    SVSocket.SendSpatialMapping(bytes, length);
+    delete[] bytes;
 }
 
 // Updates the application state once per frame.
@@ -183,6 +217,18 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
     }
 #endif
 
+    SpatialCoordinateSystem^ anchorCoordSystem = anchorImporter.GetSharedAnchorCoordinateSystem();
+    if (anchorCoordSystem != nullptr &&
+        anchorCoordSystem->TryGetTransformTo(currentCoordinateSystem) != nullptr)
+    {
+        m_spatialMappingManager.Update(anchorCoordSystem);
+    }
+    else
+    {
+        m_spatialMappingManager.Update(currentCoordinateSystem);
+    }
+
+
     m_timer.Tick([&] ()
     {
         //
@@ -193,6 +239,7 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
         // run as many times as needed to get to the current step.
         //
 
+        // Check for new anchor owner.
         if (SVSocket.ConnectToAnchorOwner)
         {
             SVSocket.ConnectToAnchorOwner = false;
@@ -200,12 +247,20 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
             ConnectToAnchorOwner();
         }
 
+        // Check for spatial mapping.
+        if (SVSocket.SendSpatialMappingData)
+        {
+            SVSocket.SendSpatialMappingData = false;
+
+            SendSpatialMappingData();
+        }
+
         //Send pose relative to shared anchor's coordinate system.
-        SpatialCoordinateSystem^ anchorCoordSystem = anchorImporter.GetSharedAnchorCoordinateSystem();
         if (anchorCoordSystem != nullptr &&
             anchorCoordSystem->TryGetTransformTo(currentCoordinateSystem) != nullptr)
         {
             SVSocket.SendPose(anchorCoordSystem);
+            m_spatialMappingManager.UpdateMeshRenderer(m_timer, anchorCoordSystem);
         }
         else
         {
@@ -216,6 +271,7 @@ HolographicFrame^ SpectatorViewPoseProviderMain::Update()
             }
 
             SVSocket.SendPose(currentCoordinateSystem);
+            m_spatialMappingManager.UpdateMeshRenderer(m_timer, currentCoordinateSystem);
         }
 
 #ifdef DRAW_SAMPLE_CONTENT
@@ -321,7 +377,16 @@ bool SpectatorViewPoseProviderMain::Render(Windows::Graphics::Holographic::Holog
             // The view and projection matrices for each holographic camera will change
             // every frame. This function refreshes the data in the constant buffer for
             // the holographic camera indicated by cameraPose.
-            pCameraResources->UpdateViewProjectionBuffer(m_deviceResources, cameraPose, m_referenceFrame->CoordinateSystem);
+            SpatialCoordinateSystem^ anchorCoordSystem = anchorImporter.GetSharedAnchorCoordinateSystem();
+            if (anchorCoordSystem != nullptr &&
+                anchorCoordSystem->TryGetTransformTo(m_referenceFrame->CoordinateSystem) != nullptr)
+            {
+                pCameraResources->UpdateViewProjectionBuffer(m_deviceResources, cameraPose, anchorCoordSystem);
+            }
+            else
+            {
+                pCameraResources->UpdateViewProjectionBuffer(m_deviceResources, cameraPose, m_referenceFrame->CoordinateSystem);
+            }
 
             // Attach the view/projection constant buffer for this camera to the graphics pipeline.
             bool cameraActive = pCameraResources->AttachViewProjectionBuffer(m_deviceResources);
@@ -332,6 +397,7 @@ bool SpectatorViewPoseProviderMain::Render(Windows::Graphics::Holographic::Holog
             {
                 // Draw the sample hologram.
                 m_spinningCubeRenderer->Render();
+                m_spatialMappingManager.Render(pCameraResources->IsRenderingStereoscopic());
             }
 #endif
             atLeastOneCameraRendered = true;
@@ -368,6 +434,8 @@ void SpectatorViewPoseProviderMain::OnDeviceLost()
 #ifdef DRAW_SAMPLE_CONTENT
     m_spinningCubeRenderer->ReleaseDeviceDependentResources();
 #endif
+
+    m_spatialMappingManager.ReleaseDeviceDependentResources();
 }
 
 // Notifies classes that use Direct3D device resources that the device resources
@@ -377,6 +445,8 @@ void SpectatorViewPoseProviderMain::OnDeviceRestored()
 #ifdef DRAW_SAMPLE_CONTENT
     m_spinningCubeRenderer->CreateDeviceDependentResources();
 #endif
+
+    m_spatialMappingManager.CreateDeviceDependentResources();
 }
 
 void SpectatorViewPoseProviderMain::OnLocatabilityChanged(SpatialLocator^ sender, Object^ args)

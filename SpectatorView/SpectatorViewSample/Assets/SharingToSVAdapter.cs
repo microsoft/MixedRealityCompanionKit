@@ -25,6 +25,7 @@ public class SharingToSVAdapter : MonoBehaviour
     [Tooltip("The IP of the HoloLens running the SpectatorViewPoseProvider application.")]
     public string SpectatorViewIP;
 
+    [Header("Port anchor is shared on in your shared experience.")]
     public int AnchorPort = 11000;
 
     [Header("Leave this blank to always create a new anchor with the last HoloLens to join.")]
