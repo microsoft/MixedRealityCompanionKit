@@ -29,6 +29,9 @@ namespace SpectatorView
 
         [DllImport("UnityCompositorInterface")]
         private static extern int GetFrameHeight();
+
+        [DllImport("UnityCompositorInterface")]
+        private static extern void SetAudioData(byte[] audioData);
         #endregion
 
         [Header("Hologram resolution settings.")]
@@ -93,6 +96,21 @@ namespace SpectatorView
                 // For our simple plugin, it does not matter which ID we pass here.
                 GL.IssuePluginEvent(GetRenderEventFunc(), 1);
             }
+        }
+
+        // Send audio data to Compositor.
+        void OnAudioFilterRead(float[] data, int channels)
+        {
+            Byte[] audioBytes = new Byte[data.Length * 2];
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                // Rescale float to short range for encoding.
+                short audioEntry = (short)(data[i] * short.MaxValue);
+                BitConverter.GetBytes(audioEntry).CopyTo(audioBytes, i * 2);
+            }
+
+            SetAudioData(audioBytes);
         }
 #endif
     }

@@ -32,9 +32,6 @@ namespace SpectatorView
         private static extern void ResetSV();
 
         [DllImport("UnityCompositorInterface")]
-        private static extern void SetAudioData(byte[] audioData);
-
-        [DllImport("UnityCompositorInterface")]
         private static extern bool IsRecording();
 
         [DllImport("UnityCompositorInterface")]
@@ -48,15 +45,6 @@ namespace SpectatorView
 
         [DllImport("UnityCompositorInterface")]
         private static extern void ResetPoseCache();
-
-        [DllImport("UnityCompositorInterface")]
-        private static extern bool IsSpatialMappingDataReady(out int numMeshes);
-
-        [DllImport("UnityCompositorInterface")]
-        private static extern bool GetSpatialMappingDataBufferLengths(int index, out int numVertices, out int numIndices);
-
-        [DllImport("UnityCompositorInterface")]
-        private static extern bool GetSpatialMappingData(int index, out Vector3 translation, out Quaternion rotation, out Vector3 scale, out IntPtr vertices, out IntPtr indices);
         #endregion
 
         [Header("Visuals")]
@@ -96,12 +84,11 @@ namespace SpectatorView
         public bool frameProviderInitialized = false;
 
         // Spatial Mapping:
-        GameObject spatialMappingParent;
-        List<GameObject> spatialMappingMeshes = new List<GameObject>();
-
         [Header("Spatial Mapping")]
         public Material SpatialMappingMaterial;
         private Material prevSpatialMaterial;
+
+        SpatialMapping spatialMapping;
 
         private void Awake()
         {
@@ -117,12 +104,8 @@ namespace SpectatorView
 
             ResetHologramSynchronization = false;
 
-            spatialMappingParent = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            DestroyImmediate(spatialMappingParent.GetComponent<Renderer>());
-            DestroyImmediate(spatialMappingParent.GetComponent<Collider>());
-            spatialMappingParent.gameObject.name = "SV_SpatialMapping";
-
             prevSpatialMaterial = SpatialMappingMaterial;
+            spatialMapping = new SpatialMapping();
 
             InvokeRepeating("SendAnchorInformationToPoseProvider", 10, 10);
         }
@@ -202,9 +185,12 @@ namespace SpectatorView
                 }
 
                 prevSpatialMaterial = SpatialMappingMaterial;
-                foreach (GameObject go in spatialMappingMeshes)
+                if (spatialMapping != null)
                 {
-                    go.GetComponent<Renderer>().material = SpatialMappingMaterial;
+                    foreach (GameObject go in spatialMapping.spatialMappingMeshes)
+                    {
+                        go.GetComponent<Renderer>().material = SpatialMappingMaterial;
+                    }
                 }
             }
         }
@@ -243,34 +229,10 @@ namespace SpectatorView
             return inputComponent / scale;
         }
 
-        // Unity requires quaternions to be normalized.
-        Quaternion GetNormalizedQuaternion(Quaternion q)
-        {
-            float f = 1.0f / Mathf.Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
-            return new Quaternion(q.x * f, q.y * f, q.z * f, q.w * f);
-        }
-
-        void ValidateVector(ref Vector3 pos)
-        {
-            // Unity will fail if position values are too small.
-            float epsilon = 0.00001f;
-            if (Mathf.Abs(pos.x) < epsilon) { pos.x = 0; }
-            if (Mathf.Abs(pos.y) < epsilon) { pos.y = 0; }
-            if (Mathf.Abs(pos.z) < epsilon) { pos.z = 0; }
-        }
-
-        void ValidatePose(ref Vector3 pos, ref Quaternion rot)
-        {
-            ValidateVector(ref pos);
-
-            // Unity will fail if a transform's rotation is not normalized.
-            rot = GetNormalizedQuaternion(rot);
-        }
-
         void Update()
         {
             GetPose(out pos, out rot, Time.time, FrameOffset);
-            ValidatePose(ref pos, ref rot);
+            TransformValidation.ValidatePose(ref pos, ref rot);
 
             // Update local transform with pose data from the network.
             // Use local transform, so we can child this gameobject to the scene anchor.
@@ -307,147 +269,7 @@ namespace SpectatorView
             }
 
             UpdateCompositor();
-            UpdateSpatialMapping();
-        }
-
-        void UpdateSpatialMapping()
-        {
-            int numSpatialMappingMeshes = 0;
-            if (IsSpatialMappingDataReady(out numSpatialMappingMeshes))
-            {
-                // Set parent transform and remove previous meshes.
-                spatialMappingParent.transform.SetParent(transform.parent);
-                spatialMappingParent.transform.localPosition = Vector3.zero;
-                spatialMappingParent.transform.localRotation = Quaternion.identity;
-
-                foreach (GameObject go in spatialMappingMeshes)
-                {
-                    DestroyImmediate(go);
-                }
-                spatialMappingMeshes.Clear();
-
-                // Find largest sizes for index and vertex buffers.
-                int largestNumVertices = int.MinValue;
-                int largestNumIndices = int.MinValue;
-                int numVertices;
-                int numIndices;
-                for (int i = 0; i < numSpatialMappingMeshes; i++)
-                {
-                    if (GetSpatialMappingDataBufferLengths(i, out numVertices, out numIndices))
-                    {
-                        if (numVertices > largestNumVertices)
-                        {
-                            largestNumVertices = numVertices;
-                        }
-
-                        if (numIndices > largestNumIndices)
-                        {
-                            largestNumIndices = numIndices;
-                        }
-                    }
-                }
-
-                IntPtr nativeVertices = Marshal.AllocHGlobal(largestNumVertices * 3 * sizeof(float));
-                IntPtr nativeIndices = Marshal.AllocHGlobal(largestNumIndices * sizeof(short));
-
-                for (int i = 0; i < numSpatialMappingMeshes; i++)
-                {
-                    if (GetSpatialMappingDataBufferLengths(i, out numVertices, out numIndices))
-                    {
-                        float[] vertexElements = new float[numVertices * 3];
-                        short[] indices = new short[numIndices];
-
-                        if (numVertices <= 0 || numIndices <= 0)
-                        {
-                            return;
-                        }
-
-                        Vector3 meshTrans;
-                        Quaternion meshRot;
-                        Vector3 meshScale;
-                        if (GetSpatialMappingData(i, out meshTrans, out meshRot, out meshScale, out nativeVertices, out nativeIndices))
-                        {
-                            ValidateVector(ref meshTrans);
-                            ValidateVector(ref meshScale);
-                            meshRot = GetNormalizedQuaternion(meshRot);
-
-                            Marshal.Copy(nativeVertices, vertexElements, 0, numVertices * 3);
-                            Marshal.Copy(nativeIndices, indices, 0, numIndices);
-
-                            List<Vector3> vertices = new List<Vector3>();
-                            for (int v = 0; v < vertexElements.Length; v+=3)
-                            {
-                                Vector3 vertex = new Vector3(
-                                    vertexElements[v],
-                                    vertexElements[v + 1],
-                                    vertexElements[v + 2]
-                                );
-
-                                vertices.Add(vertex);
-                            }
-
-                            int[] int_indices = new int[numIndices];
-                            for (int idx = 0; idx < numIndices; idx++)
-                            {
-                                int_indices[idx] = (int)indices[idx];
-                            }
-
-                            // Create spatial mapping meshes.
-                            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                            go.name = "SpatialMapping_" + i.ToString();
-                            go.transform.SetParent(spatialMappingParent.transform);
-
-                            go.transform.localPosition = meshTrans;
-                            go.transform.localRotation = meshRot;
-
-                            // Scale coming from device is larger by a factor of 5.
-                            go.transform.localScale = meshScale / 5.0f;
-
-                            if (SpatialMappingMaterial != null)
-                            {
-                                go.GetComponent<Renderer>().material = SpatialMappingMaterial;
-                            }
-
-                            spatialMappingMeshes.Add(go);
-
-                            DestroyImmediate(go.GetComponent<Collider>());
-                            MeshFilter filter = go.GetComponent<MeshFilter>();
-                            filter.mesh = new Mesh();
-                            filter.sharedMesh = filter.mesh;
-
-                            Mesh mesh = filter.sharedMesh;
-                            mesh.Clear();
-
-                            mesh.SetVertices(vertices);
-                            mesh.SetIndices(int_indices, MeshTopology.Triangles, 0);
-
-                            mesh.RecalculateNormals();
-                            mesh.RecalculateBounds();
-
-                            Debug.Log(String.Format("Received spatial mapping mesh {0} with {1} vertices and {2} indices", i, numVertices, numIndices));
-                        }
-                    }
-                }
-
-                //TODO: We should be freeing the memory we allocated for the index and vertex buffers, but this was deadlocking.
-                //Marshal.FreeHGlobal(nativeVertices);
-                //Marshal.FreeHGlobal(nativeIndices);
-            }
-        }
-
-        // Send audio data to Compositor.
-        void OnAudioFilterRead(float[] data, int channels)
-        {
-            Byte[] audioBytes = new Byte[data.Length * 2];
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                // Rescale float to short range for encoding.
-                short audioEntry = (short)(data[i] * short.MaxValue);
-                BitConverter.GetBytes(audioEntry).CopyTo(audioBytes, i * 2);
-            }
-
-            SetAudioData(audioBytes);
+            spatialMapping.UpdateSpatialMapping(transform.parent, SpatialMappingMaterial);
         }
 #endif
     }
