@@ -45,23 +45,22 @@ public:
     void Update();
 
 private:
-    void WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duration);
+    void WriteVideo(byte* buffer, LONGLONG duration);
     void WriteAudio(byte* buffer, LONGLONG timestamp);
 
     LARGE_INTEGER freq;
+
+    LONGLONG numFramesRecorded = 0;
 
     class VideoInput
     {
     public:
         byte * sharedBuffer;
-
-        LONGLONG timestamp;
         LONGLONG duration;
 
-        VideoInput(byte* buffer, LONGLONG timestamp, LONGLONG duration)
+        VideoInput(byte* buffer, LONGLONG duration)
         {
             this->sharedBuffer = buffer;
-            this->timestamp = timestamp;
             this->duration = duration;
         }
     };
@@ -96,7 +95,6 @@ private:
     UINT32 bitRate;
     GUID videoEncodingFormat;
     GUID inputFormat;
-    LONGLONG prevVideoTime = INVALID_TIMESTAMP;
 
     // Audio Parameters.
     UINT32 audioBufferSize;
@@ -104,8 +102,6 @@ private:
     UINT32 audioChannels;
     UINT32 audioBPS;
     LONGLONG prevAudioTime = INVALID_TIMESTAMP;
-
-    LONGLONG startTime = INVALID_TIMESTAMP;
 
     std::queue<VideoInput> videoQueue;
     std::queue<AudioInput> audioQueue;

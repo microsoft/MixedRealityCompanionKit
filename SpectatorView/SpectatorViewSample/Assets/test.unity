@@ -222,11 +222,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 114626149255860242, guid: cb19b562c50f2404095a4ce6fa7c09c7,
-        type: 2}
-      propertyPath: SpatialMappingMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: 718c1672d65e99d49879fbd18dde2d9e, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb19b562c50f2404095a4ce6fa7c09c7, type: 2}
   m_IsPrefabParent: 0

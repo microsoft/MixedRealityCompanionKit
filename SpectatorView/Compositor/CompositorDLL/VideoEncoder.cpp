@@ -44,6 +44,8 @@ bool VideoEncoder::Initialize(ID3D11Device* device)
         deviceManager->ResetDevice(device, resetToken);
     }
 
+    numFramesRecorded = 0;
+
     return SUCCEEDED(hr);
 }
 
@@ -62,10 +64,8 @@ void VideoEncoder::StartRecording(LPCWSTR videoPath, bool encodeAudio)
     }
 
     // Reset previous times to get valid data for this recording.
-    prevVideoTime = INVALID_TIMESTAMP;
+    numFramesRecorded = 0;
     prevAudioTime = INVALID_TIMESTAMP;
-
-    startTime = INVALID_TIMESTAMP;
 
     HRESULT hr = E_PENDING;
 
@@ -248,7 +248,7 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
 #endif
 }
 
-void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duration)
+void VideoEncoder::WriteVideo(byte* buffer, LONGLONG duration)
 {
     std::shared_lock<std::shared_mutex> lock(videoStateLock);
 
@@ -257,22 +257,7 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
         return;
     }
 
-    if(startTime == INVALID_TIMESTAMP)
-        startTime = timestamp;
-    else if (timestamp < startTime)
-    {
-        return;
-    }
-
-    if (timestamp == prevVideoTime)
-    {
-        return;
-    }
-    
-    LONGLONG sampleTimeNow = timestamp;
-    LONGLONG sampleTimeStart = startTime;
-
-    LONGLONG sampleTime = sampleTimeNow - sampleTimeStart;
+    LONGLONG sampleTime = numFramesRecorded * duration;
 
     // Copy frame to a temporary buffer and process on a background thread.
     BYTE* tmpVideoBuffer = new BYTE[(int)(1.5f * frameHeight * frameWidth)];
@@ -345,12 +330,14 @@ void VideoEncoder::WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duratio
         }
     });
 
-    prevVideoTime = sampleTime;
+    numFramesRecorded++;
 }
 
 void VideoEncoder::StopRecording()
 {
     std::unique_lock<std::shared_mutex> lock(videoStateLock);
+
+    numFramesRecorded = 0;
 
     if (sinkWriter == NULL || !isRecording)
     {
@@ -420,7 +407,7 @@ void VideoEncoder::QueueVideoFrame(byte* buffer, LONGLONG timestamp, LONGLONG du
 
     if (acceptQueuedFrames)
     {
-        videoQueue.push(VideoInput(buffer, timestamp, duration));
+        videoQueue.push(VideoInput(buffer, duration));
     }
 }
 
@@ -447,7 +434,7 @@ void VideoEncoder::Update()
         if (isRecording)
         {
             VideoInput input = videoQueue.front();
-            WriteVideo(input.sharedBuffer, input.timestamp, input.duration);
+            WriteVideo(input.sharedBuffer, input.duration);
             videoQueue.pop();
         }
     }
