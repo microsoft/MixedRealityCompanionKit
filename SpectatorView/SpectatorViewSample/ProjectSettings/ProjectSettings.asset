@@ -601,7 +601,7 @@ PlayerSettings:
       InternetClient: True
       InternetClientServer: True
       Location: False
-      Microphone: False
+      Microphone: True
       MusicLibrary: False
       Objects3D: False
       PhoneCall: False

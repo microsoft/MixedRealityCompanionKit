@@ -159,7 +159,7 @@ namespace SimpleSharing
 #region Send Client Data to Server
         private Vector3 GetVectorInAnchorSpace(Vector3 input)
         {
-            // Get rotation relative to the shared anchor's rotation if available.
+            // Get position relative to the shared anchor's rotation if available.
             if (AnchorManager.Instance != null && AnchorManager.Instance.objectToAnchor != null)
             {
                 return AnchorManager.Instance.objectToAnchor.transform.InverseTransformPoint(input);

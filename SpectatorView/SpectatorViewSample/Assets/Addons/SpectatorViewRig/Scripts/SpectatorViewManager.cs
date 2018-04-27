@@ -269,6 +269,10 @@ namespace SpectatorView
             }
 
             UpdateCompositor();
+            if (spatialMapping == null)
+            {
+                spatialMapping = new SpatialMapping();
+            }
             spatialMapping.UpdateSpatialMapping(transform.parent, SpatialMappingMaterial);
         }
 #endif

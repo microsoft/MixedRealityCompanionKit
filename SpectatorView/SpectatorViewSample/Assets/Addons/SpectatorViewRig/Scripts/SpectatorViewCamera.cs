@@ -57,6 +57,15 @@ namespace SpectatorView
             Camera camera = GetComponent<Camera>();
             if (camera != null)
             {
+                if (!camera.enabled)
+                {
+                    camera.enabled = true;
+                }
+                else
+                {
+                    Debug.LogWarning("Spectator view camera started enabled, this may cause your HoloLens application to render from an incorrect perspective.");
+                }
+
                 SetupCamera(camera, GetFrameWidth(), GetFrameHeight(), out renderTexture);
             }
         }

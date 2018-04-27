@@ -4,7 +4,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+#if UNITY_WSA
 using UnityEngine.XR.WSA.Input;
+using UnityEngine.Windows.Speech;
+#endif
 
 namespace SimpleSharing
 {
@@ -17,6 +21,8 @@ namespace SimpleSharing
         // See RemotePlayerManager.
         GameObject placedObject = null;
 
+        KeywordRecognizer kr;
+
         void Start()
         {
             // Send pose data less frequently than Update frequency.
@@ -25,10 +31,21 @@ namespace SimpleSharing
 
             gr = new GestureRecognizer();
             gr.SetRecognizableGestures(GestureSettings.Tap);
-
             gr.Tapped += Tapped;
-
             gr.StartCapturingGestures();
+
+            kr = new KeywordRecognizer(new string[] {"Reset Anchor."});
+            kr.OnPhraseRecognized += OnPhraseRecognized;
+            kr.Start();
+        }
+
+        private void OnPhraseRecognized(PhraseRecognizedEventArgs args)
+        {
+            if (AnchorManager.Instance != null)
+            {
+                Debug.Log("Reset anchors.");
+                AnchorManager.Instance.ResetAnchor();
+            }
         }
 
         private void Tapped(TappedEventArgs e)

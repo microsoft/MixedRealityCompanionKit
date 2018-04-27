@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 114664651219037486}
   - component: {fileID: 114886271819607974}
   - component: {fileID: 114909533391819382}
+  - component: {fileID: 114844626405751220}
   m_Layer: 0
   m_Name: Sharing
   m_TagString: Untagged
@@ -171,6 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SendConnectionPort: 11000
   AnchorOwnerIP: 
+  ForceCreateAnchor: 0
 --- !u!114 &114664651219037486
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -183,6 +185,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objectToAnchor: {fileID: 1926868595079948}
+--- !u!114 &114844626405751220
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1728988919896610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a188a3db91d52c4984be40d702e13ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AnchorDebugText: {fileID: 0}
+  ShowDetailedLogs: 0
+  PersistentAnchors: 1
 --- !u!114 &114886271819607974
 MonoBehaviour:
   m_ObjectHideFlags: 1

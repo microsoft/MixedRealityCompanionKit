@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 // To keep spectator view and the shared experience networking stack independent, some data will need to be shared in this adapter.
@@ -163,6 +161,7 @@ public class SharingToSVAdapter : MonoBehaviour
     //NOTE: You may choose to instead use a syncvar with a hook if that works better in your network stack.
     bool CheckForUpdatedAnchor()
     {
+        bool newAnchor = false;
         if (SimpleSharing.SharingManager.Instance != null)
         {
             string anchorName = SimpleSharing.SharingManager.Instance.AnchorName;
@@ -174,14 +173,23 @@ public class SharingToSVAdapter : MonoBehaviour
                 // We got a null anchor, do not update the remote anchor.
                 if (anchorName.Trim() == string.Empty)
                 {
-                    return false;
+                    newAnchor = false;
                 }
 
                 // Update the remote anchor.
-                return true;
+                newAnchor = true;
+            }
+
+            string newAnchorOwnerIP = SimpleSharing.SharingManager.Instance.AnchorIP;
+            if (AnchorOwnerIP != newAnchorOwnerIP)
+            {
+                Debug.Log("We have a new anchor owner: " + newAnchorOwnerIP);
+                AnchorOwnerIP = SimpleSharing.SharingManager.Instance.AnchorIP;
+                SimpleSharing.AnchorNetworkTransmitter.Instance.AnchorOwnerIP = AnchorOwnerIP;
+                newAnchor = true;
             }
         }
 
-        return false;
+        return newAnchor;
     }
 }

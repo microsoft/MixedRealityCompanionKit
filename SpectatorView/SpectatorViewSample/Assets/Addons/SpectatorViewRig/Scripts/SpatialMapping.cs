@@ -24,15 +24,21 @@ namespace SpectatorView
         private static extern void ResetPoseCache();
         #endregion
 
-        GameObject spatialMappingParent;
+        GameObject spatialMappingParent = null;
         public List<GameObject> spatialMappingMeshes = new List<GameObject>();
+
+        private string SpatialMappingParentName = "SV_SpatialMapping";
 
         public SpatialMapping()
         {
-            spatialMappingParent = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            GameObject.DestroyImmediate(spatialMappingParent.GetComponent<Renderer>());
-            GameObject.DestroyImmediate(spatialMappingParent.GetComponent<Collider>());
-            spatialMappingParent.gameObject.name = "SV_SpatialMapping";
+            spatialMappingParent = GameObject.Find(SpatialMappingParentName);
+            if (spatialMappingParent == null)
+            {
+                spatialMappingParent = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                GameObject.DestroyImmediate(spatialMappingParent.GetComponent<Renderer>());
+                GameObject.DestroyImmediate(spatialMappingParent.GetComponent<Collider>());
+                spatialMappingParent.gameObject.name = SpatialMappingParentName;
+            }
         }
 
         public void UpdateSpatialMapping(Transform parent, Material SpatialMappingMaterial)

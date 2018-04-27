@@ -8,6 +8,7 @@ using System.Net;
 using UnityEngine;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Sharing;
+using UnityEngine.XR.WSA.Persistence;
 #if WINDOWS_UWP
 using Windows.Networking;
 using Windows.Networking.Connectivity;
@@ -21,6 +22,10 @@ namespace SimpleSharing
         /// Keeps track of the name of the world anchor to use.
         /// </summary>
         string AnchorName = "";
+
+        const string SavedAnchorKey = "SavedAnchorName";
+
+        WorldAnchorStore anchorStore = null;
 
         /// <summary>
         /// Sometimes we'll see a really small anchor blob get generated.
@@ -76,15 +81,6 @@ namespace SimpleSharing
         /// </summary>
         public bool DownloadingAnchor { get; private set; }
 
-
-        private void Awake()
-        {
-            if (objectToAnchor == null)
-            {
-                objectToAnchor = gameObject;
-            }
-        }
-
         private void Start()
         {
 #if WINDOWS_UWP
@@ -105,23 +101,35 @@ namespace SimpleSharing
                     }
                 }
             }
+
+            WorldAnchorStore.GetAsync(AnchorStoreReady);
 #endif
 
             networkTransmitter = AnchorNetworkTransmitter.Instance;
             networkTransmitter.dataReadyEvent += NetworkTransmitter_dataReadyEvent;
         }
 
+        void AnchorStoreReady(WorldAnchorStore store)
+        {
+            anchorStore = store;
+        }
+
         private void Update()
         {
+            if (anchorStore == null)
+            {
+                return;
+            }
+
 #if WINDOWS_UWP
             // Check if we should create an anchor.
-            if (!anchorOwner.HasValue && 
+            if (!anchorOwner.HasValue &&
                 AnchorNetworkTransmitter.Instance != null &&
                 (AnchorNetworkTransmitter.Instance.AnchorOwnerIP != string.Empty
                 || AnchorNetworkTransmitter.Instance.ForceCreateAnchor)
             )
             {
-                if (localIPs.Contains(AnchorNetworkTransmitter.Instance.AnchorOwnerIP) 
+                if (localIPs.Contains(AnchorNetworkTransmitter.Instance.AnchorOwnerIP)
                     || AnchorNetworkTransmitter.Instance.ForceCreateAnchor)
                 {
                     anchorOwner = true;
@@ -144,24 +152,66 @@ namespace SimpleSharing
 #endif
         }
 
+        public void ResetAnchor()
+        {
+#if WINDOWS_UWP
+            if (anchorStore != null)
+            {
+                anchorStore.Clear();
+            }
+
+            if (anchorOwner.HasValue && anchorOwner.Value == true)
+            {
+                MakeNewAnchor();
+            }
+#endif
+        }
+
         /// <summary>
         /// If we are supposed to create the anchor for export, this is the function to call.
         /// </summary>
         public void CreateAnchor()
         {
+            if (PlayerPrefs.HasKey(SavedAnchorKey) && AttachToCachedAnchor(PlayerPrefs.GetString(SavedAnchorKey)))
+            {
+                AnchorName = PlayerPrefs.GetString(SavedAnchorKey);
+                Debug.Log("found " + AnchorName + " again");
+            }
+            else
+            {
+                Debug.Log("Could not find cached anchor.");
+                AnchorName = Guid.NewGuid().ToString();
+            }
+
             exportingAnchorBytes.Clear();
             AnchorNetworkTransmitter.Instance.SetData(null);
-            AnchorName = Guid.NewGuid().ToString();
 
-            Debug.Log("Creating anchor for " + objectToAnchor.name);
-            WorldAnchorTransferBatch watb = new WorldAnchorTransferBatch();
             WorldAnchor worldAnchor = objectToAnchor.GetComponent<WorldAnchor>();
             if (worldAnchor == null)
             {
+                Debug.Log("Adding a new anchor.");
                 worldAnchor = objectToAnchor.AddComponent<WorldAnchor>();
             }
 
+            if (!AnchorEstablished)
+            {
+                if (worldAnchor.isLocated)
+                {
+                    Debug.Log("World anchor already located.");
+
+                    Debug.Log("Saving Anchor.");
+                    AnchorEstablished = true;
+                    SaveAnchor(worldAnchor);
+                }
+                else
+                {
+                    worldAnchor.OnTrackingChanged += Anchor_OnTrackingChanged;
+                    Anchor_OnTrackingChanged(worldAnchor, worldAnchor.isLocated);
+                }
+            }
+
             Debug.Log("exporting " + AnchorName);
+            WorldAnchorTransferBatch watb = new WorldAnchorTransferBatch();
             watb.AddWorldAnchor(AnchorName, worldAnchor);
             WorldAnchorTransferBatch.ExportAsync(watb, WriteBuffer, ExportComplete);
         }
@@ -176,6 +226,52 @@ namespace SimpleSharing
             {
                 Invoke("WaitForAnchor", 0.5f);
             }
+        }
+
+        /// <summary>
+        /// Attempts to attach to  an anchor by anchorName in the local store..
+        /// </summary>
+        /// <returns>True if it attached, false if it could not attach</returns>
+        private bool AttachToCachedAnchor(string CachedAnchorName)
+        {
+            if (string.IsNullOrEmpty(CachedAnchorName))
+            {
+                Debug.Log("Ignoring empty name");
+                return false;
+            }
+#if UNITY_WSA
+            if (anchorStore == null)
+            {
+                Debug.LogWarning("Could not find anchor store.");
+                return false;
+            }
+
+            Debug.Log("Looking for " + CachedAnchorName);
+            string[] ids = anchorStore.GetAllIds();
+            for (int index = 0; index < ids.Length; index++)
+            {
+                if (ids[index] == CachedAnchorName)
+                {
+                    Debug.Log("Using what we have");
+                    WorldAnchor anchor = anchorStore.Load(ids[index], objectToAnchor);
+
+                    if (anchor == null)
+                    {
+                        // We did not find a valid anchor.
+                        return false;
+                    }
+
+                    AnchorEstablished = true;
+                    return true;
+                }
+                else
+                {
+                    Debug.Log(ids[index]);
+                }
+            }
+#endif
+            // Didn't find the anchor.
+            return false;
         }
 
         /// <summary>
@@ -205,13 +301,21 @@ namespace SimpleSharing
                 string first = wat.GetAllIds()[0];
                 Debug.Log("Anchor name: " + first);
 
+                if (AttachToCachedAnchor(first))
+                {
+                    Debug.Log("Imported and attached to an anchor that we already cached.");
+                    return;
+                }
+
                 WorldAnchor existingAnchor = objectToAnchor.GetComponent<WorldAnchor>();
                 if (existingAnchor != null)
                 {
                     DestroyImmediate(existingAnchor);
                 }
 
-                wat.LockObject(first, objectToAnchor);
+                WorldAnchor anchor = wat.LockObject(first, objectToAnchor);
+                anchor.OnTrackingChanged += Anchor_OnTrackingChanged;
+                Anchor_OnTrackingChanged(anchor, anchor.isLocated);
 
                 ImportInProgress = false;
             }
@@ -221,6 +325,27 @@ namespace SimpleSharing
                 gotOne = true;
                 Debug.Log("Import fail");
             }
+        }
+
+        private void Anchor_OnTrackingChanged(WorldAnchor self, bool located)
+        {
+#if UNITY_WSA
+            if (located)
+            {
+                Debug.Log("Saving Anchor.");
+                AnchorEstablished = true;
+                SaveAnchor(self);
+                self.OnTrackingChanged -= Anchor_OnTrackingChanged;
+            }
+#endif
+        }
+
+        private void SaveAnchor(WorldAnchor wa)
+        {
+            anchorStore.Save(AnchorName, wa);
+
+            PlayerPrefs.SetString(SavedAnchorKey, AnchorName);
+            PlayerPrefs.Save();
         }
 
         /// <summary>
@@ -256,6 +381,38 @@ namespace SimpleSharing
                 DestroyImmediate(objectToAnchor.GetComponent<WorldAnchor>());
                 CreateAnchor();
             }
+        }
+
+        public void AnchorFoundRemotely()
+        {
+            if (UnityEngine.XR.WSA.HolographicSettings.IsDisplayOpaque)
+            {
+                return;
+            }
+#if UNITY_WSA
+            Debug.Log("Setting saved anchor to " + AnchorName);
+            SaveAnchor(objectToAnchor.GetComponent<WorldAnchor>());
+#endif
+        }
+
+        public void MakeNewAnchor()
+        {
+            Debug.Log("Making a new anchor.");
+
+            if (PlayerPrefs.HasKey(SavedAnchorKey))
+            {
+                Debug.Log("Deleting existing anchor key.");
+                PlayerPrefs.DeleteKey(SavedAnchorKey);
+            }
+
+            WorldAnchor currentAnchor = objectToAnchor.GetComponent<WorldAnchor>();
+            if (currentAnchor != null)
+            {
+                DestroyImmediate(currentAnchor);
+            }
+
+            AnchorName = "";
+            CreateAnchor();
         }
 
         // Periodically tell the server our anchor name.
