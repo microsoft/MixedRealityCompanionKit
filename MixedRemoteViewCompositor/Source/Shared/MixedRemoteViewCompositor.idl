@@ -617,6 +617,9 @@ namespace MixedRemoteViewCompositor{ namespace Network {
         HRESULT SendBundleAsync(
             [in] MixedRemoteViewCompositor.Network.DataBundle* dataBundle,
             [out, retval] Windows.Foundation.IAsyncAction** asyncAction);
+		HRESULT SendBundleAsyncSequenced(
+			[in] MixedRemoteViewCompositor.Network.DataBundle* dataBundle,
+			[out, retval] Windows.Foundation.IAsyncAction** asyncAction);
     };
 
     [exclusiveto(MixedRemoteViewCompositor.Network.Connection)]

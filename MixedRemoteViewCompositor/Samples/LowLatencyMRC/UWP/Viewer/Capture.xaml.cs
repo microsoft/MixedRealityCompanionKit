@@ -48,7 +48,7 @@ namespace Viewer
 
         private async void StartCapture()
         {
-            captureEngine = await CaptureEngine.CreateAsync(false);
+            captureEngine = await CaptureEngine.CreateAsync(true);
             if (this.captureEngine != null)
             {
                 await this.captureEngine.StartAsync(false, this.connection);

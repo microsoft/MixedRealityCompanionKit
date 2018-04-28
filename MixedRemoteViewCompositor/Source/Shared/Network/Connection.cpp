@@ -434,6 +434,121 @@ HRESULT ConnectionImpl::SendBundleAsync(
     return spWriteAction.CopyTo(sendAction);
 }
 
+_Use_decl_annotations_
+HRESULT ConnectionImpl::SendBundleAsyncSequenced(
+	IDataBundle *dataBundle,
+	IAsyncAction **sendAction)
+{
+	Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsyncSequenced\n");
+
+	NULL_CHK(dataBundle);
+	NULL_CHK(sendAction);
+
+	{
+		auto lock = _lock.Lock();
+
+		IFR(CheckClosed());
+	}
+
+	ComPtr<WriteCompleteImpl> spWriteAction;
+	IFR(MakeAndInitialize<WriteCompleteImpl>(&spWriteAction, 1));
+
+	// define workitem
+	ComPtr<IDataBundle> spDataBundle(dataBundle);
+	ComPtr<ConnectionImpl> spThis(this);
+	auto workItem =
+		Microsoft::WRL::Callback<ABI::Windows::System::Threading::IWorkItemHandler>(
+			[this, spThis, spDataBundle, spWriteAction](IAsyncAction* asyncAction) -> HRESULT
+	{
+		ComPtr<IOutputStream> spOutputStream;
+		DataBundleImpl::Container buffers;
+		DataBundleImpl::Iterator iter;
+
+		ComPtr<IStreamWriteOperation> writeOperation;
+		ComPtr<IBuffer> rawBuffer;
+		ComPtr<IDataBuffer> singleBuffer;
+
+		HRESULT hr = S_OK;
+
+		{
+			auto lock = _lock.Lock();
+
+			IFC(CheckClosed());
+
+			// get the output stream for socket
+			if (nullptr != _streamSocket)
+			{
+				IFC(_streamSocket->get_OutputStream(&spOutputStream));
+			}
+			else
+			{
+				IFC(E_UNEXPECTED);
+			}
+		}
+
+		DataBundleImpl* bundleImpl = static_cast<DataBundleImpl*>(spDataBundle.Get());
+		if (nullptr == bundleImpl)
+		{
+			IFC(E_INVALIDARG);
+		}
+
+		//make a single big buffer
+		ULONG totalSize;
+		IFC(bundleImpl->get_TotalSize(&totalSize));
+
+		IFC(MakeAndInitialize<DataBufferImpl>(&singleBuffer, totalSize));
+
+		DataBufferImpl * bufferImpl = static_cast<DataBufferImpl*>(singleBuffer.Get());
+
+		if (nullptr == bufferImpl) 
+		{
+			IFC(E_INVALIDARG);
+		}
+
+		BYTE* rawSingleBuffer;
+		IFC(bufferImpl->get_Buffer(&rawSingleBuffer));
+
+		DWORD copied;
+		IFC(bundleImpl->CopyTo(0, totalSize, &rawSingleBuffer[0], &copied));
+
+		IFC(bufferImpl->put_CurrentLength(copied));
+
+		IFC(singleBuffer.As(&rawBuffer));
+
+		IFC(spOutputStream->WriteAsync(rawBuffer.Get(), &writeOperation));
+
+		hr = SyncWait<UINT32, UINT32>(writeOperation.Get(), 1);
+
+		spWriteAction->SignalCompleted(hr);
+
+	done:
+		if (FAILED(hr))
+		{
+			spWriteAction->SignalCompleted(hr);
+		}
+
+		return S_OK;
+	});
+
+	ComPtr<IAsyncAction> workerAsync;
+	IFR(_threadPoolStatics->RunAsync(workItem.Get(), &workerAsync));
+
+	IFR(StartAsyncThen(
+		workerAsync.Get(),
+		[this, spThis, spWriteAction](_In_ HRESULT hr, _In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
+	{
+		if (FAILED(hr))
+		{
+			spWriteAction->SignalCompleted(hr);
+		}
+
+		return S_OK;
+	}));
+
+	// hand off async op
+	return spWriteAction.CopyTo(sendAction);
+}
+
 // IConnectionInternal
 _Use_decl_annotations_
 HRESULT ConnectionImpl::WaitForHeader()
