@@ -49,7 +49,7 @@ static_assert((USE_ELGATO + USE_DECKLINK + USE_DECKLINK_SHUTTLE + USE_OPENCV == 
 // Audio
 //TODO: Set this to true to encode audio with captured video.
 //NOTE: If you do not have Audio data, set this to false or the video may encode incorrectly.
-#define ENCODE_AUDIO FALSE
+#define ENCODE_AUDIO TRUE
 
 // These should match Game Engine's audio settings.  Size is in bytes.
 // These values should also be valid data values for H.264 encoding:

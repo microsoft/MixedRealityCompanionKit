@@ -45,6 +45,7 @@ bool VideoEncoder::Initialize(ID3D11Device* device)
     }
 
     numFramesRecorded = 0;
+    numAudioFramesRecorded = 0;
 
     return SUCCEEDED(hr);
 }
@@ -65,7 +66,7 @@ void VideoEncoder::StartRecording(LPCWSTR videoPath, bool encodeAudio)
 
     // Reset previous times to get valid data for this recording.
     numFramesRecorded = 0;
-    prevAudioTime = INVALID_TIMESTAMP;
+    numAudioFramesRecorded = 0;
 
     HRESULT hr = E_PENDING;
 
@@ -172,26 +173,18 @@ void VideoEncoder::StartRecording(LPCWSTR videoPath, bool encodeAudio)
 #endif
 }
 
-void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
+void VideoEncoder::WriteAudio(byte* buffer)
 {
     std::shared_lock<std::shared_mutex> lock(videoStateLock);
 
 #if ENCODE_AUDIO
-    if (!isRecording || startTime == INVALID_TIMESTAMP || timestamp < startTime)
+    if (!isRecording)
     {
         return;
     }
 
-    LONGLONG sampleTimeNow = timestamp;
-    LONGLONG sampleTimeStart = startTime;
-
-    LONGLONG sampleTime = sampleTimeNow - sampleTimeStart;
-
+    LONGLONG sampleTime = numAudioFramesRecorded * AUDIO_POLLING_RATE_HNS;
     LONGLONG duration = AUDIO_POLLING_RATE_HNS;
-    if (prevAudioTime != INVALID_TIMESTAMP)
-    {
-        duration = sampleTime - prevAudioTime;
-    }
 
     // Copy frame to a temporary buffer and process on a background thread.
     byte* tmpAudioBuffer = new byte[audioBufferSize];
@@ -225,8 +218,7 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
         }
 
         if (SUCCEEDED(hr)) { hr = MFCreateSample(&pAudioSample); }
-        LONGLONG t = sampleTime;
-        if (SUCCEEDED(hr)) { hr = pAudioSample->SetSampleTime(t); }
+        if (SUCCEEDED(hr)) { hr = pAudioSample->SetSampleTime(sampleTime); }
         if (SUCCEEDED(hr)) { hr = pAudioSample->SetSampleDuration(duration); }
         if (SUCCEEDED(hr)) { hr = pAudioBuffer->SetCurrentLength(cbAudioBuffer); }
         if (SUCCEEDED(hr)) { hr = pAudioSample->AddBuffer(pAudioBuffer); }
@@ -244,7 +236,7 @@ void VideoEncoder::WriteAudio(byte* buffer, LONGLONG timestamp)
         delete[] tmpAudioBuffer;
     });
 
-    prevAudioTime = sampleTime;
+    numAudioFramesRecorded++;
 #endif
 }
 
@@ -338,6 +330,7 @@ void VideoEncoder::StopRecording()
     std::unique_lock<std::shared_mutex> lock(videoStateLock);
 
     numFramesRecorded = 0;
+    numAudioFramesRecorded = 0;
 
     if (sinkWriter == NULL || !isRecording)
     {
@@ -411,13 +404,13 @@ void VideoEncoder::QueueVideoFrame(byte* buffer, LONGLONG timestamp, LONGLONG du
     }
 }
 
-void VideoEncoder::QueueAudioFrame(byte* buffer, LONGLONG timestamp)
+void VideoEncoder::QueueAudioFrame(byte* buffer)
 {
     std::shared_lock<std::shared_mutex> lock(videoStateLock);
 
     if (acceptQueuedFrames)
     {
-        audioQueue.push(AudioInput(buffer, timestamp));
+        audioQueue.push(AudioInput(buffer));
     }
 }
 
@@ -444,7 +437,7 @@ void VideoEncoder::Update()
         if (isRecording)
         {
             AudioInput input = audioQueue.front();
-            WriteAudio(input.buffer, input.timestamp);
+            WriteAudio(input.buffer);
             delete[] input.buffer;
             audioQueue.pop();
         }

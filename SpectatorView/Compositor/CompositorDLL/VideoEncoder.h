@@ -39,23 +39,24 @@ public:
 
     // Used for recording video from a background thread.
     void QueueVideoFrame(byte* buffer, LONGLONG timestamp, LONGLONG duration);
-    void QueueAudioFrame(byte* buffer, LONGLONG timestamp);
+    void QueueAudioFrame(byte* buffer);
 
     // Do not call this from a background thread.
     void Update();
 
 private:
     void WriteVideo(byte* buffer, LONGLONG duration);
-    void WriteAudio(byte* buffer, LONGLONG timestamp);
+    void WriteAudio(byte* buffer);
 
     LARGE_INTEGER freq;
 
     LONGLONG numFramesRecorded = 0;
+    LONGLONG numAudioFramesRecorded = 0;
 
     class VideoInput
     {
     public:
-        byte * sharedBuffer;
+        byte* sharedBuffer;
         LONGLONG duration;
 
         VideoInput(byte* buffer, LONGLONG duration)
@@ -69,12 +70,10 @@ private:
     {
     public:
         byte* buffer = new byte[AUDIO_BUFSIZE];
-        LONGLONG timestamp;
 
-        AudioInput(byte* buffer, LONGLONG timestamp)
+        AudioInput(byte* buffer)
         {
             memcpy(this->buffer, buffer, AUDIO_BUFSIZE);
-            this->timestamp = timestamp;
         }
     };
 
@@ -101,7 +100,6 @@ private:
     UINT32 audioSampleRate;
     UINT32 audioChannels;
     UINT32 audioBPS;
-    LONGLONG prevAudioTime = INVALID_TIMESTAMP;
 
     std::queue<VideoInput> videoQueue;
     std::queue<AudioInput> audioQueue;

@@ -21,6 +21,18 @@ namespace SimpleSharing
         // See LocalPlayerManager.
         GameObject placedObject = null;
 
+        public AudioClip placeSound;
+        AudioSource placeSource;
+
+        private void Awake()
+        {
+            placeSource = GetComponent<AudioSource>();
+            if (placeSource == null)
+            {
+                placeSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+
         private void AddRemotePlayer(int connectionID)
         {
             // In this simple example, this will add a cube to the remote player's head.
@@ -82,6 +94,22 @@ namespace SimpleSharing
                 }
 
                 placedObject.transform.localPosition = airTapHitLocation;
+
+                if (placeSound != null && !placeSource.isPlaying)
+                {
+                    placeSource.PlayOneShot(placeSound);
+                }
+            }
+        }
+
+        private void Update()
+        {
+            if (Input.GetKey(KeyCode.Space))
+            {
+                if (placeSound != null && !placeSource.isPlaying)
+                {
+                    placeSource.PlayOneShot(placeSound);
+                }
             }
         }
     }

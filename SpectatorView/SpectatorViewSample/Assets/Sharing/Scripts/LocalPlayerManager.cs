@@ -14,6 +14,7 @@ namespace SimpleSharing
 {
     public class LocalPlayerManager : MonoBehaviour
     {
+        public AudioClip placeSound;
 #if WINDOWS_UWP
         GestureRecognizer gr;
 
@@ -22,6 +23,8 @@ namespace SimpleSharing
         GameObject placedObject = null;
 
         KeywordRecognizer kr;
+
+        AudioSource placeSource;
 
         void Start()
         {
@@ -37,6 +40,12 @@ namespace SimpleSharing
             kr = new KeywordRecognizer(new string[] {"Reset Anchor."});
             kr.OnPhraseRecognized += OnPhraseRecognized;
             kr.Start();
+
+            placeSource = GetComponent<AudioSource>();
+            if (placeSource == null)
+            {
+                placeSource = gameObject.AddComponent<AudioSource>();
+            }
         }
 
         private void OnPhraseRecognized(PhraseRecognizedEventArgs args)
@@ -74,6 +83,11 @@ namespace SimpleSharing
                 }
 
                 placedObject.transform.position = hitPoint;
+
+                if (placeSound != null && !placeSource.isPlaying)
+                {
+                    placeSource.PlayOneShot(placeSound);
+                }
             }
         }
 

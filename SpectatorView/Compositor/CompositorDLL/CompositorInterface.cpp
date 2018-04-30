@@ -299,6 +299,6 @@ void CompositorInterface::RecordAudioFrameAsync(BYTE* audioFrame, LONGLONG frame
         return;
     }
 
-    videoEncoder->QueueAudioFrame(audioFrame, frameTime);
+    videoEncoder->QueueAudioFrame(audioFrame);
 }
 #pragma endregion Recording
