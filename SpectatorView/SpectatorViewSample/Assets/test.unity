@@ -264,32 +264,7 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 114844626405751220, guid: 4b7061699b99fe543a7eb45e1e7861eb,
-        type: 2}
-      propertyPath: PersistentAnchors
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1584609918561378, guid: 4b7061699b99fe543a7eb45e1e7861eb, type: 2}
-      propertyPath: m_Name
-      value: SharedHologramGeometry
-      objectReference: {fileID: 0}
-    - target: {fileID: 114664651219037486, guid: 4b7061699b99fe543a7eb45e1e7861eb,
-        type: 2}
-      propertyPath: objectToAnchor
-      value: 
-      objectReference: {fileID: 1596627241}
-    - target: {fileID: 114946369477324342, guid: 4b7061699b99fe543a7eb45e1e7861eb,
-        type: 2}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114022135287196764, guid: 4b7061699b99fe543a7eb45e1e7861eb,
-        type: 2}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 114844626405751220, guid: 4b7061699b99fe543a7eb45e1e7861eb, type: 2}
+    m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4b7061699b99fe543a7eb45e1e7861eb, type: 2}
   m_IsPrefabParent: 0
 --- !u!1 &1596627241 stripped
