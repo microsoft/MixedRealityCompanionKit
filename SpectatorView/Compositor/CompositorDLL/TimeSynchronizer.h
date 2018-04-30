@@ -9,18 +9,24 @@ class TimeSynchronizer
 public:
     TimeSynchronizer()
     {
+        QueryPerformanceFrequency(&freq);
     }
 
     ~TimeSynchronizer()
     {
     }
 
-    void Update(int camFrame, float camTime, int poseIndex, float poseTime, float UnityTime)
+    void Update(int camFrame, float camTime, int poseIndex, float poseTime)
     {
+        QueryPerformanceCounter(&time);
+        LONGLONG currentTimeHNS = time.QuadPart * S2HNS / freq.QuadPart;
+
+        float currentTimeS = (float)(0.0001f * currentTimeHNS / 1000.0f);
+
         if (camFrame != prevCamFrame)
         {
             prevCamFrame = camFrame;
-            float newDelta = UnityTime - camTime;
+            float newDelta = currentTimeS - camTime;
             numCamFrameSamples++;
 
             deltaCameraToUnity = Lerp(deltaCameraToUnity, newDelta, 1.0f / Min((float)numCamFrameSamples, 60.0f));
@@ -28,7 +34,7 @@ public:
         if (poseIndex != prevPoseIndex)
         {
             prevPoseIndex = poseIndex;
-            float newDelta = UnityTime - poseTime;
+            float newDelta = currentTimeS - poseTime;
             numPoseIndexSamples++;
             deltaPoseToUnity = Lerp(deltaPoseToUnity, newDelta, 1.0f / Min((float)numPoseIndexSamples, 60.0f));
         }
@@ -55,6 +61,9 @@ private:
     int numCamFrameSamples = 0;
     int prevPoseIndex = -1;
     int numPoseIndexSamples = 0;
+
+    LARGE_INTEGER freq;
+    LARGE_INTEGER time;
 
     float Lerp(float a, float b, float t)
     {

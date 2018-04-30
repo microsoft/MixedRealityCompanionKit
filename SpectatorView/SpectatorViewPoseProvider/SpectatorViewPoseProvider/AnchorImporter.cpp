@@ -16,6 +16,11 @@ AnchorImporter::~AnchorImporter()
 
 bool AnchorImporter::ConnectToServer(Platform::String^ serverIP, int port)
 {
+    if (serverIP == nullptr)
+    {
+        return false;
+    }
+
     anchorOwnerIP = serverIP;
     anchorPort = port;
 

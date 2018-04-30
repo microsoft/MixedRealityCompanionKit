@@ -107,7 +107,7 @@ LONGLONG CompositorInterface::GetColorDuration()
     return (LONGLONG)((1.0f / 30.0f) * S2HNS);
 }
 
-void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float UnityTimeS, int frameOffset)
+void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, int frameOffset)
 {
     int captureFrameIndex = GetCaptureFrameIndex();
 
@@ -138,7 +138,7 @@ void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, float 
     PoseData* poseData = poseCache.GetLatestPose();
     if (poseData != nullptr)
     {
-        timeSynchronizer.Update(GetCaptureFrameIndex(), captureTime, poseData->Index, poseData->TimeStamp, UnityTimeS);
+        timeSynchronizer.Update(GetCaptureFrameIndex(), captureTime, poseData->Index, poseData->TimeStamp);
     }
 
     // Set camera transform for the currently composited frame.

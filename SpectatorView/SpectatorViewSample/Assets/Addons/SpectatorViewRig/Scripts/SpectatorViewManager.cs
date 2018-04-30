@@ -14,7 +14,7 @@ namespace SpectatorView
 #if UNITY_EDITOR
         #region DLLImports
         [DllImport("UnityCompositorInterface")]
-        private static extern void GetPose(out Vector3 pos, out Quaternion rot, float UnityTimeS, int frameOffset);
+        private static extern void GetPose(out Vector3 pos, out Quaternion rot, int frameOffset);
 
         [DllImport("UnityCompositorInterface")]
         private static extern void SetSpectatorViewIP(string ip);
@@ -231,7 +231,7 @@ namespace SpectatorView
 
         void Update()
         {
-            GetPose(out pos, out rot, Time.time, FrameOffset);
+            GetPose(out pos, out rot, FrameOffset);
             TransformValidation.ValidatePose(ref pos, ref rot);
 
             // Update local transform with pose data from the network.
