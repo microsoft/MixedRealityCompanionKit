@@ -92,7 +92,7 @@ When the SpectatorViewPoseProvider application first starts, spatial mapping wil
 + **NOTE:** *SpectatorViewPoseProvider* assumes that an **anchor is being shared on a known IP and port**.  If your network solution does something different, you will need to modify the [ConnectToServer](SpectatorViewPoseProvider/SpectatorViewPoseProvider/AnchorImporter.cpp) function in SpectatorViewPoseProvider or the [ConnectToAnchorOwner](SpectatorViewPoseProvider/SpectatorViewPoseProvider/SpectatorViewPoseProviderMain.cpp) function in SpectatorViewPoseProviderMain.cpp.
 + Update the IP, Port, and GameObject fields in your **SpectatorViewManager** and **Sharing** prefabs.
 + Use your chosen networking stack to **share application state** from your HoloLens to the Unity compositor.  This may include:
-    + Serializing and deserializing data over a [socket].(SpectatorViewSample/Assets/Sharing/Scripts/NetworkData.cs)
+    + Serializing and deserializing data over a [socket](SpectatorViewSample/Assets/Sharing/Scripts/NetworkData.cs).
     + Using a [SyncVar](https://docs.unity3d.com/Manual/UNetStateSync.html) with [UNET](https://docs.unity3d.com/Manual/UNet.html).
 
 ## Material List
