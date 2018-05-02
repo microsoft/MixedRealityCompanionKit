@@ -16,5 +16,6 @@ Generated Files/*
 SpectatorViewPoseProvider/Generated Files/*
 SpectatorViewPoseProvider/Debug/*
 SpectatorViewPoseProvider/Release/*
+SpectatorViewPoseProvider/x64/*
 SpectatorViewPoseProvider/*.user
 SpectatorViewPoseProvider/BundleArtifacts/*

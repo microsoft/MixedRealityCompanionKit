@@ -18,8 +18,7 @@ if "%~1" NEQ "" (
     call :CopyDLL "%~1"
 )
 
-REM Copy DLLs to Sample Unity projects.
-REM call :CopyDLL "%~dp0\Samples\SharedHolograms\Assets\"
+REM Copy DLLs to Sample Unity project.
 call :CopyDLL "%~dp0\..\SpectatorViewSample\Assets\"
 
 if %returnValue% NEQ 0 (
