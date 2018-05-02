@@ -99,24 +99,24 @@ When the SpectatorViewPoseProvider application first starts, spatial mapping wil
 Note: The linked materials are not the only materials that will work, but are the ones that we used.
 Make sure the materials you get are compatible with your existing camera.
 + Camera with HDMI out and configurable output overlays.
-    + See below for tested cameras.
+    + See [tested cameras](#tested-cameras).
 + Capture Card
-    + See below for tested capture cards.
-+ [HDMI to Mini HDMI cable](http://www.amazon.com/AmazonBasics-High-Speed-Mini-HDMI-HDMI-Cable/dp/B014I8UHXE?ie=UTF8&psc=1&redirect=true&ref_=oh_aui_detailpage_o03_s00) (or whatever HDMI form your camera supports)
+    + See [tested capture cards](#tested-capture-cards).
++ [HDMI to Mini HDMI cable](http://www.amazon.com/AmazonBasics-High-Speed-Mini-HDMI-HDMI-Cable/dp/B014I8UHXE/) (or whatever HDMI form your camera supports)
 + Bracket to connect your HoloLens to a camera: Hardware\HoloLens_Mount.stp.
     + We recommend this to be professionally machined in aluminum: 3D printing might not achieve adequate tolerances to hold the device.
         + Search for machine shops in your area to get this bracket machined.
     + You do not have to use this bracket: Any means of rigidly attaching your HoloLens to your camera will work.
 + If using the above mount:
     + Adapter to connect the HoloLens mount to a DSLR hotshoe: Hardware\Mount_Adapter.stl.  This file can be 3D printed.  Holes were measured against the below bolts, you might need to alter the dimensions if using other bolts.
-    + [Hotshoe Fastener](https://www.amazon.com/Fotasy-SCX2-Adapter-Premier-Cleaning/dp/B00HPAPFNU/ref=redir_mobile_desktop?ie=UTF8&psc=1&ref_=yo_ii_img)
-    + [1/4-20" x 3/4" Bolts](https://www.amazon.com/Hard-Find-Fastener-014973100032-4-20-Inch/dp/B004S6RZPK/ref=redir_mobile_desktop?ie=UTF8&psc=1&ref_=yo_ii_img)
-    + [1/4-20" Nuts](https://www.amazon.com/Hillman-Group-150003-20-Inch-100-Pack/dp/B000BPEPNW/ref=redir_mobile_desktop?ie=UTF8&psc=1&ref_=yo_ii_img)
+    + [Hotshoe Fastener](https://www.amazon.com/Fotasy-SCX2-Adapter-Premier-Cleaning/dp/B00HPAPFNU/)
+    + [1/4-20" x 3/4" Bolts](https://www.amazon.com/Hard-Find-Fastener-014973100032-4-20-Inch/dp/B004S6RZPK/)
+    + [1/4-20" Nuts](https://www.amazon.com/Hillman-Group-150003-20-Inch-100-Pack/dp/B000BPEPNW/)
     + Screw driver with the following heads (These links are examples, many screwdriver sets will have these attachments) :
-        + [7/16 Nut Driver](https://www.amazon.com/Klein-Tools-630-7-Cushion-Grip-Hollow-Shank/dp/B000BPG4CW/ref=sr_1_1?ie=UTF8&qid=1479853212&sr=8-1&keywords=7%2F16+nut+driver)
-        + [T15 Torx](https://www.amazon.com/Stanley-60-011-Standard-Torx-Screwdriver/dp/B000KFXDWW/ref=sr_1_1?ie=UTF8&qid=1479853303&sr=8-1&keywords=15+torx)
-        + [T7 Torx](https://www.amazon.com/SE-7542ST-6-Piece-Professional-Screwdriver/dp/B000ST3K3W/ref=sr_1_1?ie=UTF8&qid=1479853479&sr=8-1&keywords=torx+7)
-+ [Router](https://www.amazon.com/D-Link-Tri-Band-Performance-Beamforming-DIR-890L/dp/B00PVD81MK/ref=sr_1_3?ie=UTF8&qid=1496459664&sr=8-3)
+        + [7/16 Nut Driver](https://www.amazon.com/Klein-Tools-630-7-Cushion-Grip-Hollow-Shank/dp/B000BPG4CW/)
+        + [T15 Torx](https://www.amazon.com/Stanley-60-011-Standard-Torx-Screwdriver/dp/B000KFXDWW/)
+        + [T7 Torx](https://www.amazon.com/SE-7542ST-6-Piece-Professional-Screwdriver/dp/B000ST3K3W/)
++ [Router](https://www.amazon.com/D-Link-Tri-Band-Performance-Beamforming-DIR-890L/dp/B00PVD81MK/)
     + This is necessary if your networking stack requires UDP broadcast, but your local network does not support it.
         
 ![Screw Drivers](./DocumentationImages/screw_driver.jpg)
@@ -203,7 +203,7 @@ Note: if you would like to capture images or video at a resolution other than 10
 
 ## Network Setup
 + Some networking stacks require UDP broadcast to be enabled on your network.
-    + If you are on a corporate network that does not have this enabled, you may need to use a [router](https://www.amazon.com/D-Link-Tri-Band-Performance-Beamforming-DIR-890L/dp/B00PVD81MK/ref=sr_1_3?ie=UTF8&qid=1496459664&sr=8-3)
+    + If you are on a corporate network that does not have this enabled, you may need to use a [router](https://www.amazon.com/D-Link-Tri-Band-Performance-Beamforming-DIR-890L/dp/B00PVD81MK/)
     + Plug an ethernet cable from your PC into the router.
     + Connect your HoloLens devices to this router.
     + The included sample networking stack does not use UDP broadcast, but UNET does.
@@ -259,12 +259,12 @@ The spectator view rig assembly can be made without any custom hardware.
 ![Alternate Assembly](./DocumentationImages/alternate_mount.png)
 
 ### Material List
-+ [1 Hotshoe Fastener](https://www.amazon.com/gp/product/B00HPAPFNU/ref=oh_aui_detailpage_o03_s01?ie=UTF8&psc=1)
-+ [1 Dual Flash Bracket](https://www.amazon.com/gp/product/B01LZKI0BQ/ref=oh_aui_detailpage_o03_s01?ie=UTF8&psc=1)
-+ [1 Washer](https://www.amazon.com/gp/product/B009OJIH7G/ref=oh_aui_search_detailpage?ie=UTF8&psc=1)
-+ [2 Clamps](https://www.amazon.com/gp/product/B012ZYK3FA/ref=oh_aui_detailpage_o02_s01?ie=UTF8&psc=1)
-+ [2 6/32 Bolts](https://www.amazon.com/gp/product/B00HYK8O84/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1)
-+ [2 6/32 Nuts](https://www.amazon.com/gp/product/B00HYK8MPO/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1)
++ [1 Hotshoe Fastener](https://www.amazon.com/gp/product/B00HPAPFNU/)
++ [1 Dual Flash Bracket](https://www.amazon.com/gp/product/B01LZKI0BQ/)
++ [1 Washer](https://www.amazon.com/gp/product/B009OJIH7G/)
++ [2 Clamps](https://www.amazon.com/gp/product/B012ZYK3FA/)
++ [2 6/32 Bolts](https://www.amazon.com/gp/product/B00HYK8O84/)
++ [2 6/32 Nuts](https://www.amazon.com/gp/product/B00HYK8MPO/)
 + Cardboard or stiff foam
 
 ### Assembly
@@ -298,11 +298,11 @@ Any PC that can run the HoloLens emulator can run spectator view.
 + Some cameras, particularly entry-level DSLR's, do not allow you to configure screen overlays.  This will mean the camera's overlays (eg: focus square, current aperture and shutter speed) will be visible in your capture.
 
 ## Tested Capture Cards
-+ [Blackmagic Intensity Pro 4K](http://www.amazon.com/Blackmagic-Design-Intensity-Capture-Playback/dp/B00U3QNP7Q/ref=sr_1_fkmr2_1?ie=UTF8&qid=1463682487&sr=8-1-fkmr2&keywords=Blackmagic+Design+Intensity+Pro+4K+Capture+and+play+back+Cards+BINTSPRO4K)
-+ [Blackmagic Intensity Shuttle USB 3](https://www.amazon.com/Blackmagic-Design-Intensity-Shuttle-BINTSSHU/dp/B003WSQTWU/ref=sr_1_6?s=electronics&ie=UTF8&qid=1487205313&sr=1-6&keywords=blackmagic)
++ [Blackmagic Intensity Pro 4K](http://www.amazon.com/Blackmagic-Design-Intensity-Capture-Playback/dp/B00U3QNP7Q/)
++ [Blackmagic Intensity Shuttle USB 3](https://www.amazon.com/Blackmagic-Design-Intensity-Shuttle-BINTSSHU/dp/B003WSQTWU/)
     + Does not work on all PCs - see Blackmagic documentation for their tested hardware.
     + Only supports HDMI in from camera (no HDMI out to an external display).
-+ [Elgato HD 60S](https://www.amazon.com/Elgato-Game-Capture-HD60-technology/dp/B01DRWCOGA/ref=sr_1_1?s=electronics&ie=UTF8&qid=1487205387&sr=1-1&keywords=elgato+60S)
++ [Elgato HD 60S](https://www.amazon.com/Elgato-Game-Capture-HD60-technology/dp/B01DRWCOGA/)
     + Only supports HDMI in from camera (no HDMI out to an external display).
 
 **NOTE:** The default capture card will be a blackmagic capture card, if using a different card, you will need to update **Compositor\SharedHeaders\CompositorConstants.h**:
