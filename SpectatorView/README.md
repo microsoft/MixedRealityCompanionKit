@@ -43,16 +43,27 @@ Spectator view uses an external camera rigidly mounted to a HoloLens to take hig
     + [Add spectator view to your own project](#adding-spectator-view-support-to-your-unity-app).
 
 ## Frequently Asked Questions (FAQs)
+### Nothing in my capture changes when I do anything in my HoloLens
+Spectator view is not the same as MRC.  MRC allows you to get your application's current view displayed over the built-in camera.  Instead, spectator view uses Unity to get the application's holograms at the same position and scale that the attached camera is capturing.  Because the hologram view is coming from a different source than the HoloLens, you must create a shared experience where you network your application's state to Unity.  The [sample project](./SpectatorViewSample/README.md) and [Mixed Reality 250](https://docs.microsoft.com/en-us/windows/mixed-reality/mixed-reality-250) show how this is done. 
+
+Setting up an existing single-player project as a shared experience can be a large undertaking.  You may consider creating a vertical slice of your application based off of the included sample.
+
+If you do have your application set up as a shared experience with Unity as a client, check your [network configuration](#network-setup) to be sure your firewall is not blocking incoming traffic.
+
 ### Holograms are not where they should be
 + This usually means there is a a problem with the anchor.  It is possibly not created, not shared, or not localized.
     + Check that you have a valid **Anchor Owner IP** in your SpectatorViewManager prefab.
     + Check that you have a valid **Object To Anchor** in your Sharing prefab.
     + Check that the SpectatorViewManager prefab is a child of the anchor object.
+    + Check that your shared GameObjects are created as **children of the anchor**, and that you are sharing their transforms as **local-transforms relative to the anchor's transform**.
     + Attach a debugger to the SpectatorViewPoseProvider and see if there is any debug information being printed that it cannot localize the new anchor.  If so:
         + If your space does not have any recognizable patterns or surfaces, you may need to add some visual elements to your space to help the HoloLens devices localize.
         + Walk around your space with both HoloLens devices, looking up, down, left, and right.
         + Relaunch the sample application on your second HoloLens while looking in the same direction as the spectator view device.
 + If holograms are transformed or rotated a little bit or appear larger or smaller than your space, it is probably a problem with your rig's [calibration](./Calibration/README.md).  In this case, the offset of the HoloLens to the camera, or the field of view of your camera may be innacurate.  The spectator view calibration also assumes the HoloLens is attached above the camera.  If you have a different configuration, find the Calibration script on the SpectatorViewCamera object in your SpectatorViewManager prefab and select the Rotate Calibration checkbox.
+
+### Holograms are not where they should be on my HoloLens, but when I lose tracking they are
+This can happen if a camera is instantiated at runtime in Unity: the new camera can take over as the main camera.  Check that the **Camera** component on the **SpectatorViewCamera** GameObject in the **SpectatorViewManager** prefab is disabled by default.  If the application is running in the Editor the camera will activate, but it should stay deactivated in your HoloLens application.
 
 ### Holograms stay locked to the camera
 + Check that SpectatorViewPoseProvider is running and active on your spectator view HoloLens.  You should see a wireframe visualization of the spatial mapping mesh on this device.  If you don't see anything or see the home screen, the app is running in the background and will not be sending poses.
@@ -71,7 +82,7 @@ Spectator view uses an external camera rigidly mounted to a HoloLens to take hig
 Unplug the camera's HDMI cable and plug it back in again.
 
 ### Green, Black, or Blue color frame
-+ Check that you have updated the [compositor]((./Compositor/SharedHeaders/CompositorConstants.h) to look for your capture card.
++ Check that you have updated the [compositor](./Compositor/SharedHeaders/CompositorConstants.h) to look for your capture card.
 + Check that your camera is on and plugged in.
 + Check that your camera is outputting HDMI, you can plug it directly into a monitor or use your capture card's software to preview.
 + Check that the output resolution of your camera is the same as the expected resolution in [CompositorConstants.h](./Compositor/SharedHeaders/CompositorConstants.h).
