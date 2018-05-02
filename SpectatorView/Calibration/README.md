@@ -92,8 +92,9 @@ Calibration process should look like this.  For better results, you can also fil
 
 ![calibration](../DocumentationImages/calibration.gif)
 
-## Documentation
+## Additional Documentation
 + [Overview](../README.md)
 + **Calibration**
-+ [Compositor](../Compositor/README.md)
-+ [Sample](../Samples/README.md)
++ [Compositor](Compositor/README.md)
++ [SpectatorViewPoseProvider](SpectatorViewPoseProvider/README.md)
++ [Sample](SpectatorViewSample/README.md)
