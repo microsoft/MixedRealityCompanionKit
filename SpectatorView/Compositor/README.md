@@ -76,7 +76,7 @@ These values are set on the prefab to guarantee that Unity will cache your desir
 
 ## Additional Documentation
 + [Overview](../README.md)
-+ [Calibration](Calibration/README.md)
++ [Calibration](../Calibration/README.md)
 + **Compositor**
-+ [SpectatorViewPoseProvider](SpectatorViewPoseProvider/README.md)
-+ [Sample](SpectatorViewSample/README.md)
++ [SpectatorViewPoseProvider](../SpectatorViewPoseProvider/README.md)
++ [Sample](../SpectatorViewSample/README.md)
