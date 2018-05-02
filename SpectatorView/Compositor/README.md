@@ -67,6 +67,10 @@ If you are not using a capture card with an included FrameProvider, you will nee
 Additional compositor settings can be found in the SpectatorViewManager Prefab:
    + Change hologram opacity
    + Change the frame offset (which adjusts the color timestamp to account for capture card latency)
+   + Change the material your spatial mapping mesh will use to render.  There are some included spatial mapping materials under **Addons/SpectatorViewRig/Resources/Materials/SpatialMapping/**:
+        + Wireframe rendering.
+        + Occlusion rendering to hide holograms behind the mesh.
+        + A default standard shader.  This will be used if the material is null.
 
 These values are set on the prefab to guarantee that Unity will cache your desired values.
 
