@@ -5,7 +5,7 @@ The SpectatorViewPoseProvider application runs on the spectator view HoloLens to
 ## Lifecycle
 + The application launches and observes spatial mapping data for 10 seconds against a [SpatialCoordinateSystem](https://docs.microsoft.com/en-us/uwp/api/windows.perception.spatial.spatialcoordinatesystem) relative to its startup location.
 + The application listens on a known port for a connected client (the Unity compositor).
-+ Once a connection has been established, the application will send the connected compositor it's pose information relative to its current coordinate system.
++ Once a connection has been established, the application will send the connected compositor its pose information relative to its current coordinate system.
 + The application will also start listening on the socket for information from the compositor about the anchor in the shared experience.
 + Once the application receives anchor information, it creates a [StreamSocket](https://docs.microsoft.com/en-us/uwp/api/Windows.Networking.Sockets.StreamSocket) to connect to the HoloLens device that is sharing its anchor.
 + When an anchor is downloaded over this socket, the application imports the anchor, and sends poses relative to this coordinate system if it can be located.
