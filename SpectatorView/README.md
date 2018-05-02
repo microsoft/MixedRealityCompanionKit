@@ -11,18 +11,18 @@ This allows for a more direct communication between the spectator view HoloLens 
 Spectator view uses an external camera rigidly mounted to a HoloLens to take high definition pictures and video of your holographic Unity project. Unlike Mixed Reality Capture (MRC),  the Spectator View project allows for high resolution captures from a third person perspective   Use this project to capture higher resolution and higher quality pictures for your store submissions, marketing videos, or for projecting a live view for all spectators to see.
 
 ## Quick Start
-+ Install [prerequisite software](#Software).
++ Install [prerequisite software](#software).
     + Visual Studio
     + Unity Game Engine
     + Dependencies for your capture card.
-    + Update [dependencies.props](#Dependencies) with install paths to this prerequisite software.
-+ Build the [included projects](#Included-Projects).
+    + Update [dependencies.props](#dependencies) with install paths to this prerequisite software.
++ Build the [included projects](#included-projects).
     + Update [CompositorConstants.h](./Compositor/SharedHeaders/CompositorConstants.h) with your capture card type.  Set the FrameProvider type that matches your capture card to TRUE.
 + [Copy the Compositor DLLs](./Compositor/CopyDLL.cmd) to your Unity project.
     + This only needs to be done once unless you make changes to the Compositor DLL or start a new project.
     + Unity must be closed, or the copy will fail.
-+ Set up your [camera](#Camera-Setup).
-+ Set up your [network](#Network-Setup).
++ Set up your [camera](#camera-setup).
++ Set up your [network](#network-setup).
 + Deploy and run SpectatorViewPoseProvider on your spectator view HoloLens.
 + Launch the [Sample Unity Project](./SpectatorViewSample/README.md).
 + Update the **Server IP** and **Spectator View IP** fields in the **SharingToSVAdapter** GameObject in the project hierarchy.
@@ -40,7 +40,7 @@ Spectator view uses an external camera rigidly mounted to a HoloLens to take hig
     + Move the spectator view device around, and you should see a cube on the second HoloLens and a shared cube where the anchor is.
 + Once you can run the sample application:
     + [Calibrate](./Calibration/README.md) your spectator view rig.
-    + [Add spectator view to your own project](#Adding-Spectator-View-Support-to-Your-Unity-App).
+    + [Add spectator view to your own project](#adding-spectator-view-support-to-your-unity-app).
 
 ## Frequently Asked Questions (FAQs)
 ### Holograms are not where they should be
@@ -57,7 +57,7 @@ Spectator view uses an external camera rigidly mounted to a HoloLens to take hig
 ### Holograms stay locked to the camera
 + Check that SpectatorViewPoseProvider is running and active on your spectator view HoloLens.  You should see a wireframe visualization of the spatial mapping mesh on this device.  If you don't see anything or see the home screen, the app is running in the background and will not be sending poses.
 + Check that the SpectatorViewHoloLensIP is set correctly in your SpectatorViewManager when Unity is running.
-+ Check that you have correctly [set up your network](#Network-Setup) to allow your HoloLens devices to connect to Unity.
++ Check that you have correctly [set up your network](#network-setup) to allow your HoloLens devices to connect to Unity.
 
 ### Holograms appear to swim
 + Try resetting the pose cache.  While Unity is running, find the SpectatorViewManager in the Hierarchy, and select the "Reset Hologram Synchronization" checkbox, or press the "Request Spatial Mapping" button in the compositor.
@@ -75,7 +75,7 @@ Unplug the camera's HDMI cable and plug it back in again.
 + Check that your camera is on and plugged in.
 + Check that your camera is outputting HDMI, you can plug it directly into a monitor or use your capture card's software to preview.
 + Check that the output resolution of your camera is the same as the expected resolution in [CompositorConstants.h](./Compositor/SharedHeaders/CompositorConstants.h).
-+ Check that you have correctly [set up your camera](#Camera-Setup).
++ Check that you have correctly [set up your camera](#camera-setup).
 + Check that you have no other software using your capture card's runtime.
 + Check that you have removed your camera's lens cap.
 
@@ -170,7 +170,7 @@ The following dependencies require a manual download and a Visual Studio user ma
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
 
 ## Included Projects
-Each project has its own README with additional overview and setup instructions.  See [Additional Documentation](#Additional-Documentation) links below.
+Each project has its own README with additional overview and setup instructions.  See [Additional Documentation](#additional-documentation) links below.
 
 ### Calibration
 Calibrates the HoloLens to the external camera.  Uses a checkerboard pattern to find the rotation and translation from the HoloLens to the external camera.  This process also finds the vertical field of view of the attached camera so holograms can be rendered at the correct projection to the camera.
@@ -310,7 +310,7 @@ Any PC that can run the HoloLens emulator can run spectator view.
 + USE_ELGATO is TRUE if using an Elgato card.
 + USE_OPENCV is TRUE to fallback to any other camera.
 
-Each capture card has required software dependencies including runtimes and SDK's. See the **[Software](#Software)** section above.
+Each capture card has required software dependencies including runtimes and SDK's. See the **[Software](#software)** section above.
 
 ## Additional Documentation
 + **Overview**
