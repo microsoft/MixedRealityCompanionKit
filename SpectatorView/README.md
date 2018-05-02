@@ -40,6 +40,7 @@ Spectator view uses an external camera rigidly mounted to a HoloLens to take hig
     + Move the spectator view device around, and you should see a cube on the second HoloLens and a shared cube where the anchor is.
 + Once you can run the sample application:
     + [Calibrate](./Calibration/README.md) your spectator view rig.
+    + Copy "Documents\CalibrationFiles\CalibrationData.txt" to the root of your project's assets directory.
     + [Add spectator view to your own project](#adding-spectator-view-support-to-your-unity-app).
 
 ## Frequently Asked Questions (FAQs)
@@ -61,6 +62,7 @@ If you do have your application set up as a shared experience with Unity as a cl
         + Walk around your space with both HoloLens devices, looking up, down, left, and right.
         + Relaunch the sample application on your second HoloLens while looking in the same direction as the spectator view device.
 + If holograms are transformed or rotated a little bit or appear larger or smaller than your space, it is probably a problem with your rig's [calibration](./Calibration/README.md).  In this case, the offset of the HoloLens to the camera, or the field of view of your camera may be innacurate.  The spectator view calibration also assumes the HoloLens is attached above the camera.  If you have a different configuration, find the Calibration script on the SpectatorViewCamera object in your SpectatorViewManager prefab and select the Rotate Calibration checkbox.
+    + Check your calibration: recalibrate and ensure you copy the new CalibrationData.txt file to your Assets directory.  Then restart Unity for the new calibration to load.
 
 ### Holograms are not where they should be on my HoloLens, but when I lose tracking they are
 This can happen if a camera is instantiated at runtime in Unity: the new camera can take over as the main camera.  Check that the **Camera** component on the **SpectatorViewCamera** GameObject in the **SpectatorViewManager** prefab is disabled by default.  If the application is running in the Editor the camera will activate, but it should stay deactivated in your HoloLens application.
@@ -76,7 +78,8 @@ This can happen if a camera is instantiated at runtime in Unity: the new camera 
     + If the **hologram moves earlier** than the color frame, use a **higher frame offset**.
     + If the **color frame moves earlier** than the hologram frame, use a **lower frame offset**.
     + When you find a frame offset that works for you, make sure you set it in your SpectatorViewManager prefab while Unity is not in play more.
-+ Restart the spectator view HoloLens.
++ Restart the spectator view HoloLens, then relaunch SpectatorViewPoseProvider.
++ Check your calibration: recalibrate and ensure you copy the new CalibrationData.txt file to your Assets directory.  Then restart Unity for the new calibration to load.
 
 ### Frozen color frame
 Unplug the camera's HDMI cable and plug it back in again.
