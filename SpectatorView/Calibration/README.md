@@ -95,6 +95,6 @@ Calibration process should look like this.  For better results, you can also fil
 ## Additional Documentation
 + [Overview](../README.md)
 + **Calibration**
-+ [Compositor](Compositor/README.md)
-+ [SpectatorViewPoseProvider](SpectatorViewPoseProvider/README.md)
-+ [Sample](SpectatorViewSample/README.md)
++ [Compositor](../Compositor/README.md)
++ [SpectatorViewPoseProvider](../SpectatorViewPoseProvider/README.md)
++ [Sample](../SpectatorViewSample/README.md)
