@@ -392,8 +392,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpectatorViewGO: {fileID: 373923671}
   AnchorGO: {fileID: 1596627241}
-  ServerIP: 10.124.206.215
-  SpectatorViewIP: 10.89.160.89
+  ServerIP: 
+  SpectatorViewIP: 
   AnchorPort: 11000
   AnchorOwnerIP: 
 --- !u!4 &1852082304
