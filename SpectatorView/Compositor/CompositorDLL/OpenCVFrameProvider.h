@@ -4,7 +4,7 @@
 #pragma once
 #if USE_OPENCV
 
-#pragma comment(lib, "opencv_world320")
+#pragma comment(lib, "opencv_world330")
 #include "opencv2/opencv.hpp"
 
 #include "DirectXHelper.h"

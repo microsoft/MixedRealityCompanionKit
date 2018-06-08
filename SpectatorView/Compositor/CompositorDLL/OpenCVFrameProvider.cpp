@@ -35,14 +35,17 @@ HRESULT OpenCVFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D
 
     HRESULT hr = E_PENDING;
     videoCapture = new cv::VideoCapture(CAMERA_ID);
-
+	
+	//If we open camera after resolution settings, 
+	//it will ignore and keep continue to use 640 x 480 resolution
+	videoCapture->open(CAMERA_ID);
+	
     // Attempt to update camera resolution to desired resolution.
     // Note: This may fail, and your capture will resume at the camera's native resolution.
     // In this case, the Update loop will print an error with the expected frame resolution.
     videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
     videoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
-    videoCapture->open(CAMERA_ID);
     if (IsEnabled())
     {
         hr = S_OK;

@@ -20,13 +20,13 @@
 
 // FrameProvider type - Exactly 1 of these should be true:
 //TODO: Set this to true if using a BlackMagic DeckLink capture card.
-#define USE_DECKLINK            TRUE
+#define USE_DECKLINK            FALSE
 //TODO: Set this to true if using a USB 3 external BlackMagic Shuttle capture card.
 #define USE_DECKLINK_SHUTTLE    FALSE
 //TODO: Set this to true if using an Elgato capture card.
 #define USE_ELGATO              FALSE
 //TODO: Set this to true if using OpenCV to get frames from a camera or capture card.
-#define USE_OPENCV              FALSE
+#define USE_OPENCV              TRUE
 
 static_assert((USE_ELGATO + USE_DECKLINK + USE_DECKLINK_SHUTTLE + USE_OPENCV == 1),
     "Exactly 1 FrameProvider must be set");
@@ -64,7 +64,7 @@ static_assert((USE_ELGATO + USE_DECKLINK + USE_DECKLINK_SHUTTLE + USE_OPENCV == 
 // Frame Dimensions and buffer lengths
 //TODO: change this to match video dimensions from your tethered camera.
 #define FRAME_WIDTH    1920
-#define FRAME_HEIGHT   1080
+#define FRAME_HEIGHT   1200
 
 #define FRAME_BPP      4            // RGBA
 #define FRAME_BPP_RAW  2            // YUV
@@ -74,8 +74,8 @@ static_assert((USE_ELGATO + USE_DECKLINK + USE_DECKLINK_SHUTTLE + USE_OPENCV == 
 
 //TODO: If using the Canon SDK to take a higher resolution image, change these dimensions 
 //      to match the photo resolution from the camera.
-#define HOLOGRAM_WIDTH_HIRES        5760
-#define HOLOGRAM_HEIGHT_HIRES       3240
+#define HOLOGRAM_WIDTH_HIRES        1920
+#define HOLOGRAM_HEIGHT_HIRES       1200
 
 // Color camera buffer size.
 #define FRAME_BUFSIZE               (FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP)
