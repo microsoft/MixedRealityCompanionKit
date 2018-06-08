@@ -28,8 +28,8 @@ There are two methods of operation:
     - [Learn More...](Samples/LowLatencyMRC/README.md)
 
 - MRVC
-	- Sample Unity project that will produce both the HoloLens experience applicaiton and the remote viewing application using the same codebase.
-	- Demostrates how to use the plug-in and other additional files to demonstrate serializing data to send to a remote application. 
+	- Sample Unity project that will produce both the HoloLens experience application and the remote viewing application using the same codebase.
+	- Demonstrates how to use the plug-in and other additional files to demonstrate serializing data to send to a remote application. 
 	- [Learn More...](Samples/MRVC/README.md)
 	
 	***Note:** the network layer code was designed for use with the media pipeline only. It's overloaded use in this sample is provided as an example to demonstrate sending scene and input state data to the remote application. Consider using a different networking framework to sync scene and input states.*
