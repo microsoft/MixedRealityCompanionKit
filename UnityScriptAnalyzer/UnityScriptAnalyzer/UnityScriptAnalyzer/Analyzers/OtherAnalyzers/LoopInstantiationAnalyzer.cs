@@ -17,7 +17,7 @@ namespace UnityScriptAnalyzer.Analyzers
 
         private static readonly string Message = "Pass parent transform for variable \"{0}\" to original GameObject.Instantiate() call. See GameObject.Instantiate() overloads. Also, consider setting hierarchyCapacity for \"{1}\" if number of children is known";
 
-        private static readonly string Title = "Parent Trasnform for GameObject.Instantiate()";
+        private static readonly string Title = "Parent Transform for GameObject.Instantiate()";
 
         internal static DiagnosticDescriptor Rule
             => new DiagnosticDescriptor(Consts.DiagnosticId, Title, Message, Consts.Category, Severity, true);

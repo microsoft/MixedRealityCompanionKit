@@ -1,4 +1,4 @@
-Project Title
+Unity Script Analyzer
 =============
 
 This project is a Visual Studio extension designed to analyze Unity C\# scripts
@@ -20,8 +20,12 @@ Getting Started
 
 ### Installing
 
-To install this extension, just double click the .VSIX file and follow
-instructions to complete installation.
+Open the UnityScriptAnalyzer.sln file in Visual Studio and build the solution.
+
+To install this extension, just double click the .VSIX file, after building your
+solution under UnityScriptAnalyzer.Vsix\\bin\\debug or
+release\\UnityScriptAnalyzer.vsix, and follow on-screen instructions to complete
+installation.
 
 Currently supports editions of Visual Studio 2017.
 
@@ -78,23 +82,23 @@ the middle list that appears in resulting opened window.
 Rule Appendix
 -------------
 
-| Tables  | Are                                                                                                                                                                                      |
-|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| USA0001 | Unity callback function "Start" is empty resulting in wasted overhead during runtime                                                                                                     |
-| USA0002 | Avoid using GetComponent(String). Use the much less expensive GetComponent() version                                                                                                     |
-| USA0003 | Avoid using LINQ which result in heavy allocations and poor performance                                                                                                                  |
-| USA0004 | Unity SendMessage & BroadcastMessage fucntions are extremely expensive. Replace anywhere used with direct calls via casting if needed                                                    |
-| USA0005 | Consider using less expensive DateTime.UtcNow instead of DateTime.Now if applicable                                                                                                      |
-| USA0006 | Consider using sqrMagnitude if applicable instead of magnitude in order to eliminate expensive sqrt calculations                                                                         |
-| USA0007 | Consider using sqrMagnitude if applicable instead of Distance() to eliminate expensive sqrt calculations                                                                                 |
-| USA0008 | If used repeatedly, consider calling UnityEngine.Material.SetFloat(string, float) with an integer key obtained via Shader.PropertyToId(string), instead of using the string key directly |
-| USA0009 | If used repeatedly, consider UnityEngine.Animator.SetBool(string, bool) with an integer key obtained via Shader.PropertyToId(string), instead of using the string key directly           |
-| USA0010 | Using function form "UnityEngine.Physics.Raycast(UnityEngine.Ray)", consider adding layerMask argument to optimize raycast performance                                                   |
-| USA0011 | Avoid using Lambdas as they cause additional Garbage Collection allocations                                                                                                              |
-| USA0012 | Use of expensive function (various functions - see list below) has high overhead in repeating Unity callback function                                                                    |
-| USA0013 | Use of Camera.main actually involves a lookup for MainCamera every access. Consider cache reference instead                                                                              |
-| USA0014 | Use CompareTag() to make a string comparison with GameObject.Tag or Component.Tag                                                                                                        |
-| USA0015 | Mesh.Vertices returns an array copy of the data. Consider saving pointer reference to data if performing multiple access                                                                 |
+| Rule code | Explanation                                                                                                                                                                              |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| USA0001   | Unity callback function "Start" is empty resulting in wasted overhead during runtime                                                                                                     |
+| USA0002   | Avoid using GetComponent(String). Use the much less expensive GetComponent() version                                                                                                     |
+| USA0003   | Avoid using LINQ which result in heavy allocations and poor performance                                                                                                                  |
+| USA0004   | Unity SendMessage & BroadcastMessage functions are extremely expensive. Replace anywhere used with direct calls via casting if needed                                                    |
+| USA0005   | Consider using less expensive DateTime.UtcNow instead of DateTime.Now if applicable                                                                                                      |
+| USA0006   | Consider using sqrMagnitude if applicable instead of magnitude in order to eliminate expensive sqrt calculations                                                                         |
+| USA0007   | Consider using sqrMagnitude if applicable instead of Distance() to eliminate expensive sqrt calculations                                                                                 |
+| USA0008   | If used repeatedly, consider calling UnityEngine.Material.SetFloat(string, float) with an integer key obtained via Shader.PropertyToId(string), instead of using the string key directly |
+| USA0009   | If used repeatedly, consider UnityEngine.Animator.SetBool(string, bool) with an integer key obtained via Shader.PropertyToId(string), instead of using the string key directly           |
+| USA0010   | Using function form "UnityEngine.Physics.Raycast(UnityEngine.Ray)", consider adding layerMask argument to optimize raycast performance                                                   |
+| USA0011   | Avoid using Lambdas as they cause additional Garbage Collection allocations                                                                                                              |
+| USA0012   | Use of expensive function (various functions - see list below) has high overhead in repeating Unity callback function                                                                    |
+| USA0013   | Use of Camera.main actually involves a lookup for MainCamera every access. Consider cache reference instead                                                                              |
+| USA0014   | Use CompareTag() to make a string comparison with GameObject.Tag or Component.Tag                                                                                                        |
+| USA0015   | Mesh.Vertices returns an array copy of the data. Consider saving pointer reference to data if performing multiple access                                                                 |
 
 ### USA0001 Example
 
