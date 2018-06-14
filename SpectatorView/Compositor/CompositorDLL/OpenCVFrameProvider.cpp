@@ -3,13 +3,15 @@
 
 #include "stdafx.h"
 #include "OpenCVFrameProvider.h"
+#include "FrameProviderStaticConfig.h"
+
 
 #if USE_OPENCV
 
 OpenCVFrameProvider::OpenCVFrameProvider()
 {
     QueryPerformanceFrequency(&freq);
-    rgbaFrame = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
+    rgbaFrame = cv::Mat(FrameProviderStaticConfig::height, FrameProviderStaticConfig::width, CV_8UC4);
 
     for (int i = 0; i < 4; i++)
     {
@@ -19,7 +21,7 @@ OpenCVFrameProvider::OpenCVFrameProvider()
 
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
-        bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
+        bufferCache[i].buffer = new BYTE[FrameProviderStaticConfig::getFrameBuffSize()];
         bufferCache[i].timeStamp = 0;
     }
 
@@ -52,7 +54,7 @@ HRESULT OpenCVFrameProvider::Initialize(ID3D11ShaderResourceView* srv)
 
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
-        ZeroMemory(bufferCache[i].buffer, FRAME_BUFSIZE);
+        ZeroMemory(bufferCache[i].buffer, FrameProviderStaticConfig::getFrameBuffSize());
     }
 
     captureFrameIndex = 0;
@@ -63,8 +65,8 @@ HRESULT OpenCVFrameProvider::Initialize(ID3D11ShaderResourceView* srv)
         // This must be called after opening.
         // Note: This may fail, and your capture will resume at the camera's native resolution.
         // In this case, the Update loop will print an error with the expected frame resolution.
-        videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-        videoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+        videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, FrameProviderStaticConfig::width);
+        videoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, FrameProviderStaticConfig::height);
 
         if (IsEnabled())
         {
@@ -108,16 +110,16 @@ void OpenCVFrameProvider::Update(int compositeFrameIndex)
                 double width = videoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
                 double height = videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT);
 
-                if (width != FRAME_WIDTH)
+                if (width != FrameProviderStaticConfig::width)
                 {
-                    OutputDebugString(L"ERROR: captured width does not equal FRAME_WIDTH.  Expecting: ");
+                    OutputDebugString(L"ERROR: captured width does not equal FrameProviderStaticConfig::width.  Expecting: ");
                     OutputDebugString(std::to_wstring(width).c_str());
                     OutputDebugString(L"\n");
                 }
 
-                if (height != FRAME_HEIGHT)
+                if (height != FrameProviderStaticConfig::height)
                 {
-                    OutputDebugString(L"ERROR: captured height does not equal FRAME_HEIGHT.  Expecting: ");
+                    OutputDebugString(L"ERROR: captured height does not equal FrameProviderStaticConfig::height.  Expecting: ");
                     OutputDebugString(std::to_wstring(height).c_str());
                     OutputDebugString(L"\n");
                 }
@@ -127,7 +129,7 @@ void OpenCVFrameProvider::Update(int compositeFrameIndex)
 
                 captureFrameIndex++;
                 BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
-                memcpy(buffer, rgbaFrame.data, FRAME_BUFSIZE);
+                memcpy(buffer, rgbaFrame.data, FrameProviderStaticConfig::getFrameBuffSize());
                 bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = (latestTimeStamp * S2HNS) / freq.QuadPart;
             }
         }
@@ -136,7 +138,7 @@ void OpenCVFrameProvider::Update(int compositeFrameIndex)
     const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
     if (buffer.buffer != nullptr)
     {
-        DirectXHelper::UpdateSRV(_device, _colorSRV, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
+        DirectXHelper::UpdateSRV(_device, _colorSRV, buffer.buffer, FrameProviderStaticConfig::width * FRAME_BPP);
     }
 }
 

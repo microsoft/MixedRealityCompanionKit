@@ -12,7 +12,7 @@ ElgatoSampleCallback::ElgatoSampleCallback(ID3D11Device* device) :
 
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
-        bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
+        bufferCache[i].buffer = new BYTE[FrameProviderStaticConfig::getFrameBuffSize()];
         bufferCache[i].timeStamp = 0;
     }
 
@@ -45,10 +45,10 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
     }
 
     int copyLength = length;
-    if (copyLength > FRAME_BUFSIZE)
+    if (copyLength > FrameProviderStaticConfig::getFrameBuffSize())
     {
         // This might happen if the camera is outputting 4K but the system is expecting 1080.
-        copyLength = FRAME_BUFSIZE;
+        copyLength = static_cast<int>(FrameProviderStaticConfig::getFrameBuffSize());
     }
 
     captureFrameIndex++;
@@ -66,6 +66,6 @@ void ElgatoSampleCallback::UpdateSRV(ID3D11ShaderResourceView* srv, int composit
     const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
     if (buffer.buffer != nullptr)
     {
-        DirectXHelper::UpdateSRV(_device, srv, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
+        DirectXHelper::UpdateSRV(_device, srv, buffer.buffer, FrameProviderStaticConfig::width * FRAME_BPP);
     }
 }

@@ -8,6 +8,8 @@
 #include <d3d11_1.h>
 #include "CompositorConstants.h"
 #include <ppltasks.h>
+#include "FrameProviderStaticConfig.h"
+
 
 class DirectXHelper
 {
@@ -202,7 +204,7 @@ public:
         D3D11_MAPPED_SUBRESOURCE  mapResource;
         d3d11DevCon->Map(tmpBuf, 0, D3D11_MAP_READ, NULL, &mapResource);
 
-        memcpy(bytes, mapResource.pData, (size_t)(FRAME_WIDTH * FRAME_HEIGHT * bpp));
+        memcpy(bytes, mapResource.pData, (size_t)(FrameProviderStaticConfig::width * FrameProviderStaticConfig::height * bpp));
 
         d3d11DevCon->Unmap(tmpBuf, 0);
         if (tmpBuf != nullptr)

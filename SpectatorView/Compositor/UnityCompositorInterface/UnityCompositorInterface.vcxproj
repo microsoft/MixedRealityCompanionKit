@@ -108,8 +108,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Shell32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)$(TargetName)$(TargetExt)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -134,8 +133,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Shell32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)$(TargetName)$(TargetExt)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -164,8 +162,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Shell32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)$(TargetName)$(TargetExt)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -194,8 +191,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Shell32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)$(TargetName)$(TargetExt)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

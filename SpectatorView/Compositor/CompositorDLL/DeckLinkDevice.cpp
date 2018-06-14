@@ -30,6 +30,8 @@
 
 #include <comutil.h>
 #include "DeckLinkDevice.h"
+#include "FrameProviderStaticConfig.h"
+
 
 using namespace std;
 
@@ -44,7 +46,7 @@ DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
 {
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
-        bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
+        bufferCache[i].buffer = new BYTE[FrameProviderStaticConfig::getFrameBuffSize()];
         bufferCache[i].timeStamp = 0;
     }
 
@@ -156,13 +158,13 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
     IDeckLinkDisplayMode*           displayMode = NULL;
     BSTR                            deviceNameBSTR = NULL;
 
-    ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
-    ZeroMemory(latestBuffer, FRAME_BUFSIZE);
-    ZeroMemory(outputBuffer, FRAME_BUFSIZE);
+    ZeroMemory(rawBuffer, FrameProviderStaticConfig::getFrameBuffSizeRaw());
+    ZeroMemory(latestBuffer, FrameProviderStaticConfig::getFrameBuffSize());
+    ZeroMemory(outputBuffer, FrameProviderStaticConfig::getFrameBuffSize());
 
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
-        ZeroMemory(bufferCache[i].buffer, FRAME_BUFSIZE);
+        ZeroMemory(bufferCache[i].buffer, FrameProviderStaticConfig::getFrameBuffSize());
     }
 
     captureFrameIndex = 0;
@@ -200,7 +202,7 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
     // 1080i output causes horizontal artifacts on screen.
     if (m_deckLinkOutput != NULL)
     {
-        m_deckLinkOutput->CreateVideoFrame(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, bmdFormat8BitBGRA, bmdFrameFlagDefault, &outputFrame);
+        m_deckLinkOutput->CreateVideoFrame(FrameProviderStaticConfig::width, FrameProviderStaticConfig::height, FrameProviderStaticConfig::width * FRAME_BPP, bmdFormat8BitBGRA, bmdFrameFlagDefault, &outputFrame);
         outputFrame->GetBytes((void**)&outputBuffer);
     }
 
@@ -294,7 +296,7 @@ HRESULT DeckLinkDevice::VideoInputFormatChanged(/* in */ BMDVideoInputFormatChan
     OutputDebugString(L"\n");
 
     // If we do not have the correct dimension frames - loop until user changes camera settings.
-    if (newMode->GetWidth() != FRAME_WIDTH || newMode->GetHeight() != FRAME_HEIGHT)
+    if (newMode->GetWidth() != FrameProviderStaticConfig::width || newMode->GetHeight() != FrameProviderStaticConfig::height)
     {
         OutputDebugString(L"Invalid frame dimensions detected.\n");
         OutputDebugString(L"Actual Frame Dimensions: ");
@@ -304,9 +306,9 @@ HRESULT DeckLinkDevice::VideoInputFormatChanged(/* in */ BMDVideoInputFormatChan
         OutputDebugString(L"\n");
 
         OutputDebugString(L"Expected Frame Dimensions: ");
-        OutputDebugString(std::to_wstring(FRAME_WIDTH).c_str());
+        OutputDebugString(std::to_wstring(FrameProviderStaticConfig::width).c_str());
         OutputDebugString(L", ");
-        OutputDebugString(std::to_wstring(FRAME_HEIGHT).c_str());
+        OutputDebugString(std::to_wstring(FrameProviderStaticConfig::height).c_str());
         OutputDebugString(L"\n");
 
         LeaveCriticalSection(&m_captureCardCriticalSection);
@@ -417,7 +419,7 @@ void DeckLinkDevice::Update(int compositeFrameIndex)
         const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
         if (buffer.buffer != nullptr)
         {
-            DirectXHelper::UpdateSRV(device, _colorSRV, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
+            DirectXHelper::UpdateSRV(device, _colorSRV, buffer.buffer, FrameProviderStaticConfig::width * FRAME_BPP);
         }
 
         if (supportsOutput && device != nullptr && _outputTexture != nullptr)

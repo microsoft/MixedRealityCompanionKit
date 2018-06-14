@@ -14,9 +14,11 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CameraConfigurationFile.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CompositorConstants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DirectoryHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DirectXHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)FrameProviderStaticConfig.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Network.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)NetworkPacketStructure.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)StringHelper.h" />
