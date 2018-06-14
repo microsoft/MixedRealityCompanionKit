@@ -6,8 +6,7 @@
 
 #if USE_ELGATO
 
-ElgatoFrameProvider::ElgatoFrameProvider(bool useCPU) :
-    _useCPU(useCPU)
+ElgatoFrameProvider::ElgatoFrameProvider()
 {
 }
 
@@ -17,10 +16,14 @@ ElgatoFrameProvider::~ElgatoFrameProvider()
 
     isEnabled = false;
 
-    SafeRelease(&frameCallback);
+    if (frameCallback != NULL)
+    {
+        delete frameCallback;
+        frameCallback = NULL;
+    }
 }
 
-HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture)
+HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV)
 {
     if (IsEnabled())
     {
@@ -43,17 +46,16 @@ HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D
         OutputDebugString(L"Failed on InitGraph.\n");
     }
 
-    isEnabled = true;
-
     if (IsEnabled())
     {
+        isEnabled = true;
         hr = S_OK;
     }
 
     return hr;
 }
 
-void ElgatoFrameProvider::Update()
+void ElgatoFrameProvider::Update(int compositeFrameIndex)
 {
     if (!IsEnabled() ||
         _colorSRV == nullptr ||
@@ -63,32 +65,7 @@ void ElgatoFrameProvider::Update()
         return;
     }
     
-    frameCallback->UpdateSRV(_colorSRV, _useCPU);
-}
-
-bool ElgatoFrameProvider::IsVideoFrameReady()
-{
-    if (frameCallback != nullptr)
-    {
-        return frameCallback->IsVideoFrameReady();
-    }
-
-    return false;
-}
-
-LONGLONG ElgatoFrameProvider::GetTimestamp()
-{
-    if (frameCallback != nullptr)
-    {
-        return frameCallback->GetTimestamp();
-    }
-
-    return -1;
-}
-
-LONGLONG ElgatoFrameProvider::GetDurationHNS()
-{
-    return (LONGLONG)((1.0f / 30.0f) * QPC_MULTIPLIER);
+    frameCallback->UpdateSRV(_colorSRV, compositeFrameIndex);
 }
 
 bool ElgatoFrameProvider::IsEnabled()
@@ -106,6 +83,12 @@ void ElgatoFrameProvider::Dispose()
     DestroyGraph();
 
     isEnabled = false;
+
+    if (frameCallback != NULL)
+    {
+        delete frameCallback;
+        frameCallback = NULL;
+    }
 }
 
 HRESULT ElgatoFrameProvider::InitGraph()
@@ -269,7 +252,7 @@ HRESULT ElgatoFrameProvider::SetSampleGrabberParameters()
     ZeroMemory(&vih, sizeof(VIDEOINFOHEADER));
     vih.rcTarget.right = FRAME_WIDTH;
     vih.rcTarget.bottom = FRAME_HEIGHT;
-    vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 30.0f) * QPC_MULTIPLIER);
+    vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 30.0f) * S2HNS);
     vih.bmiHeader.biWidth = FRAME_WIDTH;
     vih.bmiHeader.biHeight = FRAME_HEIGHT;
     vih.bmiHeader.biSizeImage = FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP_RAW;

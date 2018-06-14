@@ -3,13 +3,14 @@
 
 #pragma once
 #if USE_OPENCV
+#include "IFrameProvider.h"
+#include <mutex>
 
-#pragma comment(lib, "opencv_world320")
+//TODO: Update with the 3.x version of OpenCV you are using.
+#pragma comment(lib, "opencv_world341")
 #include "opencv2/opencv.hpp"
 
 #include "DirectXHelper.h"
-
-#include "IFrameProvider.h"
 
 //TODO: Change this value to match the camera id you are using.
 // If your PC has an integrated webcam, that will probably be id 0.
@@ -17,54 +18,62 @@
 
 class OpenCVFrameProvider : public IFrameProvider
 {
-public:
-    OpenCVFrameProvider(bool cacheFrames = true);
-    ~OpenCVFrameProvider();
-
-    virtual HRESULT Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture);
-    virtual LONGLONG GetTimestamp();
-
-    virtual LONGLONG GetDurationHNS();
-
-    virtual void Update();
-
-    virtual bool IsEnabled();
-
-    bool SupportsOutput()
-    {
-        return false;
-    }
-
-    virtual void Dispose();
-
-    bool OutputYUV()
-    {
-        return false;
-    }
-
-    virtual bool IsVideoFrameReady();
-
 private:
-    CRITICAL_SECTION lock;
-    CRITICAL_SECTION frameAccessCriticalSection;
-
-    bool _cacheFrames = true;
+    std::mutex frameAccessLock;
+    std::mutex videoLock;
 
     LONGLONG latestTimeStamp = 0;
-    LONGLONG secondTimeStamp = 0;
-    LONGLONG thirdTimeStamp = 0;
 
-    BYTE* tmpData = new BYTE[FRAME_BUFSIZE];
-    BYTE* thirdCachedBuffer = new BYTE[FRAME_BUFSIZE];
-    BYTE* secondCachedBuffer = new BYTE[FRAME_BUFSIZE];
-    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
+    LARGE_INTEGER freq;
 
     cv::VideoCapture* videoCapture = nullptr;
     ID3D11ShaderResourceView* _colorSRV;
     ID3D11Device* _device;
 
-    bool isVideoFrameReady = false;
-    bool dirtyFrame = true;
-};
+    cv::Mat frame;
+    cv::Mat rgbaFrame;
+    int rgbaConversion[8];
 
+    class BufferCache
+    {
+    public:
+        BYTE * buffer;
+        LONGLONG timeStamp;
+    };
+
+    BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
+    int captureFrameIndex = 0;
+
+public:
+    OpenCVFrameProvider();
+    ~OpenCVFrameProvider();
+
+    // Inherited via IFrameProvider
+    virtual HRESULT Initialize(ID3D11ShaderResourceView* srv) override;
+    virtual bool IsEnabled() override;
+    virtual void Update(int compositeFrameIndex) override;
+    virtual void Dispose() override;
+
+    virtual bool OutputYUV()
+    {
+        return false;
+    }
+
+    virtual LONGLONG GetTimestamp(int frame)
+    {
+        return bufferCache[frame % MAX_NUM_CACHED_BUFFERS].timeStamp;
+    }
+
+    virtual LONGLONG GetDurationHNS()
+    {
+        return (LONGLONG)((1.0f / 60.0f) * S2HNS);
+    }
+
+    virtual int GetCaptureFrameIndex()
+    {
+        return captureFrameIndex;
+    }
+};
 #endif
+
+

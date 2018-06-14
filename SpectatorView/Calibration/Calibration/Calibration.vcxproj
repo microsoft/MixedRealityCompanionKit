@@ -16,7 +16,7 @@
     <RootNamespace>Calibration</RootNamespace>
     <ProjectGuid>{70239410-43ff-4f2b-acbb-e640437f7289}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -37,6 +37,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\..\Compositor\SharedHeaders\SharedHeaders.vcxitems" Label="Shared" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\dependencies.props" />
@@ -48,13 +51,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include;</IncludePath>
+    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\..\..\Compositor\CompositorDLL;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include</IncludePath>
     <LibraryPath>$(KINECTSDK20_DIR)\lib\x64;$(LibraryPath);$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include;</IncludePath>
+    <IncludePath>$(KINECTSDK20_DIR)\inc;$(ProjectDir)\..\..\Compositor\CompositorDLL;$(ProjectDir)\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OpenCV_vc14)\..\..\include</IncludePath>
     <LibraryPath>$(KINECTSDK20_DIR)\lib\x64;$(LibraryPath);$(OpenCV_vc14)\bin;$(OpenCV_vc14)\lib</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -136,14 +139,13 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
   <ItemGroup>
     <ClInclude Include="..\..\Compositor\CompositorDLL\DeckLinkDevice.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\DeckLinkManager.h" />
-    <ClInclude Include="..\..\Compositor\CompositorDLL\DirectoryHelper.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\IFrameProvider.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\OpenCVFrameProvider.h" />
-    <ClInclude Include="..\..\Compositor\CompositorDLL\StringHelper.h" />
     <ClInclude Include="CalibrationApp.h" />
     <ClInclude Include="DeviceResources.h" />
+    <ClInclude Include="ReadData.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StepTimer.h" />
   </ItemGroup>
@@ -161,7 +163,6 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="..\..\Compositor\CompositorDLL\DirectoryHelper.cpp" />
     <ClCompile Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.cpp" />
     <ClCompile Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.cpp" />
     <ClCompile Include="..\..\Compositor\CompositorDLL\OpenCVFrameProvider.cpp">
@@ -199,9 +200,18 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
     <ClInclude Include="DeckLinkAPI_h.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Compositor\SharedHeaders\SharedHeaders.vcxproj">
-      <Project>{4082d64f-05af-4b6a-ac80-2435a0f58ad3}</Project>
-    </ProjectReference>
+    <FxCompile Include="ForceOpaque.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="YUV2RGB.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 7f447c10b991cd647a34ebb2bd8a6ceb
+timeCreated: 1522198181
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - alphaBlendPreviewMat: {instanceID: 0}
+  - yuv2rgbMat: {instanceID: 0}
+  - compositeOutputMat: {instanceID: 0}
+  - compositeVideoMat: {instanceID: 0}
+  - colorTexture: {instanceID: 0}
+  - outputTexRT: {instanceID: 0}
+  - previewTexRT: {instanceID: 0}
+  - videoTexRT: {instanceID: 0}
+  - convertedColor: {instanceID: 0}
+  - testImage: {fileID: 2800000, guid: c4ac90d58220c394983de92868d7b13d, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

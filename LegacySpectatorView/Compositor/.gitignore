@@ -1,0 +1,51 @@
+*.db
+*.opendb
+*.user
+*.suo
+*.obj
+
+ARM/*
+x64/*
+packages/*
+ipch/*
+Release/*
+Debug/*
+
+UnityCompositorInterface/x64/*
+UnityCompositorInterface/Debug/*
+UnityCompositorInterface/Release/*
+SpatialPerceptionHelper/ARM/*
+
+SpatialPerceptionHelper/Generated Files/*
+SpatialPerceptionHelper/x64/*
+SpatialPerceptionHelper/Debug/*
+SpatialPerceptionHelper/Release/*
+
+SharedHeaders/x64/*
+SharedHeaders/Debug/*
+SharedHeaders/Release/*
+
+CompositorDLL/x64/*
+CompositorDLL/Release/*
+CompositorDLL/Debug/*
+
+
+# Decklink
+CompositorDLL/DeckLink*.idl
+CompositorDLL/DeckLinkAPIVersion.h
+CompositorDLL/DeckLinkAPI_h.h
+CompositorDLL/DeckLinkAPI_i.c
+
+UnityCompositorInterface/DeckLink*.idl
+UnityCompositorInterface/DeckLinkAPIVersion.h
+UnityCompositorInterface/DeckLinkAPI_h.h
+UnityCompositorInterface/DeckLinkAPI_i.c
+
+
+# Elgato
+CompositorDLL/IVideoCaptureFilter*
+
+
+# OpenCV
+CompositorDLL/opencv*.dll
+UnityCompositorInterface/opencv*.dll

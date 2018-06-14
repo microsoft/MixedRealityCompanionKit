@@ -225,8 +225,9 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
     m_d3dContext->Flush();
 
     // Determine the render target size in pixels.
-    UINT backBufferWidth = std::max<UINT>(m_outputSize.right - m_outputSize.left, 1);
-    UINT backBufferHeight = std::max<UINT>(m_outputSize.bottom - m_outputSize.top, 1);
+    // Force backbuffer to captured image dimensions.
+    UINT backBufferWidth = FRAME_WIDTH;// std::max<UINT>(m_outputSize.right - m_outputSize.left, 1);
+    UINT backBufferHeight = FRAME_HEIGHT;// std::max<UINT>(m_outputSize.bottom - m_outputSize.top, 1);
 
     if (m_swapChain)
     {

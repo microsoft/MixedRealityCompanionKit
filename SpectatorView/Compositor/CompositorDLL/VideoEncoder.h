@@ -39,37 +39,29 @@ public:
 
     // Used for recording video from a background thread.
     void QueueVideoFrame(byte* buffer, LONGLONG timestamp, LONGLONG duration);
-    void QueueAudioFrame(byte* buffer, LONGLONG timestamp);
+    void QueueAudioFrame(byte* buffer);
 
     // Do not call this from a background thread.
     void Update();
 
 private:
-    void WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duration);
-    void WriteAudio(byte* buffer, LONGLONG timestamp);
+    void WriteVideo(byte* buffer, LONGLONG duration);
+    void WriteAudio(byte* buffer);
 
     LARGE_INTEGER freq;
+
+    LONGLONG numFramesRecorded = 0;
+    LONGLONG numAudioFramesRecorded = 0;
 
     class VideoInput
     {
     public:
-#if HARDWARE_ENCODE_VIDEO
-        byte* buffer = new byte[(int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT)];
-#else
-        byte* buffer = new byte[FRAME_BUFSIZE];
-#endif
-
-        LONGLONG timestamp;
+        byte* sharedBuffer;
         LONGLONG duration;
 
-        VideoInput(byte* buffer, LONGLONG timestamp, LONGLONG duration)
+        VideoInput(byte* buffer, LONGLONG duration)
         {
-#if HARDWARE_ENCODE_VIDEO
-            memcpy(this->buffer, buffer, (int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT));
-#else
-            memcpy(this->buffer, buffer, FRAME_BUFSIZE);
-#endif
-            this->timestamp = timestamp;
+            this->sharedBuffer = buffer;
             this->duration = duration;
         }
     };
@@ -78,12 +70,10 @@ private:
     {
     public:
         byte* buffer = new byte[AUDIO_BUFSIZE];
-        LONGLONG timestamp;
 
-        AudioInput(byte* buffer, LONGLONG timestamp)
+        AudioInput(byte* buffer)
         {
             memcpy(this->buffer, buffer, AUDIO_BUFSIZE);
-            this->timestamp = timestamp;
         }
     };
 
@@ -104,25 +94,19 @@ private:
     UINT32 bitRate;
     GUID videoEncodingFormat;
     GUID inputFormat;
-    LONGLONG prevVideoTime = INVALID_TIMESTAMP;
 
     // Audio Parameters.
     UINT32 audioBufferSize;
     UINT32 audioSampleRate;
     UINT32 audioChannels;
     UINT32 audioBPS;
-    LONGLONG prevAudioTime = INVALID_TIMESTAMP;
-
-    LONGLONG startTime = INVALID_TIMESTAMP;
 
     std::queue<VideoInput> videoQueue;
     std::queue<AudioInput> audioQueue;
 
     std::shared_mutex videoStateLock;
 
-#if HARDWARE_ENCODE_VIDEO
     IMFDXGIDeviceManager* deviceManager = NULL;
     UINT resetToken = 0;
-#endif
 };
 

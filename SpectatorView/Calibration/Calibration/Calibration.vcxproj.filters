@@ -11,6 +11,9 @@
     <Filter Include="FrameProviders">
       <UniqueIdentifier>{35ed6590-099e-42ab-8c3c-b8ff8271c922}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{fbf3f95e-71d5-4ce7-8122-98ee6b27e256}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StepTimer.h">
@@ -20,8 +23,6 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="CalibrationApp.h" />
-    <ClInclude Include="..\..\Compositor\CompositorDLL\DirectoryHelper.h" />
-    <ClInclude Include="..\..\Compositor\CompositorDLL\StringHelper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="..\..\Compositor\CompositorDLL\DeckLinkDevice.h">
       <Filter>FrameProviders</Filter>
@@ -39,13 +40,11 @@
     <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoFrameProvider.h">
       <Filter>FrameProviders</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compositor\CompositorDLL\IVideoCaptureFilter.h" />
-    <ClInclude Include="..\..\Compositor\CompositorDLL\IVideoCaptureFilterTypes.h" />
-    <ClInclude Include="..\..\Compositor\CompositorDLL\qedit.h">
-      <Filter>FrameProviders</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Compositor\CompositorDLL\ElgatoSampleCallback.h">
       <Filter>FrameProviders</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadData.h">
+      <Filter>Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -54,7 +53,6 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="CalibrationApp.cpp" />
-    <ClCompile Include="..\..\Compositor\CompositorDLL\DirectoryHelper.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="..\..\Compositor\CompositorDLL\DeckLinkDevice.cpp">
       <Filter>FrameProviders</Filter>
@@ -91,5 +89,10 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="DeckLinkAPI.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="YUV2RGB.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

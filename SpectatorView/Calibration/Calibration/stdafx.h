@@ -58,7 +58,7 @@
 
 #include <string>
 
-#include "CompositorShared.h"
+#include "CompositorConstants.h"
 
 namespace Calibration
 {
