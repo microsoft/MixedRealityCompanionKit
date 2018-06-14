@@ -14,7 +14,7 @@ Open the Calibration sln with Visual Studio under Calibration\Calibration.sln
 ![compositor sln](../DocumentationImages/calibration_sln.png)
 
 ### OpenCV 3.2
-+ Download and install OpenCV 3.2 from here: http://opencv.org/downloads.html
++ Download and install OpenCV 3.2 from [here](https://opencv.org/releases.html).
 + Extract OpenCV anywhere on your computer.
 + Update the OpenCV_vc14 user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
