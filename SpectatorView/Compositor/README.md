@@ -17,7 +17,7 @@ If you are using a Blackmagic capture card, you will need to install the SDK and
 
 ### OpenCV 3.4.1
 If you are not using a capture card with an included FrameProvider, you will need to install Open CV to get color frames from a different capture device.
-+ Download and install OpenCV 3.4.1 from here: http://opencv.org/
++ Download and install OpenCV 3.4.1 from [here](https://opencv.org/releases.html).
 + Extract OpenCV anywhere on your computer.
 + Update the OpenCV_vc14 user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
