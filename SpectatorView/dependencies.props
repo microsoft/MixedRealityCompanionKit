@@ -2,14 +2,18 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <!-- From: https://sourceforge.net/projects/opencvlibrary/files/opencv-win/3.2.0/opencv-3.2.0-vc14.exe/download -->
+    
+    <!-- Find the latest 3.x release --> 
+    <!-- From: https://opencv.org/ -->
     <OpenCV_vc14>C:\OpenCV\build\x64\vc14</OpenCV_vc14>
+    
+    <!-- Find the latest version in "Latest Downloads" with a matching SDK and Runtime -->
     <!-- From: https://www.blackmagicdesign.com/support -->
-    <DeckLink_inc>C:\BlackMagic\Blackmagic DeckLink SDK 10.8.3\Win\include</DeckLink_inc>
-    <!-- From: https://www.usa.canon.com/internet/portal/us/home/explore/solutions-services/digital-camera-sdk-information -->
-    <Canon_SDK>C:\CanonSDK\Windows</Canon_SDK>
+    <DeckLink_inc>C:\BlackMagic\Blackmagic DeckLink SDK 10.9.11\Win\include</DeckLink_inc>
+    
     <!-- From: https://github.com/elgatosf/gamecapture -->
     <Elgato_Filter>C:\gamecapture-master\VideoCaptureFilter</Elgato_Filter>
+  
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />

@@ -2,7 +2,7 @@
 ## Overview
 Calibrates the HoloLens to the external camera.  Uses a checkerboard pattern to find the rotation and translation from the HoloLens to the external camera.  A checkerboard pattern with a different number of columns to rows works best.  Additionally, the background color of the checkerboard should match the light squares of the board.
 
-This process is critical to getting holograms believably grounded in your world.  A bad calibration will make any holograms that are supposed to be world-locked look wrong, and might render all holgrams at the wrong scale or position.  If you are using a very wide lens with a lot of distortion, consider distorting the hologram frame by the distortion coefficients and camera matrix that the calibration output gives you.  An example of this process can be found [here](http://code.opencv.org/issues/1387).  Be aware that wider lenses are harder to calibrate since there is a greater area that needs to be covered with the calibration card and fewer points will overlap between the hololens camera and the external camera.
+This process is critical to getting holograms believably grounded in your world.  A bad calibration will make any holograms that are supposed to be world-locked look wrong, and might render all holgrams at the wrong scale or position.  If you are using a very wide lens with a lot of distortion, consider distorting the hologram frame by the distortion coefficients and camera matrix that the calibration output gives you.  Be aware that wider lenses can be harder to calibrate since there is a greater area that needs to be covered with the calibration card and fewer points will overlap between the hololens camera and the external camera.
 
 This application uses code in "..\Compositor\".  Please ensure that you have pulled this code and the original directory hierarchy is preserved.
 
@@ -13,15 +13,15 @@ Open the Calibration sln with Visual Studio under Calibration\Calibration.sln
 
 ![compositor sln](../DocumentationImages/calibration_sln.png)
 
-### OpenCV 3.2
-+ Download and install OpenCV 3.2 from here: http://opencv.org/releases.html
+### OpenCV 3.4.1
++ Download and install OpenCV 3.4.1 from [here](http://opencv.org/).
 + Extract OpenCV anywhere on your computer.
 + Update the OpenCV_vc14 user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
 
 ### DeckLink Capture Card
 If you are using a Blackmagic capture card, you will need to install the SDK and create a Visual Studio user macro for its location.
-+ Download the DeckLink SDK from here: https://www.blackmagicdesign.com/support - Search for Desktop Video SDK in "Latest Downloads"
++ Download the DeckLink SDK from [here](https://www.blackmagicdesign.com/support) - Search for Desktop Video SDK in "Latest Downloads"
 + Extract the SDK anywhere on your computer.
 + Update the DeckLink_inc user macro in dependencies.props with the corresponding path on your computer.
 + Restart Visual Studio if the Calibration or Compositor sln's are open.
@@ -92,8 +92,9 @@ Calibration process should look like this.  For better results, you can also fil
 
 ![calibration](../DocumentationImages/calibration.gif)
 
-## Documentation
+## Additional Documentation
 + [Overview](../README.md)
 + **Calibration**
 + [Compositor](../Compositor/README.md)
-+ [Sample](../Samples/README.md)
++ [SpectatorViewPoseProvider](../SpectatorViewPoseProvider/README.md)
++ [Sample](../SpectatorViewSample/README.md)

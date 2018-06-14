@@ -8,12 +8,25 @@
 ElgatoSampleCallback::ElgatoSampleCallback(ID3D11Device* device) :
     _device(device)
 {
-    InitializeCriticalSection(&frameAccessCriticalSection);
+    QueryPerformanceFrequency(&freq);
+
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
+        bufferCache[i].timeStamp = 0;
+    }
+
+    captureFrameIndex = 0;
 }
 
 ElgatoSampleCallback::~ElgatoSampleCallback()
 {
     isEnabled = false;
+
+    for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
+    {
+        delete[] bufferCache[i].buffer;
+    }
 }
 
 STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long length)
@@ -21,11 +34,15 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
     isEnabled = true;
 
     // Get frame time.
+    prevTimeStamp = latestTimeStamp;
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);
-    thirdTimeStamp = secondTimeStamp;
-    secondTimeStamp = latestTimeStamp;
     latestTimeStamp = t.QuadPart;
+
+    if (prevTimeStamp != 0 && latestTimeStamp != 0)
+    {
+        frameDuration = ((latestTimeStamp - prevTimeStamp) * S2HNS) / freq.QuadPart;
+    }
 
     int copyLength = length;
     if (copyLength > FRAME_BUFSIZE)
@@ -34,42 +51,21 @@ STDMETHODIMP ElgatoSampleCallback::BufferCB(double time, BYTE *pBuffer, long len
         copyLength = FRAME_BUFSIZE;
     }
 
-    memcpy(thirdCachedBuffer, secondCachedBuffer, FRAME_BUFSIZE);
-    memcpy(secondCachedBuffer, latestBuffer, FRAME_BUFSIZE);
-    memcpy(latestBuffer, pBuffer, copyLength);
+    captureFrameIndex++;
+    BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
+    memcpy(buffer, pBuffer, copyLength);
 
-    EnterCriticalSection(&frameAccessCriticalSection);
-    isVideoFrameReady = true;
-    LeaveCriticalSection(&frameAccessCriticalSection);
+    bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = (latestTimeStamp * S2HNS) / freq.QuadPart;
+
     return S_OK;
 }
 
 // Call this from the Render thread.
-void ElgatoSampleCallback::UpdateSRV(ID3D11ShaderResourceView* srv, bool useCPU)
+void ElgatoSampleCallback::UpdateSRV(ID3D11ShaderResourceView* srv, int compositeFrameIndex)
 {
-    if (useCPU)
+    const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
+    if (buffer.buffer != nullptr)
     {
-        BYTE* stagingBytes = new BYTE[FRAME_BUFSIZE];
-        // Do not cache when using the CPU
-        DirectXHelper::ConvertYUVtoBGRA(latestBuffer, stagingBytes, FRAME_WIDTH, FRAME_HEIGHT, true);
-        DirectXHelper::UpdateSRV(_device, srv, stagingBytes, FRAME_WIDTH * FRAME_BPP);
-        delete[] stagingBytes;
+        DirectXHelper::UpdateSRV(_device, srv, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
     }
-    else
-    {
-        DirectXHelper::UpdateSRV(_device, srv, thirdCachedBuffer, FRAME_WIDTH * FRAME_BPP);
-    }
-}
-
-bool ElgatoSampleCallback::IsVideoFrameReady()
-{
-    EnterCriticalSection(&frameAccessCriticalSection);
-    bool ret = isVideoFrameReady;
-    if (isVideoFrameReady)
-    {
-        isVideoFrameReady = false;
-    }
-    LeaveCriticalSection(&frameAccessCriticalSection);
-
-    return ret;
 }

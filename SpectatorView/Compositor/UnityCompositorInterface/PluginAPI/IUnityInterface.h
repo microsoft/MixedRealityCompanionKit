@@ -9,7 +9,7 @@
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64) || defined(WINAPI_FAMILY)
     #define UNITY_INTERFACE_API __stdcall
     #define UNITY_INTERFACE_EXPORT __declspec(dllexport)
-#elif defined(__MACH__) || defined(__ANDROID__) || defined(__linux__) || defined(__QNX__)
+#elif defined(__MACH__) || defined(__ANDROID__) || defined(__linux__)
     #define UNITY_INTERFACE_API
     #define UNITY_INTERFACE_EXPORT
 #else
@@ -39,8 +39,8 @@ struct UnityInterfaceGUID
 {
 #ifdef __cplusplus
     UnityInterfaceGUID(unsigned long long high, unsigned long long low)
-    : m_GUIDHigh(high)
-    , m_GUIDLow(low)
+        : m_GUIDHigh(high)
+        , m_GUIDLow(low)
     {
     }
 
@@ -66,36 +66,34 @@ struct UnityInterfaceGUID
 #ifdef __cplusplus
 inline bool operator==(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return left.Equals(right); }
 inline bool operator!=(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return !left.Equals(right); }
-inline bool operator< (const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return left.LessThan(right); }
-inline bool operator> (const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return right.LessThan(left); }
-inline bool operator>=(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return !operator< (left,right); }
-inline bool operator<=(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return !operator> (left,right); }
+inline bool operator<(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return left.LessThan(right); }
+inline bool operator>(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return right.LessThan(left); }
+inline bool operator>=(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return !operator<(left, right); }
+inline bool operator<=(const UnityInterfaceGUID& left, const UnityInterfaceGUID& right) { return !operator>(left, right); }
 #else
 typedef struct UnityInterfaceGUID UnityInterfaceGUID;
 #endif
-
-
 
 
 #ifdef __cplusplus
     #define UNITY_DECLARE_INTERFACE(NAME) \
     struct NAME : IUnityInterface
 
-    // Generic version of GetUnityInterfaceGUID to allow us to specialize it
-    // per interface below. The generic version has no actual implementation
-    // on purpose.
-    //
-    // If you get errors about return values related to this method then
-    // you have forgotten to include UNITY_REGISTER_INTERFACE_GUID with
-    // your interface, or it is not visible at some point when you are
-    // trying to retrieve or add an interface.
-    template<typename TYPE>
-    inline const UnityInterfaceGUID GetUnityInterfaceGUID();
+// Generic version of GetUnityInterfaceGUID to allow us to specialize it
+// per interface below. The generic version has no actual implementation
+// on purpose.
+//
+// If you get errors about return values related to this method then
+// you have forgotten to include UNITY_REGISTER_INTERFACE_GUID with
+// your interface, or it is not visible at some point when you are
+// trying to retrieve or add an interface.
+template<typename TYPE>
+inline const UnityInterfaceGUID GetUnityInterfaceGUID();
 
-    // This is the macro you provide in your public interface header
-    // outside of a namespace to allow us to map between type and GUID
-    // without the user having to worry about it when attempting to
-    // add or retrieve and interface from the registry.
+// This is the macro you provide in your public interface header
+// outside of a namespace to allow us to map between type and GUID
+// without the user having to worry about it when attempting to
+// add or retrieve and interface from the registry.
     #define UNITY_REGISTER_INTERFACE_GUID(HASHH, HASHL, TYPE)      \
     template<>                                                     \
     inline const UnityInterfaceGUID GetUnityInterfaceGUID<TYPE>()  \
@@ -103,10 +101,10 @@ typedef struct UnityInterfaceGUID UnityInterfaceGUID;
         return UnityInterfaceGUID(HASHH,HASHL);                    \
     }
 
-    // Same as UNITY_REGISTER_INTERFACE_GUID but allows the interface to live in
-    // a particular namespace. As long as the namespace is visible at the time you call
-    // GetUnityInterfaceGUID< INTERFACETYPE >() or you explicitly qualify it in the template
-    // calls this will work fine, only the macro here needs to have the additional parameter
+// Same as UNITY_REGISTER_INTERFACE_GUID but allows the interface to live in
+// a particular namespace. As long as the namespace is visible at the time you call
+// GetUnityInterfaceGUID< INTERFACETYPE >() or you explicitly qualify it in the template
+// calls this will work fine, only the macro here needs to have the additional parameter
     #define UNITY_REGISTER_INTERFACE_GUID_IN_NAMESPACE(HASHH, HASHL, TYPE, NAMESPACE) \
     const UnityInterfaceGUID TYPE##_GUID(HASHH, HASHL);                               \
     template<>                                                                        \
@@ -115,7 +113,7 @@ typedef struct UnityInterfaceGUID UnityInterfaceGUID;
         return UnityInterfaceGUID(HASHH,HASHL);                                       \
     }
 
-    // These macros allow for C compatibility in user code.
+// These macros allow for C compatibility in user code.
     #define UNITY_GET_INTERFACE_GUID(TYPE) GetUnityInterfaceGUID< TYPE >()
 
 
@@ -124,23 +122,23 @@ typedef struct UnityInterfaceGUID UnityInterfaceGUID;
     typedef struct NAME NAME;             \
     struct NAME
 
-    // NOTE: This has the downside that one some compilers it will not get stripped from all compilation units that
-    //       can see a header containing this constant. However, it's only for C compatibility and thus should have
-    //       minimal impact.
+// NOTE: This has the downside that one some compilers it will not get stripped from all compilation units that
+//       can see a header containing this constant. However, it's only for C compatibility and thus should have
+//       minimal impact.
     #define UNITY_REGISTER_INTERFACE_GUID(HASHH, HASHL, TYPE) \
     const UnityInterfaceGUID TYPE##_GUID = {HASHH, HASHL};
 
-    // In general namespaces are going to be a problem for C code any interfaces we expose in a namespace are
-    // not going to be usable from C.
-    #define UNITY_REGISTER_INTERFACE_GUID_IN_NAMESPACE(HASHH, HASHL, TYPE, NAMESPACE) 
+// In general namespaces are going to be a problem for C code any interfaces we expose in a namespace are
+// not going to be usable from C.
+    #define UNITY_REGISTER_INTERFACE_GUID_IN_NAMESPACE(HASHH, HASHL, TYPE, NAMESPACE)
 
-    // These macros allow for C compatibility in user code.
+// These macros allow for C compatibility in user code.
     #define UNITY_GET_INTERFACE_GUID(TYPE) TYPE##_GUID
 #endif
 
-// Using this in user code rather than INTERFACES->Get<TYPE>() will be C compatible for those places in plugins where 
+// Using this in user code rather than INTERFACES->Get<TYPE>() will be C compatible for those places in plugins where
 // this may be needed. Unity code itself does not need this.
-#define UNITY_GET_INTERFACE(INTERFACES, TYPE) (TYPE*)INTERFACES->GetInterface (UNITY_GET_INTERFACE_GUID(TYPE));
+#define UNITY_GET_INTERFACE(INTERFACES, TYPE) (TYPE*)INTERFACES->GetInterfaceSplit (UNITY_GET_INTERFACE_GUID(TYPE).m_GUIDHigh, UNITY_GET_INTERFACE_GUID(TYPE).m_GUIDLow);
 
 
 #ifdef __cplusplus
@@ -152,7 +150,6 @@ typedef void IUnityInterface;
 #endif
 
 
-
 typedef struct IUnityInterfaces
 {
     // Returns an interface matching the guid.
@@ -160,25 +157,29 @@ typedef struct IUnityInterfaces
     IUnityInterface* (UNITY_INTERFACE_API * GetInterface)(UnityInterfaceGUID guid);
 
     // Registers a new interface.
-    void (UNITY_INTERFACE_API * RegisterInterface)(UnityInterfaceGUID guid, IUnityInterface* ptr);
+    void(UNITY_INTERFACE_API * RegisterInterface)(UnityInterfaceGUID guid, IUnityInterface * ptr);
+
+    // Split APIs for C
+    IUnityInterface* (UNITY_INTERFACE_API * GetInterfaceSplit)(unsigned long long guidHigh, unsigned long long guidLow);
+    void(UNITY_INTERFACE_API * RegisterInterfaceSplit)(unsigned long long guidHigh, unsigned long long guidLow, IUnityInterface * ptr);
 
 #ifdef __cplusplus
     // Helper for GetInterface.
-    template <typename INTERFACE>
+    template<typename INTERFACE>
     INTERFACE* Get()
     {
         return static_cast<INTERFACE*>(GetInterface(GetUnityInterfaceGUID<INTERFACE>()));
     }
 
     // Helper for RegisterInterface.
-    template <typename INTERFACE>
+    template<typename INTERFACE>
     void Register(IUnityInterface* ptr)
     {
         RegisterInterface(GetUnityInterfaceGUID<INTERFACE>(), ptr);
     }
+
 #endif
 } IUnityInterfaces;
-
 
 
 #ifdef __cplusplus
@@ -193,3 +194,7 @@ void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginUnload();
 #ifdef __cplusplus
 }
 #endif
+
+struct RenderSurfaceBase;
+typedef struct RenderSurfaceBase* UnityRenderBuffer;
+typedef unsigned int UnityTextureID;

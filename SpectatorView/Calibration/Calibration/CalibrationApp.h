@@ -37,10 +37,17 @@
 #include "OpenCVFrameProvider.h"
 #endif
 
+#include "ReadData.h"
+
 #include "opencv2/opencv.hpp"
 
-//TODO: Update to the version of OpenCV you are using (if not 3.2)
-#pragma comment(lib, "opencv_world320")
+//TODO: Update with the 3.x version of OpenCV you are using.
+#if _DEBUG
+#pragma comment(lib, "opencv_world341d")
+#endif
+#if !_DEBUG
+#pragma comment(lib, "opencv_world341")
+#endif
 
 // For REST calls
 using namespace web::json;
@@ -58,6 +65,7 @@ class CalibrationApp : public DX::IDeviceNotify
 public:
 
     CalibrationApp();
+    ~CalibrationApp();
 
     // Initialization and management
     void Initialize(HWND window, int width, int height);
@@ -104,6 +112,8 @@ private:
     void DeleteOutputFiles();
     bool HasChessBoard(cv::Mat image, cv::Mat& grayscaleImage, std::vector<cv::Point2f>& corners);
 
+    void Blit(ID3D11ShaderResourceView* source, ID3D11RenderTargetView* dest, ID3D11PixelShader* shader);
+
     // Device resources.
     std::unique_ptr<DX::DeviceResources> deviceResources;
 
@@ -114,6 +124,13 @@ private:
 
     // Textures
     ID3D11Texture2D* colorTexture;
+    ID3D11Texture2D* convertedColorTexture;
+
+    ID3D11ShaderResourceView* srv;
+    ID3D11ShaderResourceView* convertedSrv;
+    
+    ID3D11RenderTargetView* convertedRT;
+
     cv::Mat latestColorMat;
     cv::Mat cachedColorMat;
     BYTE* colorBytes;
@@ -149,5 +166,19 @@ private:
     DirectX::Keyboard::State keyState;
     DirectX::Keyboard::State prevKeyState;
 
-    ID3D11ShaderResourceView* srv;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> yuv2rgbPS;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> forceOpaquePS;
+
+    struct CONVERSION_PARAMETERS
+    {
+        int width;
+        int height;
+        byte na[8];
+    };
+
+    static_assert(!(sizeof(CONVERSION_PARAMETERS) % 16),
+        "CONVERSION_PARAMETERS needs to be 16 bytes aligned");
+
+    CONVERSION_PARAMETERS yuv2rgbParameters;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> conversionParamBuffer;
 };

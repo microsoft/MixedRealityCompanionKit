@@ -6,11 +6,8 @@
 
 #if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
-DeckLinkManager::DeckLinkManager(bool useCPU, bool passthroughOutput)
+DeckLinkManager::DeckLinkManager()
 {
-    _useCPU = useCPU;
-    _passthroughOutput = passthroughOutput;
-
     deckLinkDiscovery = new DeckLinkDeviceDiscovery();
     if (!deckLinkDiscovery->Enable())
     {
@@ -19,19 +16,12 @@ DeckLinkManager::DeckLinkManager(bool useCPU, bool passthroughOutput)
     }
 }
 
+
 DeckLinkManager::~DeckLinkManager()
 {
 }
 
-void DeckLinkManager::Update()
-{
-    if (deckLinkDevice != nullptr)
-    {
-        deckLinkDevice->Update();
-    }
-}
-
-HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture)
+HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* srv)
 {
     if (deckLinkDiscovery == nullptr)
     {
@@ -51,7 +41,7 @@ HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Te
             deckLinkDevice = new DeckLinkDevice(deckLink);
             if (deckLinkDevice != nullptr)
             {
-                deckLinkDevice->Init(colorSRV, outputTexture, _useCPU, _passthroughOutput);
+                deckLinkDevice->Init(srv);
 
                 if (!deckLinkDevice->IsCapturing())
                 {
@@ -95,41 +85,11 @@ HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Te
     return E_PENDING;
 }
 
-bool DeckLinkManager::SupportsOutput()
+LONGLONG DeckLinkManager::GetTimestamp(int frame)
 {
     if (IsEnabled())
     {
-        return deckLinkDevice->supportsOutput;
-    }
-
-    return false;
-}
-
-bool DeckLinkManager::OutputYUV()
-{
-    if (!IsEnabled())
-    {
-        return false;
-    }
-
-    return deckLinkDevice->OutputYUV();
-}
-
-bool DeckLinkManager::IsVideoFrameReady()
-{
-    if (!IsEnabled())
-    {
-        return false;
-    }
-
-    return deckLinkDevice->IsVideoFrameReady();
-}
-
-LONGLONG DeckLinkManager::GetTimestamp()
-{
-    if (IsEnabled())
-    {
-        return deckLinkDevice->GetTimestamp();
+        return deckLinkDevice->GetTimestamp(frame);
     }
 
     return 0;
@@ -142,7 +102,7 @@ LONGLONG DeckLinkManager::GetDurationHNS()
         return deckLinkDevice->GetDurationHNS();
     }
 
-    return (LONGLONG)((1.0f / 30.0f) * QPC_MULTIPLIER);
+    return (LONGLONG)((1.0f / 30.0f) * S2HNS);
 }
 
 bool DeckLinkManager::IsEnabled()
@@ -151,8 +111,16 @@ bool DeckLinkManager::IsEnabled()
     {
         return false;
     }
-    
+
     return deckLinkDevice->IsCapturing();
+}
+
+void DeckLinkManager::Update(int compositeFrameIndex)
+{
+    if (deckLinkDevice != nullptr)
+    {
+        deckLinkDevice->Update(compositeFrameIndex);
+    }
 }
 
 void DeckLinkManager::Dispose()
@@ -165,6 +133,31 @@ void DeckLinkManager::Dispose()
     SafeRelease(deckLink);
     SafeRelease(deckLinkDevice);
     SafeRelease(deckLinkDiscovery);
+}
+
+bool DeckLinkManager::OutputYUV()
+{
+    if (!IsEnabled())
+    {
+        return false;
+    }
+
+    return deckLinkDevice->OutputYUV();
+}
+
+void DeckLinkManager::SetOutputTexture(ID3D11Texture2D* outputTexture)
+{
+    deckLinkDevice->SetOutputTexture(outputTexture);
+}
+
+int DeckLinkManager::GetCaptureFrameIndex()
+{
+    if (IsEnabled())
+    {
+        return deckLinkDevice->GetCaptureFrameIndex();
+    }
+
+    return 0;
 }
 
 #endif

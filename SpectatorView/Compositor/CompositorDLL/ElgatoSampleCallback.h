@@ -9,9 +9,42 @@
 
 class ElgatoSampleCallback : public ISampleGrabberCB
 {
+private:
+    class BufferCache
+    {
+    public:
+        BYTE * buffer;
+        LONGLONG timeStamp;
+    };
+
+    BufferCache bufferCache[MAX_NUM_CACHED_BUFFERS];
+    int captureFrameIndex = 0;
+
+    ULONG m_cRef = 0;
+
+    ID3D11Device* _device;
+
+    LONGLONG prevTimeStamp = 0;
+    LONGLONG latestTimeStamp = 0;
+
+    LARGE_INTEGER freq;
+    LONGLONG frameDuration = 0;
+
+    bool isEnabled = false;
+
 public:
     ElgatoSampleCallback(ID3D11Device* device);
     ~ElgatoSampleCallback();
+
+    LONGLONG GetTimestamp(int frame)
+    {
+        return bufferCache[frame % MAX_NUM_CACHED_BUFFERS].timeStamp;
+    }
+
+    int GetCaptureFrameIndex()
+    {
+        return captureFrameIndex;
+    }
 
     STDMETHODIMP_(ULONG) AddRef() 
     {
@@ -52,33 +85,21 @@ public:
 
     STDMETHODIMP BufferCB(double time, BYTE *pBuffer, long length);
 
-    void UpdateSRV(ID3D11ShaderResourceView* srv, bool useCPU);
+    void UpdateSRV(ID3D11ShaderResourceView* srv, int compositeFrameIndex);
     
     LONGLONG GetTimestamp()
     {
-        return thirdTimeStamp;
+        return latestTimeStamp;
     }
 
-    bool IsVideoFrameReady();
+    LONGLONG GetDurationHNS()
+    {
+        return frameDuration;
+    }
+
     bool IsEnabled()
     {
         return isEnabled;
     }
-
-private:
-    ULONG m_cRef = 0;
-
-    ID3D11Device* _device;
-    BYTE* thirdCachedBuffer = new BYTE[FRAME_BUFSIZE];
-    BYTE* secondCachedBuffer = new BYTE[FRAME_BUFSIZE];
-    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
-
-    LONGLONG latestTimeStamp = 0;
-    LONGLONG secondTimeStamp = 0;
-    LONGLONG thirdTimeStamp = 0;
-
-    CRITICAL_SECTION frameAccessCriticalSection;
-    bool isVideoFrameReady = false;
-    bool isEnabled = false;
 };
 

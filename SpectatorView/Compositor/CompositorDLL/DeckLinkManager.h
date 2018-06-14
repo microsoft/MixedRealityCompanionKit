@@ -11,36 +11,29 @@
 class DeckLinkManager : public IFrameProvider
 {
 public:
-    DeckLinkManager(bool useCPU = false, bool passthroughOutput = false);
+    DeckLinkManager();
     ~DeckLinkManager();
 
-    HRESULT Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture);
+    // Inherited via IFrameProvider
+    HRESULT Initialize(ID3D11ShaderResourceView* srv);
+    virtual LONGLONG GetTimestamp(int frame) override;
+    virtual LONGLONG GetDurationHNS() override;
 
-    // 3 frames are caches for reliable hologram stability:
-    // Get the timestamp of the earliest (and currently rendered) cached frame.
-    LONGLONG GetTimestamp();
+    virtual bool IsEnabled() override;
+    virtual void Update(int compositeFrameIndex) override;
+    virtual void Dispose() override;
 
-    LONGLONG GetDurationHNS();
+    virtual bool OutputYUV() override;
 
-    void Update();
+    virtual void SetOutputTexture(ID3D11Texture2D* outputTexture) override;
 
-    bool IsEnabled();
-    bool SupportsOutput();
-
-    void Dispose();
-
-    bool OutputYUV();
-
-    bool IsVideoFrameReady();
+    virtual int GetCaptureFrameIndex() override;
 
 private:
     DeckLinkDeviceDiscovery* deckLinkDiscovery = nullptr;
     DeckLinkDevice* deckLinkDevice = nullptr;
     IDeckLink* deckLink = nullptr;
     bool supportsBlackMagic = true;
-
-    bool _useCPU;
-    bool _passthroughOutput;
 };
-
 #endif
+
