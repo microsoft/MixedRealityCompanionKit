@@ -30,6 +30,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	{
 		CameraConfigurationFile cfg(filePath);
 		cfg.readConfig();
+
+		FrameProviderStaticConfig::width = int(cfg.getWidth());
+		FrameProviderStaticConfig::height = int(cfg.getHeight());
+		FrameProviderStaticConfig::fps = float(cfg.getFrameRate());
 	}
 	catch(const std::exception& e)
 	{
