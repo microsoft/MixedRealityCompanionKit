@@ -211,7 +211,7 @@ void SpatialMappingManager::Update(SpatialCoordinateSystem^ currentCoordinateSys
                 }
 
                 // We then subcribe to an event to receive up-to-date data.
-                void StartSurfaceObserver();
+                StartSurfaceObserver();
             }
         }
 
