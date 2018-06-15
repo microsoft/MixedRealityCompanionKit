@@ -21,7 +21,7 @@ CalibrationApp::CalibrationApp() :
     InitializeCriticalSection(&calibrationPictureCriticalSection);
 
     boardDimensions = cv::Size(GRID_CELLS_X - 1, GRID_CELLS_Y - 1);
-    colorBytes = new BYTE[FRAME_BUFSIZE];
+    colorBytes = new BYTE[FrameProviderStaticConfig::getFrameBuffSize()];
 
     // Force 60fps
     timer.SetFixedTimeStep(true);
@@ -79,11 +79,11 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     CreateWindowSizeDependentResources();
 
     // Calibration Images.
-    colorImage_cam = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
+    colorImage_cam = cv::Mat(FrameProviderStaticConfig::height, FrameProviderStaticConfig::width, CV_8UC4);
     resizedColorImage_cam = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4);
     colorImage_holo = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4);
-    latestColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
-    cachedColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
+    latestColorMat = cv::Mat(FrameProviderStaticConfig::height, FrameProviderStaticConfig::width, CV_8UC4);
+    cachedColorMat = cv::Mat(FrameProviderStaticConfig::height, FrameProviderStaticConfig::width, CV_8UC4);
 
     // Create an http_client to use REST APIs on the Hololens.
     http_client_config client_config;
@@ -97,7 +97,7 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
 
     // Create textures, RT's and SRV's
     auto device = deviceResources->GetD3DDevice();
-    CD3D11_TEXTURE2D_DESC rtDesc(DXGI_FORMAT_R8G8B8A8_UNORM, FRAME_WIDTH, FRAME_HEIGHT,
+    CD3D11_TEXTURE2D_DESC rtDesc(DXGI_FORMAT_R8G8B8A8_UNORM, FrameProviderStaticConfig::width, FrameProviderStaticConfig::height,
         1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
     
     device->CreateTexture2D(&rtDesc, nullptr, &colorTexture);
@@ -134,8 +134,8 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
         }
     }
 
-    yuv2rgbParameters.width = FRAME_WIDTH;
-    yuv2rgbParameters.height = FRAME_HEIGHT;
+    yuv2rgbParameters.width = FrameProviderStaticConfig::width;
+    yuv2rgbParameters.height = FrameProviderStaticConfig::height;
 
     CD3D11_BUFFER_DESC cbDesc(sizeof(CONVERSION_PARAMETERS), D3D11_BIND_CONSTANT_BUFFER);
     device->CreateBuffer(&cbDesc, nullptr, conversionParamBuffer.ReleaseAndGetAddressOf());
@@ -218,7 +218,7 @@ void CalibrationApp::TakeCalibrationPicture()
     
     // Cache the latest color frame so we do not stall the UI thread while checking if there is a chess board in frame.
     EnterCriticalSection(&photoTextureCriticalSection);
-    memcpy(cachedColorMat.data, latestColorMat.data, FRAME_BUFSIZE);
+    memcpy(cachedColorMat.data, latestColorMat.data, FrameProviderStaticConfig::getFrameBuffSize());
     LeaveCriticalSection(&photoTextureCriticalSection);
 
     if (!HasChessBoard(cachedColorMat, grayscaleImage, corners))
@@ -232,7 +232,7 @@ void CalibrationApp::TakeCalibrationPicture()
 
     // Lock the latest camera image immediately after the hololens picture has been taken.
     EnterCriticalSection(&photoTextureCriticalSection);
-    memcpy(cachedColorMat.data, latestColorMat.data, FRAME_BUFSIZE);
+    memcpy(cachedColorMat.data, latestColorMat.data, FrameProviderStaticConfig::getFrameBuffSize());
     LeaveCriticalSection(&photoTextureCriticalSection);
 
     cv::imwrite(cv::String(StringHelper::ws2s(camPath)), cachedColorMat);
@@ -653,8 +653,8 @@ void CalibrationApp::OnWindowSizeChanged(int width, int height)
 // Properties
 void CalibrationApp::GetDefaultSize(int& width, int& height) const
 {
-    width = FRAME_WIDTH;
-    height = FRAME_HEIGHT;
+    width = FrameProviderStaticConfig::width;
+    height = FrameProviderStaticConfig::height;
 }
 
 // These are the resources that depend on the device.
@@ -667,8 +667,8 @@ void CalibrationApp::CreateDeviceDependentResources()
     // Camera
     colorSourceRect.left = 0;
     colorSourceRect.top = 0;
-    colorSourceRect.right = FRAME_WIDTH;
-    colorSourceRect.bottom = FRAME_HEIGHT;
+    colorSourceRect.right = FrameProviderStaticConfig::width;
+    colorSourceRect.bottom = FrameProviderStaticConfig::height;
 
     auto device = deviceResources->GetD3DDevice();
     auto blob = DX::ReadData(L"YUV2RGB.cso");
