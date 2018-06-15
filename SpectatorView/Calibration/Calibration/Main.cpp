@@ -38,6 +38,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	catch(const std::exception& e)
 	{
 		OutputDebugStringA(e.what());
+
+		//fallback to default values
+		FrameProviderStaticConfig::width = FRAME_WIDTH;
+		FrameProviderStaticConfig::height = FRAME_HEIGHT;
+		FrameProviderStaticConfig::fps = VIDEO_FPS;
 	}
 
     UNREFERENCED_PARAMETER(hPrevInstance);
