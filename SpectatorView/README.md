@@ -213,7 +213,13 @@ If using a camera with a capture card, you must configure the camera to output c
 + Optionally plug an hdmi cable from the hdmi out port to a television or preview monitor.
     + This is the center port on the Blackmagic capture card.
 
-Note: if you would like to capture images or video at a resolution other than 1080P (eg: Photo Mode, 720P, or 4K) update CompositorConstants.h to match the new resolution.
+Note: if you would like to capture images or video at a resolution other than 1080P (eg: Photo Mode, 720P, or 4K) you can either update CompositorConstants.h to match the new resolution, or for more flexibility, create a file you your "Documents" folder called **`camera.cfg`** containing the following configuration values and sytax:
+
+```ini
+width=1920
+height=1080
+FPS=30
+```
 
 ## Network Setup
 + Some networking stacks require UDP broadcast to be enabled on your network.
