@@ -16,14 +16,16 @@ Bundler is meant to run on a dedicated machine.  CAD models are placed in a spec
 
 ## Setting Up 3ds Max for Bundler
 Ideally you have a dedicated machine/VM to run the Bundler service on. If you do choose to install Bundler on your primary machine and are using 3ds Max for other projects it is suggested you install a different version of 3ds Max to use Bundler with. The steps below assume that a supported version of Windows and 3ds Max is installed.
-* Copy ...\Processor\Max\HoloAssetCreator.ms to your 3ds Max startup folder
+* Copy maxstart.max to your 3ds Max startup folder.  The default location is usually: C:\Users\Username\Documents\3dsMax\scenes
   * This file is important for rendering the mesh icon. This file will now load every time 3ds Max is launched.
 * Launch the version of 3ds Max you will use with Bundler
-* In 3ds Max go to File -> Import and select <filename>, make sure the dialog settings match the image below. This will become your new default CAD file import settings.
+* In 3ds Max go to File -> Import and select ImportTest.igs, make sure the dialog settings match the image below. This will become your new default CAD file import settings.
 
 ![Max Import Settings](./DocumentationImages/MaxImportSettings.png)
+* Turn off auto backup by going to Customize -> Preferences. Click on the Files tab and uncheck the Enable check box under Auto Backup. Then click ok to close the dialog.
+  * This will help files compute faster.  If this setting is on the decimation process may pause to make a large backup.
 * Close 3ds Max so the file settings save.
-* Copy \<max script> to \<file location>
+* Copy ...\Processor\Max\HoloAssetCreator.ms  to \<file location>
 
 ## Processor Service
 This is documented in the [readme.md](Processor/ProcessorService/README.md) file for the ProcessorService
