@@ -78,8 +78,8 @@
     <Link>
       <SubSystem>NotSet</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;odbc32.lib;odbccp32.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;odbc32.lib;odbccp32.lib;CompositorDLL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\;$(ProjectDir)\..\..\Compositor\x64\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(OpenCV_vc14)\bin\*.dll" "$(OutDir)"</Command>
@@ -87,6 +87,7 @@
     <PreBuildEvent>
       <Command>if EXIST "$(decklink_inc)" xcopy /y "$(decklink_inc)"
 xcopy /y "$(OpenCV_vc14)\bin\*.dll"
+xcopy /y "$(ProjectDir)\..\..\Compositor\x64\$(Configuration)\CompositorDLL.dll"
 if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\CompositorDLL\</Command>
     </PreBuildEvent>
     <PreLinkEvent>
@@ -117,8 +118,8 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;odbc32.lib;odbccp32.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;odbc32.lib;odbccp32.lib;CompositorDLL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\;$(ProjectDir)\..\..\Compositor\x64\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(OpenCV_vc14)\bin\*.dll" "$(OutDir)"</Command>
@@ -126,6 +127,7 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
     <PreBuildEvent>
       <Command>if EXIST "$(decklink_inc)" xcopy /y "$(decklink_inc)"
 xcopy /y "$(OpenCV_vc14)\bin\*.dll"
+xcopy /y "$(ProjectDir)\..\..\Compositor\x64\$(Configuration)\CompositorDLL.dll"
 if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\CompositorDLL\</Command>
     </PreBuildEvent>
     <PreLinkEvent>

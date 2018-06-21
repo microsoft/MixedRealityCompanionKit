@@ -59,10 +59,10 @@ private:
     CRITICAL_SECTION          m_outputCriticalSection;
 
     BYTE* localFrameBuffer;
-    BYTE* rawBuffer = new BYTE[FRAME_BUFSIZE_RAW];
+    BYTE* rawBuffer = new BYTE[FrameProviderStaticConfig::getFrameBuffSizeRaw()];
 
-    BYTE* latestBuffer = new BYTE[FRAME_BUFSIZE];
-    BYTE* outputBuffer = new BYTE[FRAME_BUFSIZE];
+    BYTE* latestBuffer = new BYTE[FrameProviderStaticConfig::getFrameBuffSize()];
+    BYTE* outputBuffer = new BYTE[FrameProviderStaticConfig::getFrameBuffSize()];
 
     IDeckLinkMutableVideoFrame* outputFrame = NULL;
 

@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "CompositorInterface.h"
+#include "FrameProviderStaticConfig.h"
 
 
 CompositorInterface::CompositorInterface()
@@ -172,7 +173,7 @@ void CompositorInterface::TakePicture(ID3D11Texture2D* outputTexture)
 
     // Get bytes from texture because screengrab does not support texture format provided by Unity.
     DirectXHelper::GetBytesFromTexture(_device, outputTexture, FRAME_BPP, photoBytes);
-    ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, photoBytes, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BPP, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+    ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, photoBytes, FrameProviderStaticConfig::width, FrameProviderStaticConfig::height, FRAME_BPP, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
 
     photoIndex++;
     std::wstring photoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"Photo", L".png", photoIndex);
@@ -183,7 +184,7 @@ void CompositorInterface::TakePicture(ID3D11Texture2D* outputTexture)
 
 bool CompositorInterface::InitializeVideoEncoder(ID3D11Device* device)
 {
-    videoEncoder = new VideoEncoder(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, VIDEO_FPS,
+    videoEncoder = new VideoEncoder(FrameProviderStaticConfig::width, FrameProviderStaticConfig::height, FrameProviderStaticConfig::width * FRAME_BPP, UINT(std::ceil(FrameProviderStaticConfig::fps)),
         AUDIO_BUFSIZE, AUDIO_SAMPLE_RATE, AUDIO_CHANNELS, AUDIO_BPS);
 
     return videoEncoder->Initialize(device);
@@ -254,7 +255,7 @@ void CompositorInterface::AllocateVideoBuffers()
 
     for (int i = 0; i < NUM_VIDEO_BUFFERS; i++)
     {
-        videoBytes[i] = new byte[(int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT)];
+        videoBytes[i] = new byte[(int)(1.5f * FrameProviderStaticConfig::width * FrameProviderStaticConfig::height)];
     }
 }
 

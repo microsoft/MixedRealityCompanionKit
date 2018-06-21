@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "ElgatoFrameProvider.h"
+#include "FrameProviderStaticConfig.h"
+
 
 #if USE_ELGATO
 
@@ -121,23 +123,23 @@ HRESULT ElgatoFrameProvider::InitGraph()
     hr = filter->GetSettingsEx(&settings);
     _ASSERT(SUCCEEDED(hr));
 
-    if (FRAME_HEIGHT == 1080)
+    if (FrameProviderStaticConfig::height == 1080)
     {
         settings.Settings.profile = VIDEO_CAPTURE_FILTER_VID_ENC_PROFILE_1080;
     }
-    else if (FRAME_HEIGHT == 720)
+    else if (FrameProviderStaticConfig::height == 720)
     {
         settings.Settings.profile = VIDEO_CAPTURE_FILTER_VID_ENC_PROFILE_720;
     }
-    else if (FRAME_HEIGHT == 480)
+    else if (FrameProviderStaticConfig::height == 480)
     {
         settings.Settings.profile = VIDEO_CAPTURE_FILTER_VID_ENC_PROFILE_480;
     }
-    else if (FRAME_HEIGHT == 360)
+    else if (FrameProviderStaticConfig::height == 360)
     {
         settings.Settings.profile = VIDEO_CAPTURE_FILTER_VID_ENC_PROFILE_360;
     }
-    else if (FRAME_HEIGHT == 240)
+    else if (FrameProviderStaticConfig::height == 240)
     {
         settings.Settings.profile = VIDEO_CAPTURE_FILTER_VID_ENC_PROFILE_240;
     }
@@ -245,17 +247,17 @@ HRESULT ElgatoFrameProvider::SetSampleGrabberParameters()
     amt.subtype = MEDIASUBTYPE_UYVY;
     amt.formattype = FORMAT_VideoInfo;
     amt.bFixedSizeSamples = TRUE;
-    amt.lSampleSize = FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP_RAW;
+    amt.lSampleSize = FrameProviderStaticConfig::width * FrameProviderStaticConfig::height * FRAME_BPP_RAW;
     amt.bTemporalCompression = FALSE;
     
     VIDEOINFOHEADER vih;
     ZeroMemory(&vih, sizeof(VIDEOINFOHEADER));
-    vih.rcTarget.right = FRAME_WIDTH;
-    vih.rcTarget.bottom = FRAME_HEIGHT;
+    vih.rcTarget.right = FrameProviderStaticConfig::width;
+    vih.rcTarget.bottom = FrameProviderStaticConfig::height;
     vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 30.0f) * S2HNS);
-    vih.bmiHeader.biWidth = FRAME_WIDTH;
-    vih.bmiHeader.biHeight = FRAME_HEIGHT;
-    vih.bmiHeader.biSizeImage = FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP_RAW;
+    vih.bmiHeader.biWidth = FrameProviderStaticConfig::width;
+    vih.bmiHeader.biHeight = FrameProviderStaticConfig::height;
+    vih.bmiHeader.biSizeImage = FrameProviderStaticConfig::width * FrameProviderStaticConfig::height * FRAME_BPP_RAW;
         
     amt.pbFormat = (BYTE*)&vih;
     

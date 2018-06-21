@@ -107,7 +107,7 @@ private:
     int lastVideoFrame = -1;
     BufferedTextureFetch VideoTextureBuffer;
     VideoEncoder* videoEncoder = nullptr;
-    byte* photoBytes = new byte[FRAME_BUFSIZE];
+    byte* photoBytes = new byte[FrameProviderStaticConfig::getFrameBuffSize()];
     byte** videoBytes = nullptr;
     int videoBufferIndex = 0;
 

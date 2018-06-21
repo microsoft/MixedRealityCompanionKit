@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "DeckLinkManager.h"
+#include "FrameProviderStaticConfig.h"
+
 
 #if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
@@ -52,25 +54,25 @@ HRESULT DeckLinkManager::Initialize(ID3D11ShaderResourceView* srv)
                     //      However, if you select a valid format that is less than your output format, your frames will be downsized.
                     //      Update the videoDisplayMode if your camera's output does not meet this selection criteria.
                     BMDDisplayMode videoDisplayMode;
-                    if (FRAME_HEIGHT < 1080)
+                    if (FrameProviderStaticConfig::height < 1080)
                     {
                         videoDisplayMode = bmdModeHD720p5994;
                     }
-                    else if (FRAME_HEIGHT >= 1080 && FRAME_HEIGHT < 2160)
+                    else if (FrameProviderStaticConfig::height >= 1080 && FrameProviderStaticConfig::height < 2160)
                     {
                         videoDisplayMode = bmdModeHD1080p5994;
 #if USE_DECKLINK_SHUTTLE
                         videoDisplayMode = bmdModeHD1080p2398;
 #endif
                     }
-                    else if (FRAME_HEIGHT == 2160)
+                    else if (FrameProviderStaticConfig::height == 2160)
                     {
                         videoDisplayMode = bmdMode4K2160p5994;
 #if USE_DECKLINK_SHUTTLE
                         videoDisplayMode = bmdMode4K2160p2398;
 #endif
                     }
-                    else if (FRAME_HEIGHT > 2160)
+                    else if (FrameProviderStaticConfig::height > 2160)
                     {
                         videoDisplayMode = bmdMode4kDCI2398;
                     }

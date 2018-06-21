@@ -4,6 +4,11 @@
 #include "stdafx.h"
 #include "CalibrationApp.h"
 
+#define CAMERA_CFG_STATIC_IMPL
+#include "CameraConfigurationFile.h"
+
+#include <string>
+using namespace std::string_literals;
 using namespace DirectX;
 
 namespace
@@ -16,6 +21,30 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 // Entry point
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
+
+	auto const filePath = CameraConfigurationFile::getMyDocumentPath() + "\\camera.cfg"s;
+
+	OutputDebugStringA(filePath.c_str());
+
+	try
+	{
+		CameraConfigurationFile cfg(filePath);
+		cfg.readConfig();
+
+		FrameProviderStaticConfig::width = int(cfg.getWidth());
+		FrameProviderStaticConfig::height = int(cfg.getHeight());
+		FrameProviderStaticConfig::fps = float(cfg.getFrameRate());
+	}
+	catch(const std::exception& e)
+	{
+		OutputDebugStringA(e.what());
+
+		//fallback to default values
+		FrameProviderStaticConfig::width = FRAME_WIDTH;
+		FrameProviderStaticConfig::height = FRAME_HEIGHT;
+		FrameProviderStaticConfig::fps = VIDEO_FPS;
+	}
+
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
