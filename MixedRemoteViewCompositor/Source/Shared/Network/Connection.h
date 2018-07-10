@@ -153,9 +153,6 @@ namespace MixedRemoteViewCompositor
             IFACEMETHOD(SendBundleAsync)(
                 _In_ ABI::MixedRemoteViewCompositor::Network::IDataBundle *dataBundle,
                 _Out_ ABI::Windows::Foundation::IAsyncAction **sendAction);
-			IFACEMETHOD(SendBundleAsyncSequenced)(
-				_In_ ABI::MixedRemoteViewCompositor::Network::IDataBundle *dataBundle,
-				_Out_ ABI::Windows::Foundation::IAsyncAction **sendAction);
 
         protected:
             // IConnectionInternal

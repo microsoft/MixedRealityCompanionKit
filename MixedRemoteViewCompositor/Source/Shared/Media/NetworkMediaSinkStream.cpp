@@ -864,7 +864,7 @@ HRESULT NetworkMediaSinkStreamImpl::ProcessSamplesFromQueue(
         if (nullptr != spDataBundle.Get())
         {
             ComPtr<IAsyncAction> spSendAction;
-            if (FAILED(_spConnection->SendBundleAsyncSequenced(spDataBundle.Get(), &spSendAction)))
+            if (FAILED(_spConnection->SendBundleAsync(spDataBundle.Get(), &spSendAction)))
             {
                 fProcessingSample = false;
             }
