@@ -410,9 +410,15 @@ void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorne
 
     const cv::Point* points[1] = { tempPoints[0] };
     const int numPoints[] = { 5 };
+    cv::Mat tempFillMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    cv::fillPoly(tempFillMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 5));
+
+    const cv::Point* linePoints = tempPoints[0];
+    cv::Mat tempLineMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    cv::polylines(tempLineMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 255, 255), 2);
 
     EnterCriticalSection(&chessBoardVisualCriticalSection);
-    cv::fillPoly(chessBoardVisualMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 10));
+    chessBoardVisualMat += tempFillMat + tempLineMat;
     LeaveCriticalSection(&chessBoardVisualCriticalSection);
 }
 
