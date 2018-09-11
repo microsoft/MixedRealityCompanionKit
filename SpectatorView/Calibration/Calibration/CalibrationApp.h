@@ -107,7 +107,7 @@ private:
     void TakeMRCPicture();
 
     // Calibration
-    void ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImage);
+    void ProcessChessBoards(int currentIndex, cv::Mat& colorCameraImage);
     void UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorners);
     void PerformCalibration();
     void TakeCalibrationPicture();
@@ -124,6 +124,8 @@ private:
     DX::StepTimer timer;
 
     std::unique_ptr<DirectX::SpriteBatch> spriteBatch;
+    std::unique_ptr<DirectX::SpriteBatch> overlaySpriteBatch;
+    std::unique_ptr<DirectX::SpriteBatch> textSpriteBatch;
     std::unique_ptr<DirectX::SpriteFont> spriteFont;
     std::wstring captureText;
     std::wstring commandText;

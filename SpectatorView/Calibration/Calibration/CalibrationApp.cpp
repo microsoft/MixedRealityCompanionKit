@@ -227,6 +227,7 @@ void CalibrationApp::TakeCalibrationPicture()
     EnterCriticalSection(&calibrationPictureCriticalSection);
     std::wstring camPath = DirectoryHelper::FindUniqueFileName(outputPath, L"cam", L".png", photoIndex);
     std::wstring holoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"holo", L".jpg", photoIndex);
+    int currentIndex = photoIndex;
 
     // Get latest hologram photo
     std::vector<cv::Point2f> corners;
@@ -262,7 +263,7 @@ void CalibrationApp::TakeCalibrationPicture()
 
     cv::imwrite(cv::String(StringHelper::ws2s(camPath)), cachedColorMat);
 
-    ProcessChessBoards(photoIndex, cachedColorMat);
+    ProcessChessBoards(currentIndex, cachedColorMat);
 }
 
 // Take calibration pictures at a predetermined interval.
@@ -317,9 +318,9 @@ bool CalibrationApp::HasChessBoard(cv::Mat image, cv::Mat& grayscaleImage, std::
 }
 
 // Assesses camera and HoloLens images for chess boards.
-void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImage)
+void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraImage)
 {
-    std::wstring pathRoot = outputPath + std::to_wstring(photoIndex).c_str() + L"_";
+    std::wstring pathRoot = outputPath + std::to_wstring(currentIndex).c_str() + L"_";
     std::wstring camPath = pathRoot + L"cam.png";
     std::wstring holPath = pathRoot + L"holo.jpg";
 
@@ -340,25 +341,37 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
     }
 
     // Load Holo textures
-    if (DirectoryHelper::FileExists(holPath))
+    bool holoImageExists = DirectoryHelper::FileExists(holPath);
+    if (!holoImageExists)
     {
-        colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
+        // The HoloLens image may not be immediately available
+        // Make five attempts to access the HoloLens image file before failing
+        /*for (int i = 0; i < 5; )
+        {
+            Sleep(100);
+            holoImageExists = DirectoryHelper::FileExists(holPath);
+            if (holoImageExists)
+                break;
+        }*/
 
-        // Get chess board data from HoloLens
-        if (HasChessBoard(colorImage_holo, grayscaleImage_holo, holoCorners))
+        if (!holoImageExists)
         {
-            cv::cornerSubPix(grayscaleImage_holo, holoCorners, cv::Size(11, 11), cv::Size(-1, -1),
-                cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
-        }
-        else
-        {
-            OutputString((L"ERROR: Chess board not found in " + holPath + L".\n").c_str());
+            OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
             return;
         }
     }
+
+    colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
+
+    // Get chess board data from HoloLens
+    if (HasChessBoard(colorImage_holo, grayscaleImage_holo, holoCorners))
+    {
+        cv::cornerSubPix(grayscaleImage_holo, holoCorners, cv::Size(11, 11), cv::Size(-1, -1),
+            cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+    }
     else
     {
-        OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
+        OutputString((L"ERROR: Chess board not found in " + holPath + L".\n").c_str());
         return;
     }
 
@@ -402,11 +415,11 @@ void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorne
 
     // Use first and last points for the top and bottom rows.
     cv::Point tempPoints[1][5];
-    tempPoints[0][0] = cv::Point(colorCorners[0].x, colorCorners[0].y);
-    tempPoints[0][1] = cv::Point(colorCorners[GRID_CELLS_X - 2].x, colorCorners[GRID_CELLS_X - 2].y);
-    tempPoints[0][2] = cv::Point(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1) - 1].x, colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1) - 1].y);
-    tempPoints[0][3] = cv::Point(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 2)].x, colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 2)].y);
-    tempPoints[0][4] = cv::Point(colorCorners[0].x, colorCorners[0].y);
+    tempPoints[0][0] = cv::Point(static_cast<int>(colorCorners[0].x), static_cast<int>(colorCorners[0].y));
+    tempPoints[0][1] = cv::Point(static_cast<int>(colorCorners[GRID_CELLS_X - 2].x), static_cast<int>(colorCorners[GRID_CELLS_X - 2].y));
+    tempPoints[0][2] = cv::Point(static_cast<int>(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1) - 1].x), static_cast<int>(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1) - 1].y));
+    tempPoints[0][3] = cv::Point(static_cast<int>(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 2)].x), static_cast<int>(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 2)].y));
+    tempPoints[0][4] = cv::Point(static_cast<int>(colorCorners[0].x), static_cast<int>(colorCorners[0].y));
 
     const cv::Point* points[1] = { tempPoints[0] };
     const int numPoints[] = { 5 };
@@ -658,26 +671,28 @@ void CalibrationApp::Render()
 
         // Draw observed chess boards visual.
         DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
-        spriteBatch->Begin(SpriteSortMode_Immediate);
-        spriteBatch->Draw(chessBoardSrv, screenRect, &chessBoardVisualRect,
+        overlaySpriteBatch->Begin(SpriteSortMode_Immediate);
+        overlaySpriteBatch->Draw(chessBoardSrv, screenRect, &chessBoardVisualRect,
             Colors::White, 0.0f, XMFLOAT2(0, 0),
             spriteEffect);
+        overlaySpriteBatch->End();
 
         // Draw capture text.
+        textSpriteBatch->Begin();
         wchar_t tempBuffer[256];
         swprintf(tempBuffer, 256, captureText.c_str(),
             photoIndex,
             stereoObjectPoints.size(),
             (CALIBRATION_FREQUENCY_SECONDS - calibrationPictureElapsedTime));
-        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(1.f, 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(0, 0), Colors::White);
+        spriteFont->DrawString(textSpriteBatch.get(), tempBuffer, XMFLOAT2(1.f, 1.f), Colors::Black);
+        spriteFont->DrawString(textSpriteBatch.get(), tempBuffer, XMFLOAT2(0, 0), Colors::White);
 
         // Draw command text.
         auto textRect = spriteFont->MeasureDrawBounds(commandText.c_str(), XMFLOAT2(0, 0));
         auto yOffset = screenRect.bottom - (textRect.bottom - textRect.top + 40);
-        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
-        spriteBatch->End();
+        spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
+        textSpriteBatch->End();
 
         deviceResources->Present();
     }
@@ -744,6 +759,8 @@ void CalibrationApp::CreateDeviceDependentResources()
     auto context = deviceResources->GetD3DDeviceContext();
 
     spriteBatch = std::make_unique<SpriteBatch>(context);
+    overlaySpriteBatch = std::make_unique<SpriteBatch>(context);
+    textSpriteBatch = std::make_unique<SpriteBatch>(context);
     spriteFont = std::make_unique<SpriteFont>(device, L"segoeUI32.spritefont");
 
     // Camera
@@ -788,6 +805,8 @@ void CalibrationApp::OnDeviceLost()
 {
     // TODO: Add Direct3D resource cleanup here.
     spriteBatch.reset();
+    overlaySpriteBatch.reset();
+    textSpriteBatch.reset();
     spriteFont.reset();
 
     frameProvider->Dispose();
