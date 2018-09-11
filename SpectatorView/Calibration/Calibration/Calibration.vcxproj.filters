@@ -86,9 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="myfile.spritefont">
-      <Filter>Assets</Filter>
-    </None>
     <None Include="segoeUI32.spritefont">
       <Filter>Assets</Filter>
     </None>

@@ -319,9 +319,11 @@ bool CalibrationApp::HasChessBoard(cv::Mat image, cv::Mat& grayscaleImage, std::
 // Assesses camera and HoloLens images for chess boards.
 void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImage)
 {
-    OutputDebugString((L"Parsing calibration files: " + std::to_wstring(photoIndex) + L".\n").c_str());
-
     std::wstring pathRoot = outputPath + std::to_wstring(photoIndex).c_str() + L"_";
+    std::wstring camPath = pathRoot + L"cam.png";
+    std::wstring holPath = pathRoot + L"holo.jpg";
+
+    OutputDebugString((L"Parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
 
     // Get chessboard for DSLR picture
     cv::resize(colorCameraImage, resizedColorImage_cam, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), 0, 0, cv::INTER_AREA);
@@ -333,14 +335,11 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
     }
     else
     {
-        std::wstring camPath = pathRoot + L"cam.png";
         OutputDebugString((L"ERROR: Chess board not found in " + camPath + L".\n").c_str());
         return;
     }
 
     // Load Holo textures
-    std::wstring holPath = pathRoot + L"holo.jpg";
-
     if (DirectoryHelper::FileExists(holPath))
     {
         colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
@@ -388,7 +387,7 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
     LeaveCriticalSection(&commandCriticalSection);
 
     UpdateChessBoardVisual(colorCorners);
-    OutputDebugString((L"Completed parsing calibration files: " + std::to_wstring(photoIndex) + L".\n").c_str());
+    OutputDebugString((L"Completed parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
 
     return;
 }
@@ -549,6 +548,14 @@ void CalibrationApp::PerformCalibration()
     calibrationfs << "# DSLR camera Matrix: fx, fy, cx, cy:" << std::endl;
     calibrationfs << "DSLR_camera_Matrix: " << colorMat.at<double>(0, 0) << ", " << colorMat.at<double>(1, 1) << ", " << 
         colorMat.at<double>(0, 2) << ", " << colorMat.at<double>(1, 2) << std::endl;
+
+    calibrationfs << "# HoloLens distortion coefficients:" << std::endl;
+    calibrationfs << "Holo_distortion: " << distCoeffHolo.at<double>(0, 0) << ", " << distCoeffHolo.at<double>(0, 1) << ", " <<
+        distCoeffHolo.at<double>(0, 2) << ", " << distCoeffHolo.at<double>(0, 3) << ", " << distCoeffHolo.at<double>(0, 4) << std::endl;
+
+    calibrationfs << "# HoloLens camera Matrix: fx, fy, cx, cy:" << std::endl;
+    calibrationfs << "Holo_camera_Matrix: " << holoMat.at<double>(0, 0) << ", " << holoMat.at<double>(1, 1) << ", " <<
+        holoMat.at<double>(0, 2) << ", " << holoMat.at<double>(1, 2) << std::endl;
 
     calibrationfs.close();
 }

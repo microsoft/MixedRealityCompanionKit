@@ -189,7 +189,6 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
     <Manifest Include="settings.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="myfile.spritefont" />
     <None Include="packages.config" />
     <None Include="segoeUI32.spritefont" />
   </ItemGroup>
