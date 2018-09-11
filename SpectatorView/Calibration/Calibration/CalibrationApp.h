@@ -193,8 +193,6 @@ private:
     std::vector<cv::Point2f> colorCorners;
     std::vector<cv::Point2f> holoCorners;
 
-    int lastChessBoardNotFound = -1;
-
     struct CONVERSION_PARAMETERS
     {
         int width;

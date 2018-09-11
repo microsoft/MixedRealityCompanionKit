@@ -36,7 +36,7 @@ CalibrationApp::CalibrationApp() :
     calibrationFile = outputPath + L"CalibrationData.txt";
 
     captureText = L"Images captured: %d\nUseable images: %d\nCapture timer: %5.3f\n";
-    commandText = L"Commands:\nENTER - Perform calibration\nX - Delete capture images\nSPACE - Force take image\nM - Mirror display\n";
+    commandText = L"Commands:\nENTER - Perform calibration\nSPACE - Force image capture\nX - Delete captured images\nM - Mirror display\n";
 
     DirectoryHelper::CreateOutputDirectory(outputPath);
     DirectoryHelper::CreateOutputDirectory(cachedOutputPath);
@@ -136,7 +136,7 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
             hr = frameProvider->Initialize(srv);
             if (FAILED(hr))
             {
-                OutputDebugString(L"Failed to initialize frame provider, trying again.\n");
+                OutputString(L"Failed to initialize frame provider, trying again.\n");
                 frameProvider->Dispose();
                 Sleep(100);
             }
@@ -253,14 +253,14 @@ void CalibrationApp::TakeCalibrationPicture()
     memcpy(cachedColorMat.data, latestColorMat.data, FRAME_BUFSIZE);
     LeaveCriticalSection(&photoTextureCriticalSection);
 
-    cv::imwrite(cv::String(StringHelper::ws2s(camPath)), cachedColorMat);
-
     // Copy the latest MRC image from the Hololens to the calibration directory.
     GetAllMRCFiles((LPTSTR)holoPath.c_str());
     // Delete all of the MRC files on the device.
     DeleteAllMRCFiles();
 
     LeaveCriticalSection(&calibrationPictureCriticalSection);
+
+    cv::imwrite(cv::String(StringHelper::ws2s(camPath)), cachedColorMat);
 
     ProcessChessBoards(photoIndex, cachedColorMat);
 }
@@ -323,7 +323,7 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
     std::wstring camPath = pathRoot + L"cam.png";
     std::wstring holPath = pathRoot + L"holo.jpg";
 
-    OutputDebugString((L"Parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
+    OutputString((L"Parsing calibration files:\n    " + camPath + L"\n    " + holPath + L"\n").c_str());
 
     // Get chessboard for DSLR picture
     cv::resize(colorCameraImage, resizedColorImage_cam, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), 0, 0, cv::INTER_AREA);
@@ -335,7 +335,7 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
     }
     else
     {
-        OutputDebugString((L"ERROR: Chess board not found in " + camPath + L".\n").c_str());
+        OutputString((L"ERROR: Chess board not found in " + camPath + L".\n").c_str());
         return;
     }
 
@@ -352,13 +352,13 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
         }
         else
         {
-            OutputDebugString((L"ERROR: Chess board not found in " + holPath + L".\n").c_str());
+            OutputString((L"ERROR: Chess board not found in " + holPath + L".\n").c_str());
             return;
         }
     }
     else
     {
-        OutputDebugString((L"ERROR: " + holPath + L" not found.\n").c_str());
+        OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
         return;
     }
 
@@ -387,7 +387,7 @@ void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImag
     LeaveCriticalSection(&commandCriticalSection);
 
     UpdateChessBoardVisual(colorCorners);
-    OutputDebugString((L"Completed parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
+    OutputString((L"Completed parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
 
     return;
 }
@@ -412,7 +412,7 @@ void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorne
     const int numPoints[] = { 5 };
 
     EnterCriticalSection(&chessBoardVisualCriticalSection);
-    cv::fillPoly(chessBoardVisualMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 10), 8);
+    cv::fillPoly(chessBoardVisualMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 10));
     LeaveCriticalSection(&chessBoardVisualCriticalSection);
 }
 
@@ -421,7 +421,7 @@ void CalibrationApp::PerformCalibration()
 {
     if (colorImagePoints.size() == 0 || holoImagePoints.size() == 0 || stereoColorImagePoints.size() == 0 || stereoHoloImagePoints.size() == 0)
     {
-        OutputDebugString(L"ERROR: Please take some valid chess board images before calibration.\n");
+        OutputString(L"ERROR: Please take some valid chess board images before calibration.\n");
     }
 
     //http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#Mat initCameraMatrix2D(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints, Size imageSize, double aspectRatio)
@@ -473,12 +473,12 @@ void CalibrationApp::PerformCalibration()
 #endif
     cv::Mat holoMat = cv::initCameraMatrix2D(holoObjectPoints, holoImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), (double)HOLO_HEIGHT / (double)HOLO_WIDTH);
 
-    OutputDebugString(L"Start Calibrating DSLR.\n");
+    OutputString(L"Start Calibrating DSLR.\n");
     int colorFlags = CV_CALIB_USE_INTRINSIC_GUESS;
 #if DSLR_USE_KNOWN_INTRINSICS
-    OutputDebugString(L"Setting user-defined focal length before calibration: ");
-    OutputDebugString(std::to_wstring(colorFocalLength).c_str());
-    OutputDebugString(L"\n");
+    OutputString(L"Setting user-defined focal length before calibration: ");
+    OutputString(std::to_wstring(colorFocalLength).c_str());
+    OutputString(L"\n");
 #if DSLR_FIX_FOCAL_LENGTH
     colorFlags |= CV_CALIB_FIX_FOCAL_LENGTH;
 #endif
@@ -487,10 +487,10 @@ void CalibrationApp::PerformCalibration()
 #endif
 #endif
     double colorRMS = cv::calibrateCamera(colorObjectPoints, colorImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), colorMat, distCoeffColor, colorR, colorT, colorFlags);
-    OutputDebugString(L"Done Calibrating DSLR.\n");
-    OutputDebugString(L"Start Calibrating HoloLens.\n");
+    OutputString(L"Done Calibrating DSLR.\n");
+    OutputString(L"Start Calibrating HoloLens.\n");
     double holoRMS = cv::calibrateCamera(holoObjectPoints, holoImagePoints, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), holoMat, distCoeffHolo, holoR, holoT, CV_CALIB_USE_INTRINSIC_GUESS);
-    OutputDebugString(L"Done Calibrating HoloLens.\n");
+    OutputString(L"Done Calibrating HoloLens.\n");
 
     cv::calibrationMatrixValues(holoMat, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), apertureWidth, apertureHeight, holoFovX, holoFovY, focalLength, principalPoint, aspectRatio);
     cv::calibrationMatrixValues(colorMat, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), apertureWidth, apertureHeight, colorFovX, colorFovY, focalLength, principalPoint, aspectRatio);
@@ -501,7 +501,7 @@ void CalibrationApp::PerformCalibration()
 
     //http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#double stereoCalibrate(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints1, InputArrayOfArrays imagePoints2, InputOutputArray cameraMatrix1, InputOutputArray distCoeffs1, InputOutputArray cameraMatrix2, InputOutputArray distCoeffs2, Size imageSize, OutputArray R, OutputArray T, OutputArray E, OutputArray F, TermCriteria criteria, int flags)
     // Stereo calibrate the two cameras.
-    OutputDebugString(L"Start stereo calibrating.\n");
+    OutputString(L"Start stereo calibrating.\n");
     double rms = cv::stereoCalibrate(stereoObjectPoints, stereoHoloImagePoints, stereoColorImagePoints,
         holoMat, distCoeffHolo,
         colorMat, distCoeffColor,
@@ -509,7 +509,7 @@ void CalibrationApp::PerformCalibration()
         R, T, E, F,
         CV_CALIB_FIX_INTRINSIC
     );
-    OutputDebugString(L"Done stereo calibrating.\n");
+    OutputString(L"Done stereo calibrating.\n");
 
     // Write calibration data file:
     // First Delete the old calibration file if one exists.
@@ -638,7 +638,7 @@ void CalibrationApp::Render()
 
             spriteBatch->Draw(srv, screenRect, &colorSourceRect,
                 Colors::White, 0.0f, XMFLOAT2(0, 0),
-                spriteEffect, 0);
+                spriteEffect);
             spriteBatch->End();
 
             // Get bytes from original rgb image.
@@ -651,13 +651,11 @@ void CalibrationApp::Render()
         LeaveCriticalSection(&photoTextureCriticalSection);
 
         // Draw observed chess boards visual.
-        auto device = deviceResources->GetD3DDevice();
-        DirectXHelper::UpdateSRV(device, chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
+        DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
         spriteBatch->Begin(SpriteSortMode_Immediate);
         spriteBatch->Draw(chessBoardSrv, screenRect, &chessBoardVisualRect,
             Colors::White, 0.0f, XMFLOAT2(0, 0),
-            spriteEffect, 0);
-        spriteBatch->End();
+            spriteEffect);
 
         // Draw capture text.
         wchar_t tempBuffer[256];
@@ -665,22 +663,13 @@ void CalibrationApp::Render()
             photoIndex,
             stereoObjectPoints.size(),
             (CALIBRATION_FREQUENCY_SECONDS - calibrationPictureElapsedTime));
-        spriteBatch->Begin(SpriteSortMode_Immediate);
         spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(1.f, 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(-1.f, 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(-1.f, -1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(1.f, -1.f), Colors::Black);
         spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(0, 0), Colors::White);
-        spriteBatch->End();
 
         // Draw command text.
-        spriteBatch->Begin();
         auto textRect = spriteFont->MeasureDrawBounds(commandText.c_str(), XMFLOAT2(0, 0));
         auto yOffset = screenRect.bottom - (textRect.bottom - textRect.top + 40);
         spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(-1.f, yOffset + 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(-1.f, yOffset - 1.f), Colors::Black);
-        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset - 1.f), Colors::Black);
         spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
         spriteBatch->End();
 
@@ -768,7 +757,7 @@ void CalibrationApp::CreateDeviceDependentResources()
         nullptr, yuv2rgbPS.ReleaseAndGetAddressOf());
     if FAILED(hr)
     {
-        OutputDebugString(L"Error compiling yuv2rgb shader.");
+        OutputString(L"Error compiling yuv2rgb shader.");
     }
 
     blob = DX::ReadData(L"ForceOpaque.cso");
@@ -776,7 +765,7 @@ void CalibrationApp::CreateDeviceDependentResources()
         nullptr, forceOpaquePS.ReleaseAndGetAddressOf());
     if FAILED(hr)
     {
-        OutputDebugString(L"Error compiling ForceOpaque shader.");
+        OutputString(L"Error compiling ForceOpaque shader.");
     }
 }
 
@@ -822,9 +811,9 @@ void CalibrationApp::TakeMRCPicture()
     }
     catch (const std::exception &e)
     {
-        OutputDebugString(L"Error taking MRC Photo: ");
-        OutputDebugString(StringHelper::s2ws(e.what()).c_str());
-        OutputDebugString(L"\n");
+        OutputString(L"Error taking MRC Photo: ");
+        OutputString(StringHelper::s2ws(e.what()).c_str());
+        OutputString(L"\n");
     }
 }
 
@@ -878,9 +867,9 @@ void CalibrationApp::DeleteAllMRCFiles()
     }
     catch (const std::exception &e)
     {
-        OutputDebugString(L"Error deleting MRC files: ");
-        OutputDebugString(StringHelper::s2ws(e.what()).c_str());
-        OutputDebugString(L"\n");
+        OutputString(L"Error deleting MRC files: ");
+        OutputString(StringHelper::s2ws(e.what()).c_str());
+        OutputString(L"\n");
     }
 }
 
@@ -896,9 +885,9 @@ void CalibrationApp::DeleteMRCFile(LPTSTR fileName)
     }
     catch (const std::exception &e)
     {
-        OutputDebugString(L"Error Deleting MRC file: ");
-        OutputDebugString(StringHelper::s2ws(e.what()).c_str());
-        OutputDebugString(L"\n");
+        OutputString(L"Error Deleting MRC file: ");
+        OutputString(StringHelper::s2ws(e.what()).c_str());
+        OutputString(L"\n");
     }
 }
 
@@ -952,9 +941,9 @@ void CalibrationApp::GetAllMRCFiles(LPTSTR holoPath)
     }
     catch (const std::exception &e)
     {
-        OutputDebugString(L"Error Getting MRC files: ");
-        OutputDebugString(StringHelper::s2ws(e.what()).c_str());
-        OutputDebugString(L"\n");
+        OutputString(L"Error Getting MRC files: ");
+        OutputString(StringHelper::s2ws(e.what()).c_str());
+        OutputString(L"\n");
     }
 }
 
@@ -995,8 +984,8 @@ void CalibrationApp::GetMRCFile(LPTSTR fileName, LPTSTR holoPath)
     }
     catch (const std::exception &e)
     {
-        OutputDebugString(L"Error Getting MRC file: ");
-        OutputDebugString(StringHelper::s2ws(e.what()).c_str());
-        OutputDebugString(L"\n");
+        OutputString(L"Error Getting MRC file: ");
+        OutputString(StringHelper::s2ws(e.what()).c_str());
+        OutputString(L"\n");
     }
 }
