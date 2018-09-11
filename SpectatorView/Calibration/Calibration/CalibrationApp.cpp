@@ -19,6 +19,7 @@ CalibrationApp::CalibrationApp() :
     InitializeCriticalSection(&photoTextureCriticalSection);
     InitializeCriticalSection(&commandCriticalSection);
     InitializeCriticalSection(&calibrationPictureCriticalSection);
+    InitializeCriticalSection(&chessBoardVisualCriticalSection);
 
     boardDimensions = cv::Size(GRID_CELLS_X - 1, GRID_CELLS_Y - 1);
     colorBytes = new BYTE[FRAME_BUFSIZE];
@@ -33,6 +34,9 @@ CalibrationApp::CalibrationApp() :
     cachedOutputPath = std::wstring(myDocumentsPath) + L"\\OldCalibrationFiles\\";
 
     calibrationFile = outputPath + L"CalibrationData.txt";
+
+    captureText = L"Images captured: %d\nUseable images: %d\nCapture timer: %5.3f\n";
+    commandText = L"Commands:\nENTER - Perform calibration\nX - Delete capture images\nSPACE - Force take image\nM - Mirror display\n";
 
     DirectoryHelper::CreateOutputDirectory(outputPath);
     DirectoryHelper::CreateOutputDirectory(cachedOutputPath);
@@ -83,7 +87,7 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     resizedColorImage_cam = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4);
     colorImage_holo = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4);
     latestColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
-    cachedColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
+    chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
 
     // Create an http_client to use REST APIs on the Hololens.
     http_client_config client_config;
@@ -106,6 +110,11 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     device->CreateTexture2D(&rtDesc, nullptr, &convertedColorTexture);
     device->CreateRenderTargetView(convertedColorTexture, nullptr, &convertedRT);
     device->CreateShaderResourceView(convertedColorTexture, nullptr, &convertedSrv);
+
+    CD3D11_TEXTURE2D_DESC rtChessDesc(DXGI_FORMAT_R8G8B8A8_UNORM, HOLO_WIDTH, HOLO_HEIGHT,
+        1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+    device->CreateTexture2D(&rtChessDesc, nullptr, &chessBoardTexture);
+    device->CreateShaderResourceView(chessBoardTexture, nullptr, &chessBoardSrv);
 
 #if USE_ELGATO
     frameProvider = new ElgatoFrameProvider();
@@ -194,6 +203,14 @@ void CalibrationApp::Update(DX::StepTimer const& timer)
         });
     }
 
+    // Mirror the image output.
+    if (keyState.M && !prevKeyState.M)
+    {
+        spriteEffect = (spriteEffect == SpriteEffects_None) ?
+            SpriteEffects_FlipHorizontally :
+            SpriteEffects_None;
+    }
+
     // Use the calibration pictures to stereo calibrate the camera rig.
     if (keyState.Enter && !prevKeyState.Enter)
     {
@@ -214,13 +231,14 @@ void CalibrationApp::TakeCalibrationPicture()
     // Get latest hologram photo
     std::vector<cv::Point2f> corners;
     cv::Mat grayscaleImage;
-    // Only take the picture if a chessboard is in view.
-    
+    cv::Mat cachedColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
+
     // Cache the latest color frame so we do not stall the UI thread while checking if there is a chess board in frame.
     EnterCriticalSection(&photoTextureCriticalSection);
     memcpy(cachedColorMat.data, latestColorMat.data, FRAME_BUFSIZE);
     LeaveCriticalSection(&photoTextureCriticalSection);
 
+    // Only take the picture if a chessboard is in view.
     if (!HasChessBoard(cachedColorMat, grayscaleImage, corners))
     {
         LeaveCriticalSection(&calibrationPictureCriticalSection);
@@ -241,7 +259,10 @@ void CalibrationApp::TakeCalibrationPicture()
     GetAllMRCFiles((LPTSTR)holoPath.c_str());
     // Delete all of the MRC files on the device.
     DeleteAllMRCFiles();
+
     LeaveCriticalSection(&calibrationPictureCriticalSection);
+
+    ProcessChessBoards(photoIndex, cachedColorMat);
 }
 
 // Take calibration pictures at a predetermined interval.
@@ -272,6 +293,16 @@ void CalibrationApp::DeleteOutputFiles()
     DirectoryHelper::DeleteFiles(outputPath, L".png");
     DirectoryHelper::DeleteFiles(outputPath, L"CalibrationData.txt");
 
+    chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+
+    stereoObjectPoints.clear();
+    stereoColorImagePoints.clear();
+    stereoHoloImagePoints.clear();
+    colorImagePoints.clear();
+    holoImagePoints.clear();
+    colorCorners.clear();
+    holoCorners.clear();
+
     photoIndex = 0;
 }
 
@@ -285,99 +316,113 @@ bool CalibrationApp::HasChessBoard(cv::Mat image, cv::Mat& grayscaleImage, std::
         cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK);
 }
 
-// Use the calibration pictures to stereo calibrate the camera rig.
-void CalibrationApp::PerformCalibration()
+// Assesses camera and HoloLens images for chess boards.
+void CalibrationApp::ProcessChessBoards(int photoIndex, cv::Mat& colorCameraImage)
 {
-    int numFiles = DirectoryHelper::NumFiles(outputPath, L".png");
+    OutputDebugString((L"Parsing calibration files: " + std::to_wstring(photoIndex) + L".\n").c_str());
 
-    if (numFiles == 0)
+    std::wstring pathRoot = outputPath + std::to_wstring(photoIndex).c_str() + L"_";
+
+    // Get chessboard for DSLR picture
+    cv::resize(colorCameraImage, resizedColorImage_cam, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), 0, 0, cv::INTER_AREA);
+
+    if (HasChessBoard(resizedColorImage_cam, grayscaleImage_cam, colorCorners))
     {
-        OutputDebugString(L"ERROR: Please take some calibration pictures first.\n");
+        cv::cornerSubPix(grayscaleImage_cam, colorCorners, cv::Size(11, 11), cv::Size(-1, -1),
+            cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+    }
+    else
+    {
+        std::wstring camPath = pathRoot + L"cam.png";
+        OutputDebugString((L"ERROR: Chess board not found in " + camPath + L".\n").c_str());
         return;
     }
 
-    // Chessboard points in object space for boards that are visible in both camera and hololens pictures.
-    std::vector<std::vector<cv::Point3f>> stereoObjectPoints;
-    // Chessboard points in image space for boards that are visible in both camera and hololens pictures.
-    std::vector<std::vector<cv::Point2f>> stereoColorImagePoints, stereoHoloImagePoints;
-    // Chessboard points in image space for all boards in camera and hololens picture.
-    std::vector<std::vector<cv::Point2f>> colorImagePoints, holoImagePoints;
-    // Chessboard points in image space for the latest camera and hololens pictures.
-    std::vector<cv::Point2f> colorCorners, holoCorners;
+    // Load Holo textures
+    std::wstring holPath = pathRoot + L"holo.jpg";
 
-    OutputDebugString(L"Parsing calibration files\n");
-
-    for (int fileIndex = 0; fileIndex < numFiles; fileIndex++)
+    if (DirectoryHelper::FileExists(holPath))
     {
-        bool colorPatternFound, holoPatternFound = false;
+        colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
 
-        // Get File Path.
-        std::wstring pathRoot = outputPath + std::to_wstring(fileIndex).c_str() + L"_";
-        std::wstring colPath = pathRoot + L"cam.png";
-
-        if (DirectoryHelper::FileExists(colPath))
+        // Get chess board data from HoloLens
+        if (HasChessBoard(colorImage_holo, grayscaleImage_holo, holoCorners))
         {
-            // Get chessboard for DSLR picture
-            colorImage_cam = cv::imread(StringHelper::ws2s(colPath).c_str(), cv::IMREAD_UNCHANGED);
-            cv::resize(colorImage_cam, resizedColorImage_cam, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), 0, 0, cv::INTER_AREA);
-
-            if (colorPatternFound = HasChessBoard(resizedColorImage_cam, grayscaleImage_cam, colorCorners))
-            {
-                cv::cornerSubPix(grayscaleImage_cam, colorCorners, cv::Size(11, 11), cv::Size(-1, -1),
-                    cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
-
-                colorImagePoints.resize(colorImagePoints.size() + 1);
-                colorImagePoints[colorImagePoints.size() - 1] = colorCorners;
-            }
+            cv::cornerSubPix(grayscaleImage_holo, holoCorners, cv::Size(11, 11), cv::Size(-1, -1),
+                cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
         }
-
-        // Load Holo textures
-        std::wstring holPath = pathRoot + L"holo.jpg";
-
-        if (DirectoryHelper::FileExists(holPath))
+        else
         {
-            colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
-
-            // Get chess board data from HoloLens
-            if (holoPatternFound = HasChessBoard(colorImage_holo, grayscaleImage_holo, holoCorners))
-            {
-                cv::cornerSubPix(grayscaleImage_holo, holoCorners, cv::Size(11, 11), cv::Size(-1, -1),
-                    cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
-
-                holoImagePoints.resize(holoImagePoints.size() + 1);
-                holoImagePoints[holoImagePoints.size() - 1] = holoCorners;
-            }
+            OutputDebugString((L"ERROR: Chess board not found in " + holPath + L".\n").c_str());
+            return;
         }
-
-        // If the entire chess board is found in both images, add this data to the points to calibrate.
-        if (colorPatternFound && holoPatternFound)
-        {
-            size_t newSize = stereoObjectPoints.size() + 1;
-            stereoObjectPoints.resize(newSize);
-            stereoColorImagePoints.resize(newSize);
-            stereoHoloImagePoints.resize(newSize);
-
-            // Add object-space points for stereo images that both have visible chess boards.
-            for (int i = 0; i < boardDimensions.height; i++)
-            {
-                for (int j = 0; j < boardDimensions.width; j++)
-                {
-                    stereoObjectPoints[stereoObjectPoints.size() - 1].push_back(
-                        cv::Point3f((float)(j * CHESS_SQUARE_SIZE), (float)(i * CHESS_SQUARE_SIZE), 0.0f));
-                }
-            }
-
-            stereoColorImagePoints[stereoObjectPoints.size() - 1] = colorCorners;
-            stereoHoloImagePoints[stereoObjectPoints.size() - 1] = holoCorners;
-        }
-
-        OutputDebugString(std::to_wstring( (int)( ( ((float)fileIndex + 1.0f) / (float)numFiles ) * 100) ).c_str());
-        OutputDebugString(L"% Complete\n");
+    }
+    else
+    {
+        OutputDebugString((L"ERROR: " + holPath + L" not found.\n").c_str());
+        return;
     }
 
+    EnterCriticalSection(&commandCriticalSection);
+    colorImagePoints.push_back(colorCorners);
+    holoImagePoints.push_back(holoCorners);
+
+    // If the entire chess board is found in both images, add this data to the points to calibrate.
+    size_t newSize = stereoObjectPoints.size() + 1;
+    stereoObjectPoints.resize(newSize);
+    stereoColorImagePoints.resize(newSize);
+    stereoHoloImagePoints.resize(newSize);
+
+    // Add object-space points for stereo images that both have visible chess boards.
+    for (int i = 0; i < boardDimensions.height; i++)
+    {
+        for (int j = 0; j < boardDimensions.width; j++)
+        {
+            stereoObjectPoints[stereoObjectPoints.size() - 1].push_back(
+                cv::Point3f((float)(j * CHESS_SQUARE_SIZE), (float)(i * CHESS_SQUARE_SIZE), 0.0f));
+        }
+    }
+
+    stereoColorImagePoints[stereoObjectPoints.size() - 1] = colorCorners;
+    stereoHoloImagePoints[stereoObjectPoints.size() - 1] = holoCorners;
+    LeaveCriticalSection(&commandCriticalSection);
+
+    UpdateChessBoardVisual(colorCorners);
+    OutputDebugString((L"Completed parsing calibration files: " + std::to_wstring(photoIndex) + L".\n").c_str());
+
+    return;
+}
+
+void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorners)
+{
+    // Todo - ask if this seems reasonable
+    if (colorCorners.size() != (GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1))
+    {
+        return;
+    }
+
+    // Use first and last points for the top and bottom rows.
+    cv::Point tempPoints[1][5];
+    tempPoints[0][0] = cv::Point(colorCorners[0].x, colorCorners[0].y);
+    tempPoints[0][1] = cv::Point(colorCorners[GRID_CELLS_X - 2].x, colorCorners[GRID_CELLS_X - 2].y);
+    tempPoints[0][2] = cv::Point(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1) - 1].x, colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 1) - 1].y);
+    tempPoints[0][3] = cv::Point(colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 2)].x, colorCorners[(GRID_CELLS_X - 1) * (GRID_CELLS_Y - 2)].y);
+    tempPoints[0][4] = cv::Point(colorCorners[0].x, colorCorners[0].y);
+
+    const cv::Point* points[1] = { tempPoints[0] };
+    const int numPoints[] = { 5 };
+
+    EnterCriticalSection(&chessBoardVisualCriticalSection);
+    cv::fillPoly(chessBoardVisualMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 10), 8);
+    LeaveCriticalSection(&chessBoardVisualCriticalSection);
+}
+
+// Use the calibration pictures to stereo calibrate the camera rig.
+void CalibrationApp::PerformCalibration()
+{
     if (colorImagePoints.size() == 0 || holoImagePoints.size() == 0 || stereoColorImagePoints.size() == 0 || stereoHoloImagePoints.size() == 0)
     {
-        OutputDebugString(L"Must have valid data to perform calibration.\n");
+        OutputDebugString(L"ERROR: Please take some valid chess board images before calibration.\n");
     }
 
     //http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#Mat initCameraMatrix2D(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints, Size imageSize, double aspectRatio)
@@ -504,6 +549,7 @@ void CalibrationApp::PerformCalibration()
     calibrationfs << "# DSLR camera Matrix: fx, fy, cx, cy:" << std::endl;
     calibrationfs << "DSLR_camera_Matrix: " << colorMat.at<double>(0, 0) << ", " << colorMat.at<double>(1, 1) << ", " << 
         colorMat.at<double>(0, 2) << ", " << colorMat.at<double>(1, 2) << std::endl;
+
     calibrationfs.close();
 }
 
@@ -531,8 +577,7 @@ void CalibrationApp::Blit(ID3D11ShaderResourceView* source, ID3D11RenderTargetVi
 
     // Render the source texture to the dest RT with the desired shader.
     spriteBatch->Draw(source, colorSourceRect, &colorSourceRect,
-        Colors::White, 0.0f, XMFLOAT2(0, 0),
-        SpriteEffects::SpriteEffects_None);
+        Colors::White, 0.0f, XMFLOAT2(0, 0), spriteEffect);
 
     spriteBatch->End();
 
@@ -569,8 +614,7 @@ void CalibrationApp::Render()
             // Draw converted image to screen.
             spriteBatch->Begin(SpriteSortMode_Immediate);
             spriteBatch->Draw(convertedSrv, screenRect, &colorSourceRect,
-                Colors::White, 0.0f, XMFLOAT2(0, 0),
-                SpriteEffects::SpriteEffects_None);
+                Colors::White, 0.0f, XMFLOAT2(0, 0), spriteEffect);
             spriteBatch->End();
 
             // Get bytes from converted image.
@@ -584,10 +628,10 @@ void CalibrationApp::Render()
                 [=]() {
                 deviceResources->GetD3DDeviceContext()->PSSetShader(forceOpaquePS.Get(), nullptr, 0);
             });
-            
+
             spriteBatch->Draw(srv, screenRect, &colorSourceRect,
                 Colors::White, 0.0f, XMFLOAT2(0, 0),
-                SpriteEffects::SpriteEffects_None);
+                spriteEffect, 0);
             spriteBatch->End();
 
             // Get bytes from original rgb image.
@@ -598,6 +642,40 @@ void CalibrationApp::Render()
         EnterCriticalSection(&photoTextureCriticalSection);
         latestColorMat.data = colorBytes;
         LeaveCriticalSection(&photoTextureCriticalSection);
+
+        // Draw observed chess boards visual.
+        auto device = deviceResources->GetD3DDevice();
+        DirectXHelper::UpdateSRV(device, chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
+        spriteBatch->Begin(SpriteSortMode_Immediate);
+        spriteBatch->Draw(chessBoardSrv, screenRect, &chessBoardVisualRect,
+            Colors::White, 0.0f, XMFLOAT2(0, 0),
+            spriteEffect, 0);
+        spriteBatch->End();
+
+        // Draw capture text.
+        wchar_t tempBuffer[256];
+        swprintf(tempBuffer, 256, captureText.c_str(),
+            photoIndex,
+            stereoObjectPoints.size(),
+            (CALIBRATION_FREQUENCY_SECONDS - calibrationPictureElapsedTime));
+        spriteBatch->Begin(SpriteSortMode_Immediate);
+        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(1.f, 1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(-1.f, 1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(-1.f, -1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(1.f, -1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), tempBuffer, XMFLOAT2(0, 0), Colors::White);
+        spriteBatch->End();
+
+        // Draw command text.
+        spriteBatch->Begin();
+        auto textRect = spriteFont->MeasureDrawBounds(commandText.c_str(), XMFLOAT2(0, 0));
+        auto yOffset = screenRect.bottom - (textRect.bottom - textRect.top + 40);
+        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(-1.f, yOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(-1.f, yOffset - 1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset - 1.f), Colors::Black);
+        spriteFont->DrawString(spriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
+        spriteBatch->End();
 
         deviceResources->Present();
     }
@@ -660,9 +738,11 @@ void CalibrationApp::GetDefaultSize(int& width, int& height) const
 // These are the resources that depend on the device.
 void CalibrationApp::CreateDeviceDependentResources()
 {
+    auto device = deviceResources->GetD3DDevice();
     auto context = deviceResources->GetD3DDeviceContext();
 
     spriteBatch = std::make_unique<SpriteBatch>(context);
+    spriteFont = std::make_unique<SpriteFont>(device, L"segoeUI32.spritefont");
 
     // Camera
     colorSourceRect.left = 0;
@@ -670,7 +750,12 @@ void CalibrationApp::CreateDeviceDependentResources()
     colorSourceRect.right = FRAME_WIDTH;
     colorSourceRect.bottom = FRAME_HEIGHT;
 
-    auto device = deviceResources->GetD3DDevice();
+    // Chess Board Visual
+    chessBoardVisualRect.left = 0;
+    chessBoardVisualRect.top = 0;
+    chessBoardVisualRect.right = HOLO_WIDTH;
+    chessBoardVisualRect.bottom = HOLO_HEIGHT;
+
     auto blob = DX::ReadData(L"YUV2RGB.cso");
     HRESULT hr = device->CreatePixelShader(blob.data(), blob.size(),
         nullptr, yuv2rgbPS.ReleaseAndGetAddressOf());
@@ -701,6 +786,7 @@ void CalibrationApp::OnDeviceLost()
 {
     // TODO: Add Direct3D resource cleanup here.
     spriteBatch.reset();
+    spriteFont.reset();
 
     frameProvider->Dispose();
     SafeRelease(srv);
