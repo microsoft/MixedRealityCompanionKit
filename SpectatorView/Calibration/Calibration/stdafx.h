@@ -11,9 +11,9 @@
 // NOTE: If you change this to the HoloLens IP, you will need to:
 //       1. Under the Security tab in the developer portal, disable SSL connection.
 //       2. Use http://%DEVICE_IP%/ - do not use https://
-#define HOLOLENS_ADDRESS L"http://10.89.161.91/"
+#define HOLOLENS_ADDRESS L"http://127.0.0.1:10080/"
 #define HOLOLENS_USER L"user"
-#define HOLOLENS_PW L"pass"
+#define HOLOLENS_PW L"password"
 
 // Color feed from Hololens.
 #define HOLO_WIDTH 1408

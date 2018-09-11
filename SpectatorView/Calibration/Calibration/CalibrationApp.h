@@ -182,7 +182,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> yuv2rgbPS;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> forceOpaquePS;
 
-    // TODO - assess cleanup
     // Chessboard points in object space for boards that are visible in both camera and hololens pictures.
     std::vector<std::vector<cv::Point3f>> stereoObjectPoints;
     // Chessboard points in image space for boards that are visible in both camera and hololens pictures.
