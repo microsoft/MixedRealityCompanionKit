@@ -535,8 +535,8 @@ void CalibrationApp::PerformCalibration()
     calibrationfs << "Translation: " << T.at<double>(0, 0) << ", " << T.at<double>(1, 0) << ", " << T.at<double>(2, 0) << std::endl;
 
     calibrationfs << "# Row Major Matrix3x3 (This should be close to identity)" << std::endl;
-    calibrationfs << "Rotation: " << R.at<double>(0, 0) << ", " << R.at<double>(0, 1) << ", " << R.at<double>(0, 2) << ", " << 
-        R.at<double>(1, 0) << ", " << R.at<double>(1, 1) << ", " << R.at<double>(1, 2) << ", " << R.at<double>(2, 0) << ", " << 
+    calibrationfs << "Rotation: " << R.at<double>(0, 0) << ", " << R.at<double>(0, 1) << ", " << R.at<double>(0, 2) << ", " <<
+        R.at<double>(1, 0) << ", " << R.at<double>(1, 1) << ", " << R.at<double>(1, 2) << ", " << R.at<double>(2, 0) << ", " <<
         R.at<double>(2, 1) << ", " << R.at<double>(2, 2) << std::endl;
 
     calibrationfs << "# Field of View of DSLR:" << std::endl;
@@ -546,21 +546,12 @@ void CalibrationApp::PerformCalibration()
     calibrationfs << "Holo_fov: " << holoFovX << ", " << holoFovY << std::endl;
 
     calibrationfs << "# DSLR distortion coefficients:" << std::endl;
-    calibrationfs << "DSLR_distortion: " << distCoeffColor.at<double>(0, 0) << ", " << distCoeffColor.at<double>(0, 1) << ", " << 
+    calibrationfs << "DSLR_distortion: " << distCoeffColor.at<double>(0, 0) << ", " << distCoeffColor.at<double>(0, 1) << ", " <<
         distCoeffColor.at<double>(0, 2) << ", " << distCoeffColor.at<double>(0, 3) << ", " << distCoeffColor.at<double>(0, 4) << std::endl;
 
     calibrationfs << "# DSLR camera Matrix: fx, fy, cx, cy:" << std::endl;
-    calibrationfs << "DSLR_camera_Matrix: " << colorMat.at<double>(0, 0) << ", " << colorMat.at<double>(1, 1) << ", " << 
+    calibrationfs << "DSLR_camera_Matrix: " << colorMat.at<double>(0, 0) << ", " << colorMat.at<double>(1, 1) << ", " <<
         colorMat.at<double>(0, 2) << ", " << colorMat.at<double>(1, 2) << std::endl;
-
-    calibrationfs << "# HoloLens distortion coefficients:" << std::endl;
-    calibrationfs << "Holo_distortion: " << distCoeffHolo.at<double>(0, 0) << ", " << distCoeffHolo.at<double>(0, 1) << ", " <<
-        distCoeffHolo.at<double>(0, 2) << ", " << distCoeffHolo.at<double>(0, 3) << ", " << distCoeffHolo.at<double>(0, 4) << std::endl;
-
-    calibrationfs << "# HoloLens camera Matrix: fx, fy, cx, cy:" << std::endl;
-    calibrationfs << "Holo_camera_Matrix: " << holoMat.at<double>(0, 0) << ", " << holoMat.at<double>(1, 1) << ", " <<
-        holoMat.at<double>(0, 2) << ", " << holoMat.at<double>(1, 2) << std::endl;
-
     calibrationfs.close();
 }
 
