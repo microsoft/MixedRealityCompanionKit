@@ -135,25 +135,28 @@ private:
     ID3D11Texture2D* colorTexture;
     ID3D11Texture2D* convertedColorTexture;
     ID3D11Texture2D* chessBoardTexture;
+    ID3D11Texture2D* camPhotoTexture;
+    ID3D11Texture2D* holoPhotoTexture;
 
     ID3D11ShaderResourceView* srv;
     ID3D11ShaderResourceView* convertedSrv;
     ID3D11ShaderResourceView* chessBoardSrv;
+    ID3D11ShaderResourceView* camPhotoSrv;
+    ID3D11ShaderResourceView* holoPhotoSrv;
 
     ID3D11RenderTargetView* convertedRT;
 
     cv::Mat latestColorMat;
     BYTE* colorBytes;
-    cv::Mat colorImage_cam;
-    cv::Mat resizedColorImage_cam;
-    cv::Mat grayscaleImage_cam;
-    cv::Mat colorImage_holo;
-    cv::Mat grayscaleImage_holo;
     cv::Mat chessBoardVisualMat;
+    cv::Mat camPhotoMat;
+    cv::Mat holoPhotoMat;
 
     RECT screenRect;
+    RECT camPhotoRect;
+    RECT holoPhotoRect;
     RECT colorSourceRect;
-    RECT chessBoardVisualRect;
+    RECT holoDimRect;
 
     // REST
     http_client* httpClient;

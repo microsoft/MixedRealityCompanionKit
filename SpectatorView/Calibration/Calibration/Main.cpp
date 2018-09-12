@@ -54,7 +54,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         RECT rc;
         rc.top = 0;
         rc.left = 0;
-        rc.right = static_cast<LONG>(w); 
+        rc.right = static_cast<LONG>(1.5 * w); 
         rc.bottom = static_cast<LONG>(h);
 
         AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
