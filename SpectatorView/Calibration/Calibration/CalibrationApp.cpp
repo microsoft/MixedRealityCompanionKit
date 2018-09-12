@@ -83,9 +83,6 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     CreateWindowSizeDependentResources();
 
     // Calibration Images.
-    colorImage_cam = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
-    resizedColorImage_cam = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4);
-    colorImage_holo = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4);
     latestColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
     chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
 
@@ -327,8 +324,10 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
     OutputString((L"Parsing calibration files:\n    " + camPath + L"\n    " + holPath + L"\n").c_str());
 
     // Get chessboard for DSLR picture
+    cv::Mat resizedColorImage_cam;
     cv::resize(colorCameraImage, resizedColorImage_cam, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), 0, 0, cv::INTER_AREA);
 
+    cv::Mat grayscaleImage_cam;
     if (HasChessBoard(resizedColorImage_cam, grayscaleImage_cam, colorCorners))
     {
         cv::cornerSubPix(grayscaleImage_cam, colorCorners, cv::Size(11, 11), cv::Size(-1, -1),
@@ -347,9 +346,10 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
         return;
     }
 
-    colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
+    cv::Mat colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
 
     // Get chess board data from HoloLens
+    cv::Mat grayscaleImage_holo;
     if (HasChessBoard(colorImage_holo, grayscaleImage_holo, holoCorners))
     {
         cv::cornerSubPix(grayscaleImage_holo, holoCorners, cv::Size(11, 11), cv::Size(-1, -1),

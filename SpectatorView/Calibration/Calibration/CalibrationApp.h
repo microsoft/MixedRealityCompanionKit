@@ -144,11 +144,6 @@ private:
 
     cv::Mat latestColorMat;
     BYTE* colorBytes;
-    cv::Mat colorImage_cam;
-    cv::Mat resizedColorImage_cam;
-    cv::Mat grayscaleImage_cam;
-    cv::Mat colorImage_holo;
-    cv::Mat grayscaleImage_holo;
     cv::Mat chessBoardVisualMat;
 
     RECT screenRect;
