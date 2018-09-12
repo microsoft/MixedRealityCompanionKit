@@ -97,6 +97,8 @@
     <FxCompile Include="YUV2RGB.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ForceOpaque.hlsl" />
+    <FxCompile Include="ForceOpaque.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

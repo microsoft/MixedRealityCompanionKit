@@ -341,24 +341,10 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
     }
 
     // Load Holo textures
-    bool holoImageExists = DirectoryHelper::FileExists(holPath);
-    if (!holoImageExists)
+    if (!DirectoryHelper::FileExists(holPath))
     {
-        // The HoloLens image may not be immediately available
-        // Make five attempts to access the HoloLens image file before failing
-        /*for (int i = 0; i < 5; )
-        {
-            Sleep(100);
-            holoImageExists = DirectoryHelper::FileExists(holPath);
-            if (holoImageExists)
-                break;
-        }*/
-
-        if (!holoImageExists)
-        {
-            OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
-            return;
-        }
+        OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
+        return;
     }
 
     colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
@@ -423,15 +409,14 @@ void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorne
 
     const cv::Point* points[1] = { tempPoints[0] };
     const int numPoints[] = { 5 };
-    cv::Mat tempFillMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
-    cv::fillPoly(tempFillMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 5));
+    cv::Mat tempMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    cv::fillPoly(tempMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 5));
 
     const cv::Point* linePoints = tempPoints[0];
-    cv::Mat tempLineMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
-    cv::polylines(tempLineMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 255, 255), 2);
+    cv::polylines(tempMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 255, 255), 2);
 
     EnterCriticalSection(&chessBoardVisualCriticalSection);
-    chessBoardVisualMat += tempFillMat + tempLineMat;
+    chessBoardVisualMat += tempMat;
     LeaveCriticalSection(&chessBoardVisualCriticalSection);
 }
 
