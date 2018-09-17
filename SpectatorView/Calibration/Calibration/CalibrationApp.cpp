@@ -87,6 +87,8 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
     camPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
     holoPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    greenMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 255, 0, 20));
+    redMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 0, 255, 20));
 
     // Create an http_client to use REST APIs on the Hololens.
     http_client_config client_config;
@@ -358,10 +360,10 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
         OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
         validHoloImage = false;
     }
-	else
-	{
-		colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
-	}
+    else
+    {
+        colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
+    }
 
     // Get chess board data from HoloLens
     cv::Mat grayscaleImage_holo;
@@ -407,7 +409,9 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
     }
 
     memcpy(camPhotoMat.data, resizedColorImage_cam.data, resizedColorImage_cam.total() * resizedColorImage_cam.elemSize());
-    cv::cvtColor(colorImage_holo, holoPhotoMat, CV_RGB2RGBA);
+    camPhotoMat += validCameraImage ? greenMat : redMat;
+    cv::cvtColor(colorImage_holo, holoPhotoMat, CV_BGR2BGRA);
+    holoPhotoMat += validHoloImage ? greenMat : redMat;
 }
 
 void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorners)
@@ -672,22 +676,21 @@ void CalibrationApp::Render()
             spriteEffect);
         overlaySpriteBatch->End();
 
+        // Draw camera and holo images.
         DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), camPhotoSrv, camPhotoMat.data, HOLO_WIDTH * 4);
         DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), holoPhotoSrv, holoPhotoMat.data, HOLO_WIDTH * 4);
-        overlaySpriteBatch->Begin(SpriteSortMode_Immediate,
+        spriteBatch->Begin(SpriteSortMode_Immediate,
             nullptr, nullptr, nullptr, nullptr,
             [=]() {
             deviceResources->GetD3DDeviceContext()->PSSetShader(forceOpaquePS.Get(), nullptr, 0);
         });
-
-        overlaySpriteBatch->Draw(holoPhotoSrv, camPhotoRect, &holoDimRect,
+        spriteBatch->Draw(camPhotoSrv, camPhotoRect, &holoDimRect,
             Colors::White, 0.0f, XMFLOAT2(0, 0),
             spriteEffect);
-
-        overlaySpriteBatch->Draw(camPhotoSrv, holoPhotoRect, &holoDimRect,
+        spriteBatch->Draw(holoPhotoSrv, holoPhotoRect, &holoDimRect,
             Colors::White, 0.0f, XMFLOAT2(0, 0),
             spriteEffect);
-        overlaySpriteBatch->End();
+        spriteBatch->End();
 
         // Draw capture text.
         textSpriteBatch->Begin();
@@ -701,7 +704,7 @@ void CalibrationApp::Render()
 
         // Draw command text.
         auto textRect = spriteFont->MeasureDrawBounds(commandText.c_str(), XMFLOAT2(0, 0));
-        auto yOffset = screenRect.bottom - (textRect.bottom - textRect.top + 40);
+        auto yOffset = camPhotoRect.bottom - (textRect.bottom - textRect.top + 40);
         spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
         spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
         textSpriteBatch->End();
@@ -761,7 +764,7 @@ void CalibrationApp::OnWindowSizeChanged(int width, int height)
 void CalibrationApp::GetDefaultSize(int& width, int& height) const
 {
     width = FRAME_WIDTH;
-    height = FRAME_HEIGHT;
+    height = (int) (1.5 * FRAME_HEIGHT);
 }
 
 // These are the resources that depend on the device.
@@ -809,18 +812,18 @@ void CalibrationApp::CreateWindowSizeDependentResources()
 {
     screenRect.left = 0;
     screenRect.top = 0;
-    screenRect.right = (LONG) 2.0 * deviceResources->GetScreenViewport().Width / 3.0;
-    screenRect.bottom = (LONG) deviceResources->GetScreenViewport().Height;
+    screenRect.right = static_cast<LONG>(deviceResources->GetScreenViewport().Width);
+    screenRect.bottom = static_cast<LONG>(2.0f * deviceResources->GetScreenViewport().Height / 3.0f);
 
-    camPhotoRect.left = screenRect.left + screenRect.right;
-    camPhotoRect.top = 0;
-    camPhotoRect.right = (LONG) deviceResources->GetScreenViewport().Width;
-    camPhotoRect.bottom = (LONG) deviceResources->GetScreenViewport().Height / 2.0;
+    camPhotoRect.left = 0;
+    camPhotoRect.top = screenRect.bottom;
+    camPhotoRect.right = static_cast<LONG>(deviceResources->GetScreenViewport().Width / 2.0f);
+    camPhotoRect.bottom = static_cast<LONG>(deviceResources->GetScreenViewport().Height);
 
-    holoPhotoRect.left = screenRect.left + screenRect.right;
-    holoPhotoRect.top = camPhotoRect.bottom;
-    holoPhotoRect.right = (LONG)deviceResources->GetScreenViewport().Width;
-    holoPhotoRect.bottom = (LONG)deviceResources->GetScreenViewport().Height;
+    holoPhotoRect.left = camPhotoRect.right;
+    holoPhotoRect.top = screenRect.bottom;
+    holoPhotoRect.right = static_cast<LONG>(deviceResources->GetScreenViewport().Width);
+    holoPhotoRect.bottom = static_cast<LONG>(deviceResources->GetScreenViewport().Height);
 }
 
 void CalibrationApp::OnDeviceLost()

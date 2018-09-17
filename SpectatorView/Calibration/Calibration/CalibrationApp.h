@@ -151,6 +151,8 @@ private:
     cv::Mat chessBoardVisualMat;
     cv::Mat camPhotoMat;
     cv::Mat holoPhotoMat;
+    cv::Mat greenMat;
+    cv::Mat redMat;
 
     RECT screenRect;
     RECT camPhotoRect;
