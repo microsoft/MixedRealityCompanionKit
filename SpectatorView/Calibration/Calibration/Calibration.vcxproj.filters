@@ -86,12 +86,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="segoeUI32.spritefont">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="DeckLinkAPI.idl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="YUV2RGB.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ForceOpaque.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

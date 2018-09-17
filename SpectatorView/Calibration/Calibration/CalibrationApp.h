@@ -6,6 +6,7 @@
 #include "DeviceResources.h"
 #include "StepTimer.h"
 #include "SpriteBatch.h"
+#include "SpriteFont.h"
 #include "DirectXHelper.h"
 
 // REST
@@ -106,6 +107,8 @@ private:
     void TakeMRCPicture();
 
     // Calibration
+    void ProcessChessBoards(int currentIndex, cv::Mat& colorCameraImage);
+    void UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorners);
     void PerformCalibration();
     void TakeCalibrationPicture();
     void TakeCalibrationPictureAtInterval(DX::StepTimer const& timer);
@@ -121,27 +124,31 @@ private:
     DX::StepTimer timer;
 
     std::unique_ptr<DirectX::SpriteBatch> spriteBatch;
+    std::unique_ptr<DirectX::SpriteBatch> overlaySpriteBatch;
+    std::unique_ptr<DirectX::SpriteBatch> textSpriteBatch;
+    std::unique_ptr<DirectX::SpriteFont> spriteFont;
+    std::wstring captureText;
+    std::wstring commandText;
+    SpriteEffects spriteEffect = SpriteEffects_None;
 
     // Textures
     ID3D11Texture2D* colorTexture;
     ID3D11Texture2D* convertedColorTexture;
+    ID3D11Texture2D* chessBoardTexture;
 
     ID3D11ShaderResourceView* srv;
     ID3D11ShaderResourceView* convertedSrv;
-    
+    ID3D11ShaderResourceView* chessBoardSrv;
+
     ID3D11RenderTargetView* convertedRT;
 
     cv::Mat latestColorMat;
-    cv::Mat cachedColorMat;
     BYTE* colorBytes;
-    cv::Mat colorImage_cam;
-    cv::Mat resizedColorImage_cam;
-    cv::Mat grayscaleImage_cam;
-    cv::Mat colorImage_holo;
-    cv::Mat grayscaleImage_holo;
+    cv::Mat chessBoardVisualMat;
 
     RECT screenRect;
     RECT colorSourceRect;
+    RECT chessBoardVisualRect;
 
     // REST
     http_client* httpClient;
@@ -152,6 +159,7 @@ private:
     CRITICAL_SECTION photoTextureCriticalSection;
     CRITICAL_SECTION commandCriticalSection;
     CRITICAL_SECTION calibrationPictureCriticalSection;
+    CRITICAL_SECTION chessBoardVisualCriticalSection;
 
     // Current photo number we are on.
     int photoIndex;
@@ -168,6 +176,18 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11PixelShader> yuv2rgbPS;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> forceOpaquePS;
+
+    // Chessboard points in object space for boards that are visible in both camera and hololens pictures.
+    std::vector<std::vector<cv::Point3f>> stereoObjectPoints;
+    // Chessboard points in image space for boards that are visible in both camera and hololens pictures.
+    std::vector<std::vector<cv::Point2f>> stereoColorImagePoints;
+    std::vector<std::vector<cv::Point2f>> stereoHoloImagePoints;
+    // Chessboard points in image space for all boards in camera and hololens picture.
+    std::vector<std::vector<cv::Point2f>> colorImagePoints;
+    std::vector<std::vector<cv::Point2f>> holoImagePoints;
+    // Chessboard points in image space for the latest camera and hololens pictures.
+    std::vector<cv::Point2f> colorCorners;
+    std::vector<cv::Point2f> holoCorners;
 
     struct CONVERSION_PARAMETERS
     {

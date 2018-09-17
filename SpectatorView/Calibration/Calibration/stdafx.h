@@ -56,9 +56,18 @@
 #include <ScreenGrab.h>
 #include <wincodec.h>
 
+#include <fcntl.h>
+#include <io.h>
+
 #include <string>
 
 #include "CompositorConstants.h"
+
+inline void OutputString(LPCWSTR string)
+{
+    wprintf(string);
+    OutputDebugString(string);
+}
 
 namespace Calibration
 {
