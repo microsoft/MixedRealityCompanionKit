@@ -552,6 +552,17 @@ void CalibrationApp::PerformCalibration()
     calibrationfs << "# DSLR camera Matrix: fx, fy, cx, cy:" << std::endl;
     calibrationfs << "DSLR_camera_Matrix: " << colorMat.at<double>(0, 0) << ", " << colorMat.at<double>(1, 1) << ", " <<
         colorMat.at<double>(0, 2) << ", " << colorMat.at<double>(1, 2) << std::endl;
+
+    calibrationfs << "# HoloLens distortion coefficients:" << std::endl;
+    calibrationfs << "Holo_distortion: " << distCoeffHolo.at<double>(0, 0) << ", " << distCoeffHolo.at<double>(0, 1) << ", " <<
+        distCoeffHolo.at<double>(0, 2) << ", " << distCoeffHolo.at<double>(0, 3) << ", " << distCoeffHolo.at<double>(0, 4) << std::endl;
+
+    calibrationfs << "# HoloLens camera Matrix: fx, fy, cx, cy:" << std::endl;
+    calibrationfs << "Holo_camera_Matrix: " << holoMat.at<double>(0, 0) << ", " << holoMat.at<double>(1, 1) << ", " <<
+        holoMat.at<double>(0, 2) << ", " << holoMat.at<double>(1, 2) << std::endl;
+
+    calibrationfs << "# Number of images captured: " << photoIndex << std::endl;
+    calibrationfs << "# Number of images used in calibration: " << stereoObjectPoints.size() << std::endl;
     calibrationfs.close();
 }
 
