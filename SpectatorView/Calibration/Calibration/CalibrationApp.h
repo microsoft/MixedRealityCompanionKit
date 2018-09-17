@@ -129,6 +129,8 @@ private:
     std::unique_ptr<DirectX::SpriteFont> spriteFont;
     std::wstring captureText;
     std::wstring commandText;
+    std::wstring camPhotoTitleText;
+    std::wstring holoPhotoTitleText;
     SpriteEffects spriteEffect = SpriteEffects_None;
 
     // Textures

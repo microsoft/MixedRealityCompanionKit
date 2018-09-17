@@ -37,6 +37,8 @@ CalibrationApp::CalibrationApp() :
 
     captureText = L"Images captured: %d\nUseable images: %d\nCapture timer: %5.3f\n";
     commandText = L"Commands:\nENTER - Perform calibration\nSPACE - Force image capture\nX - Delete captured images\nM - Mirror display\n";
+    camPhotoTitleText = L"Camera Image";
+    holoPhotoTitleText = L"HoloLens Image";
 
     DirectoryHelper::CreateOutputDirectory(outputPath);
     DirectoryHelper::CreateOutputDirectory(cachedOutputPath);
@@ -87,8 +89,8 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
     camPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
     holoPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
-    greenMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 255, 0, 20));
-    redMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 0, 255, 20));
+    greenMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 100, 0, 255));
+    redMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 0, 100, 255));
 
     // Create an http_client to use REST APIs on the Hololens.
     http_client_config client_config;
@@ -433,10 +435,10 @@ void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorne
     const cv::Point* points[1] = { tempPoints[0] };
     const int numPoints[] = { 5 };
     cv::Mat tempMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
-    cv::fillPoly(tempMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 5));
+    cv::fillPoly(tempMat, points, numPoints, 1, cv::Scalar(0, 100, 0, 5));
 
     const cv::Point* linePoints = tempPoints[0];
-    cv::polylines(tempMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 255, 255), 2);
+    cv::polylines(tempMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 100, 255), 2);
 
     EnterCriticalSection(&chessBoardVisualCriticalSection);
     chessBoardVisualMat += tempMat;
@@ -575,6 +577,17 @@ void CalibrationApp::PerformCalibration()
     calibrationfs << "# DSLR camera Matrix: fx, fy, cx, cy:" << std::endl;
     calibrationfs << "DSLR_camera_Matrix: " << colorMat.at<double>(0, 0) << ", " << colorMat.at<double>(1, 1) << ", " <<
         colorMat.at<double>(0, 2) << ", " << colorMat.at<double>(1, 2) << std::endl;
+
+    calibrationfs << "# HoloLens distortion coefficients:" << std::endl;
+    calibrationfs << "Holo_distortion: " << distCoeffHolo.at<double>(0, 0) << ", " << distCoeffHolo.at<double>(0, 1) << ", " <<
+        distCoeffHolo.at<double>(0, 2) << ", " << distCoeffHolo.at<double>(0, 3) << ", " << distCoeffHolo.at<double>(0, 4) << std::endl;
+
+    calibrationfs << "# HoloLens camera Matrix: fx, fy, cx, cy:" << std::endl;
+    calibrationfs << "Holo_camera_Matrix: " << holoMat.at<double>(0, 0) << ", " << holoMat.at<double>(1, 1) << ", " <<
+        holoMat.at<double>(0, 2) << ", " << holoMat.at<double>(1, 2) << std::endl;
+
+    calibrationfs << "# Number of images captured: " << photoIndex << std::endl;
+    calibrationfs << "# Number of images used in calibration: " << stereoObjectPoints.size() << std::endl;
     calibrationfs.close();
 }
 
@@ -704,9 +717,21 @@ void CalibrationApp::Render()
 
         // Draw command text.
         auto textRect = spriteFont->MeasureDrawBounds(commandText.c_str(), XMFLOAT2(0, 0));
-        auto yOffset = camPhotoRect.bottom - (textRect.bottom - textRect.top + 40);
+        auto yOffset = static_cast<float>(screenRect.bottom - (textRect.bottom - textRect.top + 30));
         spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
         spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
+
+        // Draw camera photo title text.
+        auto cameraPhotoXOffset = static_cast<float>(camPhotoRect.left);
+        auto cameraPhotoYOffset = static_cast<float>(screenRect.bottom);
+        spriteFont->DrawString(textSpriteBatch.get(), camPhotoTitleText.c_str(), XMFLOAT2(cameraPhotoXOffset + 1.f, cameraPhotoYOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(textSpriteBatch.get(), camPhotoTitleText.c_str(), XMFLOAT2(cameraPhotoXOffset, cameraPhotoYOffset), Colors::White);
+
+        // Draw HoloLens photo title text.
+        auto holoPhotoXOffset = static_cast<float>(holoPhotoRect.left);
+        auto holoPhotoYOffset = static_cast<float>(screenRect.bottom);
+        spriteFont->DrawString(textSpriteBatch.get(), holoPhotoTitleText.c_str(), XMFLOAT2(holoPhotoXOffset + 1.f, holoPhotoYOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(textSpriteBatch.get(), holoPhotoTitleText.c_str(), XMFLOAT2(holoPhotoXOffset, holoPhotoYOffset), Colors::White);
         textSpriteBatch->End();
 
         deviceResources->Present();
