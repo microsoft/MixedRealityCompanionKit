@@ -414,13 +414,13 @@ void DeckLinkDevice::Update(int compositeFrameIndex)
     if (_colorSRV != nullptr &&
         device != nullptr)
     {
+        EnterCriticalSection(&m_captureCardCriticalSection);
         const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
         if (buffer.buffer != nullptr)
         {
-            EnterCriticalSection(&m_captureCardCriticalSection);
             DirectXHelper::UpdateSRV(device, _colorSRV, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
-            LeaveCriticalSection(&m_captureCardCriticalSection);
         }
+        LeaveCriticalSection(&m_captureCardCriticalSection);
 
         if (supportsOutput && device != nullptr && _outputTexture != nullptr)
         {
