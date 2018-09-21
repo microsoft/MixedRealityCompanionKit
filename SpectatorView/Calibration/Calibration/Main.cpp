@@ -44,6 +44,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         if (!RegisterClassEx(&wcex))
             return 1;
 
+        AllocConsole();
+        freopen("CONOUT$", "w", stdout);
+
         // Create window
         int w, h;
         g_calibration->GetDefaultSize(w, h);

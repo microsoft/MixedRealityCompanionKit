@@ -190,6 +190,7 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)" ..\..\Compositor\Composi
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="segoeUI32.spritefont" />
   </ItemGroup>
   <ItemGroup Condition="Exists('$(DeckLink_inc)')">
     <Midl Include="DeckLinkAPI.idl" />
