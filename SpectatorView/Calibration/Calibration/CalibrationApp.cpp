@@ -410,10 +410,12 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
         OutputString((L"Completed parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
     }
 
+    EnterCriticalSection(&photoVisualsCriticalSection);
     memcpy(camPhotoMat.data, resizedColorImage_cam.data, resizedColorImage_cam.total() * resizedColorImage_cam.elemSize());
     camPhotoMat += validCameraImage ? greenMat : redMat;
     cv::cvtColor(colorImage_holo, holoPhotoMat, CV_BGR2BGRA);
     holoPhotoMat += validHoloImage ? greenMat : redMat;
+    LeaveCriticalSection(&photoVisualsCriticalSection);
 }
 
 void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorners)
@@ -682,7 +684,11 @@ void CalibrationApp::Render()
         LeaveCriticalSection(&photoTextureCriticalSection);
 
         // Draw observed chess boards visual.
-        DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
+        if (TryEnterCriticalSection(&chessBoardVisualCriticalSection))
+        {
+            DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
+            LeaveCriticalSection(&chessBoardVisualCriticalSection);
+        }
         overlaySpriteBatch->Begin(SpriteSortMode_Immediate);
         overlaySpriteBatch->Draw(chessBoardSrv, screenRect, &holoDimRect,
             Colors::White, 0.0f, XMFLOAT2(0, 0),
@@ -690,8 +696,12 @@ void CalibrationApp::Render()
         overlaySpriteBatch->End();
 
         // Draw camera and holo images.
-        DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), camPhotoSrv, camPhotoMat.data, HOLO_WIDTH * 4);
-        DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), holoPhotoSrv, holoPhotoMat.data, HOLO_WIDTH * 4);
+        if (TryEnterCriticalSection(&photoVisualsCriticalSection))
+        {
+            DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), camPhotoSrv, camPhotoMat.data, HOLO_WIDTH * 4);
+            DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), holoPhotoSrv, holoPhotoMat.data, HOLO_WIDTH * 4);
+            LeaveCriticalSection(&photoVisualsCriticalSection);
+        }
         spriteBatch->Begin(SpriteSortMode_Immediate,
             nullptr, nullptr, nullptr, nullptr,
             [=]() {

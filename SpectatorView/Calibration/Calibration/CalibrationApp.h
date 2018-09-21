@@ -172,6 +172,7 @@ private:
     CRITICAL_SECTION commandCriticalSection;
     CRITICAL_SECTION calibrationPictureCriticalSection;
     CRITICAL_SECTION chessBoardVisualCriticalSection;
+    CRITICAL_SECTION photoVisualsCriticalSection;
 
     // Current photo number we are on.
     int photoIndex;
