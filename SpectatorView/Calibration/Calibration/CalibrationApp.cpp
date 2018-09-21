@@ -453,6 +453,7 @@ void CalibrationApp::PerformCalibration()
     if (colorImagePoints.size() == 0 || holoImagePoints.size() == 0 || stereoColorImagePoints.size() == 0 || stereoHoloImagePoints.size() == 0)
     {
         OutputString(L"ERROR: Please take some valid chess board images before calibration.\n");
+        return;
     }
 
     //http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#Mat initCameraMatrix2D(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints, Size imageSize, double aspectRatio)
