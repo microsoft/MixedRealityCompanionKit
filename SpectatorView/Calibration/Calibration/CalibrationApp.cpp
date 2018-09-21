@@ -37,6 +37,8 @@ CalibrationApp::CalibrationApp() :
 
     captureText = L"Images captured: %d\nUseable images: %d\nCapture timer: %5.3f\n";
     commandText = L"Commands:\nENTER - Perform calibration\nSPACE - Force image capture\nX - Delete captured images\nM - Mirror display\n";
+    camPhotoTitleText = L"Camera Image";
+    holoPhotoTitleText = L"HoloLens Image";
 
     DirectoryHelper::CreateOutputDirectory(outputPath);
     DirectoryHelper::CreateOutputDirectory(cachedOutputPath);
@@ -82,9 +84,13 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     deviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
 
-    // Calibration Images.
+    // Helper Images.
     latestColorMat = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
     chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    camPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    holoPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    greenMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 100, 0, 255));
+    redMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0, 0, 100, 255));
 
     // Create an http_client to use REST APIs on the Hololens.
     http_client_config client_config;
@@ -108,10 +114,16 @@ void CalibrationApp::Initialize(HWND window, int width, int height)
     device->CreateRenderTargetView(convertedColorTexture, nullptr, &convertedRT);
     device->CreateShaderResourceView(convertedColorTexture, nullptr, &convertedSrv);
 
-    CD3D11_TEXTURE2D_DESC rtChessDesc(DXGI_FORMAT_R8G8B8A8_UNORM, HOLO_WIDTH, HOLO_HEIGHT,
+    CD3D11_TEXTURE2D_DESC rtHoloDesc(DXGI_FORMAT_R8G8B8A8_UNORM, HOLO_WIDTH, HOLO_HEIGHT,
         1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
-    device->CreateTexture2D(&rtChessDesc, nullptr, &chessBoardTexture);
+    device->CreateTexture2D(&rtHoloDesc, nullptr, &chessBoardTexture);
     device->CreateShaderResourceView(chessBoardTexture, nullptr, &chessBoardSrv);
+
+    device->CreateTexture2D(&rtHoloDesc, nullptr, &camPhotoTexture);
+    device->CreateShaderResourceView(camPhotoTexture, nullptr, &camPhotoSrv);
+
+    device->CreateTexture2D(&rtHoloDesc, nullptr, &holoPhotoTexture);
+    device->CreateShaderResourceView(holoPhotoTexture, nullptr, &holoPhotoSrv);
 
 #if USE_ELGATO
     frameProvider = new ElgatoFrameProvider();
@@ -292,6 +304,8 @@ void CalibrationApp::DeleteOutputFiles()
     DirectoryHelper::DeleteFiles(outputPath, L"CalibrationData.txt");
 
     chessBoardVisualMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    camPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
+    holoPhotoMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
 
     stereoObjectPoints.clear();
     stereoColorImagePoints.clear();
@@ -317,6 +331,8 @@ bool CalibrationApp::HasChessBoard(cv::Mat image, cv::Mat& grayscaleImage, std::
 // Assesses camera and HoloLens images for chess boards.
 void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraImage)
 {
+    bool validCameraImage = true;
+    bool validHoloImage = true;
     std::wstring pathRoot = outputPath + std::to_wstring(currentIndex).c_str() + L"_";
     std::wstring camPath = pathRoot + L"cam.png";
     std::wstring holPath = pathRoot + L"holo.jpg";
@@ -327,7 +343,7 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
     cv::Mat resizedColorImage_cam;
     cv::resize(colorCameraImage, resizedColorImage_cam, cv::Size(HOLO_WIDTH, HOLO_HEIGHT), 0, 0, cv::INTER_AREA);
 
-    cv::Mat grayscaleImage_cam;
+    cv::Mat grayscaleImage_cam;;
     if (HasChessBoard(resizedColorImage_cam, grayscaleImage_cam, colorCorners))
     {
         cv::cornerSubPix(grayscaleImage_cam, colorCorners, cv::Size(11, 11), cv::Size(-1, -1),
@@ -336,17 +352,20 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
     else
     {
         OutputString((L"ERROR: Chess board not found in " + camPath + L".\n").c_str());
-        return;
+        validCameraImage = false;
     }
 
     // Load Holo textures
+    cv::Mat colorImage_holo = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
     if (!DirectoryHelper::FileExists(holPath))
     {
         OutputString((L"ERROR: " + holPath + L" not found.\n").c_str());
-        return;
+        validHoloImage = false;
     }
-
-    cv::Mat colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
+    else
+    {
+        colorImage_holo = cv::imread(StringHelper::ws2s(holPath).c_str(), cv::IMREAD_UNCHANGED);
+    }
 
     // Get chess board data from HoloLens
     cv::Mat grayscaleImage_holo;
@@ -358,37 +377,45 @@ void CalibrationApp::ProcessChessBoards(int currentIndex, cv::Mat& colorCameraIm
     else
     {
         OutputString((L"ERROR: Chess board not found in " + holPath + L".\n").c_str());
-        return;
+        validHoloImage = false;
     }
 
-    EnterCriticalSection(&commandCriticalSection);
-    colorImagePoints.push_back(colorCorners);
-    holoImagePoints.push_back(holoCorners);
-
-    // If the entire chess board is found in both images, add this data to the points to calibrate.
-    size_t newSize = stereoObjectPoints.size() + 1;
-    stereoObjectPoints.resize(newSize);
-    stereoColorImagePoints.resize(newSize);
-    stereoHoloImagePoints.resize(newSize);
-
-    // Add object-space points for stereo images that both have visible chess boards.
-    for (int i = 0; i < boardDimensions.height; i++)
+    if (validCameraImage && validHoloImage)
     {
-        for (int j = 0; j < boardDimensions.width; j++)
+        EnterCriticalSection(&commandCriticalSection);
+        colorImagePoints.push_back(colorCorners);
+        holoImagePoints.push_back(holoCorners);
+
+        // If the entire chess board is found in both images, add this data to the points to calibrate.
+        size_t newSize = stereoObjectPoints.size() + 1;
+        stereoObjectPoints.resize(newSize);
+        stereoColorImagePoints.resize(newSize);
+        stereoHoloImagePoints.resize(newSize);
+
+        // Add object-space points for stereo images that both have visible chess boards.
+        for (int i = 0; i < boardDimensions.height; i++)
         {
-            stereoObjectPoints[stereoObjectPoints.size() - 1].push_back(
-                cv::Point3f((float)(j * CHESS_SQUARE_SIZE), (float)(i * CHESS_SQUARE_SIZE), 0.0f));
+            for (int j = 0; j < boardDimensions.width; j++)
+            {
+                stereoObjectPoints[stereoObjectPoints.size() - 1].push_back(
+                    cv::Point3f((float)(j * CHESS_SQUARE_SIZE), (float)(i * CHESS_SQUARE_SIZE), 0.0f));
+            }
         }
+
+        stereoColorImagePoints[stereoObjectPoints.size() - 1] = colorCorners;
+        stereoHoloImagePoints[stereoObjectPoints.size() - 1] = holoCorners;
+        LeaveCriticalSection(&commandCriticalSection);
+
+        UpdateChessBoardVisual(colorCorners);
+        OutputString((L"Completed parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
     }
 
-    stereoColorImagePoints[stereoObjectPoints.size() - 1] = colorCorners;
-    stereoHoloImagePoints[stereoObjectPoints.size() - 1] = holoCorners;
-    LeaveCriticalSection(&commandCriticalSection);
-
-    UpdateChessBoardVisual(colorCorners);
-    OutputString((L"Completed parsing calibration files: " + camPath + L", " + holPath + L".\n").c_str());
-
-    return;
+    EnterCriticalSection(&photoVisualsCriticalSection);
+    memcpy(camPhotoMat.data, resizedColorImage_cam.data, resizedColorImage_cam.total() * resizedColorImage_cam.elemSize());
+    camPhotoMat += validCameraImage ? greenMat : redMat;
+    cv::cvtColor(colorImage_holo, holoPhotoMat, CV_BGR2BGRA);
+    holoPhotoMat += validHoloImage ? greenMat : redMat;
+    LeaveCriticalSection(&photoVisualsCriticalSection);
 }
 
 void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorners)
@@ -410,10 +437,10 @@ void CalibrationApp::UpdateChessBoardVisual(std::vector<cv::Point2f>& colorCorne
     const cv::Point* points[1] = { tempPoints[0] };
     const int numPoints[] = { 5 };
     cv::Mat tempMat = cv::Mat(HOLO_HEIGHT, HOLO_WIDTH, CV_8UC4, cv::Scalar(0));
-    cv::fillPoly(tempMat, points, numPoints, 1, cv::Scalar(0, 255, 0, 5));
+    cv::fillPoly(tempMat, points, numPoints, 1, cv::Scalar(0, 100, 0, 5));
 
     const cv::Point* linePoints = tempPoints[0];
-    cv::polylines(tempMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 255, 255), 2);
+    cv::polylines(tempMat, &linePoints, numPoints, 1, false, cv::Scalar(0, 0, 100, 255), 2);
 
     EnterCriticalSection(&chessBoardVisualCriticalSection);
     chessBoardVisualMat += tempMat;
@@ -426,6 +453,7 @@ void CalibrationApp::PerformCalibration()
     if (colorImagePoints.size() == 0 || holoImagePoints.size() == 0 || stereoColorImagePoints.size() == 0 || stereoHoloImagePoints.size() == 0)
     {
         OutputString(L"ERROR: Please take some valid chess board images before calibration.\n");
+        return;
     }
 
     //http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#Mat initCameraMatrix2D(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints, Size imageSize, double aspectRatio)
@@ -657,12 +685,36 @@ void CalibrationApp::Render()
         LeaveCriticalSection(&photoTextureCriticalSection);
 
         // Draw observed chess boards visual.
-        DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
+        if (TryEnterCriticalSection(&chessBoardVisualCriticalSection))
+        {
+            DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), chessBoardSrv, chessBoardVisualMat.data, HOLO_WIDTH * 4);
+            LeaveCriticalSection(&chessBoardVisualCriticalSection);
+        }
         overlaySpriteBatch->Begin(SpriteSortMode_Immediate);
-        overlaySpriteBatch->Draw(chessBoardSrv, screenRect, &chessBoardVisualRect,
+        overlaySpriteBatch->Draw(chessBoardSrv, screenRect, &holoDimRect,
             Colors::White, 0.0f, XMFLOAT2(0, 0),
             spriteEffect);
         overlaySpriteBatch->End();
+
+        // Draw camera and holo images.
+        if (TryEnterCriticalSection(&photoVisualsCriticalSection))
+        {
+            DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), camPhotoSrv, camPhotoMat.data, HOLO_WIDTH * 4);
+            DirectXHelper::UpdateSRV(deviceResources->GetD3DDevice(), holoPhotoSrv, holoPhotoMat.data, HOLO_WIDTH * 4);
+            LeaveCriticalSection(&photoVisualsCriticalSection);
+        }
+        spriteBatch->Begin(SpriteSortMode_Immediate,
+            nullptr, nullptr, nullptr, nullptr,
+            [=]() {
+            deviceResources->GetD3DDeviceContext()->PSSetShader(forceOpaquePS.Get(), nullptr, 0);
+        });
+        spriteBatch->Draw(camPhotoSrv, camPhotoRect, &holoDimRect,
+            Colors::White, 0.0f, XMFLOAT2(0, 0),
+            spriteEffect);
+        spriteBatch->Draw(holoPhotoSrv, holoPhotoRect, &holoDimRect,
+            Colors::White, 0.0f, XMFLOAT2(0, 0),
+            spriteEffect);
+        spriteBatch->End();
 
         // Draw capture text.
         textSpriteBatch->Begin();
@@ -676,9 +728,21 @@ void CalibrationApp::Render()
 
         // Draw command text.
         auto textRect = spriteFont->MeasureDrawBounds(commandText.c_str(), XMFLOAT2(0, 0));
-        auto yOffset = screenRect.bottom - (textRect.bottom - textRect.top + 40);
+        auto yOffset = static_cast<float>(screenRect.bottom - (textRect.bottom - textRect.top + 30));
         spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(1.f, yOffset + 1.f), Colors::Black);
         spriteFont->DrawString(textSpriteBatch.get(), commandText.c_str(), XMFLOAT2(0, yOffset), Colors::White);
+
+        // Draw camera photo title text.
+        auto cameraPhotoXOffset = static_cast<float>(camPhotoRect.left);
+        auto cameraPhotoYOffset = static_cast<float>(screenRect.bottom);
+        spriteFont->DrawString(textSpriteBatch.get(), camPhotoTitleText.c_str(), XMFLOAT2(cameraPhotoXOffset + 1.f, cameraPhotoYOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(textSpriteBatch.get(), camPhotoTitleText.c_str(), XMFLOAT2(cameraPhotoXOffset, cameraPhotoYOffset), Colors::White);
+
+        // Draw HoloLens photo title text.
+        auto holoPhotoXOffset = static_cast<float>(holoPhotoRect.left);
+        auto holoPhotoYOffset = static_cast<float>(screenRect.bottom);
+        spriteFont->DrawString(textSpriteBatch.get(), holoPhotoTitleText.c_str(), XMFLOAT2(holoPhotoXOffset + 1.f, holoPhotoYOffset + 1.f), Colors::Black);
+        spriteFont->DrawString(textSpriteBatch.get(), holoPhotoTitleText.c_str(), XMFLOAT2(holoPhotoXOffset, holoPhotoYOffset), Colors::White);
         textSpriteBatch->End();
 
         deviceResources->Present();
@@ -736,7 +800,7 @@ void CalibrationApp::OnWindowSizeChanged(int width, int height)
 void CalibrationApp::GetDefaultSize(int& width, int& height) const
 {
     width = FRAME_WIDTH;
-    height = FRAME_HEIGHT;
+    height = (int) (1.5 * FRAME_HEIGHT);
 }
 
 // These are the resources that depend on the device.
@@ -756,11 +820,11 @@ void CalibrationApp::CreateDeviceDependentResources()
     colorSourceRect.right = FRAME_WIDTH;
     colorSourceRect.bottom = FRAME_HEIGHT;
 
-    // Chess Board Visual
-    chessBoardVisualRect.left = 0;
-    chessBoardVisualRect.top = 0;
-    chessBoardVisualRect.right = HOLO_WIDTH;
-    chessBoardVisualRect.bottom = HOLO_HEIGHT;
+    // Chess Board Visual, Captured Photos
+    holoDimRect.left = 0;
+    holoDimRect.top = 0;
+    holoDimRect.right = HOLO_WIDTH;
+    holoDimRect.bottom = HOLO_HEIGHT;
 
     auto blob = DX::ReadData(L"YUV2RGB.cso");
     HRESULT hr = device->CreatePixelShader(blob.data(), blob.size(),
@@ -784,8 +848,18 @@ void CalibrationApp::CreateWindowSizeDependentResources()
 {
     screenRect.left = 0;
     screenRect.top = 0;
-    screenRect.right = (LONG)deviceResources->GetScreenViewport().Width;
-    screenRect.bottom = (LONG)deviceResources->GetScreenViewport().Height;
+    screenRect.right = static_cast<LONG>(deviceResources->GetScreenViewport().Width);
+    screenRect.bottom = static_cast<LONG>(2.0f * deviceResources->GetScreenViewport().Height / 3.0f);
+
+    camPhotoRect.left = 0;
+    camPhotoRect.top = screenRect.bottom;
+    camPhotoRect.right = static_cast<LONG>(deviceResources->GetScreenViewport().Width / 2.0f);
+    camPhotoRect.bottom = static_cast<LONG>(deviceResources->GetScreenViewport().Height);
+
+    holoPhotoRect.left = camPhotoRect.right;
+    holoPhotoRect.top = screenRect.bottom;
+    holoPhotoRect.right = static_cast<LONG>(deviceResources->GetScreenViewport().Width);
+    holoPhotoRect.bottom = static_cast<LONG>(deviceResources->GetScreenViewport().Height);
 }
 
 void CalibrationApp::OnDeviceLost()

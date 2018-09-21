@@ -129,26 +129,38 @@ private:
     std::unique_ptr<DirectX::SpriteFont> spriteFont;
     std::wstring captureText;
     std::wstring commandText;
+    std::wstring camPhotoTitleText;
+    std::wstring holoPhotoTitleText;
     SpriteEffects spriteEffect = SpriteEffects_None;
 
     // Textures
     ID3D11Texture2D* colorTexture;
     ID3D11Texture2D* convertedColorTexture;
     ID3D11Texture2D* chessBoardTexture;
+    ID3D11Texture2D* camPhotoTexture;
+    ID3D11Texture2D* holoPhotoTexture;
 
     ID3D11ShaderResourceView* srv;
     ID3D11ShaderResourceView* convertedSrv;
     ID3D11ShaderResourceView* chessBoardSrv;
+    ID3D11ShaderResourceView* camPhotoSrv;
+    ID3D11ShaderResourceView* holoPhotoSrv;
 
     ID3D11RenderTargetView* convertedRT;
 
     cv::Mat latestColorMat;
     BYTE* colorBytes;
     cv::Mat chessBoardVisualMat;
+    cv::Mat camPhotoMat;
+    cv::Mat holoPhotoMat;
+    cv::Mat greenMat;
+    cv::Mat redMat;
 
     RECT screenRect;
+    RECT camPhotoRect;
+    RECT holoPhotoRect;
     RECT colorSourceRect;
-    RECT chessBoardVisualRect;
+    RECT holoDimRect;
 
     // REST
     http_client* httpClient;
@@ -160,6 +172,7 @@ private:
     CRITICAL_SECTION commandCriticalSection;
     CRITICAL_SECTION calibrationPictureCriticalSection;
     CRITICAL_SECTION chessBoardVisualCriticalSection;
+    CRITICAL_SECTION photoVisualsCriticalSection;
 
     // Current photo number we are on.
     int photoIndex;
