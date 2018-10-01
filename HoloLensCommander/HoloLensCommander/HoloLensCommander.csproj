@@ -135,7 +135,7 @@
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModel.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelCommands.cs" />
-    <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelBlob.cs" />
+    <Compile Include="Dialogs\GetAppInstallFilesBlobDialogViewModel.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModel.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelCommands.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelProperties.cs" />

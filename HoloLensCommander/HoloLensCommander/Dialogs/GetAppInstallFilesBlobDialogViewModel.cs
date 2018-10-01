@@ -17,7 +17,7 @@ using Windows.UI.Xaml;
 
 namespace HoloLensCommander
 {
-    public class GetAppInstallFilesDialogViewModelBlob : IDisposable
+    public class GetAppInstallFilesBlobDialogViewModel : IDisposable
     {
         private static readonly string ExpandButtonLabel = "\xE710";     // + sign
         private static readonly string CollapseButtonLabel = "\xE738";   // - sign
@@ -26,6 +26,10 @@ namespace HoloLensCommander
         private IBlobConnectionUseCase blobConnectionUseCase = new BlobConnectionUseCase();
         private CompositeDisposable disposable = new CompositeDisposable();
         private DataPackage dataPackage = new DataPackage();
+
+        public ReactiveProperty<Visibility> ShowBlobSectionVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Visible);
+        public ReactiveCommand ShowHideBlobSectionCommand { get; } = new ReactiveCommand();
+        public ReactiveProperty<string> ShowHideBlobSectionButtonLabel { get; }
 
         public ReactiveProperty<Visibility> ShowStorageCredentialVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Collapsed);
         public ReactiveCommand ShowHideStorageCredentialsCommand { get; } = new ReactiveCommand();
@@ -58,8 +62,21 @@ namespace HoloLensCommander
         public ReactiveProperty<string> DownloadStatus { get; } = new ReactiveProperty<string>();
         public AsyncReactiveCommand OnClickOpenDownloadFolderCommand { get; } = new AsyncReactiveCommand();
 
-        public GetAppInstallFilesDialogViewModelBlob()
+        public GetAppInstallFilesBlobDialogViewModel()
         {
+            // Show/Hide Blob
+            ShowHideBlobSectionButtonLabel = new ReactiveProperty<string>();
+            ShowHideBlobSectionCommand.Subscribe(_ =>
+            {
+                ShowHideBlobSectionButtonLabel.Value = ShowBlobSectionVisibility.Value == Visibility.Collapsed
+                    ? ExpandButtonLabel
+                    : CollapseButtonLabel;
+                ShowBlobSectionVisibility.Value = ShowBlobSectionVisibility.Value == Visibility.Collapsed
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            })
+            .AddTo(disposable);
+
             // Storage Credential Input
             ShowHideStorageCredentialsButtonLabel = new ReactiveProperty<string>();
             ShowHideStorageCredentialsCommand.Subscribe(_ =>
@@ -70,7 +87,8 @@ namespace HoloLensCommander
                 ShowStorageCredentialVisibility.Value = ShowStorageCredentialVisibility.Value == Visibility.Collapsed
                     ? Visibility.Visible
                     : Visibility.Collapsed;
-            }).AddTo(disposable);
+            })
+            .AddTo(disposable);
             StorageConnectionInput = new ReactiveProperty<string>(blobConnectionUseCase.Read<string>("blob_connection_string"));
             StorageConnectionInput.Subscribe(x => blobConnectionUseCase.Save("blob_connection_string", x)).AddTo(disposable);
             StorageContainerInput = new ReactiveProperty<string>(blobConnectionUseCase.Read<string>("container"));
