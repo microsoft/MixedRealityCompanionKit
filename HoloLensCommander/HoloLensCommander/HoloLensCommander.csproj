@@ -110,6 +110,8 @@
     <Compile Include="Controls\DeviceMonitorControlViewModel.cs" />
     <Compile Include="Controls\DeviceMonitorControlViewModelCommands.cs" />
     <Compile Include="Controls\DeviceMonitorControlViewModelProperties.cs" />
+    <Compile Include="Data\Repositories\BlobApplicationDataContainerRepository.cs" />
+    <Compile Include="Data\Repositories\BlobArtifactRepository.cs" />
     <Compile Include="Device\DeviceMonitor.cs" />
     <Compile Include="Device\DeviceMonitorCommands.cs" />
     <Compile Include="Device\DeviceMonitorProperties.cs" />
@@ -124,12 +126,16 @@
     </Compile>
     <Compile Include="Dialogs\DeviceInformationDialogViewModel.cs" />
     <Compile Include="Dialogs\DeviceInformationDialogViewModelProperties.cs" />
+    <Compile Include="Dialogs\GetAppInstallFilesBlobDialog.xaml.cs">
+      <DependentUpon>GetAppInstallFilesBlobDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\GetAppInstallFilesDialog.xaml.cs">
       <DependentUpon>GetAppInstallFilesDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModel.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelProperties.cs" />
     <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelCommands.cs" />
+    <Compile Include="Dialogs\GetAppInstallFilesDialogViewModelBlob.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModel.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelCommands.cs" />
     <Compile Include="Dialogs\ManageAppsDialogViewModelProperties.cs" />
@@ -149,6 +155,7 @@
     </Compile>
     <Compile Include="Dialogs\TagDeviceDialogViewModel.cs" />
     <Compile Include="Dialogs\TagDeviceDialogViewModelProperties.cs" />
+    <Compile Include="Helpers\ClipboardHelper.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -161,6 +168,9 @@
     <Compile Include="Dialogs\ManageAppsDialog.xaml.cs">
       <DependentUpon>ManageAppsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\Entities\BlobArtifactEntity.cs" />
+    <Compile Include="Models\UseCases\BlobArtifactUseCase.cs" />
+    <Compile Include="Models\UseCases\BlobConnectionUseCase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Dialogs\SetCredentialsDialog.xaml.cs">
       <DependentUpon>SetCredentialsDialog.xaml</DependentUpon>
@@ -214,6 +224,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Dialogs\GetAppInstallFilesBlobDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Dialogs\GetAppInstallFilesDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -253,6 +267,9 @@
     </PackageReference>
     <PackageReference Include="ReactiveProperty">
       <Version>5.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.Storage">
+      <Version>9.3.2</Version>
     </PackageReference>
     <PackageReference Include="WindowsDevicePortalWrapper">
       <Version>0.9.5.1</Version>
