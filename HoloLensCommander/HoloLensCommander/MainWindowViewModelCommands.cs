@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
@@ -67,7 +67,7 @@ namespace HoloLensCommander
         {
             this.StatusMessage = string.Empty;
         }
-        
+
         /// <summary>
         /// Command used to close all applications on the selected devices.
         /// </summary>
@@ -136,7 +136,7 @@ namespace HoloLensCommander
             this.StatusMessage = string.Empty;
 
             await this.RegisterDeviceAsync(
-                monitor, 
+                monitor,
                 connectOptions.Name);
         }
 
@@ -223,9 +223,9 @@ namespace HoloLensCommander
         {
             // Prompt the user for the required file.
             AppInstallFiles installFiles = new AppInstallFiles();
-            ContentDialog dialog = new GetAppInstallFilesDialog(installFiles);
+            ContentDialog dialog = new GetAppInstallFilesBlobDialog(installFiles);
             await dialog.ShowAsync();
-            
+
             if (installFiles.AppPackageFile == null)
             {
                 return;
@@ -450,7 +450,7 @@ namespace HoloLensCommander
         private async Task SaveMixedRealityFiles()
         {
             // We save images and videos in a subfolder of the pictures library.
-            StorageFolder picturesLibrary = KnownFolders.PicturesLibrary; 
+            StorageFolder picturesLibrary = KnownFolders.PicturesLibrary;
             StorageFolder folder = await picturesLibrary.CreateFolderAsync(
                 MixedRealityFilesFolderName,
                 CreationCollisionOption.OpenIfExists);
@@ -571,12 +571,12 @@ namespace HoloLensCommander
         private async Task ShowSetCredentials()
         {
             NetworkCredential credentials = new NetworkCredential(
-                this.UserName, 
+                this.UserName,
                 this.Password);
 
             SetCredentialsDialog credsDialogs = new SetCredentialsDialog(credentials);
             ContentDialogResult dialogResult = await credsDialogs.ShowAsync();
-            
+
             // Was the Ok button clicked?
             if (dialogResult == ContentDialogResult.Primary)
             {
@@ -712,10 +712,10 @@ namespace HoloLensCommander
                     // Assigning the return value of StopMixedRealityRecordingAsync 
                     // to a Task object to avoid warning 4014 (call is not awaited).
                     Task t = monitor.StopMixedRealityRecordingAsync();
-                }                
+                }
             }
-        }   
-            
+        }
+
         /// <summary>
         /// Command used to uninstall an application on the selected devices.
         /// </summary>
@@ -864,7 +864,7 @@ namespace HoloLensCommander
             this.defaultNetworkKey = this.appSettings.Values[DefaultNetworkKeyKey] as string;
 
             if (!bool.TryParse(
-                this.appSettings.Values[AutoReconnectKey] as string, 
+                this.appSettings.Values[AutoReconnectKey] as string,
                 out this.autoReconnect))
             {
                 this.autoReconnect = false;
@@ -1015,7 +1015,7 @@ namespace HoloLensCommander
                     monitorViewModel.Name));
             }
 
-            try 
+            try
             {
                 StorageFile connectionsFile = await this.localFolder.CreateFileAsync(
                     MainPage.ConnectionsFileName,
