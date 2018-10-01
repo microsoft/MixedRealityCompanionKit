@@ -251,6 +251,9 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.1.7</Version>
     </PackageReference>
+    <PackageReference Include="ReactiveProperty">
+      <Version>5.3.0</Version>
+    </PackageReference>
     <PackageReference Include="WindowsDevicePortalWrapper">
       <Version>0.9.5.1</Version>
     </PackageReference>
