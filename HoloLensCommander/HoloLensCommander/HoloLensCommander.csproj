@@ -112,6 +112,7 @@
     <Compile Include="Controls\DeviceMonitorControlViewModelProperties.cs" />
     <Compile Include="Data\Repositories\BlobApplicationDataContainerRepository.cs" />
     <Compile Include="Data\Repositories\BlobArtifactRepository.cs" />
+    <Compile Include="Data\Repositories\BlobSasRepository.cs" />
     <Compile Include="Device\DeviceMonitor.cs" />
     <Compile Include="Device\DeviceMonitorCommands.cs" />
     <Compile Include="Device\DeviceMonitorProperties.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="Models\Entities\BlobArtifactEntity.cs" />
     <Compile Include="Models\UseCases\BlobArtifactUseCase.cs" />
     <Compile Include="Models\UseCases\BlobConnectionUseCase.cs" />
+    <Compile Include="Models\UseCases\BlobSasUrlUseCase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Dialogs\SetCredentialsDialog.xaml.cs">
       <DependentUpon>SetCredentialsDialog.xaml</DependentUpon>

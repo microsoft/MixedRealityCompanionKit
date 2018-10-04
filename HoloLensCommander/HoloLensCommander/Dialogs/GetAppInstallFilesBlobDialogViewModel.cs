@@ -25,10 +25,11 @@ namespace HoloLensCommander
 
         private IBlobArtifactUseCase blobArtifactUsecase = new BlobArtifactUseCase(ApplicationData.Current.LocalFolder, "tmp");
         private IBlobConnectionUseCase blobConnectionUseCase = new BlobConnectionUseCase();
+        private IBlobSasUrlUseCase blobSasUrlUseCase = new BlobSasUrlUseCase();
         private CompositeDisposable disposable = new CompositeDisposable();
         private DataPackage dataPackage = new DataPackage();
 
-        public ReactiveProperty<Visibility> ShowBlobSectionVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Collapsed);
+        public ReactiveProperty<Visibility> ShowBlobSectionVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Visible);
         public ReactiveCommand ShowHideBlobSectionCommand { get; } = new ReactiveCommand();
         public ReactiveProperty<string> ShowHideBlobSectionButtonLabel { get; } = new ReactiveProperty<string>(ExpandButtonLabel);
 
@@ -85,12 +86,12 @@ namespace HoloLensCommander
             StorageContainerInput.Subscribe(x => blobConnectionUseCase.Save("container", x)).AddTo(disposable);
 
             // Copy Button
-            CopyButtonContent = new ReactiveProperty<string>("Copy");
+            CopyButtonContent = new ReactiveProperty<string>("Copy SasUrl");
             CopyButtonEnabled = ArtifactUrl.Select(x => !string.IsNullOrWhiteSpace(x)).ToReactiveProperty();
             OnClickCopyCommand = CopyButtonEnabled.ToReactiveCommand();
             OnClickCopyCommand
-                .Do(_ => ClipboardHelper.CopyToClipboard(ArtifactUrl.Value))
-                .SelectMany(x => TemporaryDisableCopyButtonAsObservable(TimeSpan.FromMilliseconds(500)))
+                .Do(_ => blobSasUrlUseCase.CopySasUrl(ArtifactUrl.Value, StorageConnectionInput.Value, StorageContainerInput.Value, SelectedArtifact.Value.Name))
+                .SelectMany(x => TemporaryDisableCopyButtonAsObservable(TimeSpan.FromMilliseconds(500), "Copy SasUrl"))
                 .Subscribe()
                 .AddTo(disposable);
 
@@ -162,7 +163,7 @@ namespace HoloLensCommander
                 .ToReactiveProperty();
         }
 
-        private IObservable<Unit> TemporaryDisableCopyButtonAsObservable(TimeSpan duration)
+        private IObservable<Unit> TemporaryDisableCopyButtonAsObservable(TimeSpan duration, string preserve)
         {
             // Change ButtonContent a while
             return Observable.Start(() =>
@@ -173,7 +174,7 @@ namespace HoloLensCommander
             .Delay(duration)
             .Do(__ =>
             {
-                CopyButtonContent.Value = "Copy";
+                CopyButtonContent.Value = preserve;
                 CopyButtonEnabled.Value = true;
             })
             .ToUnit();
