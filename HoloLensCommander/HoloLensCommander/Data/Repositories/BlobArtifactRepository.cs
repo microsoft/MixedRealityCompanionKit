@@ -7,10 +7,21 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using HoloLensCommander.Models.Entities;
+using System.IO;
 
 namespace HoloLensCommander.Data.Repositories
 {
-    internal class BlobArtifactRepository
+    public interface IBlobArtifactRepository
+    {
+        Action<IArtifactEntity> OnGetEachArtifact { get; set; }
+
+        Task<byte[]> DownloadArtifactAsync(string containerName, string blobName, long length);
+        Task DownloadArtifactAsync(string containerName, string blobName, Stream stream);
+        Task<IArtifactEntity[]> ListArtifactsAsync(string containerName);
+        void Cancel();
+    }
+
+    public class BlobArtifactRepository : IBlobArtifactRepository
     {
         public Action<IArtifactEntity> OnGetEachArtifact { get; set; }
         private string blobStorageConnection;
@@ -21,7 +32,7 @@ namespace HoloLensCommander.Data.Repositories
             this.blobStorageConnection = blobStorageConnection;
         }
 
-        public async Task<byte[]> DownloadBlobArtifactAsync(string containerName, string blobName, long length)
+        public async Task<byte[]> DownloadArtifactAsync(string containerName, string blobName, long length)
         {
             var storageClient = CloudStorageAccount.Parse(blobStorageConnection);
             var blobClient = storageClient.CreateCloudBlobClient();
@@ -32,7 +43,16 @@ namespace HoloLensCommander.Data.Repositories
             return bytes;
         }
 
-        public async Task<IArtifactEntity[]> ListBlobArtifactsAsync(string containerName)
+        public async Task DownloadArtifactAsync(string containerName, string blobName, Stream stream)
+        {
+            var storageClient = CloudStorageAccount.Parse(blobStorageConnection);
+            var blobClient = storageClient.CreateCloudBlobClient();
+            var container = blobClient.GetContainerReference(containerName);
+            var blob = container.GetBlockBlobReference(blobName);
+            await blob.DownloadToStreamAsync(stream);
+        }
+
+        public async Task<IArtifactEntity[]> ListArtifactsAsync(string containerName)
         {
             var storageClient = CloudStorageAccount.Parse(blobStorageConnection);
             var blobClient = storageClient.CreateCloudBlobClient();
@@ -40,17 +60,17 @@ namespace HoloLensCommander.Data.Repositories
 
             // project
             var artifactList = new List<IArtifactEntity>();
-            var directories = await ListBlobItemsAsync<CloudBlobDirectory>(container, null);
+            var directories = await ListItemsAsync<CloudBlobDirectory>(container, null);
             foreach (var directory in directories)
             {
                 // branch
                 var branchArtifactList = new List<IBranchArtifactEntity>();
-                var branches = await ListBlobItemsAsync<CloudBlobDirectory>(container, directory.Prefix);
+                var branches = await ListItemsAsync<CloudBlobDirectory>(container, directory.Prefix);
                 await Task.WhenAll(branches.Select(async xs =>
                 {
                     // blob
                     var artifactDetailList = new List<IArtifactDetailEntity>();
-                    var details = await ListBlobItemsAsync<CloudBlockBlob>(container, xs.Prefix);
+                    var details = await ListItemsAsync<CloudBlockBlob>(container, xs.Prefix);
                     foreach (var detail in details)
                     {
                         artifactDetailList.Add(new BlobArtifactDetailEntity(detail.Name, detail.Uri.Segments.Last(), detail.Uri, detail.Properties.Length, detail.Properties.ContentMD5, detail.Properties.LeaseState));
@@ -86,7 +106,7 @@ namespace HoloLensCommander.Data.Repositories
         /// <param name="directoryName"></param>
         /// <param name="useFlatBlobListing"></param>
         /// <returns></returns>
-        private async Task<List<T>> ListBlobItemsAsync<T>(CloudBlobContainer container, string directoryName, bool useFlatBlobListing = false) where T : IListBlobItem
+        private async Task<List<T>> ListItemsAsync<T>(CloudBlobContainer container, string directoryName, bool useFlatBlobListing = false) where T : IListBlobItem
         {
             var list = new List<T>();
             BlobContinuationToken blobContinuationToken = null;

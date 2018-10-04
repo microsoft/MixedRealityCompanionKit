@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
@@ -21,19 +21,19 @@ namespace HoloLensCommander
         /// Command used to allow the user to browse for a dependency file.
         /// </summary>
         public ICommand AddDependencyFileCommand
-        { get; private set; }    
+        { get; private set; }
 
         /// <summary>
         /// Command used to allow the user to browse for the application certificate file.
         /// </summary>
         public ICommand BrowseForAppCertFileCommand
-        { get; private set; }    
+        { get; private set; }
 
         /// <summary>
         /// Command used to allow the user to browse for the application package file.
         /// </summary>
         public ICommand BrowseForAppPackageCommand
-        { get; private set; }    
+        { get; private set; }
 
         /// <summary>
         /// Command used to allow the user to browse for the folder that contains installation files.
@@ -45,7 +45,7 @@ namespace HoloLensCommander
         /// Command used to allow the user to remove a dependency file.
         /// </summary>
         public ICommand RemoveDependencyFileCommand
-        { get; private set; }    
+        { get; private set; }
 
         /// <summary>
         /// Implementation of the add dependency file command.
@@ -60,7 +60,7 @@ namespace HoloLensCommander
             IReadOnlyList<StorageFile> files = await filePicker.PickMultipleFilesAsync();
             if (files.Count != 0)
             {
-                foreach(StorageFile file in files)
+                foreach (StorageFile file in files)
                 {
                     this.DependencyFiles.Add(file.Path, file);
                     this.DependencyFileNames.Add(file.Path);
@@ -116,14 +116,14 @@ namespace HoloLensCommander
             folderPicker.FileTypeFilter.Add("*");
 
             StorageFolder folder = await folderPicker.PickSingleFolderAsync();
-            if (folder!=null)
+            if (folder != null)
             {
                 string appxFolderToken = StorageApplicationPermissions.FutureAccessList.Add(folder);
                 await AutoAddInstallFiles(appxFolderToken);
             }
         }
 
-        private async Task AutoAddInstallFiles(string appxFolderToken)
+        public async Task AutoAddInstallFiles(string appxFolderToken)
         {
             StorageFolder appPackageFolder = await StorageApplicationPermissions.FutureAccessList.GetFolderAsync(appxFolderToken);
             IReadOnlyList<StorageFile> files = await appPackageFolder.GetFilesAsync();
@@ -138,12 +138,10 @@ namespace HoloLensCommander
             this.AppPackageFile = appxFile;
 
             StorageFile certFile = files.FirstOrDefault(f => f.FileType.Equals(".cer"));
-            if (certFile == null)
+            if (certFile != null)
             {
-                return;
+                this.AppCertificateFile = certFile;
             }
-
-            this.AppCertificateFile = certFile;
 
             DependencyFiles.Clear();
             DependencyFileNames.Clear();

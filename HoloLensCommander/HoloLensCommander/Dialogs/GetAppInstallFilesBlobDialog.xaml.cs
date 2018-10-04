@@ -1,3 +1,5 @@
+using System;
+using System.Reactive.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -20,6 +22,13 @@ namespace HoloLensCommander
         {
             this.appInstallFiles = installFiles;
             this.DataContext = new GetAppInstallFilesDialogViewModel();
+            ViewModel.DownloadFolderAccessToken
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Subscribe(async x =>
+                {
+                    var viewModel = DataContext as GetAppInstallFilesDialogViewModel;
+                    await viewModel.AutoAddInstallFiles(x);
+                });
             this.InitializeComponent();
         }
 

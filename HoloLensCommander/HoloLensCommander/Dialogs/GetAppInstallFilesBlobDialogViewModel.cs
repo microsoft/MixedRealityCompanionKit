@@ -13,6 +13,7 @@ using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using SelectedTextSpeach.Models.UseCases;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage;
 using Windows.UI.Xaml;
 
 namespace HoloLensCommander
@@ -22,24 +23,21 @@ namespace HoloLensCommander
         private static readonly string ExpandButtonLabel = "\xE710";     // + sign
         private static readonly string CollapseButtonLabel = "\xE738";   // - sign
 
-        private IBlobArtifactSummary blobArtifactSummaryUsecase = new BlobArtifactUseCase();
+        private IBlobArtifactUseCase blobArtifactUsecase = new BlobArtifactUseCase(ApplicationData.Current.LocalFolder, "tmp");
         private IBlobConnectionUseCase blobConnectionUseCase = new BlobConnectionUseCase();
         private CompositeDisposable disposable = new CompositeDisposable();
         private DataPackage dataPackage = new DataPackage();
 
-        public ReactiveProperty<Visibility> ShowBlobSectionVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Visible);
+        public ReactiveProperty<Visibility> ShowBlobSectionVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Collapsed);
         public ReactiveCommand ShowHideBlobSectionCommand { get; } = new ReactiveCommand();
-        public ReactiveProperty<string> ShowHideBlobSectionButtonLabel { get; }
+        public ReactiveProperty<string> ShowHideBlobSectionButtonLabel { get; } = new ReactiveProperty<string>(ExpandButtonLabel);
 
-        public ReactiveProperty<Visibility> ShowStorageCredentialVisibility { get; } = new ReactiveProperty<Visibility>(Visibility.Collapsed);
-        public ReactiveCommand ShowHideStorageCredentialsCommand { get; } = new ReactiveCommand();
-        public ReactiveProperty<string> ShowHideStorageCredentialsButtonLabel { get; }
         public ReactiveProperty<string> StorageConnectionInput { get; }
         public ReactiveProperty<string> StorageContainerInput { get; }
 
-        public ReactiveProperty<bool> IsDownaloadable { get; } = new ReactiveProperty<bool>(true);
+        public ReadOnlyReactiveProperty<bool> IsEnableCheckBlobButton { get; }
         public AsyncReactiveCommand OnClickCheckBlobCommand { get; }
-        public ReactiveProperty<bool> IsCheckBlobCompleted { get; } = new ReactiveProperty<bool>();
+        public ReactiveProperty<bool> IsBlobChecking { get; } = new ReactiveProperty<bool>();
         public ReactiveCommand OnClickCancelBlobCommand { get; } = new ReactiveCommand();
         public ReactiveProperty<string> BlobResult { get; set; } = new ReactiveProperty<string>();
         public ReactiveProperty<bool> ComboBoxEnabled { get; set; }
@@ -61,11 +59,14 @@ namespace HoloLensCommander
         public AsyncReactiveCommand OnClickDownloadCommand { get; }
         public ReactiveProperty<string> DownloadStatus { get; } = new ReactiveProperty<string>();
         public AsyncReactiveCommand OnClickOpenDownloadFolderCommand { get; } = new AsyncReactiveCommand();
+        public AsyncReactiveCommand OnClickOpenDownloadBlobFolderCommand { get; } = new AsyncReactiveCommand();
+
+        // other view module reference
+        public ReactiveProperty<string> DownloadFolderAccessToken => blobArtifactUsecase.DownloadFolderAccessToken;
 
         public GetAppInstallFilesBlobDialogViewModel()
         {
             // Show/Hide Blob
-            ShowHideBlobSectionButtonLabel = new ReactiveProperty<string>();
             ShowHideBlobSectionCommand.Subscribe(_ =>
             {
                 ShowHideBlobSectionButtonLabel.Value = ShowBlobSectionVisibility.Value == Visibility.Collapsed
@@ -78,17 +79,6 @@ namespace HoloLensCommander
             .AddTo(disposable);
 
             // Storage Credential Input
-            ShowHideStorageCredentialsButtonLabel = new ReactiveProperty<string>();
-            ShowHideStorageCredentialsCommand.Subscribe(_ =>
-            {
-                ShowHideStorageCredentialsButtonLabel.Value = ShowStorageCredentialVisibility.Value == Visibility.Collapsed
-                    ? ExpandButtonLabel
-                    : CollapseButtonLabel;
-                ShowStorageCredentialVisibility.Value = ShowStorageCredentialVisibility.Value == Visibility.Collapsed
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
-            })
-            .AddTo(disposable);
             StorageConnectionInput = new ReactiveProperty<string>(blobConnectionUseCase.Read<string>("blob_connection_string"));
             StorageConnectionInput.Subscribe(x => blobConnectionUseCase.Save("blob_connection_string", x)).AddTo(disposable);
             StorageContainerInput = new ReactiveProperty<string>(blobConnectionUseCase.Read<string>("container"));
@@ -105,17 +95,18 @@ namespace HoloLensCommander
                 .AddTo(disposable);
 
             // Download Button
-            blobArtifactSummaryUsecase.DownloadStatus.Subscribe(x => DownloadStatus.Value = x).AddTo(disposable);
+            blobArtifactUsecase.DownloadStatus.Subscribe(x => DownloadStatus.Value = x).AddTo(disposable);
             OnClickDownloadCommand = CopyButtonEnabled.ToAsyncReactiveCommand();
             OnClickDownloadCommand
-                .Subscribe(async _ => await blobArtifactSummaryUsecase.DownloadHoloLensPackagesAsync(StorageConnectionInput.Value, StorageContainerInput.Value, SelectedArtifact.Value.Name, SelectedArtifact.Value.Size, SelectedArtifact.Value.FileName))
+                .Subscribe(async _ => await blobArtifactUsecase.DownloadHoloLensPackagesAsync(StorageConnectionInput.Value, StorageContainerInput.Value, SelectedArtifact.Value.Name, SelectedArtifact.Value.Size, SelectedArtifact.Value.FileName))
                 .AddTo(disposable);
 
             // OpenFolder Button
-            OnClickOpenDownloadFolderCommand.Subscribe(_ => blobArtifactSummaryUsecase.OpenFolderAsync()).AddTo(disposable);
+            OnClickOpenDownloadFolderCommand.Subscribe(_ => blobArtifactUsecase.OpenFolderAsync()).AddTo(disposable);
+            OnClickOpenDownloadBlobFolderCommand.Subscribe(_ => blobArtifactUsecase.OpenDownloadFolderAsync()).AddTo(disposable);
 
             // Initialize by obtain artifact informations
-            blobArtifactSummaryUsecase.Artifacts
+            blobArtifactUsecase.Artifacts
                 .Where(x => x != null)
                 .Do(x =>
                 {
@@ -124,37 +115,41 @@ namespace HoloLensCommander
                 })
                 .Subscribe()
                 .AddTo(disposable);
-            blobArtifactSummaryUsecase.RequestFailedMessage
+            blobArtifactUsecase.RequestFailedMessage
                 .Do(x => BlobResult.Value = x)
                 .Subscribe()
                 .AddTo(disposable);
 
             // Blob Download
             ComboBoxEnabled = Projects.CollectionChangedAsObservable().Any().ToReactiveProperty();
-            OnClickCheckBlobCommand = IsDownaloadable.ToAsyncReactiveCommand();
+            IsEnableCheckBlobButton = StorageConnectionInput
+                .CombineLatest(StorageContainerInput, (r, l) => !string.IsNullOrWhiteSpace(r) && !string.IsNullOrWhiteSpace(l))
+                .ToReadOnlyReactiveProperty();
+            OnClickCheckBlobCommand = IsEnableCheckBlobButton.ToAsyncReactiveCommand();
             OnClickCheckBlobCommand.Subscribe(async _ =>
             {
-                var task = blobArtifactSummaryUsecase.RequestHoloLensPackagesAsync(StorageConnectionInput.Value, StorageContainerInput.Value);
+                var task = blobArtifactUsecase.RequestHoloLensPackagesAsync(StorageConnectionInput.Value, StorageContainerInput.Value);
+                IsBlobChecking.Value = true;
                 Projects.Clear();
                 Branches?.Clear();
                 Artifacts?.Clear();
                 BlobResult.Value = "Trying obtain project infomations.";
                 await task;
-                IsCheckBlobCompleted.Value = true;
+                IsBlobChecking.Value = false;
             })
             .AddTo(disposable);
-            OnClickCancelBlobCommand = IsDownaloadable.Select(x => !x).ToReactiveCommand();
-            OnClickCancelBlobCommand.Subscribe(_ => blobArtifactSummaryUsecase.CancelRequest()).AddTo(disposable);
+            OnClickCancelBlobCommand = IsEnableCheckBlobButton.Select(x => !x).ToReactiveCommand();
+            OnClickCancelBlobCommand.Subscribe(_ => blobArtifactUsecase.CancelRequest()).AddTo(disposable);
 
             // Update Collection with Clear existing collection when selected.
             Branches = SelectedProject.Where(x => x != null)
                 .Do(_ => Branches?.Clear())
                 .Do(_ => Artifacts?.Clear())
-                .SelectMany(x => blobArtifactSummaryUsecase.GetArtifactCache(x.Project))
+                .SelectMany(x => blobArtifactUsecase.GetArtifactCache(x.Project))
                 .ToReactiveCollection();
             Artifacts = SelectedBranch.Where(x => x != null)
                 .Do(x => Artifacts?.Clear())
-                .SelectMany(x => blobArtifactSummaryUsecase.GetArtifactCache(SelectedProject.Value?.Project, x.Branch))
+                .SelectMany(x => blobArtifactUsecase.GetArtifactCache(SelectedProject.Value?.Project, x.Branch))
                 .ToReactiveCollection();
             SelectedArtifact
                 .Where(x => x != null)
@@ -165,10 +160,6 @@ namespace HoloLensCommander
                     ArtifactUrl.Value = x.Uri.AbsoluteUri;
                 })
                 .ToReactiveProperty();
-
-            // Next action
-            // TODO : Cancel Download
-            // TODO : Multiple Download?
         }
 
         private IObservable<Unit> TemporaryDisableCopyButtonAsObservable(TimeSpan duration)

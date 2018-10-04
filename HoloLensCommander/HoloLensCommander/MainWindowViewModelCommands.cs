@@ -223,6 +223,7 @@ namespace HoloLensCommander
         {
             // Prompt the user for the required file.
             AppInstallFiles installFiles = new AppInstallFiles();
+            //ContentDialog dialog = new GetAppInstallFilesDialog(installFiles);
             ContentDialog dialog = new GetAppInstallFilesBlobDialog(installFiles);
             await dialog.ShowAsync();
 
