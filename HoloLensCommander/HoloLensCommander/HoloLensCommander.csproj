@@ -191,6 +191,7 @@
     <Compile Include="Utilities\TagInformation.cs" />
     <Compile Include="Utilities\UserInformation.cs" />
     <Compile Include="Utilities\Utilities.cs" />
+    <Compile Include="Views\Converters\BoolVisibilityConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 
-namespace SelectedTextSpeach.Data.Repositories
+namespace HoloLensCommander.Data.Repositories
 {
     public interface IApplicationDataContainerRepository
     {

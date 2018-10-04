@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace SelectedTextSpeach.Data.Repositories
+namespace HoloLensCommander.Data.Repositories
 {
     public interface IBlobSasRepository
     {

@@ -11,7 +11,6 @@ using HoloLensCommander.Models.Entities;
 using HoloLensCommander.Models.UseCases;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
-using SelectedTextSpeach.Models.UseCases;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -139,8 +138,11 @@ namespace HoloLensCommander
                 IsBlobChecking.Value = false;
             })
             .AddTo(disposable);
-            OnClickCancelBlobCommand = IsEnableCheckBlobButton.Select(x => !x).ToReactiveCommand();
-            OnClickCancelBlobCommand.Subscribe(_ => blobArtifactUsecase.CancelRequest()).AddTo(disposable);
+            OnClickCancelBlobCommand = IsBlobChecking.Select(x => x).ToReactiveCommand();
+            OnClickCancelBlobCommand
+                .Do(_ => Projects.Clear())
+                .Subscribe(_ => blobArtifactUsecase.CancelRequest())
+                .AddTo(disposable);
 
             // Update Collection with Clear existing collection when selected.
             Branches = SelectedProject.Where(x => x != null)

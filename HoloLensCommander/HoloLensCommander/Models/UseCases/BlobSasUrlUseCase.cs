@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HoloLensCommander;
-using SelectedTextSpeach.Data.Repositories;
+using HoloLensCommander.Data.Repositories;
 
-namespace SelectedTextSpeach.Models.UseCases
+namespace HoloLensCommander.Models.UseCases
 {
     public interface IBlobSasUrlUseCase
     {
