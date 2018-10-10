@@ -21,7 +21,5 @@ steps:
 
 - task: VSBuild@1
   inputs:
-    platform: '$(buildPlatform)'
     solution: '$(solution)'
-    configuration: '$(buildConfiguration)'
-    msbuildArgs: '/p:AppxBundlePlatforms="$(buildPlatform)" /p:AppxPackageDir="$(appxPackageDir)" /p:AppxBundle=Never'
+    msbuildArgs: '/p:Platform="$(buildPlatform)" /p:Configuration="$(buildConfiguration)" /p:AppxBundlePlatforms="$(buildPlatform)" /p:AppxPackageDir="$(appxPackageDir)" /p:AppxBundle=Never'
