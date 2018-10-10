@@ -9,7 +9,7 @@ pool:
 variables:
   solution: 'HoloLensCommander/*.sln'
   buildPlatform: 'x86'
-  buildConfiguration: 'Release'
+  buildConfiguration: 'Debug'
   appxPackageDir: '$(build.artifactStagingDirectory)\AppxPackages\'
 
 steps:
