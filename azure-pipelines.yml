@@ -7,8 +7,8 @@ pool:
   vmImage: 'VS2017-Win2016'
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'x86|x64|ARM'
+  solution: 'HoloLensCommander/*.sln'
+  buildPlatform: 'x86'
   buildConfiguration: 'Release'
   appxPackageDir: '$(build.artifactStagingDirectory)\AppxPackages\'
 
