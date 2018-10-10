@@ -6,6 +6,56 @@ This application is built upon the open source [Windows Device Portal Wrapper](h
 
 ![Windows Mixed Reality Commander](ReadmeImages/MainWindow.png)
 
+### Additional changed by guitarrapc
+
+#### Requirements
+
+* A Windows 10 10.0.17134.0 and above.
+* Azure Blob Direct Access with ConnectionString and Container Name.
+* You must zip HoloLens Package(Artifact) and place it to blob with prefix.
+
+```
+â””â”€Container
+    â””â”€ProjectName/BranchName/Artifact
+```
+
+* A Package zip structure should follow like this.
+
+For x86 (HoloLens will be always this structure.)
+
+```
+â””â”€Root Folder
+    |â”€YourAwesomePackage_x86.appxbundle
+    â””â”€Dependencies
+        â””â”€x86
+           â””â”€DependencyFile.appx
+```
+
+For x64
+
+```
+â””â”€Root Folder
+    |â”€YourAwesomePackage_x64.appxbundle
+    â””â”€Dependencies
+        â””â”€x64
+           â””â”€DependencyFile.appx
+```
+
+#### How to use Blob package installation functionality
+
+This feature enable you to download appbundle package stored in Azure Storage Blob, then install it to HoloLens without any particular operation.
+You can use with following steps.
+
+1. Select HoloLens Device Checkbox to install package.
+1. Open `Install` dialog. (This dialog is swapped to new.)
+1. Set Blob's `Connection String` to input text box.
+1. Set `Container Name` to input text box.
+1. Select `CheckBlob` Button.
+1. Select `Project`, `Branch` and `Artifact` from combo box.
+1. Select `Download` Button.
+1. All necessary packages will be fill out automaticaly.
+1. Select `Ok` Button to install.
+
 ### Requirements
 Windows Mixed Reality Commander requires:
 * A Windows 10 Device (Currently tested on x86 and x64)
@@ -104,7 +154,7 @@ Getting the IP address from your HoloLens can be a more time-consuming process t
 
 Users of the Windows Device Portal are aware of the ability to connect to an attached HoloLens using the loopback address (http://127.0.0.1:10080) when the Windows Phone IP over USB Transport service is installed (available as part of the Windows 10 SDK) and running.
 
-To take advantage of this feature, Windows Mixed Reality Commander will default to this loopback address if the Connect dialog’s Address field is left blank.
+To take advantage of this feature, Windows Mixed Reality Commander will default to this loopback address if the Connect dialogï¿½s Address field is left blank.
 
 ```
 Note: By default, UWP applications are subject to network isolation. For development and 
@@ -116,7 +166,7 @@ be run, will automatically configure to allow loopback connections.
 
 For side-load scenarios, please refer to the documentation describing network isolation
 troubleshooting (https://msdn.microsoft.com/en-us/library/windows/apps/hh780593.aspx). The application container name, at the time of this writing, for 
-Windows Mixed Reality Commander is “HoloLensCommander_ksbfhw2wnm4q4”.
+Windows Mixed Reality Commander is ï¿½HoloLensCommander_ksbfhw2wnm4q4ï¿½.
 ```
 
 #### Session Management
@@ -168,7 +218,7 @@ The **Mixed Reality Capture** section allows you to start and stop a recording o
 
 ![Mixed Reality Capture Controls](ReadmeImages/MixedRealityControls.png)
 
-Files are saved to your PC’s Pictures Library under HoloLensCommander, and each device’s files will be placed in a folder named after the device’s address or tag.
+Files are saved to your PCï¿½s Pictures Library under HoloLensCommander, and each deviceï¿½s files will be placed in a folder named after the deviceï¿½s address or tag.
 
 ```
 Note: Windows PC devices do not support Mixed Reality Capture.
@@ -195,9 +245,9 @@ The **Device Control** section allows you to bulk reboot or shutdown the selecte
 
 ![Device Control Controls](ReadmeImages/DeviceControlControls.png)
 
-![Reboot Button](ReadmeImages/RebootButton.png) Reboots the devices selected in the device list. Devices will show “Lost connected to the device” while rebooting and will reactivate upon completion.
+![Reboot Button](ReadmeImages/RebootButton.png) Reboots the devices selected in the device list. Devices will show ï¿½Lost connected to the deviceï¿½ while rebooting and will reactivate upon completion.
 
-![Shutdown Button](ReadmeImages/ShutdownButton.png) Shuts down the selected devices. Devices remain in the list and will report “Lost connection to the device”.
+![Shutdown Button](ReadmeImages/ShutdownButton.png) Shuts down the selected devices. Devices remain in the list and will report ï¿½Lost connection to the deviceï¿½.
 
 ![Forget Devices Button](ReadmeImages/ForgetDevicesButton.png) Unregisters the selected devices by removing them from the devices list and updating the application state.
 
@@ -216,12 +266,12 @@ In the previous image, the upper device is a HoloLens and the lower is a Windows
 
 The HoloLens supports viewing and setting the interpupillary distance (IPD) and provides controls to view and update the value (red box).
 
-Windows PC devices do not support the IPD controls and have a small icon (blue box) between the additional options button (…) and the address.
+Windows PC devices do not support the IPD controls and have a small icon (blue box) between the additional options button (ï¿½) and the address.
 
 Devices that are not available at the time of registration display an exclamation point (black box) icon. Once a connection has been established, the device UI will be refreshed based on the type of device (HoloLens or Desktop PC).
 
 #### Managing Applications on an Individual Device
-There are times when you need to manage applications on a single device. To accomplish this, select the Manage apps from the menu displayed when clicking the additional commands button (…).
+There are times when you need to manage applications on a single device. To accomplish this, select the Manage apps from the menu displayed when clicking the additional commands button (ï¿½).
 
 ![Manage Applications Dialog](ReadmeImages/ManageAppsDialog.png)
 
@@ -260,7 +310,7 @@ There are two ways this can be performed using Windows Mixed Reality Commander:
 1.	Start and run Calibration on ALL selected devices.
 2.	Run Calibration on a specific device using the Manage apps option for that device.
 
-While Calibration is running you will see “Waiting for Calibration to exit” in the device control. When complete, the control will display “Calibration has exited”.
+While Calibration is running you will see ï¿½Waiting for Calibration to exitï¿½ in the device control. When complete, the control will display ï¿½Calibration has exitedï¿½.
 
 #### Controlling Application Lifetime
 Controlling application lifetime is a common requirement when running a classroom or demo.  Students and users often are required to spend a finite time in any given experience before moving on to the next task.
@@ -286,7 +336,7 @@ Mixed Reality view allows you to see what your user is seeing, enabling you to g
 Note: Windows Mixed Reality Commander supports Mixed Reality view for one HoloLens device at a time.
 ```
 
-To turn on Mixed Reality view, click the additional options (…) button for the device and select Mixed Reality view.
+To turn on Mixed Reality view, click the additional options (ï¿½) button for the device and select Mixed Reality view.
 
 ![Mixed Reality View](ReadmeImages/MixedRealityViewDialog.png)
 
