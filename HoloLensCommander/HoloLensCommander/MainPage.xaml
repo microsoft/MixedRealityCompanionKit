@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:HoloLensCommander"
+    xmlns:System="using:System"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -134,16 +135,36 @@
                         FontSize="20"
                         Width="122" Height="50"
                         Canvas.Left="148" Canvas.Top="163"/>
-                    <Button 
+                    <!--<Button 
                         x:Name="uninstallAllApps" 
                         Content="Remove Sideloaded Apps"
                         ToolTipService.ToolTip="Uninstalls all sideloaded apps on the selected devices"
                         Command="{Binding Path=UninstallAllAppsCommand}"
                         IsEnabled="{Binding Path=HaveRegisteredDevices}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Top" 
+                        HorizontalAlignment="Stretch" VerticalAlignment="Center" 
                         FontSize="20"
-                        Width="260" Height="50"
-                        Canvas.Left="10" Canvas.Top="235"/>
+                        Width="180" Height="50"
+                        Canvas.Left="10" Canvas.Top="235" Margin="0,0,0,0"/>-->
+                    <Button 
+                        x:Name="uninstallAllApps" 
+                        Content="Remove Sideloaded Apps"
+                        ToolTipService.ToolTip="Uninstalls all sideloaded apps on the selected devices"
+                        Command="{Binding Path=UninstallAllAppsCommand}"
+                        IsEnabled="{x:Bind ReactiveViewModel.IsLockUninstallSideLoadAppButtonEnable.Value, Mode=OneWay}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+                        FontSize="20"
+                        Width="180" Height="50"
+                        Canvas.Left="10" Canvas.Top="235" Margin="0,0,0,0"/>
+                    <Button 
+                        x:Name="uninstallAllAppsLock" 
+                        Content="{x:Bind ReactiveViewModel.LockUninstallSideLoadAppLabel.Value, Mode=OneWay}"
+                        ToolTipService.ToolTip="{x:Bind System:String.Format('Click to {0} Uninstalls all sideloaded apps Button.', ReactiveViewModel.LockUninstallSideLoadAppTooltip.Value), Mode=OneWay}"
+                        Command="{x:Bind ReactiveViewModel.ToggleLockUninstallSideLoadApp}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+                        FontSize="20"
+                        FontFamily="Segoe MDL2 Assets"
+                        Width="60" Height="50"
+                        Canvas.Left="210" Canvas.Top="235" Margin="0,0,0,0"/>
                 </Canvas>
                 <Canvas
                     x:Name="mixedRealityControls"
