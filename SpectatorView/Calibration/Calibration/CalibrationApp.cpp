@@ -20,6 +20,7 @@ CalibrationApp::CalibrationApp() :
     InitializeCriticalSection(&commandCriticalSection);
     InitializeCriticalSection(&calibrationPictureCriticalSection);
     InitializeCriticalSection(&chessBoardVisualCriticalSection);
+    InitializeCriticalSection(&photoVisualsCriticalSection);
 
     boardDimensions = cv::Size(GRID_CELLS_X - 1, GRID_CELLS_Y - 1);
     colorBytes = new BYTE[FRAME_BUFSIZE];
