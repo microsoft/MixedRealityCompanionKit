@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="HoloLensCommander" Publisher="CN=MixedRealityCommander" Version="2.1706.14.0" />
+  <Identity Name="HoloLensCommander" Publisher="CN=guitarrapc" Version="2.1706.16.0" />
   <mp:PhoneIdentity PhoneProductId="2ddfe2f3-79a6-4751-9a5c-56c49317682a" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Windows Mixed Reality Commander</DisplayName>
