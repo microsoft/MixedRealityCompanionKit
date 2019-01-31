@@ -7,14 +7,10 @@ namespace MixedRemoteViewCompositor
 {
     namespace Media 
     {
-
-        typedef std::unordered_set<UINT64> ResolutionList;
-
         class CaptureEngineImpl
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , ABI::MixedRemoteViewCompositor::Plugin::IModule
-            , ABI::Windows::Foundation::IClosable
             , ABI::MixedRemoteViewCompositor::Media::ICaptureEngine
             , FtmBase >
         {
@@ -31,64 +27,44 @@ namespace MixedRemoteViewCompositor
                 _Out_ boolean* pIsInitialzed);
             IFACEMETHOD(Uninitialize)(void);
 
-            // IClosable
-            IFACEMETHOD(Close)(void);
-
             // ICaptureEngine
-            IFACEMETHOD(add_Closed)(
-                _In_ Plugin::IClosedEventHandler *eventHandler,
-                _In_ EventRegistrationToken* token);
-            IFACEMETHOD(remove_Closed)(
-                _In_ EventRegistrationToken token);
-
-            IFACEMETHOD(put_SpatialCoordinateSystem)(
-                _In_ ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem *coordinateSystem);
-
-            IFACEMETHOD(get_SpatialCoordinateSystem)(
-                _Outptr_opt_result_maybenull_ ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem** coordinateSystem);
-
-            IFACEMETHOD(InitAsync)(
+            IFACEMETHOD(Init)(
                 _In_ boolean enableAudio,
-                _Out_ ABI::Windows::Foundation::IAsyncAction** action);
+				_In_ IConnection *connection);
 
-            IFACEMETHOD(StartAsync)(
-                _In_ boolean enableMrc,
-                _In_ IConnection *connection,
-                _Out_ ABI::Windows::Foundation::IAsyncAction** action);
+            IFACEMETHOD(Shutdown)();
 
-            IFACEMETHOD(StopAsync)(
-                _Out_ ABI::Windows::Foundation::IAsyncAction** action);
-
-        protected:
-            // media capture callbacks
-            HRESULT OnMediaCaptureFailed(
-                _In_ ABI::Windows::Media::Capture::IMediaCapture *sender,
-                _In_ ABI::Windows::Media::Capture::IMediaCaptureFailedEventArgs *failedArgs);
-            HRESULT OnRecordLimitationExceeded(
-                _In_ ABI::Windows::Media::Capture::IMediaCapture *sender);
-
+			IFACEMETHOD(WriteFrame)();
+				// TODO: add in framebuffer pointer*
+				//_In_ const LONGLONG& rtStart);
         private:
             Wrappers::CriticalSection _lock;
 
             boolean _isInitialized;
             boolean _enableAudio;
-            boolean _enableMrc;
-            boolean _videoEffectAdded;
-            boolean _audioEffectAdded;
             boolean _captureStarted;
+			
+			ComPtr<IMediaEncodingProfile> _spMediaEncodingProfile;
+            ComPtr<NetworkMediaSinkImpl> _spNetworkMediaSink;
+			ComPtr<IMFSinkWriter> _spSinkWriter;
+			DWORD _sinkWriterStream;
 
-            ResolutionList _videoResolutions;
+			LONGLONG rtStart = 0;
 
-            ComPtr<ABI::Windows::Media::Capture::IMediaCapture> _mediaCapture;
-            EventRegistrationToken _failedEventToken;
-            EventRegistrationToken _recordLimitExceededEventToken;
-
-            EventSource<ABI::MixedRemoteViewCompositor::Plugin::IClosedEventHandler> _evtClosed;
-
-            ComPtr<NetworkMediaSinkImpl> _networkMediaSink;
-            ComPtr<ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem> _spSpatialCoordinateSystem;
+			// Buffer to hold the video frame data.
+			const UINT32 VIDEO_PELS = 921600; // 1280 x 720
+			DWORD _videoFrameBuffer[921600]; // TODO: remove hardcode
+			//const UINT32 VIDEO_WIDTH = 640;
+			//const UINT32 VIDEO_HEIGHT = 480;
+			const UINT32 VIDEO_FPS = 30;
+			const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS; // TODO: Needed???
+			const UINT32 VIDEO_BIT_RATE = 800000; // TODO: How to modulate?
+			//const GUID   VIDEO_ENCODING_FORMAT = MFVideoFormat_H265; //MFVideoFormat_H264
+			const GUID   VIDEO_INPUT_FORMAT = MFVideoFormat_RGB32;
+			//const UINT32 VIDEO_PELS = VIDEO_WIDTH * VIDEO_HEIGHT;
         };
 
+		/*
         class CreateCaptureEngineAsync
             : public RuntimeClass<RuntimeClassFlags<WinRtClassicComMix>
             , IAsyncOperation<ABI::MixedRemoteViewCompositor::Media::CaptureEngine*>
@@ -149,18 +125,27 @@ namespace MixedRemoteViewCompositor
         private:
             ComPtr<ABI::MixedRemoteViewCompositor::Media::ICaptureEngine> _captureEngineResult;
         };
+		*/
 
-        class CaptureEngineStaticsImpl
-            : public ActivationFactory
-            < ABI::MixedRemoteViewCompositor::Media::ICaptureEngineStatics
-            , FtmBase >
-        {
-            InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Media_CaptureEngine, BaseTrust);
+		class CaptureEngineStaticsImpl
+			: public ActivationFactory
+			< ABI::MixedRemoteViewCompositor::Media::ICaptureEngineStatics
+			, FtmBase >
+		{
+			InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Media_CaptureEngine, BaseTrust);
 
-        public:
-            IFACEMETHOD(CreateAsync)(
-                _In_ boolean enableAudio,
-                _Out_ IAsyncOperation<ABI::MixedRemoteViewCompositor::Media::CaptureEngine*>** asyncOperation);
-        };
+		public:
+			// ICaptureEngineStatics
+			STDMETHODIMP Create(
+				_COM_Outptr_result_maybenull_ ABI::MixedRemoteViewCompositor::Media::ICaptureEngine** ppCaptureEngine) override
+			{
+				ComPtr<CaptureEngineImpl> spCaptureEngine;
+				IFR(Microsoft::WRL::MakeAndInitialize<CaptureEngineImpl>(&spCaptureEngine));
+
+				NULL_CHK_HR(spCaptureEngine, E_OUTOFMEMORY);
+
+				return spCaptureEngine.CopyTo(ppCaptureEngine);
+			}
+		};
     }
 }

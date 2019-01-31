@@ -57,13 +57,13 @@ namespace MixedRemoteViewCompositor
         public Action<object, EventArgs> Closed;
         public Action<object, DataReceivedArgs> DataReceived;
 
+        private GCHandle thisObject = default(GCHandle);
+
         private UInt64 disconnectedToken;
         private PluginCallbackHandler disconnectedHandler;
-        private GCHandle disconnectedCallbackHandle;
 
         private UInt64 dataReceivedToken;
         private Wrapper.DataReceivedHandler dataReceivedHandler;
-        private GCHandle dataReceivedCallbackHandle;
 
         private bool disposedValue = false; // To detect redundant calls
 
@@ -84,11 +84,9 @@ namespace MixedRemoteViewCompositor
 
             this.disconnectedToken = 0;
             this.disconnectedHandler = null;
-            this.disconnectedCallbackHandle = default(GCHandle);
 
             this.dataReceivedToken = 0;
             this.dataReceivedHandler = null;
-            this.dataReceivedCallbackHandle = default(GCHandle);
         }
 
         ~Connection()
@@ -112,14 +110,11 @@ namespace MixedRemoteViewCompositor
                     this.Close();
                 }
 
-                if (this.disconnectedCallbackHandle.IsAllocated)
+                // free unmanaged resources (unmanaged objects) and override a finalizer below.
+                if (thisObject.IsAllocated)
                 {
-                    this.disconnectedCallbackHandle.Free();
-                }
-
-                if (this.dataReceivedCallbackHandle.IsAllocated)
-                {
-                    this.dataReceivedCallbackHandle.Free();
+                    thisObject.Free();
+                    thisObject = default(GCHandle);
                 }
 
                 this.disposedValue = true;
@@ -134,44 +129,17 @@ namespace MixedRemoteViewCompositor
             {
                 this.Handle = connectionHandle;
 
-                this.disconnectedHandler = (handle, result, message) =>
-                {
-                    if (handle != this.Handle)
-                    {
-                        return;
-                    }
+                thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
+                IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
-                    if (this.Disconnected != null)
-                    {
-                        this.Disconnected(this, EventArgs.Empty);
-                    }
-                };
-                this.disconnectedCallbackHandle = GCHandle.Alloc(this.disconnectedHandler);
+                this.disconnectedHandler = new PluginCallbackHandler(Connection_PluginCallbackWrapper.OnDisconnected_Callback);
                 Plugin.CheckResult(
-                    Wrapper.exAddDisconnected(this.Handle, this.disconnectedHandler, ref this.disconnectedToken),
+                    Wrapper.exAddDisconnected(this.Handle, this.disconnectedHandler, thisObjectPtr, ref this.disconnectedToken),
                     "Connection.AddDisconnected");
 
-                this.dataReceivedHandler = (handle, type, length, buffer) =>
-                {
-                    if (handle != this.Handle || buffer == IntPtr.Zero)
-                    {
-                        return;
-                    }
-
-                    var packetType = Enum.ToObject(typeof(DataType), type) as DataType?;
-                    if (packetType != null && packetType.Value != DataType.Unknown)
-                    {
-                        if (this.DataReceived == null)
-                        {
-                            return;
-                        }
-
-                        this.DataReceived(this, new DataReceivedArgs(packetType.Value, buffer, length));
-                    }
-                };
-                this.dataReceivedCallbackHandle = GCHandle.Alloc(this.dataReceivedHandler);
+                this.dataReceivedHandler = new Wrapper.DataReceivedHandler(Connection_PluginCallbackWrapper.OnDataReceived_Callback);
                 Plugin.CheckResult(
-                    Wrapper.exAddReceived(this.Handle, this.dataReceivedHandler, ref this.dataReceivedToken),
+                    Wrapper.exAddReceived(this.Handle, this.dataReceivedHandler, thisObjectPtr, ref this.dataReceivedToken),
                     "Connection.AddRecevied");
 
                 returnResult = true;
@@ -206,27 +174,49 @@ namespace MixedRemoteViewCompositor
                 Plugin.CheckResult(result, "Connection.Close() - CloseConnection");
             }
 
-            if (this.Closed != null)
-            {
-                this.Closed(this, EventArgs.Empty);
-            }
+
+            this.Closed?.Invoke(this, EventArgs.Empty);
 
             this.Handle = Plugin.InvalidHandle;
+        }
+
+        private void OnDisconnected(uint handle, int result, string message)
+        {
+            if (handle != this.Handle)
+            {
+                return;
+            }
+            
+            this.Disconnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnDataReceived(uint handle, ushort messageType, int length, IntPtr buffer)
+        {
+            if (handle != this.Handle || buffer == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var packetType = Enum.ToObject(typeof(DataType), messageType) as DataType?;
+            if (packetType != null && packetType.Value != DataType.Unknown)
+            {
+                this.DataReceived?.Invoke(this, new DataReceivedArgs(packetType.Value, buffer, length));
+            }
         }
 
         private static class Wrapper
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate void DataReceivedHandler(uint msgHandle, ushort messageType, int length, IntPtr buffer);
+            internal delegate void DataReceivedHandler(uint msgHandle, IntPtr senderPtr, ushort messageType, int length, IntPtr buffer);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectionAddDisconnected")]
-            internal static extern int exAddDisconnected(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler disconnectedCallback, ref UInt64 tokenValue);
+            internal static extern int exAddDisconnected(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler disconnectedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectionRemoveDisconnected")]
             internal static extern int exRemoveDisconnected(uint handle, UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectionAddReceived")]
-            internal static extern int exAddReceived(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]DataReceivedHandler dataReceivedCallback, ref UInt64 tokenValue);
+            internal static extern int exAddReceived(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]DataReceivedHandler dataReceivedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectionRemoveReceived")]
             internal static extern int exRemoveReceived(uint handle, UInt64 tokenValue);
@@ -236,6 +226,29 @@ namespace MixedRemoteViewCompositor
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectionClose")]
             internal static extern int exClose(uint handle);
+        }
+
+        internal static class Connection_PluginCallbackWrapper
+        {
+            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
+            internal static void OnDisconnected_Callback(uint handle, IntPtr senderPtr, int result, string message)
+            {
+                var thisObj = Plugin.GetSenderObject<Connection>(senderPtr);
+
+                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
+                    thisObj.OnDisconnected(handle, result, message);
+                });
+            }
+
+            [AOT.MonoPInvokeCallback(typeof(Wrapper.DataReceivedHandler))]
+            internal static void OnDataReceived_Callback(uint msgHandle, IntPtr senderPtr, ushort messageType, int length, IntPtr buffer)
+            {
+                var thisObj = Plugin.GetSenderObject<Connection>(senderPtr);
+
+                Plugin.ExecuteOnUnityThread(() => {
+                    thisObj.OnDataReceived(msgHandle, messageType, length, buffer);
+                });
+            }
         }
     }
 }

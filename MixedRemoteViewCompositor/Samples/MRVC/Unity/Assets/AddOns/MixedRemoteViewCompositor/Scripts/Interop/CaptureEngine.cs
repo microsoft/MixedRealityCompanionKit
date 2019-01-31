@@ -17,14 +17,11 @@ namespace MixedRemoteViewCompositor
 
         private uint Handle { get; set; }
 
+        private GCHandle thisObject = default(GCHandle);
+
         private PluginCallbackHandler createdHandler;
-        private GCHandle createdCallbackHandle;
-
-        private PluginCallbackHandler startedHandler;
-        private GCHandle startedCallbackHandle;
-
+        private PluginCallbackHandler startedHandler;        
         private PluginCallbackHandler stoppedHandler;
-        private GCHandle stoppedCallbackHandle;
 
         // IDisposable
         private bool disposedValue = false;
@@ -50,7 +47,7 @@ namespace MixedRemoteViewCompositor
             return true;
         }
 
-        public void Start(Connection connection, bool enableMRC, IntPtr spatialCoordinateSystemPtr)
+        public void Start(Connection connection)
         {
             int result = 0;
 
@@ -70,7 +67,7 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            result = Wrapper.exStart(this.Handle, connection.Handle, enableMRC, spatialCoordinateSystemPtr, this.startedHandler);
+            result = Wrapper.exStart(this.Handle, connection.Handle, this.startedHandler);
             if (result != 0)
             {
                 if (this.Failed != null)
@@ -128,17 +125,6 @@ namespace MixedRemoteViewCompositor
             this.Handle = Plugin.InvalidHandle;
         }
 
-        public void SetSpatialCoordinateSystem(IntPtr spatialCoordinateSystemPtr)
-        {
-            if (this.Handle == Plugin.InvalidHandle)
-            {
-                return;
-            }
-
-            Wrapper.exSetSpatialCoordinateSystemPtr(this.Handle, spatialCoordinateSystemPtr);
-        }
-
-
         private CaptureEngine()
         {
             this.Handle = Plugin.InvalidHandle;
@@ -147,15 +133,6 @@ namespace MixedRemoteViewCompositor
             this.Stopped = null;
             this.Closed = null;
             this.Failed = null;
-
-            this.createdHandler = null;
-            this.createdCallbackHandle = default(GCHandle);
-
-            this.startedHandler = null;
-            this.startedCallbackHandle = default(GCHandle);
-
-            this.stoppedHandler = null;
-            this.stoppedCallbackHandle = default(GCHandle);
         }
 
         ~CaptureEngine()
@@ -181,53 +158,36 @@ namespace MixedRemoteViewCompositor
 
             this.Close();
 
-            // free unmanaged resources (unmanaged objects) and override a finalizer below.
-            if (this.createdCallbackHandle.IsAllocated)
-            {
-                this.createdCallbackHandle.Free();
-            }
-
-            if (this.startedCallbackHandle.IsAllocated)
-            {
-                this.startedCallbackHandle.Free();
-            }
-
-            if (this.stoppedCallbackHandle.IsAllocated)
-            {
-                this.stoppedCallbackHandle.Free();
-            }
-
             this.disposedValue = true;
         }
 
         private bool Initialize(Action<CaptureEngine> created, CaptureEngine engine)
         {
-            this.createdHandler = (handle, result, message) => 
-            {
-                this.Handle = handle;
+            // pin this object in the GC
+            thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
 
-                if (this.Handle == Plugin.InvalidHandle)
-                {
-                    engine.Close();
-                    engine.Dispose();
-                    engine = null;
-                }
-
-                created(engine);
-            };
-            this.createdCallbackHandle = GCHandle.Alloc(this.createdHandler);
-
-            this.startedHandler = this.OnStarted;
-            this.startedCallbackHandle = GCHandle.Alloc(this.startedHandler);
-
-            this.stoppedHandler = this.OnStopped;
-            this.stoppedCallbackHandle = GCHandle.Alloc(this.stoppedHandler);
+            this.createdHandler = new PluginCallbackHandler(PluginCallbackWrapper.OnCreated_Callback); // Need callbackwrapper class for every
+            this.startedHandler = new PluginCallbackHandler(PluginCallbackWrapper.OnStarted_Callback); // Need callbackwrapper class for every
+            this.stoppedHandler = new PluginCallbackHandler(PluginCallbackWrapper.OnStopped_Callback); // Need callbackwrapper class for every
 
             return (Wrapper.exCreate(false, this.createdHandler) == 0);
         }
 
+        internal void OnCreated(uint handle, int result, string message)
+        {
+             this.Handle = handle;
 
-        private void OnStarted(uint handle, int result, string message)
+            if (this.Handle == Plugin.InvalidHandle)
+            {
+                engine.Close();
+                engine.Dispose();
+                engine = null;
+            }
+
+            created(engine);
+        }
+
+        internal void OnStarted(uint handle, int result, string message)
         {
             if (this.Handle == Plugin.InvalidHandle)
             {
@@ -249,7 +209,7 @@ namespace MixedRemoteViewCompositor
             }
         }
 
-        private void OnStopped(uint handle, int result, string message)
+        internal void OnStopped(uint handle, int result, string message)
         {
             if (result != 0)
             {
@@ -283,16 +243,86 @@ namespace MixedRemoteViewCompositor
             internal static extern int exRemoveClosed(uint handle, UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureStart")]
-            internal static extern int exStart(uint captureHandle, uint connectionHandle, bool enableMrc, IntPtr spatialPtr, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler startedCallback);
+            internal static extern int exStart(uint captureHandle, uint connectionHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler startedCallback);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureStop")]
             internal static extern int exStop(uint captureHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler stoppedCallback);
 
-            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureSetSpatial")]
-            internal static extern int exSetSpatialCoordinateSystemPtr(uint captureHandle, IntPtr spatialCoordinateSystemPtr);
-
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureClose")]
             internal static extern int exClose(uint captureHandle);
         };
+    }
+
+    internal static class PluginCallbackWrapper
+    {
+        private static CaptureEngine GetCaptureEngine(IntPtr senderPtr)
+        {
+            if (senderPtr == IntPtr.Zero)
+            {
+                Debug.LogError("Plugin_Callback: requires thisObjectPtr.");
+
+                return;
+            }
+
+            GCHandle handle = GCHandle.FromIntPtr(senderPtr);
+
+            var thisObject = handle.Target as CaptureEngine;
+            if (thisObject == null)
+            {
+                Debug.LogError("Plugin_Callback: thisObjectPtr is not null, but seems invalid.");
+
+                return;
+            }
+
+        }
+
+        // TODO: Move to utils
+        public static void ExecuteOnCorrectThread(Func exec)
+        {
+            #if UNITY_WSA_10_0
+                if (!UnityEngine.WSA.Application.RunningOnAppThread())
+                {
+                    UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+                    {
+                        exec();
+                    }, false);
+                }
+                else
+                {
+                    exec();
+                }
+            #else
+                // there is still a chance the callback is on a non AppThread(callbacks genereated from WaitForEndOfFrame are not)
+                // this will process the callback on AppThread on a FixedUpdate
+                exec();
+            #endif
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(Wrapper.StateChangedCallback))]
+        internal static void OnCreated_Callback(uint handle, IntPtr senderPtr, int result, string message)
+        {
+            var thisObj = GetCaptureEngine(senderPtr);
+            ExecuteOnCorrectThread((thisObj, handle, result, message) => {
+                thisObj.OnCreated(handle, result, message);
+            });
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(Wrapper.StateChangedCallback))]
+        internal static void OnStarted_Callback(uint handle, IntPtr senderPtr, int result, string message)
+        {
+            var thisObj = GetCaptureEngine(senderPtr);
+            ExecuteOnCorrectThread((thisObj, handle, result, message) => {
+                thisObj.OnStarted(handle, result, message);
+            });
+        }
+
+        [AOT.MonoPInvokeCallback(typeof(Wrapper.StateChangedCallback))]
+        internal static void OnStopped_Callback(uint handle, IntPtr senderPtr, int result, string message)
+        {
+            var thisObj = GetCaptureEngine(senderPtr);
+            ExecuteOnCorrectThread((thisObj, handle, result, message) => {
+                thisObj.OnStopped(handle, result, message);
+            });
+        }
     }
 }

@@ -71,10 +71,6 @@ namespace MixedRemoteViewCompositor
                 _In_ float flRate);
 
             // INetworkMediaSink
-            IFACEMETHOD(get_SpatialCoordinateSystem)(
-                _COM_Outptr_opt_ ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem** coordinateSystem);
-            IFACEMETHOD(put_SpatialCoordinateSystem)(
-                _In_ ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem *coordinateSystem);
 
             IFACEMETHOD(add_Closed)(
                 _In_ Plugin::IClosedEventHandler *eventHandler,
@@ -140,8 +136,6 @@ namespace MixedRemoteViewCompositor
 
             ComPtr<ABI::MixedRemoteViewCompositor::Network::IConnection> _spConnection;
             EventRegistrationToken _bundleReceivedEventToken;
-
-            ComPtr<ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem> _spUnitySpatialCoordinateSystem;
 
             EventSource<Plugin::IClosedEventHandler> _evtClosed;
             EventSource<ABI::MixedRemoteViewCompositor::Media::IFormatChangedEventHandler> _evtFormatChanged;

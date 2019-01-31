@@ -619,33 +619,6 @@ HRESULT NetworkMediaSinkImpl::OnClockSetRate(MFTIME hnsSystemTime, float flRate)
 }
 
 _Use_decl_annotations_
-HRESULT NetworkMediaSinkImpl::get_SpatialCoordinateSystem(
-    ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem** ppCoordinateSystem)
-{
-    NULL_CHK(ppCoordinateSystem);
-
-    auto lock = _lock.Lock();
-
-    if (nullptr == _spUnitySpatialCoordinateSystem.Get())
-    {
-        return E_NOT_SET;
-    }
-
-    return _spUnitySpatialCoordinateSystem.CopyTo(ppCoordinateSystem);
-}
-
-_Use_decl_annotations_
-HRESULT NetworkMediaSinkImpl::put_SpatialCoordinateSystem(
-    ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem* coordinateSystem)
-{
-    auto lock = _lock.Lock();
-
-    _spUnitySpatialCoordinateSystem = coordinateSystem;
-
-    return S_OK;
-}
-
-_Use_decl_annotations_
 HRESULT NetworkMediaSinkImpl::add_Closed(
     IClosedEventHandler* eventHandler,
     EventRegistrationToken* token)

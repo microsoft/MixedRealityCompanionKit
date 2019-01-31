@@ -18,8 +18,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\CaptureEngine.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\Marker.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\Media.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSource.cpp" />
@@ -56,8 +54,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\CaptureEngine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\Marker.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\Media.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSource.h" />

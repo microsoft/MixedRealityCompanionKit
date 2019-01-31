@@ -629,12 +629,12 @@ done:
 
 _Use_decl_annotations_
 HRESULT PlaybackEngineStaticsImpl::Create(
-    IConnection* pConnection, 
-    IPlaybackEngine** ppPlaybackEngine)
+	IConnection* pConnection,
+	IPlaybackEngine** ppPlaybackEngine)
 {
-    NULL_CHK(pConnection);
-    NULL_CHK(ppPlaybackEngine);
+	NULL_CHK(pConnection);
+	NULL_CHK(ppPlaybackEngine);
 
-    ComPtr<IConnection> spConnection(pConnection);
-    return MakeAndInitialize<PlaybackEngineImpl>(ppPlaybackEngine, spConnection.Get());
+	ComPtr<IConnection> spConnection(pConnection);
+	return MakeAndInitialize<PlaybackEngineImpl>(ppPlaybackEngine, spConnection.Get());
 }

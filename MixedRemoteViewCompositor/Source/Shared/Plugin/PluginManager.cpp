@@ -228,7 +228,8 @@ PluginManagerImpl::SetStreamingAssetsPath(LPCWSTR path)
 _Use_decl_annotations_
 void PluginManagerImpl::SetTime(float t)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::SetTime()\n");
+	// TODO: uncomment these
+    //Log(Log_Level_Info, L"PluginManagerImpl::SetTime()\n");
 
     auto lock = _lock.Lock();
 
@@ -248,7 +249,8 @@ void PluginManagerImpl::SetTime(float t)
 _Use_decl_annotations_
 void PluginManagerImpl::OnPlugInEvent(PluginEventType event)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::OnRenderEvent()\n");
+	// TODO: uncomment these
+    //Log(Log_Level_Info, L"PluginManagerImpl::OnRenderEvent()\n");
 
     // we have no control that the callback is still valid
     LOG_RESULT(
@@ -294,7 +296,8 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::ListenerCreateAndStart(
     UINT16 port, 
     ModuleHandle *listenerHandle,
-    PluginCallback callback)
+    PluginCallback callback,
+	void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::StartListener()\n");
 
@@ -317,7 +320,7 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
     // wait until we get a conneciton from the listner
     return StartAsyncThen(
         connectedOp.Get(),
-        [this, callback](_In_ HRESULT hr, _In_ IConnectionCreatedOperation *result, _In_ AsyncStatus asyncStatus) -> HRESULT
+        [this, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation *result, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
 
@@ -347,7 +350,7 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
             LOG_RESULT(hr);
         }
 
-        CompletePluginCallback(callback, handle, hr);
+        CompletePluginCallback(callback, pCallbackObject, handle, hr);
 
         return hr;
     });
@@ -376,7 +379,8 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::ConnectorCreateAndStart(
     LPCWSTR address,
     ModuleHandle *connectorHandle,
-    PluginCallback callback)
+    PluginCallback callback,
+	void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection()\n");
 
@@ -428,7 +432,7 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
     // wait until we get a conneciton from the listner
     return StartAsyncThen(
         connectedOp.Get(),
-        [this, callback](_In_ HRESULT hr, _In_ IConnectionCreatedOperation* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
+        [this, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - ConnectAsync()\n");
 
@@ -457,7 +461,7 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
             LOG_RESULT(hr);
         }
 
-        CompletePluginCallback(callback, handle, hr);
+        CompletePluginCallback(callback, pCallbackObject, handle, hr);
 
         return hr;
     });
@@ -484,6 +488,7 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::ConnectionAddDisconnected(
     ModuleHandle handle, 
     PluginCallback callback, 
+	void* pCallbackObject,
     INT64* tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
@@ -494,11 +499,11 @@ HRESULT PluginManagerImpl::ConnectionAddDisconnected(
     auto lock = _lock.Lock();
 
     auto disconnectedCallback = Callback<IDisconnectedEventHandler>(
-        [this, handle, callback](_In_ IConnection *sender) -> HRESULT
+        [this, handle, callback, pCallbackObject](_In_ IConnection *sender) -> HRESULT
     {
         NULL_CHK(sender);
 
-        callback(handle, S_OK, L"");
+        callback(handle, pCallbackObject, S_OK, L"");
 
         return S_OK;
     });
@@ -545,6 +550,7 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::ConnectionAddReceived(
     ModuleHandle handle,
     DataReceivedHandler callback,
+	void* pCallbackObject,
     INT64* tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
@@ -556,7 +562,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
 
     // wrap callback
     auto bundleReceivedCallback = Callback<IBundleReceivedEventHandler>(
-        [this, handle, callback](
+        [this, handle, callback, pCallbackObject](
             _In_ IConnection *sender,
             _In_ IBundleReceivedArgs *args) -> HRESULT
     {
@@ -592,7 +598,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
                 hr = rawDataBundle->CopyTo(0, cbTotalLen, &_bundleData[0], &copiedBytes);
                 if (SUCCEEDED(hr))
                 {
-                    callback(handle, (UINT16)payloadType, copiedBytes, _bundleData.data());
+                    callback(handle, pCallbackObject, (UINT16)payloadType, copiedBytes, _bundleData.data());
                 }
                 IFC(hr);
             }
@@ -601,7 +607,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
 
         default:
             auto lock = _lock.Lock();
-            callback(handle, static_cast<UINT16>(payloadType), 0, nullptr);
+            callback(handle, pCallbackObject, static_cast<UINT16>(payloadType), 0, nullptr);
             break;
         };
 
@@ -750,119 +756,47 @@ HRESULT PluginManagerImpl::ConnectionClose(
 
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::CaptureCreateAsync(
-    bool enableAudio,
-    PluginCallback callback)
+HRESULT PluginManagerImpl::CaptureCreate(
+	ModuleHandle* captureHandle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::CaptureCreateAndStart()\n");
+	NULL_CHK(captureHandle);
 
-    NULL_CHK(callback);
+    Log(Log_Level_Info, L"PluginManagerImpl::CaptureCreateAndStart()\n");
 
     ComPtr<CaptureEngineImpl> spCaptureEngine;
     IFR(MakeAndInitialize<CaptureEngineImpl>(&spCaptureEngine));
 
-    ComPtr<IAsyncAction> spInitAction;
-    IFR(spCaptureEngine->InitAsync(enableAudio, &spInitAction));
+    //ComPtr<IAsyncAction> spInitAction;
+    //IFR(spCaptureEngine->InitAsync(enableAudio, &spInitAction));
 
-    ComPtr<PluginManagerImpl> spThis(this);
-    return StartAsyncThen(
-        spInitAction.Get(),
-        [this, spThis, spCaptureEngine, callback](_In_ HRESULT hr, _In_ IAsyncAction* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
+    Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - InitAsync()\n");
+
+    auto lock = _lock.Lock();
+
+    ModuleHandle handle = MODULE_HANDLE_INVALID;
+    ComPtr<IModule> module;
+
+    if (nullptr == _moduleManager)
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - InitAsync()\n");
+		IFR(E_NOT_SET);
+    }
 
-        auto lock = _lock.Lock();
-
-        ModuleHandle handle = MODULE_HANDLE_INVALID;
-        ComPtr<IModule> module;
-
-        IFC(hr);
-
-        if (nullptr == _moduleManager)
-        {
-            IFC(E_NOT_SET);
-        }
-
-        IFC(spCaptureEngine.As(&module));
+    IFR(spCaptureEngine.As(&module));
         
-        IFC(_moduleManager->AddModule(module.Get(), &handle));
+	IFR(_moduleManager->AddModule(module.Get(), &handle));
 
-    done:
-        CompletePluginCallback(callback, handle, hr);
+	*captureHandle = handle;
 
-        return hr;
-    });
+	return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::CaptureAddClosed(
-    ModuleHandle handle,
-    PluginCallback callback,
-    INT64* tokenValue)
-{
-    Log(Log_Level_Info, L"PluginManagerImpl::CaptureAddClosed()\n");
-
-    auto lock = _lock.Lock();
-
-    ComPtr<PluginManagerImpl> spThis;
-    auto closedHandler = Callback<IClosedEventHandler>(
-        [this, spThis, handle, callback](
-            _In_ IInspectable *sender) -> HRESULT
-    {
-        NULL_CHK(sender);
-
-        callback(handle, S_OK, L"");
-
-        return S_OK;
-    });
-
-    ComPtr<ICaptureEngine> spCaputureEngine;
-    IFR(GetCaptureEngine(handle, &spCaputureEngine));
-
-    // register for callback
-    EventRegistrationToken newToken;
-    IFR(spCaputureEngine->add_Closed(closedHandler.Get(), &newToken));
-
-    // set return
-    *tokenValue = newToken.value;
-
-    // track the token
-    StoreToken(handle, newToken);
-
-    return S_OK;
-}
-_Use_decl_annotations_
-HRESULT PluginManagerImpl::CaptureRemoveClosed(
-    ModuleHandle handle,
-    INT64 tokenValue)
-{
-    Log(Log_Level_Info, L"PluginManagerImpl::CaptureRemoveClosed()\n");
-
-    auto lock = _lock.Lock();
-
-    // get playback
-    ComPtr<ICaptureEngine> spCaptureEngine;
-    IFR(GetCaptureEngine(handle, &spCaptureEngine));
-
-    // get the token stored in the event list
-    EventRegistrationToken removeToken;
-    RemoveToken(handle, tokenValue, &removeToken);
-
-    // unsubscribe from the event
-    return spCaptureEngine->remove_Closed(removeToken);
-}
-
-_Use_decl_annotations_
-HRESULT PluginManagerImpl::CaptureStartAsync(
+HRESULT PluginManagerImpl::CaptureInit(
+	bool enableAudio,
     ModuleHandle captureHandle,
-    ModuleHandle connectionHandle,
-    bool enableMrc, 
-    IUnknown* pSpatialCoordinateSystemUnk, 
-    PluginCallback callback)
+    ModuleHandle connectionHandle)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::CaptureStartAsync()\n");
-
-    NULL_CHK(callback);
 
     auto lock = _lock.Lock();
 
@@ -874,110 +808,50 @@ HRESULT PluginManagerImpl::CaptureStartAsync(
     ComPtr<IConnection> spConnection;
     IFR(GetConnection(connectionHandle, &spConnection));
 
-    if (nullptr != pSpatialCoordinateSystemUnk)
-    {
-        ComPtr<IUnknown> spInspectable(pSpatialCoordinateSystemUnk);
-        ComPtr<ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem> spUnitySpatialCoordinateSystem(nullptr);
-        IFR(spInspectable.As(&spUnitySpatialCoordinateSystem));
-        IFR(spCaptureEngine->put_SpatialCoordinateSystem(spUnitySpatialCoordinateSystem.Get()));
-    }
+	IFR(spCaptureEngine->Init(enableAudio, spConnection.Get()));
 
-    ComPtr<IAsyncAction> startAsync;
-    IFR(spCaptureEngine->StartAsync(enableMrc, spConnection.Get(), &startAsync));
-
-    ComPtr<PluginManagerImpl> spThis(this);
-    return StartAsyncThen(
-        startAsync.Get(),
-        [this, spThis, captureHandle, callback](_In_ HRESULT hr, _In_ IAsyncAction* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
-    {
-        CompletePluginCallback(callback, captureHandle, hr);
-
-        return hr;
-    });
+	return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::CaptureStopAsync(
-    ModuleHandle handle,
-    PluginCallback callback)
+HRESULT PluginManagerImpl::CaptureShutdown(
+	ModuleHandle captureHandle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::CaptureStopAsync()\n");
+	Log(Log_Level_Info, L"PluginManagerImpl::CaptureShutdown()\n");
 
-    auto lock = _lock.Lock();
+	auto lock = _lock.Lock();
 
-    // get capture engine
-    ComPtr<ICaptureEngine> spCaptureEngine;
-    IFR(GetCaptureEngine(handle, &spCaptureEngine));
+	// get capture engine
+	ComPtr<ICaptureEngine> spCaptureEngine;
+	IFR(GetCaptureEngine(captureHandle, &spCaptureEngine));
 
-    ComPtr<IAsyncAction> spStopAction;
-    IFR(spCaptureEngine->StopAsync(&spStopAction));
+	IFR(spCaptureEngine->Shutdown());
 
-    ComPtr<PluginManagerImpl> spThis(this);
-    return StartAsyncThen(
-        spStopAction.Get(),
-        [this, spThis, handle, callback](_In_ HRESULT hr, _In_ IAsyncAction* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
-    {
-        CompletePluginCallback(callback, handle, hr);
-
-        return S_OK;
-    });
+	return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::SetSpatialCoordinateSystem(
-    ModuleHandle handle, 
-    IUnknown* pSpatialCoordinateSystemUnk)
+HRESULT PluginManagerImpl::CaptureWriteFrame(
+	ModuleHandle captureHandle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::SetSpatialCoordinateSystem()\n");
+	Log(Log_Level_Info, L"PluginManagerImpl::CaptureWriteFrame()\n");
 
-    NULL_CHK(pSpatialCoordinateSystemUnk);
+	auto lock = _lock.Lock();
 
-    ComPtr<ISpatialCoordinateSystem> spSpatialCoordinateSystem;
-    IFR(pSpatialCoordinateSystemUnk->QueryInterface(__uuidof(ISpatialCoordinateSystem), &spSpatialCoordinateSystem));
+	// get capture engine
+	ComPtr<ICaptureEngine> spCaptureEngine;
+	IFR(GetCaptureEngine(captureHandle, &spCaptureEngine));
 
-    auto lock = _lock.Lock();
+	IFR(spCaptureEngine->WriteFrame());
 
-    // get capture engine
-    ComPtr<ICaptureEngine> spCaptureEngine;
-    IFR(GetCaptureEngine(handle, &spCaptureEngine));
-
-    return (spCaptureEngine->put_SpatialCoordinateSystem(spSpatialCoordinateSystem.Get()));
+	return S_OK;
 }
-
-_Use_decl_annotations_
-HRESULT PluginManagerImpl::CaptureClose(
-    _In_ ModuleHandle handle)
-{
-    Log(Log_Level_Info, L"PluginManagerImpl::CaptureClose()\n");
-
-    auto lock = _lock.Lock();
-
-    // get capture engine
-    ComPtr<ICaptureEngine> spCaptureEngine;
-    IFR(GetCaptureEngine(handle, &spCaptureEngine));
-
-    // find any tokens register to this handle
-    auto iter = _eventTokens.find(handle);
-    if (iter != _eventTokens.end())
-    {
-        for each (auto token in (*iter).second)
-        {
-            spCaptureEngine->remove_Closed(token);
-        }
-        (*iter).second.clear();
-
-        _eventTokens.erase(iter);
-    }
-
-    // unregister from the connection
-    return _moduleManager->ReleaseModule(handle);
-}
-
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::PlaybackCreate(
     ModuleHandle handle, 
-    PluginCallback callback)
+    PluginCallback callback,
+	void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::PlaybackCreate()\n");
 
@@ -998,7 +872,7 @@ HRESULT PluginManagerImpl::PlaybackCreate(
     ComPtr<PluginManagerImpl> spThis(this);
     return StartAsyncThen(
         spInitAction.Get(),
-        [this, spThis, spPlaybackEngine, callback](_In_ HRESULT hr, _In_ IAsyncAction* asyncAction, _In_ AsyncStatus asyncStatus)
+        [this, spThis, spPlaybackEngine, callback, pCallbackObject](_In_ HRESULT hr, _In_ IAsyncAction* asyncAction, _In_ AsyncStatus asyncStatus)
     {
         Log(Log_Level_Info, L"PluginManagerImpl::PlaybackCreate() - InitAsync()\n");
 
@@ -1019,7 +893,7 @@ HRESULT PluginManagerImpl::PlaybackCreate(
         IFC(_moduleManager->AddModule(module.Get(), &handle));
 
     done:
-        CompletePluginCallback(callback, handle, hr);
+        CompletePluginCallback(callback, pCallbackObject, handle, hr);
 
         return hr;
     });
@@ -1030,20 +904,21 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::PlaybackAddClosed(
     ModuleHandle handle, 
     PluginCallback callback, 
+	void* pCallbackObject,
     INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::PlaybackAddSizeChanged()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::PlaybackAddClosed()\n");
 
     auto lock = _lock.Lock();
 
     ComPtr<PluginManagerImpl> spThis;
     auto closedHandler = Callback<IClosedEventHandler>(
-        [this, spThis, handle, callback](
+        [this, spThis, handle, callback, pCallbackObject](
             _In_ IInspectable *sender) -> HRESULT
     {
         NULL_CHK(sender);
 
-        callback(handle, S_OK, L"");
+        callback(handle, pCallbackObject, S_OK, L"");
 
         return S_OK;
     });
@@ -1088,7 +963,8 @@ HRESULT PluginManagerImpl::PlaybackRemoveClosed(
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::PlaybackAddSizeChanged(
     ModuleHandle handle,
-    FrameSizeChanged callback, 
+    FrameSizeChanged callback,
+	void* pCallbackObject,
     INT64* tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::PlaybackAddSizeChanged()\n");
@@ -1097,7 +973,7 @@ HRESULT PluginManagerImpl::PlaybackAddSizeChanged(
 
     ComPtr<PluginManagerImpl> spThis;
     auto formatChangedHandler = Callback<IFormatChangedEventHandler>(
-        [this, spThis, callback](
+        [this, spThis, callback, pCallbackObject](
             _In_ IFormatChangedEventArgs *args) -> HRESULT
     {
         NULL_CHK(args);
@@ -1108,7 +984,7 @@ HRESULT PluginManagerImpl::PlaybackAddSizeChanged(
         UINT32 height;
         IFR(args->get_Height(&height));
 
-        callback(width, height);
+        callback(width, height, pCallbackObject);
 
         return S_OK;
     });
@@ -1154,6 +1030,7 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::PlaybackAddSampleUpdated(
     ModuleHandle handle,
     SampleUpdated callback,
+	void* pCallbackObject,
     INT64* tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::PlaybackAddSampleUpdated()\n");
@@ -1162,7 +1039,7 @@ HRESULT PluginManagerImpl::PlaybackAddSampleUpdated(
 
     ComPtr<PluginManagerImpl> spThis;
     auto sampleUpdatedHandler = Callback<ISampleUpdatedEventHandler>(
-        [this, spThis, handle, callback](
+        [this, spThis, handle, callback, pCallbackObject](
             _In_ ISampleUpdatedEventArgs *args) -> HRESULT
     {
         NULL_CHK(args);
@@ -1179,7 +1056,7 @@ HRESULT PluginManagerImpl::PlaybackAddSampleUpdated(
         //sampleData.cameraViewTransform = pArgs->CameraView;
         //sampleData.cameraProjection = pArgs->CameraProj;
 
-        callback(&sampleData);
+        callback(&sampleData, pCallbackObject);
 
         return S_OK;
     });
@@ -1225,7 +1102,7 @@ HRESULT PluginManagerImpl::PlaybackGetFrameData(
     ModuleHandle handle, 
     MediaSampleArgs* args)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::PlaybackRemoveSampleUpdated()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::PlaybackGetFrameData()\n");
 
     NULL_CHK(args);
 
@@ -1306,9 +1183,10 @@ HRESULT PluginManagerImpl::PlaybackClose(
 // internal
 _Use_decl_annotations_
 void PluginManagerImpl::CompletePluginCallback(
-    PluginCallback callback,
-    ModuleHandle handle,
-    HRESULT hr)
+    _In_ PluginCallback callback,
+	_In_ void* pCallbackObject,
+	_In_ ModuleHandle handle,
+	_In_ HRESULT hr)
 {
     LOG_RESULT(PluginManagerStaticsImpl::IsOnThread() ? S_OK : RPC_E_WRONG_THREAD);
 
@@ -1316,11 +1194,11 @@ void PluginManagerImpl::CompletePluginCallback(
     {
         if (FAILED(hr))
         {
-            callback(handle, hr, ErrorMessage(hr));
+            callback(handle, pCallbackObject, hr, ErrorMessage(hr));
         }
         else
         {
-            callback(handle, S_OK, L"");
+            callback(handle, pCallbackObject, S_OK, L"");
         }
 
         return S_OK;

@@ -116,7 +116,8 @@ inline void __stdcall Log(
 {
     if (LOG_LEVEL < level)
     {
-        return;
+		// TODO: Uncomment this
+        //return;
     }
 
     wchar_t szTextBuf[2048];

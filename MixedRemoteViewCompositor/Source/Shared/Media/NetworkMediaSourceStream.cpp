@@ -228,6 +228,10 @@ IFACEMETHODIMP NetworkMediaSourceStreamImpl::RequestSample(
     // Put token onto the list to return it when we have a sample ready
     IFC(_tokens.InsertBack(pToken));
 
+	//tokenTest = pToken;
+	tokenTest = pToken;
+	pToken->AddRef();
+
     // Trigger sample delivery
     IFC(DeliverSamples());
 
@@ -854,7 +858,9 @@ HRESULT NetworkMediaSourceStreamImpl::SetSampleAttributes(
     MediaSampleTransforms* pSampleTransforms,
     IMFSample* pSample)
 {
-    IFR_MSG(pSample->SetSampleTime(pSampleHeader->hnsTimestamp), L"setting sample time");
+    //IFR_MSG(pSample->SetSampleTime(pSampleHeader->hnsTimestamp), L"setting sample time");
+	// TODO: Troy hack to test 0 presentation time
+	IFR_MSG(pSample->SetSampleTime(0), L"setting sample time");
     IFR_MSG(pSample->SetSampleDuration(pSampleHeader->hnsDuration), L"setting sample duration");
 
     SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, BottomFieldFirst);

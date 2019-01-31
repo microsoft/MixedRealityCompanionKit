@@ -94,12 +94,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\Media.h">
       <Filter>Media</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.h">
-      <Filter>Media</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.h">
-      <Filter>Media</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.h">
       <Filter>Media</Filter>
     </ClInclude>
@@ -165,12 +159,6 @@
       <Filter>Media</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\Media.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.cpp">
       <Filter>Media</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.cpp">

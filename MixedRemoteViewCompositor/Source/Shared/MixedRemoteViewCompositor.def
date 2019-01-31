@@ -18,13 +18,10 @@ EXPORTS
     MrvcConnectionRemoveReceived
     MrvcConnectionClose
     MrvcConnectionSendRawData
-    MrvcCaptureCreate
-    MrvcCaptureAddClosed
-    MrvcCaptureRemoveClosed
-    MrvcCaptureStart
+    CreateStreamCaptureEngine
+    MrvcCaptureInit
     MrvcCaptureStop
-    MrvcCaptureSetSpatial
-    MrvcCaptureClose
+	MrvcCaptureWrite
     MrvcPlaybackCreate
     MrvcPlaybackAddSizeChanged
     MrvcPlaybackRemoveSizeChanged

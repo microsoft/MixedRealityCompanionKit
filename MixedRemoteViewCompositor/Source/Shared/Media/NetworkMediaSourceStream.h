@@ -116,6 +116,7 @@ namespace MixedRemoteViewCompositor
 
             ComPtrList<IUnknown>        _samples;
             ComPtrList<IUnknown, true>  _tokens;
+			Microsoft::WRL::ComPtr<IUnknown> tokenTest;
 
             DWORD                       _dwId;
             bool                        _fActive;

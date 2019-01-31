@@ -4,11 +4,13 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Globalization;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace MixedRemoteViewCompositor
 {
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void FrameSizeChanged(UInt32 width, UInt32 height);
+    public delegate void FrameSizeChangedHandler(UInt32 width, UInt32 height, IntPtr senderPtr);
 
     public class FrameSizedChangedArgs : EventArgs
     {
@@ -37,7 +39,7 @@ namespace MixedRemoteViewCompositor
     };
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void MediaSampleUpdated(ref MediaSampleUpdateArgs args);
+    public delegate void MediaSampleUpdatedHandler(ref MediaSampleUpdateArgs args, IntPtr senderPtr);
 
     public class PlaybackEngine : IDisposable
     {
@@ -47,19 +49,17 @@ namespace MixedRemoteViewCompositor
         public Action<object, FailedEventArgs> Failed;
         public Action<object, FrameSizedChangedArgs> FrameSizeChanged;
 
-
         private uint Handle { get; set; }
 
+        private GCHandle thisObject = default(GCHandle);
+
         private PluginCallbackHandler createdHandler;
-        private GCHandle createdCallbackHandle;
 
         private ulong sizeChangedToken = 0;
-        private event FrameSizeChanged sizeChangedHandler;
-        private GCHandle sizeChangedCallbackHandle;
+        private event FrameSizeChangedHandler sizeChangedHandler;
 
         private ulong sampleUpdatedToken = 0;
-        private event MediaSampleUpdated sampleUpdatedHandler;
-        private GCHandle sampleUpdatedCallbackHandle;
+        private event MediaSampleUpdatedHandler sampleUpdatedHandler;
 
         // IDisposable
         private bool disposedValue = false;
@@ -102,9 +102,15 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            if (this.Started != null)
+            this.Started?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void StartTest()
+        {
+            int result = Wrapper.exStart(this.Handle);
+            if (result != 0)
             {
-                this.Started(this, EventArgs.Empty);
+                //Debug.Log("Failed second playback start");
             }
         }
 
@@ -125,10 +131,7 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            if (this.Stopped != null)
-            {
-                this.Stopped(this, EventArgs.Empty);
-            }
+            this.Stopped?.Invoke(this, EventArgs.Empty);
         }
 
         public void Close()
@@ -148,19 +151,16 @@ namespace MixedRemoteViewCompositor
             result = Wrapper.exClose(this.Handle);
             Plugin.CheckResult(result, "PlaybackEngine.Close() - Close playback");
 
-            if (this.Closed != null)
-            {
-                this.Closed(this, EventArgs.Empty);
-            }
+            this.Closed?.Invoke(this, EventArgs.Empty);
 
             this.Handle = Plugin.InvalidHandle;
         }
 
         public bool GetFrameData(ref MediaSampleUpdateArgs args)
         {
-            return (Wrapper.exGetFrameData(this.Handle, ref args) == 0);
+            var result = Wrapper.exGetFrameData(this.Handle, ref args);
+            return result == 0;
         }
-
 
         private PlaybackEngine()
         {
@@ -173,13 +173,8 @@ namespace MixedRemoteViewCompositor
             this.FrameSizeChanged = null;
 
             this.createdHandler = null;
-            this.createdCallbackHandle = default(GCHandle);
-
             this.sizeChangedHandler = null;
-            this.sizeChangedCallbackHandle = default(GCHandle);
-
             this.sampleUpdatedHandler = null;
-            this.sampleUpdatedCallbackHandle = default(GCHandle);
         }
 
         ~PlaybackEngine()
@@ -206,65 +201,73 @@ namespace MixedRemoteViewCompositor
             this.Close();
 
             // free unmanaged resources (unmanaged objects) and override a finalizer below.
-            if (this.createdCallbackHandle.IsAllocated)
+            if (thisObject.IsAllocated)
             {
-                this.createdCallbackHandle.Free();
-            }
-
-            if (this.sizeChangedCallbackHandle.IsAllocated)
-            {
-                this.sizeChangedCallbackHandle.Free();
-            }
-
-            if (this.sizeChangedCallbackHandle.IsAllocated)
-            {
-                this.sampleUpdatedCallbackHandle.Free();
+                thisObject.Free();
+                thisObject = default(GCHandle);
             }
 
             this.disposedValue = true;
         }
 
-        private bool Initialize(Action<PlaybackEngine> created, PlaybackEngine engine, Connection conneciton)
+        private Action<PlaybackEngine> createdCallback;
+        private PlaybackEngine enginePtr;
+
+        private bool Initialize(Action<PlaybackEngine> created, PlaybackEngine engine, Connection connection)
         {
-            this.createdHandler = (handle, result, message) =>
+            thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
+
+            this.createdHandler = new PluginCallbackHandler(PlaybackEngine_PluginCallbackWrapper.OnCreated_Callback);
+
+            // TODO: Clean this up, especially on failures***
+            this.createdCallback = created;
+            this.enginePtr = engine;
+
+            IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
+            return (Wrapper.exCreate(connection.Handle, this.createdHandler, thisObjectPtr) == 0);
+        }
+
+        private void OnCreated(uint handle, int result, string message)
+        {
+            this.Handle = handle;
+
+            if (this.Handle != Plugin.InvalidHandle)
             {
-                this.Handle = handle;
+                IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
-                if (this.Handle != Plugin.InvalidHandle)
-                {
-                    this.sizeChangedHandler = OnFrameSizeUpdated;
-                    this.sizeChangedCallbackHandle = GCHandle.Alloc(this.sizeChangedHandler);
-                    Plugin.CheckResult(
-                        Wrapper.exAddSizeChanged(this.Handle, this.sizeChangedHandler, ref this.sizeChangedToken),
-                        "PlaybackEngine.AddSizeChanged");
+                this.sizeChangedHandler = new FrameSizeChangedHandler(PlaybackEngine_PluginCallbackWrapper.OnFrameSizeUpdated_Callback);
+                //this.sizeChangedCallbackHandle = GCHandle.Alloc(this.sizeChangedHandler);
 
-                    this.sampleUpdatedHandler = OnSampleUpdatedHandler;
-                    this.sampleUpdatedCallbackHandle = GCHandle.Alloc(this.sampleUpdatedHandler);
-                    Plugin.CheckResult(
-                        Wrapper.exAddSampleUpdated(this.Handle, this.sampleUpdatedHandler, ref this.sampleUpdatedToken),
-                        "PlaybackEngine.AddSampleUpdated");
-                }
-                else
-                {
-                    engine.Close();
-                    engine.Dispose();
-                    engine = null;
-                }
+                Plugin.CheckResult(
+                    Wrapper.exAddSizeChanged(this.Handle, this.sizeChangedHandler, thisObjectPtr, ref this.sizeChangedToken),
+                    "PlaybackEngine.AddSizeChanged");
 
-                created(engine);
-            };
-            this.createdCallbackHandle = GCHandle.Alloc(this.createdHandler);
+                this.sampleUpdatedHandler = new MediaSampleUpdatedHandler(PlaybackEngine_PluginCallbackWrapper.OnSampleUpdatedHandler_Callback);
+                //this.sampleUpdatedCallbackHandle = GCHandle.Alloc(this.sampleUpdatedHandler);
 
-            return (Wrapper.exCreate(conneciton.Handle, this.createdHandler) == 0);
+                Plugin.CheckResult(
+                    Wrapper.exAddSampleUpdated(this.Handle, this.sampleUpdatedHandler, thisObjectPtr, ref this.sampleUpdatedToken),
+                    "PlaybackEngine.AddSampleUpdated");
+            }
+            else
+            {
+                // TODO: clean this up*
+                this.enginePtr.Close();
+                this.enginePtr.Dispose();
+                this.enginePtr = null;
+            }
+
+            this.createdCallback?.Invoke(this.enginePtr);
+
+            // Release references
+            this.createdCallback = null;
+            this.enginePtr = null;
         }
 
 
         private void OnFrameSizeUpdated(uint width, uint height)
         {
-            if (this.FrameSizeChanged != null)
-            {
-                this.FrameSizeChanged(this, new FrameSizedChangedArgs(width, height));
-            }
+            this.FrameSizeChanged?.Invoke(this, new FrameSizedChangedArgs(width, height));
         }
 
         private void OnSampleUpdatedHandler(ref MediaSampleUpdateArgs args)
@@ -274,16 +277,16 @@ namespace MixedRemoteViewCompositor
         private static class Wrapper
         {
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcPlaybackCreate")]
-            internal static extern int exCreate(uint connectionHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback);
+            internal static extern int exCreate(uint connectionHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, IntPtr objectPtr);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcPlaybackAddSizeChanged")]
-            internal static extern int exAddSizeChanged(uint playerHandle, [MarshalAs(UnmanagedType.FunctionPtr)]FrameSizeChanged sizeChangedCallback, ref UInt64 tokenValue);
+            internal static extern int exAddSizeChanged(uint playerHandle, [MarshalAs(UnmanagedType.FunctionPtr)]FrameSizeChangedHandler sizeChangedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcPlaybackRemoveSizeChanged")]
             internal static extern int exRemoveSizeChanged(uint playerHandle, UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcPlaybackAddSampleUpdated")]
-            internal static extern int exAddSampleUpdated(uint playerHandle, [MarshalAs(UnmanagedType.FunctionPtr)]MediaSampleUpdated sampleUpdatedCallback, ref UInt64 tokenValue);
+            internal static extern int exAddSampleUpdated(uint playerHandle, [MarshalAs(UnmanagedType.FunctionPtr)]MediaSampleUpdatedHandler sampleUpdatedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcPlaybackRemoveSampleUpdated")]
             internal static extern int exRemoveSampleUpdated(uint playerHandle, UInt64 tokenValue);
@@ -299,6 +302,40 @@ namespace MixedRemoteViewCompositor
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcPlaybackGetFrameData")]
             internal static extern int exGetFrameData(uint playerHandle, ref MediaSampleUpdateArgs args);
+        }
+
+        internal static class PlaybackEngine_PluginCallbackWrapper
+        {
+            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
+            internal static void OnCreated_Callback(uint handle, IntPtr senderPtr, int result, string message)
+            {
+                var thisObj = Plugin.GetSenderObject<PlaybackEngine>(senderPtr);
+
+                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
+                    thisObj.OnCreated(handle, result, message);
+                });
+            }
+
+            [AOT.MonoPInvokeCallback(typeof(FrameSizeChangedHandler))]
+            internal static void OnFrameSizeUpdated_Callback(uint width, uint height, IntPtr senderPtr)
+            {
+                var thisObj = Plugin.GetSenderObject<PlaybackEngine>(senderPtr);
+
+                Plugin.ExecuteOnUnityThread(() => {
+                    thisObj.OnFrameSizeUpdated(width, height);
+                });
+            }
+
+            [AOT.MonoPInvokeCallback(typeof(MediaSampleUpdatedHandler))]
+            internal static void OnSampleUpdatedHandler_Callback(ref MediaSampleUpdateArgs args, IntPtr senderPtr)
+            {
+                var thisObj = Plugin.GetSenderObject<PlaybackEngine>(senderPtr);
+
+                Plugin.ExecuteOnUnityThread(() => {
+                    // TODO: implement -> issue with how to use ref variables to lambda
+                    //thisObj.OnSampleUpdatedHandler(args);
+                });
+            }
         }
     }
 }

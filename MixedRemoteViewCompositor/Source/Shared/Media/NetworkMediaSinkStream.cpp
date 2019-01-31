@@ -1021,12 +1021,19 @@ HRESULT NetworkMediaSinkStreamImpl::PrepareSample(
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, SingleField);
 
         pSampleHeader->cbCameraDataSize = 0;
+		/*
+		TODO: Revisit here
         if (FAILED(ProcessCameraData(pSample, pSampleHeader)))
         {
             ZeroMemory(&pSampleHeader->worldToCameraMatrix, sizeof(Matrix4x4));
             ZeroMemory(&pSampleHeader->cameraProjectionTransform, sizeof(Matrix4x4));
             ZeroMemory(&pSampleHeader->cameraViewTransform, sizeof(Matrix4x4));
-        }
+        }*/
+
+		// We don't care about this now. Zero out now
+		ZeroMemory(&pSampleHeader->worldToCameraMatrix, sizeof(Matrix4x4));
+		ZeroMemory(&pSampleHeader->cameraProjectionTransform, sizeof(Matrix4x4));
+		ZeroMemory(&pSampleHeader->cameraViewTransform, sizeof(Matrix4x4));
     }
 
     // update the payload size to include additional buffer
@@ -1041,81 +1048,6 @@ HRESULT NetworkMediaSinkStreamImpl::PrepareSample(
     NULL_CHK_HR(spBundle, E_NOT_SET);
 
     return spBundle.CopyTo(ppDataBundle);
-}
-
-_Use_decl_annotations_
-HRESULT NetworkMediaSinkStreamImpl::ProcessCameraData(
-    IMFSample* pSample,
-    MediaSampleHeader* pSampleHeader)
-{
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::ProcessCameraData()\n");
-
-    NULL_CHK(pSample);
-    NULL_CHK(pSampleHeader);
-    NULL_CHK(_spParentMediaSink.Get());
-
-    UINT32 blobSize = 0;
-
-    using float4x4 = ABI::Windows::Foundation::Numerics::Matrix4x4;
-    MFPinholeCameraIntrinsics cameraIntrinsics;
-    float4x4 worldToCameraMatrix;
-    float4x4 cameraProjectionTransform;
-    float4x4 cameraViewTransform;
-
-    // world coordinate system application is using
-    using ISpatialCoordinateSystem = ABI::Windows::Perception::Spatial::ISpatialCoordinateSystem;
-    ISpatialCoordinateSystem* cameraCoordinateSystem = nullptr;
-    HRESULT hr = _spParentMediaSink->get_SpatialCoordinateSystem(&cameraCoordinateSystem);
-    if (SUCCEEDED(hr))
-    {
-        // cameraCoordinates
-        ComPtr<ISpatialCoordinateSystem> spSampleCoordinateSystem;
-        hr = pSample->GetUnknown(MFSampleExtension_Spatial_CameraCoordinateSystem, __uuidof(ISpatialCoordinateSystem), &spSampleCoordinateSystem);
-        if (SUCCEEDED(hr))
-        {
-            ComPtr<ABI::Windows::Foundation::IReference<ABI::Windows::Foundation::Numerics::Matrix4x4>> transformReference;
-            hr = spSampleCoordinateSystem->TryGetTransformTo(cameraCoordinateSystem, &transformReference);
-            if (SUCCEEDED(hr) && transformReference != nullptr)
-            {
-                hr = transformReference->get_Value(
-                reinterpret_cast<ABI::Windows::Foundation::Numerics::Matrix4x4*>(&worldToCameraMatrix));
-            }
-        }
-
-        // intrinsics
-        if (SUCCEEDED(hr))
-        {
-            hr = pSample->GetBlob(MFSampleExtension_PinholeCameraIntrinsics, (UINT8*)&cameraIntrinsics, sizeof(cameraIntrinsics), &blobSize);
-        }
-
-        // projection
-        if (SUCCEEDED(hr))
-        {
-            hr = pSample->GetBlob(MFSampleExtension_Spatial_CameraProjectionTransform, (UINT8*)&cameraProjectionTransform, sizeof(cameraProjectionTransform), &blobSize);
-        }
-
-        // camera view
-        if (SUCCEEDED(hr))
-        {
-            hr = pSample->GetBlob(MFSampleExtension_Spatial_CameraViewTransform, (UINT8*)&cameraViewTransform, sizeof(cameraViewTransform), &blobSize);
-        }
-    }
-
-    // store the value to the header
-    if (FAILED(hr))
-    {
-        ZeroMemory(&cameraIntrinsics, sizeof(cameraIntrinsics));
-        ZeroMemory(&worldToCameraMatrix, sizeof(worldToCameraMatrix));
-        ZeroMemory(&cameraProjectionTransform, sizeof(cameraProjectionTransform));
-        ZeroMemory(&cameraViewTransform, sizeof(cameraViewTransform));
-    }
-
-    // store the values to be sent
-    pSampleHeader->worldToCameraMatrix = worldToCameraMatrix;
-    pSampleHeader->cameraProjectionTransform = cameraProjectionTransform;
-    pSampleHeader->cameraViewTransform = cameraViewTransform;
-
-    return hr;
 }
 
 // Prepare bundle to notify missing sample for particular timestamp

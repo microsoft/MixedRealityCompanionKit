@@ -9,6 +9,8 @@
 #define WIN32_LEAN_AND_MEAN     // Exclude rarely-used stuff from Windows headers
 #endif
 
+#define LOG_LEVEL Log_Level_All
+
 // Standard C++ first
 #include <assert.h>
 #include <list>
@@ -56,7 +58,7 @@
 #include <mferror.h>
 #include <mfapi.h>
 #include <mfobjects.h>
-#include <mfmediacapture.h>
+//#include <mfmediacapture.h>
 #include <mfmediaengine.h>
 #include <mfreadwrite.h>
 #pragma comment(lib, "mf")
@@ -156,8 +158,8 @@ using namespace ABI::MixedRemoteViewCompositor::Media;
 #include "Marker.h"
 #include "NetworkMediaSinkStream.h"
 #include "NetworkMediaSink.h"
-#include "MrcAudioEffectDefinition.h"
-#include "MrcVideoEffectDefinition.h"
+//#include "MrcAudioEffectDefinition.h"
+//#include "MrcVideoEffectDefinition.h"
 #include "CaptureEngine.h"
 #include "NetworkMediaSourceStream.h"
 #include "NetworkMediaSource.h"

@@ -954,11 +954,6 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     interface INetworkMediaSink : IInspectable requires
         Windows.Media.IMediaExtension
     {
-        [propget] HRESULT SpatialCoordinateSystem(
-            [out][retval] Windows.Perception.Spatial.SpatialCoordinateSystem** coordinateSystem);
-        [propput] HRESULT SpatialCoordinateSystem(
-            [in] Windows.Perception.Spatial.SpatialCoordinateSystem* coordinateSystem);
-
         [eventadd] HRESULT Closed(
             [in] MixedRemoteViewCompositor.Plugin.ClosedEventHandler* eventHandler,
             [out][retval] EventRegistrationToken* token);
@@ -1074,31 +1069,15 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     [uuid(5e9858a9-5ef5-4b84-9645-eb3c11610a17)]
     [version(1.0)]
     interface ICaptureEngine : IInspectable requires
-        MixedRemoteViewCompositor.Plugin.IModule,
-        Windows.Foundation.IClosable
+        MixedRemoteViewCompositor.Plugin.IModule
     {
-        [eventadd] HRESULT Closed(
-            [in] MixedRemoteViewCompositor.Plugin.ClosedEventHandler* eventHandler,
-            [out][retval] EventRegistrationToken* token);
-        [eventremove] HRESULT Closed(
-            [in] EventRegistrationToken token);
-
-        [propget] HRESULT SpatialCoordinateSystem(
-            [out][retval] Windows.Perception.Spatial.SpatialCoordinateSystem** coordinateSystem);
-        [propput] HRESULT SpatialCoordinateSystem(
-            [in] Windows.Perception.Spatial.SpatialCoordinateSystem* coordinateSystem);
-
-        HRESULT InitAsync(
+        HRESULT Init(
             [in] boolean enableAudio,
-            [out][retval] Windows.Foundation.IAsyncAction** action);
+			[in] MixedRemoteViewCompositor.Network.Connection* connection);
 
-        HRESULT StartAsync(
-            [in] boolean enableMrc,
-            [in] MixedRemoteViewCompositor.Network.Connection* connection,
-            [out][retval] Windows.Foundation.IAsyncAction** action);
+        HRESULT Shutdown();
 
-        HRESULT StopAsync(
-            [out][retval] Windows.Foundation.IAsyncAction** action);
+        HRESULT WriteFrame();
     };
 
     [exclusiveto(MixedRemoteViewCompositor.Media.CaptureEngine)]
@@ -1106,9 +1085,8 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     [version(1.0)]
     interface ICaptureEngineStatics : IInspectable
     {
-        HRESULT CreateAsync(
-            [in] boolean enableAudio,
-            [out][retval] Windows.Foundation.IAsyncOperation<MixedRemoteViewCompositor.Media.CaptureEngine>** createAsynOp);
+        HRESULT Create(
+			[out][retval] MixedRemoteViewCompositor.Media.CaptureEngine** captureEngine);
     };
 
     //[activatable(MixedRemoteViewCompositor.Media.ICaptureEngineStatics, 1.0)]

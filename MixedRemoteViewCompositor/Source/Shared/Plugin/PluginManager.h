@@ -14,19 +14,22 @@ namespace MixedRemoteViewCompositor
         using namespace ABI::Windows::System::Threading;
 
         extern "C" typedef void(UNITY_INTERFACE_API *PluginCallback)(
-            _In_ ModuleHandle handle, 
+            _In_ ModuleHandle handle,
+			_In_ void* pCallbackObject,
             _In_ HRESULT result, 
             _In_ LPCWSTR pszMessage);
 
         extern "C" typedef void(UNITY_INTERFACE_API *DataReceivedHandler)(
             _In_ ModuleHandle handle, 
+			_In_ void* pCallbackObject,
             _In_ UINT16 opertion,
             _In_ UINT32 bufferSize, 
             _In_ const byte* buffer);
 
         extern "C" typedef void(UNITY_INTERFACE_API *FrameSizeChanged)(
             _In_ UINT32 width, 
-            _In_ UINT32 height);
+            _In_ UINT32 height,
+			_In_ void* pCallbackObject);
 
         extern "C" struct MediaSampleArgs
         {
@@ -41,7 +44,8 @@ namespace MixedRemoteViewCompositor
         };
 
         extern "C" typedef void(UNITY_INTERFACE_API *SampleUpdated)(
-            _In_ MediaSampleArgs *args);
+            _In_ MediaSampleArgs *args,
+			_In_ void* pCallbackObject);
 
         typedef std::function<void(_In_ float deltaTime, _In_ float relativeTime)> UpdateAction;
         typedef std::function<void()> RenderAction;
@@ -84,20 +88,23 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP ListenerCreateAndStart(
                 _In_ UINT16 port, 
                 _Inout_ ModuleHandle* listenerHandle,
-                _In_ PluginCallback callback);
+                _In_ PluginCallback callback,
+				_In_ void* pCallbackObject);
             STDMETHODIMP ListenerStopAndClose(
                 _In_ ModuleHandle listenerHandle);
 
             STDMETHODIMP ConnectorCreateAndStart(
                 _In_ LPCWSTR address,
                 _Inout_ ModuleHandle* connectorHandle,
-                _In_ PluginCallback callback);
+                _In_ PluginCallback callback,
+				_In_ void* pCallbackObject);
             STDMETHODIMP ConnectorStopAndClose(
                 _In_ ModuleHandle connectorHandle);
 
             STDMETHODIMP ConnectionAddDisconnected(
                 _In_ ModuleHandle connectionHandle,
                 _In_ PluginCallback callback,
+				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP ConnectionRemoveDisconnected(
                 _In_ ModuleHandle connectionHandle,
@@ -105,6 +112,7 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP ConnectionAddReceived(
                 _In_ ModuleHandle connectionHandle,
                 _In_ DataReceivedHandler callback,
+				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP ConnectionRemoveReceived(
                 _In_ ModuleHandle connectionHandle,
@@ -116,38 +124,33 @@ namespace MixedRemoteViewCompositor
                 _In_ UINT32 bufferSize);
             STDMETHODIMP ConnectionClose(
                 _In_ ModuleHandle connectionHandle);
-            
-            STDMETHODIMP CaptureCreateAsync( 
-                _In_ bool enableAudio, 
-                _In_ PluginCallback callback);
-            STDMETHODIMP CaptureAddClosed(
-                _In_ ModuleHandle playbackEngineHandle,
-                _In_ PluginCallback callback,
-                _Out_ INT64* tokenValue);
-            STDMETHODIMP CaptureRemoveClosed(
-                _In_ ModuleHandle playbackEngineHandle,
-                _Out_ INT64 tokenValue);
-            STDMETHODIMP CaptureStartAsync(
-                _In_ ModuleHandle captureHandle,
-                _In_ ModuleHandle connectionHandle,
-                _In_ bool enableMrc,
-                _In_ IUnknown* pUnkSpatial,
-                _In_ PluginCallback callback);
-            STDMETHODIMP CaptureStopAsync(
-                _In_ ModuleHandle captureHandle, 
-                _In_ PluginCallback callback);
-            STDMETHODIMP CaptureClose(
+
+
+
+            STDMETHODIMP CaptureCreate(
+				_Inout_ ModuleHandle* captureHandle);
+
+			STDMETHODIMP CaptureInit(
+				_In_ bool enableAudio,
+				_In_ ModuleHandle captureHandle,
+				_In_ ModuleHandle connectionHandle);
+
+			STDMETHODIMP CaptureShutdown(
+				_In_ ModuleHandle captureHandle);
+
+            STDMETHODIMP CaptureWriteFrame(
                 _In_ ModuleHandle captureHandle);
-            STDMETHODIMP SetSpatialCoordinateSystem(
-                _In_ ModuleHandle captureHandle, 
-                _In_ IUnknown* pUnkSpatial);
+
+
 
             STDMETHODIMP PlaybackCreate(
                 _In_ ModuleHandle connectionHandle,
-                _In_ PluginCallback createdCallback);
+                _In_ PluginCallback createdCallback,
+				_In_ void* pCallbackObject);
             STDMETHODIMP PlaybackAddClosed(
                 _In_ ModuleHandle playbackEngineHandle,
                 _In_ PluginCallback callback,
+				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP PlaybackRemoveClosed(
                 _In_ ModuleHandle playbackEngineHandle,
@@ -155,6 +158,7 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP PlaybackAddSizeChanged(
                 _In_ ModuleHandle playbackEngineHandle,
                 _In_ FrameSizeChanged callback,
+				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP PlaybackRemoveSizeChanged(
                 _In_ ModuleHandle playbackEngineHandle,
@@ -162,6 +166,7 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP PlaybackAddSampleUpdated(
                 _In_ ModuleHandle playbackEngineHandle,
                 _In_ SampleUpdated callback,
+				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP PlaybackRemoveSampleUpdated(
                 _In_ ModuleHandle playbackEngineHandle,
@@ -181,6 +186,7 @@ namespace MixedRemoteViewCompositor
 
             STDMETHODIMP_(void) CompletePluginCallback(
                 _In_ PluginCallback callback, 
+				_In_ void* pCallbackObject,
                 _In_ ModuleHandle handle,
                 _In_ HRESULT hr);
 

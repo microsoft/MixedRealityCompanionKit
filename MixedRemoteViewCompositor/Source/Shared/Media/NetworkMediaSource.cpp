@@ -1078,7 +1078,9 @@ HRESULT NetworkMediaSourceImpl::ProcessMediaDescription(
     // Everything succeeded we are in stopped state now
     _eSourceState = SourceStreamState_Stopped;
 
+	// TODO: SendStopREquest wrong?
     SendStopRequest();
+	//SendStartRequest();
 
 done:
     delete[] pPtr;
