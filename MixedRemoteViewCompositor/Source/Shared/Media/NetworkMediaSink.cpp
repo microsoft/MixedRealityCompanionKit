@@ -272,6 +272,8 @@ HRESULT NetworkMediaSinkImpl::RuntimeClassInitialize(
             _In_ IConnection *sender,
             _In_ IBundleReceivedArgs *args) -> HRESULT
     {
+		Log(Log_Level_Info, L"NetworkSinkImpl::OnBundleReceived");
+
         HRESULT hr = S_OK;
 
         PayloadType type;

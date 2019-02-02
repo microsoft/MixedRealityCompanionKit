@@ -35,8 +35,7 @@ namespace MixedRemoteViewCompositor
             IFACEMETHOD(Shutdown)();
 
 			IFACEMETHOD(WriteFrame)();
-				// TODO: add in framebuffer pointer*
-				//_In_ const LONGLONG& rtStart);
+
         private:
             Wrappers::CriticalSection _lock;
 

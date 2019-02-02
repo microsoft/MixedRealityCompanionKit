@@ -255,6 +255,9 @@ namespace LiveStreaming
                 return;
             }
 
+            // TODO: Remove - currently avoids racecondition
+            System.Threading.Thread.Sleep(250);
+
             this.plugin.QueueAction(() =>
             {
                 this.ConnectionState = ConnectionState.Connected;
@@ -263,7 +266,7 @@ namespace LiveStreaming
                 this.networkConnection.Disconnected += this.OnDisconnected;
                 this.networkConnection.Closed += this.OnConnectionClosed;
 
-                this.InitializePlaybackEngine();
+                this.CreateRealTimePlayer();
 
                 this.StopConnector();
             });
@@ -324,7 +327,7 @@ namespace LiveStreaming
 
         private PluginCallbackHandler createdHandler;
 
-        private void InitializePlaybackEngine()
+        private void CreateRealTimePlayer()
         {
             // Only initialize if we have a connection and we don't already have a playback engine
             if (this.networkConnection == null)
@@ -349,6 +352,8 @@ namespace LiveStreaming
         {
             Plugin.ExecuteOnUnityThread(() =>
             {
+                Debug.Log("RealTimePlayer::OnCreated");
+
                 // create native texture for playback
                 IntPtr nativeTexture = IntPtr.Zero;
                 CheckHR(PlayerPlugin.CreateStreamingTexture(this.TextureWidth,
@@ -366,12 +371,15 @@ namespace LiveStreaming
                 // set texture for the shader
                 this.target.material.mainTexture = this.playbackTexture;
 
+                Debug.Log("RealTimePlayer::CreateStreamingTexture");
+
                 this.Play();
             });
         }
 
         public void Play()
         {
+            Debug.Log("RealTimePlayer::Play");
             CheckHR(PlayerPlugin.Play());
         }
 

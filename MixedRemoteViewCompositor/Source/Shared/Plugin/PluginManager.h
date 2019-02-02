@@ -142,7 +142,11 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP CaptureWriteFrame(
                 _In_ ModuleHandle captureHandle);
 
-
+			
+			STDMETHODIMP CaptureWriteFrameData(
+				_In_ ModuleHandle captureHandle,
+				__in_ecount(bufferSize) byte* pBuffer,
+				_In_ UINT32 bufferSize);
 
             STDMETHODIMP PlaybackCreate(
                 _In_ ModuleHandle connectionHandle,

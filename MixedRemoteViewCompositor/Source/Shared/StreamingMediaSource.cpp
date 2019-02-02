@@ -344,7 +344,7 @@ HRESULT StreamingMediaSourceImpl::SendStartRequest()
 _Use_decl_annotations_
 HRESULT StreamingMediaSourceImpl::SendStopRequest()
 {
-	Log(Log_Level_Info, L"NetworkMediaSourceImpl::SendStopRequest()\n");
+	Log(Log_Level_Info, L"StreamingMediaSourceImpl::SendStopRequest()\n");
 
 	NULL_CHK_HR(_spConnection, E_POINTER);
 
@@ -368,6 +368,8 @@ HRESULT StreamingMediaSourceImpl::OnDataReceived(
 	IFC(CheckShutdown());
 
 	IFC(args->get_PayloadType(&type));
+	
+	Log(Log_Level_Info, L"StreamingMediaSourceImpl::OnDataReceived(%d)\n", type);
 
 	IFC(args->get_DataBundle(&spDataBundle));
 
@@ -438,7 +440,7 @@ _Use_decl_annotations_
 HRESULT StreamingMediaSourceImpl::ProcessMediaDescription(
 	IDataBundle* pBundle)
 {
-	Log(Log_Level_Info, L"NetworkMediaSourceImpl::ProcessMediaDescription()\n");
+	Log(Log_Level_Info, L"StreamingMediaSourceImpl::ProcessMediaDescription()\n");
 
 	if (_eSourceState == SourceStreamState_Started || _eSourceState == SourceStreamState_Stopped)
 		//&& _streams.GetCount() > 0)

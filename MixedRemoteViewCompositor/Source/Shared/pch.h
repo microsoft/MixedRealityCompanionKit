@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <memory>
 #include <future>
+#include <random>
 
 // Windows
 #include <initguid.h>

@@ -766,9 +766,6 @@ HRESULT PluginManagerImpl::CaptureCreate(
     ComPtr<CaptureEngineImpl> spCaptureEngine;
     IFR(MakeAndInitialize<CaptureEngineImpl>(&spCaptureEngine));
 
-    //ComPtr<IAsyncAction> spInitAction;
-    //IFR(spCaptureEngine->InitAsync(enableAudio, &spInitAction));
-
     Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - InitAsync()\n");
 
     auto lock = _lock.Lock();
@@ -835,6 +832,26 @@ HRESULT PluginManagerImpl::CaptureWriteFrame(
 	ModuleHandle captureHandle)
 {
 	Log(Log_Level_Info, L"PluginManagerImpl::CaptureWriteFrame()\n");
+
+	auto lock = _lock.Lock();
+
+	// get capture engine
+	ComPtr<ICaptureEngine> spCaptureEngine;
+	IFR(GetCaptureEngine(captureHandle, &spCaptureEngine));
+
+	IFR(spCaptureEngine->WriteFrame());
+
+	return S_OK;
+}
+
+
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::CaptureWriteFrameData(
+	ModuleHandle captureHandle,
+	byte* pBuffer,
+	UINT32 bufferSize)
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::CaptureWriteFrameData()\n");
 
 	auto lock = _lock.Lock();
 

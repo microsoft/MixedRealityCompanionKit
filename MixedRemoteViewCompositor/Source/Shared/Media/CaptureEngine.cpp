@@ -236,10 +236,28 @@ HRESULT CaptureEngineImpl::Shutdown()
 	return S_OK;
 }
 
+
 _Use_decl_annotations_
 HRESULT CaptureEngineImpl::WriteFrame()
 	//const LONGLONG& rtStart        // Time stamp.
 {
+
+	// TODO: Generate random color whole image*
+	// Generate random image
+	std::random_device rd;
+	std::uniform_int_distribution<int> dist(0, 255);
+
+	DWORD imgColor = (static_cast<BYTE>(dist(rd) & 0xFF) << 16)
+		+ (static_cast<BYTE>(dist(rd) & 0xFF) << 8)
+		+ (static_cast<BYTE>(dist(rd) & 0xFF));
+
+	//std::fill(_videoFrameBuffer, _videoFrameBuffer + VIDEO_PELS, imgColor);
+
+	for (int i = 0; i < VIDEO_PELS; i++)
+	{
+		_videoFrameBuffer[i] = imgColor;
+	}
+
 	ComPtr<IMFSample> spSample;
 	ComPtr<IMFMediaBuffer> spBuffer;
 
