@@ -1180,6 +1180,129 @@ HRESULT PluginManagerImpl::PlaybackClose(
     return _moduleManager->ReleaseModule(handle);
 }
 
+
+static ComPtr<IStreamingMediaPlayer> s_spStreamingPlayer;
+
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::CreateStreamPlayer(
+	ModuleHandle handle,
+	//StateChangedCallback fnCallback,
+	PluginCallback callback,
+	void* pCallbackObject)
+	//StreamingMediaPlayerImpl** ppStreamingPlayer)
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::CreateStreamPlayer()\n");
+
+	NULL_CHK(callback);
+
+	auto lock = _lock.Lock();
+
+	// get connection
+	ComPtr<IConnection> spConnection;
+	IFR(GetConnection(handle, &spConnection));
+
+	UnityGfxRenderer unityGraphics = _unityGraphics->GetRenderer();
+
+	ComPtr<IStreamingMediaPlayer> spPlayerPlayback;
+	IFR(StreamingMediaPlayerImpl::CreateStreamingMediaPlayer(unityGraphics,
+		_unityInterfaces,
+		spConnection.Get(),
+		//fnCallback,
+		&spPlayerPlayback));
+
+	// Copy out the streaming player
+	IFR(spPlayerPlayback.CopyTo(&s_spStreamingPlayer));
+
+	ComPtr<IAsyncAction> spInitAction;
+	IFR(spPlayerPlayback.As(&spInitAction));
+	//IFR(spPlayerPlayback->InitializeAsync(&spInitAction));
+
+	ComPtr<PluginManagerImpl> spThis(this);
+	return StartAsyncThen(
+		spInitAction.Get(),
+		[this, spThis, spPlayerPlayback, callback, pCallbackObject](_In_ HRESULT hr, _In_ IAsyncAction* asyncAction, _In_ AsyncStatus asyncStatus)
+	{
+		Log(Log_Level_Info, L"PluginManagerImpl::CreateStreamingMediaPlayer() - InitAsync()\n");
+
+		auto lock = _lock.Lock();
+
+		ModuleHandle handle = MODULE_HANDLE_INVALID;
+		ComPtr<IModule> module;
+		/*
+		IFC(hr);
+
+		if (nullptr == _moduleManager)
+		{
+			IFC(E_NOT_SET);
+		}
+
+		IFC(spPlayerPlayback.As(&module));
+
+		IFC(_moduleManager->AddModule(module.Get(), &handle));
+		*/
+	done:
+		CompletePluginCallback(callback, pCallbackObject, handle, hr);
+
+		return hr;
+	});
+}
+
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::ReleaseMediaPlayback()
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::ReleaseMediaPlayback()\n");
+
+	if (s_spStreamingPlayer != nullptr)
+	{
+		s_spStreamingPlayer.Reset();
+		s_spStreamingPlayer = nullptr;
+	}
+
+	return S_OK;
+}
+
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::CreateStreamingTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture)
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::CreateStreamingTexture()\n");
+
+	NULL_CHK(ppvTexture);
+	NULL_CHK(s_spStreamingPlayer);
+
+	return s_spStreamingPlayer->CreatePlaybackTexture(width, height, ppvTexture);
+}
+
+_Use_decl_annotations_
+HRESULT  PluginManagerImpl::StreamingPlay()
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::StreamingPlay()\n");
+
+	NULL_CHK(s_spStreamingPlayer);
+
+	return s_spStreamingPlayer->Play();
+}
+
+_Use_decl_annotations_
+HRESULT  PluginManagerImpl::StreamingPause()
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::StreamingPause()\n");
+
+	NULL_CHK(s_spStreamingPlayer);
+
+	return s_spStreamingPlayer->Pause();
+}
+
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::StreamingStop()
+{
+	Log(Log_Level_Info, L"PluginManagerImpl::StreamingStop()\n");
+
+	NULL_CHK(s_spStreamingPlayer);
+
+	return s_spStreamingPlayer->Stop();
+}
+
+
 // internal
 _Use_decl_annotations_
 void PluginManagerImpl::CompletePluginCallback(
@@ -1203,6 +1326,19 @@ void PluginManagerImpl::CompletePluginCallback(
 
         return S_OK;
     }));
+}
+
+_Use_decl_annotations_
+HRESULT PluginManagerImpl::GetUnityObjects(
+	_Out_ IUnityInterfaces** unityInterfaces,
+	_Out_ UnityGfxRenderer* unityGraphics)
+{
+	// TODO: Add error checking
+	unityInterfaces = &_unityInterfaces;
+
+	*unityGraphics = _unityGraphics->GetRenderer();
+
+	return S_OK;
 }
 
 _Use_decl_annotations_

@@ -22,6 +22,12 @@ EXPORTS
     MrvcCaptureInit
     MrvcCaptureStop
 	MrvcCaptureWrite
+	CreateStreamingPlayer
+	ReleaseMediaPlayback
+	CreateStreamingTexture
+	StreamingPlay
+	StreamingPause
+	StreamingStop
     MrvcPlaybackCreate
     MrvcPlaybackAddSizeChanged
     MrvcPlaybackRemoveSizeChanged

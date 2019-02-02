@@ -230,8 +230,8 @@ IFACEMETHODIMP NetworkMediaSourceStreamImpl::RequestSample(
 
 	//tokenTest = pToken;
 	tokenTest = pToken;
-	pToken->AddRef();
-
+	ULONG refCount = pToken->AddRef();
+	
     // Trigger sample delivery
     IFC(DeliverSamples());
 

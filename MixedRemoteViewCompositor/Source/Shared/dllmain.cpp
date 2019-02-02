@@ -285,6 +285,93 @@ MRVCDLL MrvcCaptureWrite(
 	return RPC_E_WRONG_THREAD;
 }
 
+// StreamingPlayer
+
+// TODO: Clean up -> Use module manager?
+//static ComPtr<IStreamingMediaPlayer> s_spStreamingPlayer;
+
+MRVCDLL CreateStreamingPlayer(
+	_In_ ModuleHandle connectionHandle,
+	_In_ StateChangedCallback fnCallback,
+	_In_ PluginCallback callback,
+	_In_ void* managedObject)
+{
+
+	if (managedObject == nullptr)
+	{
+		return E_INVALIDARG;
+	}
+
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->CreateStreamPlayer(connectionHandle, 
+			//fnCallback, 
+			callback, 
+			managedObject);
+	}
+
+	return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL ReleaseMediaPlayback()
+{
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->ReleaseMediaPlayback();
+	}
+
+	return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL CreateStreamingTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture)
+{
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->CreateStreamingTexture(width, height, ppvTexture);
+	}
+
+	return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL StreamingPlay()
+{
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->StreamingPlay();
+	}
+
+	return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL StreamingPause()
+{
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->StreamingPause();
+	}
+
+	return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL StreamingStop()
+{
+	auto instance = PluginManagerStaticsImpl::GetInstance();
+	if (nullptr != instance)
+	{
+		return instance->StreamingStop();
+	}
+
+	return RPC_E_WRONG_THREAD;
+}
+
+
+// PlaybackEngine
+
 MRVCDLL MrvcPlaybackCreate(
     _In_ ModuleHandle connectionHandle,
 	_In_ PluginCallback callback,

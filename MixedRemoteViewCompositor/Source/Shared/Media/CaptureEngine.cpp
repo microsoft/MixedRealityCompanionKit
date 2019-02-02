@@ -8,24 +8,6 @@ ActivatableStaticOnlyFactory(CaptureEngineStaticsImpl);
 
 typedef IAsyncOperationCompletedHandler<HSTRING*> IDeviceInformationOperationCompletedHandler;
 
-inline HRESULT GetVideoResolution(
-	_In_ IMediaEncodingProfile* mediaEncodingProfile,
-	_Out_ UINT32* width,
-	_Out_ UINT32* height) throw()
-{
-	NULL_CHK(mediaEncodingProfile);
-	NULL_CHK(width);
-	NULL_CHK(height);
-
-	ComPtr<IVideoEncodingProperties> videoEncodingProperties;
-	IFR(mediaEncodingProfile->get_Video(&videoEncodingProperties));
-
-	IFR(videoEncodingProperties->get_Height(height));
-	IFR(videoEncodingProperties->get_Width(width));
-
-	return S_OK;
-}
-
 inline HRESULT FindFrameRateRangeFromMediaProperties(
     _In_ IVectorView<ABI::Windows::Media::MediaProperties::IMediaEncodingProperties*>* propertiesList,
     _Out_ UINT32* puMin,

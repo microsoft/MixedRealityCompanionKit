@@ -8,6 +8,7 @@ namespace MixedRemoteViewCompositor
     namespace Plugin
     {
         using namespace ABI::MixedRemoteViewCompositor;
+		using namespace ABI::MixedRemoteViewCompositor::Media;
         using namespace ABI::MixedRemoteViewCompositor::Plugin;
 
         using namespace ABI::Windows::Foundation;
@@ -180,6 +181,24 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP PlaybackGetFrameData(
                 _In_ ModuleHandle handle,
                 _Inout_ MediaSampleArgs* pSampleArgs);
+
+			STDMETHODIMP GetUnityObjects(
+				_Out_ IUnityInterfaces** unityInterfaces,
+				_Out_ UnityGfxRenderer* unityGraphics);
+
+			STDMETHODIMP CreateStreamPlayer(
+				_In_ ModuleHandle connectionHandle,
+				//_In_ StateChangedCallback fnCallback,
+				_In_ PluginCallback createdCallback,
+				_In_ void* pCallbackObject
+			);
+				//_COM_Outptr_opt_result_maybenull_ StreamingMediaPlayerImpl** ppStreamingPlayer);
+			
+			STDMETHODIMP ReleaseMediaPlayback();
+			STDMETHODIMP CreateStreamingTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture);
+			STDMETHODIMP StreamingPlay();
+			STDMETHODIMP StreamingPause();
+			STDMETHODIMP StreamingStop();
 
         private:
             STDMETHODIMP_(void) Uninitialize();

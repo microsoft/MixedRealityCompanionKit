@@ -446,7 +446,7 @@ HRESULT PlaybackEngineImpl::StopPlayback()
 _Use_decl_annotations_
 HRESULT PlaybackEngineImpl::CompleteAsyncAction(HRESULT hr)
 {
-    Log(Log_Level_Info, L"::CompleteAsyncAction()\n");
+    Log(Log_Level_Info, L"PlaybackEngineImpl::CompleteAsyncAction()\n");
 
     ABI::Windows::Foundation::AsyncStatus status;
     IFC(get_Status(&status));
