@@ -1,0 +1,28 @@
+LIBRARY     MixedRemoteViewCompositor.dll
+
+EXPORTS
+    DllGetActivationFactory
+    DllCanUnloadNow             PRIVATE
+    UnityPluginLoad
+    UnityPluginUnload
+    GetPluginEventFunc
+    SetTime
+    ListenerCreateAndStart
+    ListenerStopAndClose
+    ConnectorCreateAndStart
+    ConnectorStopAndClose
+    ConnectionAddDisconnected
+    ConnectionRemoveDisconnected
+    ConnectionAddReceived
+    ConnectionRemoveReceived
+    ConnectionClose
+    ConnectionSendRawData
+    CreateRealtimeStreamingServer
+	 RealtimeStreamingWrite
+    RealtimeStreamingStop
+	 CreateRealtimePlayer
+	 ReleaseRealtimePlayer
+	 CreateRealtimePlayerTexture
+	 RealtimePlayerPlay
+	 RealtimePlayerPause
+	 RealtimePlayerStop

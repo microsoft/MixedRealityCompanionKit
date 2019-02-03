@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{45d41acc-2c3c-43d2-bc10-02aa73ffc7c7}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\Marker.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MediaUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\Connection.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\Connector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\DataBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\DataBundle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\DataBundleArgs.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\Listener.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Common\AsyncOperations.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Common\BaseAttributes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Common\ErrorHandling.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Common\LinkList.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Common\OpQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\Marker.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MediaUtils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\Connection.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\Connector.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\DataBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\DataBundle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\DataBundleArgs.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\Listener.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D9.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityInterface.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\RenderingPlugin.h" />
+  </ItemGroup>
+</Project>
