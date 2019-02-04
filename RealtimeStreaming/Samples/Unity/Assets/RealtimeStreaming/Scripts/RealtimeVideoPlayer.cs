@@ -98,9 +98,16 @@ namespace RealtimeStreaming
             this.isStarted = true;
 
             this.ConnectionState = ConnectionState.Idle;
+
+#if !UNITY_EDITOR
+            connecting = true;
+            StartConnector();
+#endif
         }
 
         private bool connecting = false;
+
+#if UNITY_EDITOR
         private void Update()
         {
             if (Input.GetKey(KeyCode.Space))
@@ -111,16 +118,8 @@ namespace RealtimeStreaming
                     StartConnector();
                 }
             }
-            else if(Input.GetKey(KeyCode.P))
-            {
-
-            }
-
-            if (isPaused)
-            {
-                return;
-            }
         }
+#endif
 
         private void OnDisable()
         {
@@ -180,7 +179,7 @@ namespace RealtimeStreaming
             }
         }
 
-        #region Control Network 
+#region Control Network 
         private void StartConnector()
         {
             Debug.Log("StartConnector()");
@@ -225,14 +224,16 @@ namespace RealtimeStreaming
             this.networkConnection.Close();
         }
 
-        #endregion
+#endregion
 
-        #region Connector Callback Events
+#region Connector Callback Events
 
         private void OnConnectorStarted(object sender, EventArgs e)
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnConnectorStarted");
+
                 //this.ConnectionState = ConnectionState.Connecting;
             });
         }
@@ -241,8 +242,9 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnConnectorFailed");
+
                 this.ConnectionState = ConnectionState.Failed;
-                //this.ConnectionState = ManagerState.ConnectorFailed;
             });
         }
 
@@ -251,14 +253,14 @@ namespace RealtimeStreaming
             if (connection == null)
             {
                 // TODO: Need better error handling?
+                Debug.Log("RealtimeVideoPlayer::OnConnectorConnected - Connection was null");
                 return;
             }
 
-            // TODO: Remove - currently avoids racecondition
-            System.Threading.Thread.Sleep(250);
-
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnConnectorConnected");
+
                 this.ConnectionState = ConnectionState.Connected;
 
                 this.networkConnection = connection;
@@ -271,14 +273,16 @@ namespace RealtimeStreaming
             });
         }
 
-        #endregion
+#endregion
 
-        #region Network Connection Callback Events
+#region Network Connection Callback Events
 
         private void OnDisconnected(object sender, EventArgs e)
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnDisconnected");
+
                 this.ConnectionState = ConnectionState.Disconnected;
 
                 this.Shutdown();
@@ -289,6 +293,8 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnConnectionClosed");
+
                 this.ConnectionState = ConnectionState.Closed;
 
                 if (this.networkConnection == null)
@@ -304,19 +310,21 @@ namespace RealtimeStreaming
             });
         }
 
-        private void OnConnecitonFailed(object sender, EventArgs e)
+        private void OnConnectionFailed(object sender, EventArgs e)
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnConnectionFailed");
+
                 this.ConnectionState = ConnectionState.Failed;
 
                 Shutdown();
             });
         }
 
-        #endregion
+#endregion
 
-        #region Control Playback
+#region Control Playback
 
         public uint TextureWidth = 1280;
         public uint TextureHeight = 720;
@@ -335,7 +343,7 @@ namespace RealtimeStreaming
             }
 
             this.createdHandler = new PluginCallbackHandler(Player_PluginCallbackWrapper.OnCreated_Callback);
-            this.stateCallback = new PlayerPlugin.StateChangedCallback(MediaPlayback_Changed);
+            this.stateCallback = new PlayerPlugin.StateChangedCallback(Player_PluginCallbackWrapper.OnStateChanged_Callback);
 
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
@@ -384,11 +392,13 @@ namespace RealtimeStreaming
 
         public void Pause()
         {
+            Debug.Log("RealTimePlayer::Pause");
             CheckHR(PlayerPlugin.exPause());
         }
 
         public void Stop()
         {
+            Debug.Log("RealTimePlayer::Stop");
             CheckHR(PlayerPlugin.exStop());
         }
 
@@ -426,7 +436,7 @@ namespace RealtimeStreaming
 
         #region Realtime Player Plugin
 
-        private static class PlayerPlugin
+        internal static class PlayerPlugin
         {
             public enum StateType
             {
@@ -475,8 +485,10 @@ namespace RealtimeStreaming
             public delegate void StateChangedCallback(PLAYBACK_STATE args);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayer")]
-            //internal static extern long CreateMediaPlayback(StateChangedCallback callback);
-            internal static extern long exCreatePlayer(uint connectionHandle, StateChangedCallback callback, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, IntPtr objectPtr);
+            internal static extern long exCreatePlayer(uint connectionHandle,
+                [MarshalAs(UnmanagedType.FunctionPtr)]StateChangedCallback callback, 
+                [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, 
+                IntPtr objectPtr);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ReleaseRealtimePlayer")]
             internal static extern void exReleasePlayer();
@@ -501,11 +513,24 @@ namespace RealtimeStreaming
             {
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
+                Plugin.ExecuteOnUnityThread(() => {
                     thisObj.OnCreated(handle, result, message);
                 });
             }
+
+            [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.StateChangedCallback))]
+            internal static void OnStateChanged_Callback(PlayerPlugin.PLAYBACK_STATE args)
+            {
+                // TODO: Troy to re-anble this code path
+                /*
+                var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
+
+                Plugin.ExecuteOnUnityThread(() => {
+                    thisObj.OnStateChanged(args);
+                });
+                */
+            }
         }
-        #endregion
+#endregion
     }
 }

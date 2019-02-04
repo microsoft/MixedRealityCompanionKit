@@ -76,7 +76,6 @@ HRESULT RealtimeMediaSourceImpl::RuntimeClassInitialize(
 	_eSourceState = SourceStreamState_Opening;
 
 	IFR(SendDescribeRequest());
-	// TODO: Troy just send start request???
 
 	return AsyncBase::Start();
 }
@@ -397,6 +396,14 @@ _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::ProcessCaptureReady()
 {
 	Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessCaptureReady()\n");
+
+	if (_eSourceState == SourceStreamState_Started || _eSourceState == SourceStreamState_Stopped)
+	{
+		return S_OK;
+	}
+
+	IFR(SendDescribeRequest());
+
 	/*
 	if (_eSourceState == SourceStreamState_Stopped)
 		//&& _streams.GetCount() > 0)

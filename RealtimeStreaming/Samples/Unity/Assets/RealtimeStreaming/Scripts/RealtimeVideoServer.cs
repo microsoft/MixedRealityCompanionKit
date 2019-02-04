@@ -20,6 +20,11 @@ namespace RealtimeStreaming
             Ready,
         }
 
+        public GameObject debugTarget;
+
+        public string ConnectTo;
+        public ushort Port = 27772;
+
         public ServerState CurrentState {get;set;}
 
         //public Action<object, StateChangedEventArgs<ConnectionState>> CaptureStateChanged { get; internal set; }
@@ -48,9 +53,6 @@ namespace RealtimeStreaming
         private ConnectionState connectionState = ConnectionState.Idle;
         private ConnectionState previousConnectionState = ConnectionState.Idle;
 
-        public string ConnectTo;
-        public ushort Port = 27772;
-
         private Plugin plugin = null;
         private Listener listener;
         private Connection listenerConnection;
@@ -76,10 +78,17 @@ namespace RealtimeStreaming
             this.Shutdown();
         }
 
+        private float speed = 10.0f;
+
         private void Update()
         {
             if (this.Handle != Plugin.InvalidHandle)
             {
+                if (debugTarget != null)
+                {
+                    debugTarget.transform.Rotate(Vector3.up, speed * Time.deltaTime);
+                }
+
                 this.WriteFrame();
             }
         }
@@ -143,6 +152,8 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("OnListenerStarted");
+
                 this.CurrentState = ServerState.Listening;
             });
         }
@@ -151,6 +162,8 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("OnListenerFailed");
+
                 this.CurrentState = ServerState.ListenerFailed;
             });
         }
@@ -159,6 +172,8 @@ namespace RealtimeStreaming
         {
             Plugin.ExecuteOnUnityThread(() =>
             {
+                Debug.Log("OnListenerConnected");
+
                 this.CurrentState = ServerState.ListenerConnected;
 
                 this.InitializeServer(connection);

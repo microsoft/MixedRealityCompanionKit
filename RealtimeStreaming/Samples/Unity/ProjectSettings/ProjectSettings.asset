@@ -46,7 +46,7 @@ PlayerSettings:
   defaultScreenHeight: 768
   defaultScreenWidthWeb: 960
   defaultScreenHeightWeb: 600
-  m_StereoRenderingPath: 0
+  m_StereoRenderingPath: 1
   m_ActiveColorSpace: 0
   m_MTRendering: 1
   m_StackTraceTypes: 010000000100000001000000010000000100000001000000
@@ -273,7 +273,7 @@ PlayerSettings:
     m_Devices:
     - Oculus
   - m_BuildTarget: Metro
-    m_Enabled: 0
+    m_Enabled: 1
     m_Devices:
     - HoloLens
   - m_BuildTarget: N3DS
@@ -563,7 +563,7 @@ PlayerSettings:
   scriptingDefineSymbols: {}
   platformArchitecture: {}
   scriptingBackend:
-    Metro: 2
+    Metro: 1
     Standalone: 0
   il2cppCompilerConfiguration: {}
   managedStrippingLevel: {}
@@ -621,7 +621,7 @@ PlayerSettings:
       PhoneCallHistoryPublic: False
       PicturesLibrary: False
       PointOfService: False
-      PrivateNetworkClientServer: False
+      PrivateNetworkClientServer: True
       Proximity: False
       RecordedCallsFolder: False
       RemoteSystem: False
