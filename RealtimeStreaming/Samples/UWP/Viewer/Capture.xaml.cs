@@ -17,7 +17,7 @@ namespace Viewer
     {
         private Listener listener = null;
         private Connection connection = null;
-        private CaptureEngine captureEngine = null;
+        private RealtimeServer rtServer = null;
 
         private Timer writeFrameTimer;
 
@@ -51,23 +51,21 @@ namespace Viewer
 
         private void StartCapture()
         {
-            captureEngine = CaptureEngine.Create();
-            if (this.captureEngine != null)
+            rtServer = RealtimeServer.Create(this.connection);
+            if (this.rtServer != null)
             {
-                this.captureEngine.Init(true, this.connection);
-
                 writeFrameTimer = null;
-
                 var autoEvent = new AutoResetEvent(false);
-                writeFrameTimer = new Timer(OnDraw, autoEvent, 0, 1000 / 30);
+                writeFrameTimer = new Timer(OnWriteFrame, autoEvent, 0, 1000 / 30);
             }
         }
 
-        private void OnDraw(object state)
+        private void OnWriteFrame(object state)
         {
-            if (this.captureEngine != null)
+            if (this.rtServer != null)
             {
-                this.captureEngine.WriteFrame();
+                // TODO: Need to fix interface
+                //this.rtServer.
             }
         }
 
@@ -88,11 +86,11 @@ namespace Viewer
 
         private async void CloseConnection()
         {
-            if (this.captureEngine != null)
+            if (this.rtServer != null)
             {
-                this.captureEngine.Shutdown();
-                this.captureEngine.Uninitialize();
-                this.captureEngine = null;
+                this.rtServer.Shutdown();
+                this.rtServer.Uninitialize();
+                this.rtServer = null;
             }
 
             if (this.connection != null)

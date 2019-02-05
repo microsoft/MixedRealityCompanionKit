@@ -116,14 +116,14 @@ namespace MixedRemoteViewCompositor
                 _In_ ModuleHandle connectionHandle);
 
             STDMETHODIMP RTServerCreate(
-				_In_ ModuleHandle connectionHandle,
-				_Inout_ ModuleHandle* serverHandle);
-			STDMETHODIMP RTServerShutdown(
-				_In_ ModuleHandle serverHandle);
-			STDMETHODIMP RTServerWriteFrame(
-				_In_ ModuleHandle serverHandle,
-				__in_ecount(bufferSize) byte* pBuffer,
-				_In_ UINT32 bufferSize);
+					 _In_ ModuleHandle connectionHandle,
+					 _Inout_ ModuleHandle* serverHandle);
+				STDMETHODIMP RTServerShutdown(
+					 _In_ ModuleHandle serverHandle);
+				STDMETHODIMP RTServerWriteFrame(
+					 _In_ ModuleHandle serverHandle,
+					 __in_ecount(bufferSize) BYTE* pBuffer,
+					 _In_ UINT32 bufferSize);
 
             STDMETHODIMP RTPlayerCreate(
                 _In_ ModuleHandle connectionHandle,

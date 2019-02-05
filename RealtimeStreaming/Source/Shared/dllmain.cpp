@@ -254,7 +254,7 @@ RTDLL CreateRealtimeStreamingServer(
 
 RTDLL RealtimeStreamingWrite(
 	_In_ UINT32 serverHandle,
-	__in_ecount(bufferSize) byte* pBuffer,
+	__in_ecount(bufferSize) BYTE* pBuffer,
 	_In_ UINT32 bufferSize)
 {
 	auto instance = PluginManagerStaticsImpl::GetInstance();

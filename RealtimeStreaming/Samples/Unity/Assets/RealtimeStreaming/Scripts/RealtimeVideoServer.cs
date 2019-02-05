@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Timers;
 using UnityEngine;
 
 namespace RealtimeStreaming
@@ -59,10 +60,14 @@ namespace RealtimeStreaming
 
         private uint Handle { get; set; }
 
+        public Texture2D tex;
 
         private byte[] _videoFrameBuffer;
         const int VIDEO_PELS = 921600;
         const int BUFFER_SIZE = VIDEO_PELS * 4;
+
+        private Timer writeTimer;
+
         private void Awake()
         {
             this.Handle = Plugin.InvalidHandle;
@@ -70,19 +75,18 @@ namespace RealtimeStreaming
             this.plugin = this.GetComponent<Plugin>();
 
             this.CurrentState = ServerState.Idle;
-
-            // TODO: To remove
-            this._videoFrameBuffer = new byte[BUFFER_SIZE];
-
-            // Set all green channel on for each pixel
-            for (int i = 2; i < BUFFER_SIZE; i += 3)
-            {
-                _videoFrameBuffer[i] = 0xFF;
-            }
         }
 
         private void Start()
         {
+            this._videoFrameBuffer = tex.GetRawTextureData();
+            Debug.Log("Texture bytes: " + this._videoFrameBuffer.Length);
+
+            if (this._videoFrameBuffer.Length != BUFFER_SIZE)
+            {
+                Debug.LogError("Input texture for RealtimeVideoServer.cs is not correct size. Expected to be " + BUFFER_SIZE + " bytes");
+            }
+
             StartListener();
         }
 
@@ -95,14 +99,18 @@ namespace RealtimeStreaming
 
         private void Update()
         {
-            if (this.Handle != Plugin.InvalidHandle)
+            if (Input.GetKey(KeyCode.P))
             {
-                if (debugTarget != null)
+                Debug.Log("Write frame input");
+                if (this.Handle != Plugin.InvalidHandle)
                 {
-                    debugTarget.transform.Rotate(Vector3.up, speed * Time.deltaTime);
-                }
+                    if (debugTarget != null)
+                    {
+                        debugTarget.transform.Rotate(Vector3.up, speed * Time.deltaTime);
+                    }
 
-                this.WriteFrame();
+                    this.WriteFrame();
+                }
             }
         }
 
@@ -229,6 +237,20 @@ namespace RealtimeStreaming
             }
                 
             this.Handle = handle;
+
+            // create timer for writing frames
+            writeTimer = new Timer(1000 / 30);
+            writeTimer.Elapsed += WriteTimer_Elapsed;
+            writeTimer.AutoReset = true;
+            writeTimer.Enabled = true;
+        }
+
+        private void WriteTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Plugin.ExecuteOnUnityThread(() =>
+            {
+                WriteFrame();
+            });
         }
 
         private bool IsServerRunning()
@@ -255,7 +277,17 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            return (VideoServerWrapper.exWrite(this.Handle, ref _videoFrameBuffer, BUFFER_SIZE) == 0);
+            /*
+            IntPtr unmanagedArray = Marshal.AllocHGlobal(_videoFrameBuffer.Length);
+            Marshal.Copy(_videoFrameBuffer, 0, unmanagedArray, _videoFrameBuffer.Length);
+
+            VideoServerWrapper.exWrite(this.Handle, unmanagedArray, (uint)_videoFrameBuffer.Length);
+
+            Marshal.FreeHGlobal(unmanagedArray);
+            return true;
+            */
+
+            return (VideoServerWrapper.exWrite(this.Handle, _videoFrameBuffer, (uint)this._videoFrameBuffer.Length) == 0);
         }
 
         public void Shutdown()
@@ -328,7 +360,8 @@ namespace RealtimeStreaming
             internal static extern int exStop(uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingWrite")]
-            internal static extern int exWrite(uint serverHandle, ref byte[] bufferData, uint bufferSize);
+            internal static extern int exWrite(uint serverHandle, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]byte[] bufferData, uint bufferSize);
+            //internal static extern int exWrite(uint serverHandle, IntPtr bufferData, uint bufferSize);
         };
     }
 }

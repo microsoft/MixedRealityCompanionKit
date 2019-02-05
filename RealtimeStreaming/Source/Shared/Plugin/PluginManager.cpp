@@ -798,7 +798,7 @@ HRESULT PluginManagerImpl::RTServerShutdown(
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTServerWriteFrame(
 	ModuleHandle serverHandle,
-	 byte* pBuffer,
+	 BYTE* pBuffer,
 	 UINT32 bufferSize)
 {
 	Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
@@ -836,7 +836,7 @@ HRESULT PluginManagerImpl::RTServerWriteFrame(
 	IFR(MFCopyImage(
 		pMFdata,                    // Destination buffer.
 		cbWidth,                    // Destination stride.
-		(BYTE*)pBuffer,				// First row in source image.
+		pBuffer,						    // First row in source image.
 		cbWidth,                    // Source stride.
 		cbWidth,                    // Image width in bytes.
 		frameHeight                 // Image height in pixels.

@@ -214,6 +214,7 @@ MonoBehaviour:
   debugTarget: {fileID: 968310848}
   ConnectTo: localhost
   Port: 27772
+  tex: {fileID: 2800000, guid: 74f3ca192c673f440adcc16e6b686ef2, type: 3}
 --- !u!114 &805871613
 MonoBehaviour:
   m_ObjectHideFlags: 0
