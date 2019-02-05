@@ -253,14 +253,14 @@ RTDLL CreateRealtimeStreamingServer(
 }
 
 RTDLL RealtimeStreamingWrite(
-	_In_ UINT32 serverHandle)
-	//	__in_ecount(bufferSize) byte* pBuffer,
-	//_In_ UINT32 bufferSize)
+	_In_ UINT32 serverHandle,
+	__in_ecount(bufferSize) byte* pBuffer,
+	_In_ UINT32 bufferSize)
 {
 	auto instance = PluginManagerStaticsImpl::GetInstance();
 	if (nullptr != instance)
 	{
-		return instance->RTServerWriteFrame(serverHandle);
+		return instance->RTServerWriteFrame(serverHandle, pBuffer, bufferSize);
 	}
 
 	return RPC_E_WRONG_THREAD;

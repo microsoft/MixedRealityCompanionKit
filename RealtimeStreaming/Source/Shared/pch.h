@@ -152,8 +152,6 @@ using namespace ABI::MixedRemoteViewCompositor::Media;
 #include "DirectXManager.h"
 #include "RealtimeMediaSource.h"
 #include "StreamingMediaPlayer.h"
-#include "PluginManager.h"
-#include "PluginManagerStatics.h"
 #include "DataBuffer.h"
 #include "DataBundle.h"
 #include "DataBundleArgs.h"
@@ -164,6 +162,8 @@ using namespace ABI::MixedRemoteViewCompositor::Media;
 #include "NetworkMediaSinkStream.h"
 #include "NetworkMediaSink.h"
 #include "RealtimeServer.h"
+#include "PluginManager.h"
+#include "PluginManagerStatics.h"
 
 
 using namespace MixedRemoteViewCompositor::Plugin;

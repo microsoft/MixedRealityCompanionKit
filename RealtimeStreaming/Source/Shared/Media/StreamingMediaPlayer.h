@@ -10,12 +10,6 @@
 //*********************************************************
 #pragma once
 
-//#include "FFMpegInterop/RealtimeMediaSourceImpl.h"
-
-//#include "pch.h"
-
-//#include <windows.media.playback.h> // IMediaPlaybackSession?
-
 namespace MixedRemoteViewCompositor
 {
 	namespace Media
@@ -67,11 +61,9 @@ namespace MixedRemoteViewCompositor
 		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Playback::MediaPlayer*, ABI::Windows::Media::Playback::MediaPlayerFailedEventArgs*> IFailedEventHandler;
 		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Playback::MediaPlaybackSession*, IInspectable*> IMediaPlaybackSessionEventHandler;
 
-		//DECLARE_INTERFACE_IID_(IStreamingMediaPlayer, IUnknown, "9669c78e-42c4-4178-a1e3-75b03d0f8c9a")
 		DECLARE_INTERFACE_IID_(IStreamingMediaPlayer, IUnknown, "eea215a4-53ee-4f57-8dda-10467d628180")
 		{
 			STDMETHOD(CreatePlaybackTexture)(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture) PURE;
-			STDMETHOD(InitializeAsync)(_Out_ ABI::Windows::Foundation::IAsyncAction** ppOperation) PURE;
 			STDMETHOD(Play)() PURE;
 			STDMETHOD(Pause)() PURE;
 			STDMETHOD(Stop)() PURE;
@@ -107,9 +99,6 @@ namespace MixedRemoteViewCompositor
 				_In_ UINT32 width,
 				_In_ UINT32 height,
 				_COM_Outptr_ void** ppvTexture);
-
-			IFACEMETHOD(InitializeAsync)(
-				_Out_ ABI::Windows::Foundation::IAsyncAction** ppOperation);
 
 			IFACEMETHOD(Play)();
 			IFACEMETHOD(Pause)();

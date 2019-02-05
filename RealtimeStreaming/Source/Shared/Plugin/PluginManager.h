@@ -8,7 +8,7 @@ namespace MixedRemoteViewCompositor
     namespace Plugin
     {
         using namespace ABI::MixedRemoteViewCompositor;
-		  using namespace ABI::MixedRemoteViewCompositor::Media;
+		using namespace ABI::MixedRemoteViewCompositor::Media;
         using namespace ABI::MixedRemoteViewCompositor::Plugin;
 
         using namespace ABI::Windows::Foundation;
@@ -115,17 +115,15 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP ConnectionClose(
                 _In_ ModuleHandle connectionHandle);
 
-
             STDMETHODIMP RTServerCreate(
-					 _In_ ModuleHandle connectionHandle,
-					 _Inout_ ModuleHandle* serverHandle);
-
-				STDMETHODIMP RTServerShutdown(
-					 _In_ ModuleHandle serverHandle);
-
-            STDMETHODIMP RTServerWriteFrame(
-                _In_ ModuleHandle serverHandle);
-
+				_In_ ModuleHandle connectionHandle,
+				_Inout_ ModuleHandle* serverHandle);
+			STDMETHODIMP RTServerShutdown(
+				_In_ ModuleHandle serverHandle);
+			STDMETHODIMP RTServerWriteFrame(
+				_In_ ModuleHandle serverHandle,
+				__in_ecount(bufferSize) byte* pBuffer,
+				_In_ UINT32 bufferSize);
 
             STDMETHODIMP RTPlayerCreate(
                 _In_ ModuleHandle connectionHandle,

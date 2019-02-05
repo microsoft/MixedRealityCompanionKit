@@ -59,6 +59,10 @@ namespace RealtimeStreaming
 
         private uint Handle { get; set; }
 
+
+        private byte[] _videoFrameBuffer;
+        const int VIDEO_PELS = 921600;
+        const int BUFFER_SIZE = VIDEO_PELS * 4;
         private void Awake()
         {
             this.Handle = Plugin.InvalidHandle;
@@ -66,6 +70,15 @@ namespace RealtimeStreaming
             this.plugin = this.GetComponent<Plugin>();
 
             this.CurrentState = ServerState.Idle;
+
+            // TODO: To remove
+            this._videoFrameBuffer = new byte[BUFFER_SIZE];
+
+            // Set all green channel on for each pixel
+            for (int i = 2; i < BUFFER_SIZE; i += 3)
+            {
+                _videoFrameBuffer[i] = 0xFF;
+            }
         }
 
         private void Start()
@@ -242,7 +255,7 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            return (VideoServerWrapper.exWrite(this.Handle) == 0);
+            return (VideoServerWrapper.exWrite(this.Handle, ref _videoFrameBuffer, BUFFER_SIZE) == 0);
         }
 
         public void Shutdown()
@@ -315,7 +328,7 @@ namespace RealtimeStreaming
             internal static extern int exStop(uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingWrite")]
-            internal static extern int exWrite(uint serverHandle);
+            internal static extern int exWrite(uint serverHandle, ref byte[] bufferData, uint bufferSize);
         };
     }
 }

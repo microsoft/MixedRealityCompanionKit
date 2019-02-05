@@ -814,8 +814,6 @@ namespace MixedRemoteViewCompositor{ namespace Media {
         MixedRemoteViewCompositor.Plugin.IModule
     {
         HRESULT Shutdown();
-
-        HRESULT WriteFrame();
     };
 
     [exclusiveto(MixedRemoteViewCompositor.Media.RealtimeServer)]

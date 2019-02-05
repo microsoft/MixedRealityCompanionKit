@@ -797,19 +797,61 @@ HRESULT PluginManagerImpl::RTServerShutdown(
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTServerWriteFrame(
-	ModuleHandle serverHandle)
-	 //byte* pBuffer,
-	 //UINT32 bufferSize)
+	ModuleHandle serverHandle,
+	 byte* pBuffer,
+	 UINT32 bufferSize)
 {
 	Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
 
 	auto lock = _lock.Lock();
 
-	// get capture engine
+	// get realtime server
 	ComPtr<IRealtimeServer> spRTServer;
 	IFR(GetRealtimeServer(serverHandle, &spRTServer));
 
-	IFR(spRTServer->WriteFrame());
+	ComPtr<IRealtimeServerWriter> spRTServerWriter;
+	spRTServer.As(&spRTServerWriter);
+
+	// Create MediaBuffer
+	ComPtr<IMFMediaBuffer> spBuffer;
+
+	UINT32 frameWidth, frameHeight;
+	IFR(spRTServerWriter->GetCurrentResolution(&frameWidth, &frameHeight));
+
+	const LONG cbWidth = sizeof(DWORD) * frameWidth;
+	const DWORD cbBuffer = cbWidth * frameHeight;
+
+	if (cbBuffer != bufferSize)
+	{
+		return E_INVALIDARG;
+	}	
+
+	// Create a new memory buffer.
+	BYTE *pMFdata = NULL;
+	IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
+
+	// Lock the buffer and copy the video frame to the buffer.
+	IFR(spBuffer->Lock(&pMFdata, NULL, NULL));
+
+	IFR(MFCopyImage(
+		pMFdata,                    // Destination buffer.
+		cbWidth,                    // Destination stride.
+		(BYTE*)pBuffer,				// First row in source image.
+		cbWidth,                    // Source stride.
+		cbWidth,                    // Image width in bytes.
+		frameHeight                 // Image height in pixels.
+	));
+
+	if (spBuffer)
+	{
+		spBuffer->Unlock();
+	}
+
+	// Set the data length of the buffer.
+	IFR(spBuffer->SetCurrentLength(cbBuffer));
+
+	// Send server IMFMediaBuffer
+	IFR(spRTServerWriter->WriteFrame(spBuffer.Get()));
 
 	return S_OK;
 }

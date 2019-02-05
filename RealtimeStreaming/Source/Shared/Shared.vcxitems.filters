@@ -97,12 +97,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.h">
       <Filter>Media</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MediaUtils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeServer.h">
       <Filter>Media</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeServer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MediaUtils.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaSource.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\StreamingMediaPlayer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.def" />
@@ -155,12 +159,16 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.cpp">
       <Filter>Media</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MediaUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeServer.cpp">
       <Filter>Media</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeServer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MediaUtils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaSource.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\StreamingMediaPlayer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.idl" />

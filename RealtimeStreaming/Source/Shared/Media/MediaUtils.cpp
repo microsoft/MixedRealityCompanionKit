@@ -226,6 +226,7 @@ HRESULT GetVideoResolution(
 
 	 return S_OK;
 }
+
 _Use_decl_annotations_
 HRESULT CreateMediaPlaybackItem(
 	 IMediaSource2* pMediaSource,

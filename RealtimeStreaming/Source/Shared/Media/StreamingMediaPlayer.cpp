@@ -259,20 +259,6 @@ HRESULT StreamingMediaPlayerImpl::Stop()
 }
 
 _Use_decl_annotations_
-HRESULT StreamingMediaPlayerImpl::InitializeAsync(
-	IAsyncAction** ppAsyncAction)
-{
-	NULL_CHK(ppAsyncAction);
-
-	// TODO: Troy fix async locks
-	//auto lock = _lock.Lock();
-
-	*ppAsyncAction = this;
-
-	return S_OK;
-}
-
-_Use_decl_annotations_
 HRESULT StreamingMediaPlayerImpl::CreateMediaPlayer()
 {
 	Log(Log_Level_Info, L"StreamingMediaPlayerImpl::CreateMediaPlayer()");

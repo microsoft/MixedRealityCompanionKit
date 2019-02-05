@@ -172,11 +172,7 @@ HRESULT RealtimeServerImpl::Shutdown()
 	return S_OK;
 }
 
-_Use_decl_annotations_
-HRESULT RealtimeServerImpl::WriteFrame()
-	//const LONGLONG& rtStart        // Time stamp.
-{
-
+/* 
 	// TODO: Generate random color whole image*
 	// Generate random image
 	std::random_device rd;
@@ -193,41 +189,16 @@ HRESULT RealtimeServerImpl::WriteFrame()
 		_videoFrameBuffer[i] = imgColor;
 	}
 
-	ComPtr<IMFSample> spSample;
-	ComPtr<IMFMediaBuffer> spBuffer;
+*/
 
-	UINT32 videoWidth, videoHeight;
-	IFR(GetVideoResolution(_spMediaEncodingProfile.Get(), &videoWidth, &videoHeight));
-
-	const LONG cbWidth = 4 * videoWidth;
-	const DWORD cbBuffer = cbWidth * videoHeight;
-
-	BYTE *pData = NULL;
-
-	// Create a new memory buffer.
-	IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
-
-	// Lock the buffer and copy the video frame to the buffer.
-	IFR(spBuffer->Lock(&pData, NULL, NULL));
-
-	IFR(MFCopyImage(
-		pData,                      // Destination buffer.
-		cbWidth,                    // Destination stride.
-		(BYTE*)_videoFrameBuffer,    // First row in source image.
-		cbWidth,                    // Source stride.
-		cbWidth,                    // Image width in bytes.
-		videoHeight                 // Image height in pixels.
-	));
-
-	if (spBuffer)
-	{
-		spBuffer->Unlock();
-	}
-
-	// Set the data length of the buffer.
-	IFR(spBuffer->SetCurrentLength(cbBuffer));
+_Use_decl_annotations_
+HRESULT RealtimeServerImpl::WriteFrame(
+	IMFMediaBuffer* pMediaBuffer)
+{
+	ComPtr<IMFMediaBuffer> spBuffer(pMediaBuffer);
 
 	// Create a media sample and add the buffer to the sample.
+	ComPtr<IMFSample> spSample;
 	IFR(MFCreateSample(&spSample));
 
 	IFR(spSample->AddBuffer(spBuffer.Get()));
@@ -243,4 +214,12 @@ HRESULT RealtimeServerImpl::WriteFrame()
 	rtStart += VIDEO_FRAME_DURATION;
 
 	return S_OK;
+}
+
+_Use_decl_annotations_
+HRESULT RealtimeServerImpl::GetCurrentResolution(
+	UINT32* pWidth,
+	UINT32* pHeight)
+{
+	return GetVideoResolution(_spMediaEncodingProfile.Get(), pWidth, pHeight);
 }
