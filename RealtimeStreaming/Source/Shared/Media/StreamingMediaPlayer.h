@@ -63,7 +63,8 @@ namespace MixedRemoteViewCompositor
 
 		DECLARE_INTERFACE_IID_(IStreamingMediaPlayer, IUnknown, "eea215a4-53ee-4f57-8dda-10467d628180")
 		{
-			STDMETHOD(CreatePlaybackTexture)(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture) PURE;
+            STDMETHOD(GetCurrentResolution)(_Out_ UINT32* pWidth, _Out_ UINT32* pHeight) PURE;
+			STDMETHOD(CreateStreamingTexture)(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture) PURE;
 			STDMETHOD(Play)() PURE;
 			STDMETHOD(Pause)() PURE;
 			STDMETHOD(Stop)() PURE;
@@ -95,7 +96,11 @@ namespace MixedRemoteViewCompositor
 				_In_ ID3D11Device* pDevice);
 
 			// IStreamingMediaPlayer
-			IFACEMETHOD(CreatePlaybackTexture)(
+            IFACEMETHOD(GetCurrentResolution)(
+                _Out_ UINT32* pWidth, 
+                _Out_ UINT32* pHeight);
+
+			IFACEMETHOD(CreateStreamingTexture)(
 				_In_ UINT32 width,
 				_In_ UINT32 height,
 				_COM_Outptr_ void** ppvTexture);

@@ -1197,11 +1197,12 @@ HRESULT NetworkMediaSinkStreamImpl::FillStreamDescription(
     ComPtr<IMFMediaType> spMediaType;
     IFR(GetCurrentMediaType(&spMediaType));
 
+    /*
+    // filter types to those deemed needed
     ComPtr<IMFMediaType> spFilteredMediaType;
     IFR(MFCreateMediaType(&spFilteredMediaType));
-
-    // filter types to those deemed needed
     IFR(FilterOutputMediaType(spMediaType.Get(), spFilteredMediaType.Get()));
+    */
 
     // fill in streamDescription
     pStreamDescription->dwStreamId = _dwStreamId;
@@ -1214,7 +1215,8 @@ HRESULT NetworkMediaSinkStreamImpl::FillStreamDescription(
 
     // Set size of attributes blob
     UINT32 attributesSize = 0;
-    IFR(MFGetAttributesAsBlobSize(spFilteredMediaType.Get(), &attributesSize));
+    //IFR(MFGetAttributesAsBlobSize(spFilteredMediaType.Get(), &attributesSize));
+    IFR(MFGetAttributesAsBlobSize(spMediaType.Get(), &attributesSize));
 
     // Prepare a buffer for the filtered mediaType
     ComPtr<DataBufferImpl> spAttributes;
@@ -1227,7 +1229,8 @@ HRESULT NetworkMediaSinkStreamImpl::FillStreamDescription(
     UINT8* pBuffer = GetDataType<UINT8*>(spAttributes.Get());
     NULL_CHK(pBuffer);
 
-    IFR(MFGetAttributesAsBlob(spFilteredMediaType.Get(), pBuffer, attributesSize));
+    IFR(MFGetAttributesAsBlob(spMediaType.Get(), pBuffer, attributesSize));
+    //IFR(MFGetAttributesAsBlob(spFilteredMediaType.Get(), pBuffer, attributesSize));
 
     // were good, save the valus and return
     pStreamDescription->AttributesBlobSize = attributesSize;

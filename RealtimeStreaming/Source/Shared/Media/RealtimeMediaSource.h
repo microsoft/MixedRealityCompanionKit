@@ -22,123 +22,128 @@
 
 namespace MixedRemoteViewCompositor
 {
-	namespace Media
-	{
-		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Core::MediaStreamSource*, ABI::Windows::Media::Core::MediaStreamSourceStartingEventArgs*> IStartingEventHandler;
-		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Core::MediaStreamSource*, ABI::Windows::Media::Core::MediaStreamSourceSampleRequestedEventArgs*> ISampleRequestedEventHandler;
-		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Core::MediaStreamSource*, ABI::Windows::Media::Core::MediaStreamSourceClosedEventArgs*> IMediaClosedEventHandler;
-		// TODO: This IClosedEventHandler conflicts with one in idl?
+    namespace Media
+    {
+        typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Core::MediaStreamSource*, ABI::Windows::Media::Core::MediaStreamSourceStartingEventArgs*> IStartingEventHandler;
+        typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Core::MediaStreamSource*, ABI::Windows::Media::Core::MediaStreamSourceSampleRequestedEventArgs*> ISampleRequestedEventHandler;
+        typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Core::MediaStreamSource*, ABI::Windows::Media::Core::MediaStreamSourceClosedEventArgs*> IMediaClosedEventHandler;
+        // TODO: This IClosedEventHandler conflicts with one in idl?
 
-		//DECLARE_INTERFACE_IID_(IRealtimeMediaSource, IUnknown, "dc70dfca-89ab-46b0-aae0-77b0c16b6944")
-		DECLARE_INTERFACE_IID_(IRealtimeMediaSource, IUnknown, "1afaad8b-b15a-4944-aa06-e16a511199b2")
-		{
-			STDMETHOD(get_MediaStreamSource)(_COM_Outptr_ ABI::Windows::Media::Core::IMediaStreamSource** ppMediaStreamSource) PURE;
-		};
+        DECLARE_INTERFACE_IID_(IRealtimeMediaSource, IUnknown, "1afaad8b-b15a-4944-aa06-e16a511199b2")
+        {
+            STDMETHOD(get_MediaStreamSource)(_COM_Outptr_ ABI::Windows::Media::Core::IMediaStreamSource** ppMediaStreamSource) PURE;
+            STDMETHOD(get_StreamResolution)(_Out_ UINT32* pWidth, _Out_ UINT32* pHeight) PURE;
+        };
 
-		class RealtimeMediaSourceImpl
-			: public Microsoft::WRL::RuntimeClass
-			//< Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>
-			<RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-			, IRealtimeMediaSource
-			, ABI::Windows::Foundation::IAsyncAction
-			, AsyncBase<ABI::Windows::Foundation::IAsyncActionCompletedHandler>
-			, Microsoft::WRL::FtmBase>
-		{
-		public:
-			// Contructor
-			RealtimeMediaSourceImpl();
-			virtual ~RealtimeMediaSourceImpl();
+        class RealtimeMediaSourceImpl
+            : public Microsoft::WRL::RuntimeClass
+            //< Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>
+            <RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
+            , IRealtimeMediaSource
+            , ABI::Windows::Foundation::IAsyncAction
+            , AsyncBase<ABI::Windows::Foundation::IAsyncActionCompletedHandler>
+            , Microsoft::WRL::FtmBase>
+        {
+        public:
+            // Contructor
+            RealtimeMediaSourceImpl();
+            virtual ~RealtimeMediaSourceImpl();
 
-			HRESULT RuntimeClassInitialize(
-				_In_ ABI::MixedRemoteViewCompositor::Network::IConnection *pConnection);
+            HRESULT RuntimeClassInitialize(
+                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection *pConnection);
 
-			// IRealtimeMediaSource
-			IFACEMETHOD(get_MediaStreamSource)(_COM_Outptr_ ABI::Windows::Media::Core::IMediaStreamSource** ppMediaStreamSource);
+            // IRealtimeMediaSource
+            IFACEMETHOD(get_MediaStreamSource)(_COM_Outptr_ ABI::Windows::Media::Core::IMediaStreamSource** ppMediaStreamSource);
+            IFACEMETHOD(get_StreamResolution)(_Out_ UINT32* pWidth, _Out_ UINT32* pHeight);
 
-			// IAsyncAction
-			IFACEMETHOD(put_Completed)(
-				_In_ ABI::Windows::Foundation::IAsyncActionCompletedHandler *handler)
-			{
-				return PutOnComplete(handler);
-			}
-			IFACEMETHOD(get_Completed)(
-				_Out_ ABI::Windows::Foundation::IAsyncActionCompletedHandler** handler)
-			{
-				return GetOnComplete(handler);
-			}
-			IFACEMETHOD(GetResults)(void)
-			{
-				return AsyncBase::CheckValidStateForResultsCall();
-			}
+            // IAsyncAction
+            IFACEMETHOD(put_Completed)(
+                _In_ ABI::Windows::Foundation::IAsyncActionCompletedHandler *handler)
+            {
+                return PutOnComplete(handler);
+            }
+            IFACEMETHOD(get_Completed)(
+                _Out_ ABI::Windows::Foundation::IAsyncActionCompletedHandler** handler)
+            {
+                return GetOnComplete(handler);
+            }
+            IFACEMETHOD(GetResults)(void)
+            {
+                return AsyncBase::CheckValidStateForResultsCall();
+            }
 
-			// AsyncBase
-			virtual HRESULT OnStart(void) { return S_OK; }
-			virtual void OnClose(void)
-			{
-				HandleError(MF_E_SHUTDOWN);
-			}
-			virtual void OnCancel(void)
-			{
-				HandleError(E_ABORT);
-			}
-		
-		protected:
-			HRESULT OnDataReceived(
-				_In_ IConnection *sender,
-				_In_ IBundleReceivedArgs *args);
+            // AsyncBase
+            virtual HRESULT OnStart(void) { return S_OK; }
+            virtual void OnClose(void)
+            {
+                HandleError(MF_E_SHUTDOWN);
+            }
+            virtual void OnCancel(void)
+            {
+                HandleError(E_ABORT);
+            }
 
-		private:
-			HRESULT OnStarting(_In_ ABI::Windows::Media::Core::IMediaStreamSource* sender, _In_ ABI::Windows::Media::Core::IMediaStreamSourceStartingEventArgs* args);
-			HRESULT OnSampleRequested(_In_ ABI::Windows::Media::Core::IMediaStreamSource* sender, _In_ ABI::Windows::Media::Core::IMediaStreamSourceSampleRequestedEventArgs* args);
-			HRESULT OnClosed(_In_ ABI::Windows::Media::Core::IMediaStreamSource* sender, _In_ ABI::Windows::Media::Core::IMediaStreamSourceClosedEventArgs* args);
+        protected:
+            HRESULT OnDataReceived(
+                _In_ IConnection *sender,
+                _In_ IBundleReceivedArgs *args);
 
-			// Async action helpers
-			HRESULT HandleError(HRESULT hResult);
-			HRESULT CompleteAsyncAction(HRESULT hResult);
+        private:
+            HRESULT OnStarting(_In_ ABI::Windows::Media::Core::IMediaStreamSource* sender, _In_ ABI::Windows::Media::Core::IMediaStreamSourceStartingEventArgs* args);
+            HRESULT OnSampleRequested(_In_ ABI::Windows::Media::Core::IMediaStreamSource* sender, _In_ ABI::Windows::Media::Core::IMediaStreamSourceSampleRequestedEventArgs* args);
+            HRESULT OnClosed(_In_ ABI::Windows::Media::Core::IMediaStreamSource* sender, _In_ ABI::Windows::Media::Core::IMediaStreamSourceClosedEventArgs* args);
 
-			// Network calls
-			HRESULT SendDescribeRequest();
-			HRESULT SendStartRequest();
-			HRESULT SendStopRequest();
+            // Async action helpers
+            HRESULT HandleError(HRESULT hResult);
+            HRESULT CompleteAsyncAction(HRESULT hResult);
 
-			// Network handlers
-			HRESULT ProcessCaptureReady();
-			HRESULT ProcessMediaDescription(_In_ IDataBundle* pBundle);
-			HRESULT ProcessMediaSample(_In_ IDataBundle* pBundle);
-			HRESULT ProcessMediaFormatChange(_In_ IDataBundle* pBundle);
+            // Network calls
+            HRESULT SendDescribeRequest();
+            HRESULT SendStartRequest();
+            HRESULT SendStopRequest();
 
-			HRESULT CreateMediaSource();
+            // Network handlers
+            HRESULT ProcessCaptureReady();
+            HRESULT ProcessMediaDescription(_In_ IDataBundle* pBundle);
+            HRESULT ProcessMediaSample(_In_ IDataBundle* pBundle);
+            HRESULT ProcessMediaFormatChange(_In_ IDataBundle* pBundle);
 
-			inline HRESULT CheckShutdown() const
-			{
-				if (_eSourceState == SourceStreamState_Shutdown)
-				{
-					return MF_E_SHUTDOWN;
-				}
-				else
-				{
-					return S_OK;
-				}
-			}
+            HRESULT CreateMediaSource(_In_ IVideoEncodingProperties* pVideoEncodingProperties);
+            HRESULT RealtimeMediaSourceImpl::GetPropertiesFromMediaDescription(
+                _In_ MediaTypeDescription* pStreamDescription,
+                _In_ IDataBundle* pAttributesBuffer,
+                _COM_Outptr_ IVideoEncodingProperties** ppVideoEncodingProperties);
 
-		private:
-			Microsoft::WRL::Wrappers::SRWLock m_lock;
+            inline HRESULT CheckShutdown() const
+            {
+                if (_eSourceState == SourceStreamState_Shutdown)
+                {
+                    return MF_E_SHUTDOWN;
+                }
+                else
+                {
+                    return S_OK;
+                }
+            }
 
-			Microsoft::WRL::ComPtr<ABI::Windows::Media::Core::IMediaStreamSource> m_mediaStreamSource;
-			EventRegistrationToken m_startingRequestedToken;
-			EventRegistrationToken m_sampleRequestedToken;
-			EventRegistrationToken m_closeRequestedToken;
+        private:
+            Microsoft::WRL::Wrappers::SRWLock m_lock;
 
-			ComPtr<IMFSample> m_latestSample;
+            Microsoft::WRL::ComPtr<ABI::Windows::Media::Core::IMediaStreamSource> m_mediaStreamSource;
+            EventRegistrationToken m_startingRequestedToken;
+            EventRegistrationToken m_sampleRequestedToken;
+            EventRegistrationToken m_closeRequestedToken;
 
-			ComPtr<IMediaEncodingProfile> m_spMediaEncodingProfile;
+            ComPtr<IMFSample> m_latestSample;
 
-			ComPtr<IConnection> _spConnection; // Network sender
-			EventRegistrationToken _evtReceivedToken;
+            ComPtr<IVideoEncodingProperties> m_spVideoEncoding;
 
-			ComPtr<ABI::Windows::Media::Core::IMediaStreamSourceSampleRequest> m_spRequest;
-			ComPtr<ABI::Windows::Media::Core::IMediaStreamSourceSampleRequestDeferral> m_deferral;
-			SourceStreamState _eSourceState; // Flag to indicate if Shutdown() method was called.
-		};
-	}
+            ComPtr<IConnection> _spConnection; // Network sender
+            EventRegistrationToken _evtReceivedToken;
+
+            ComPtr<ABI::Windows::Media::Core::IMediaStreamSourceSampleRequest> m_spRequest;
+            ComPtr<ABI::Windows::Media::Core::IMediaStreamSourceSampleRequestDeferral> m_deferral;
+            SourceStreamState _eSourceState; // Flag to indicate if Shutdown() method was called.
+        };
+    }
 }

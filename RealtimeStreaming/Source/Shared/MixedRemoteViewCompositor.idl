@@ -822,8 +822,10 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     interface IRealtimeServerStatics : IInspectable
     {
         HRESULT Create(
-				[in] MixedRemoteViewCompositor.Network.Connection* connection,
-				[out][retval] MixedRemoteViewCompositor.Media.RealtimeServer** RealtimeServer);
+            [in] MixedRemoteViewCompositor.Network.Connection* connection,
+            [in] GUID inputMediaType,
+            [in] Windows.Media.MediaProperties.MediaEncodingProfile *mediaEncodingProfile,
+            [out][retval] MixedRemoteViewCompositor.Media.RealtimeServer** RealtimeServer);
     };
 
     //[activatable(MixedRemoteViewCompositor.Media.IRealtimeServerStatics, 1.0)]

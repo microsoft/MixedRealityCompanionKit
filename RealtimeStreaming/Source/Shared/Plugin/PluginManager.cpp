@@ -164,7 +164,7 @@ void PluginManagerImpl::OnDeviceEvent(UnityGfxDeviceEventType eventType)
     auto lock = _lock.Lock();
 
     UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
-    
+
     if (nullptr == _unityGraphics)
     {
         return;
@@ -217,7 +217,7 @@ done:
 _Use_decl_annotations_
 void PluginManagerImpl::SetTime(float t)
 {
-	// TODO: uncomment these
+    // TODO: uncomment these
     //Log(Log_Level_Info, L"PluginManagerImpl::SetTime()\n");
 
     auto lock = _lock.Lock();
@@ -238,55 +238,55 @@ void PluginManagerImpl::SetTime(float t)
 _Use_decl_annotations_
 void PluginManagerImpl::OnPlugInEvent(PluginEventType event)
 {
-	// TODO: uncomment these
+    // TODO: uncomment these
     //Log(Log_Level_Info, L"PluginManagerImpl::OnRenderEvent()\n");
 
     // we have no control that the callback is still valid
     LOG_RESULT(
-        ExceptionBoundary([this, event]() -> HRESULT
+        ExceptionBoundary([this, event]()->HRESULT
+    {
+        auto lock = _lock.Lock();
+
+        switch (event)
         {
-            auto lock = _lock.Lock();
-            
-            switch (event)
+        case PluginEventType_Update:
+            if (!_updateQueue.empty())
             {
-            case PluginEventType_Update:
-                if (!_updateQueue.empty())
+                UpdateAction action;
+                while (_updateQueue.try_pop(action))
                 {
-                    UpdateAction action;
-                    while (_updateQueue.try_pop(action))
-                    {
-                        action(_deltaTime, _timeElasped);
-                    }
+                    action(_deltaTime, _timeElasped);
                 }
-                break;
-
-            case PluginEventType_Render:
-                if (!_renderQueue.empty())
-                {
-                    RenderAction action;
-                    while (_renderQueue.try_pop(action))
-                    {
-                        action();
-                    }
-                }
-                break;
-
-            case PluginEventType_Flush:
-                _updateQueue.clear();
-                _renderQueue.clear();
-                break;
             }
+            break;
 
-            return S_OK;
-        }));
+        case PluginEventType_Render:
+            if (!_renderQueue.empty())
+            {
+                RenderAction action;
+                while (_renderQueue.try_pop(action))
+                {
+                    action();
+                }
+            }
+            break;
+
+        case PluginEventType_Flush:
+            _updateQueue.clear();
+            _renderQueue.clear();
+            break;
+        }
+
+        return S_OK;
+    }));
 }
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::ListenerCreateAndStart(
-    UINT16 port, 
+    UINT16 port,
     ModuleHandle *listenerHandle,
     PluginCallback callback,
-	void* pCallbackObject)
+    void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::StartListener()\n");
 
@@ -295,7 +295,7 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
 
     ComPtr<ListenerImpl> listener;
     IFR(MakeAndInitialize<ListenerImpl>(&listener, port));
-    
+
     ComPtr<IConnectionCreatedOperation> connectedOp;
     IFR(listener->ListenAsync(&connectedOp));
 
@@ -321,7 +321,7 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
         IFC(hr);
 
         IFC(result->GetResults(&connection));
-        
+
         // QI for module
         IFC(connection.As(&module));
 
@@ -369,7 +369,7 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
     LPCWSTR address,
     ModuleHandle *connectorHandle,
     PluginCallback callback,
-	void* pCallbackObject)
+    void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection()\n");
 
@@ -435,7 +435,7 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
         IFC(pResult->GetResults(&connection));
 
         IFC(connection.As(&module));
-        
+
     done:
         auto lock = _lock.Lock();
 
@@ -475,9 +475,9 @@ HRESULT PluginManagerImpl::ConnectorStopAndClose(
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::ConnectionAddDisconnected(
-    ModuleHandle handle, 
-    PluginCallback callback, 
-	void* pCallbackObject,
+    ModuleHandle handle,
+    PluginCallback callback,
+    void* pCallbackObject,
     INT64* tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
@@ -516,7 +516,7 @@ HRESULT PluginManagerImpl::ConnectionAddDisconnected(
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::ConnectionRemoveDisconnected(
-    ModuleHandle handle, 
+    ModuleHandle handle,
     INT64 tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionRemoveReceived()\n");
@@ -539,7 +539,7 @@ _Use_decl_annotations_
 HRESULT PluginManagerImpl::ConnectionAddReceived(
     ModuleHandle handle,
     DataReceivedHandler callback,
-	void* pCallbackObject,
+    void* pCallbackObject,
     INT64* tokenValue)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
@@ -746,18 +746,32 @@ HRESULT PluginManagerImpl::ConnectionClose(
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTServerCreate(
-	 ModuleHandle connectionHandle,
-	 ModuleHandle* serverHandle)
+    ModuleHandle connectionHandle,
+    ModuleHandle* serverHandle)
 {
-	NULL_CHK(serverHandle);
+    NULL_CHK(serverHandle);
 
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerCreate()\n");
 
-	 ComPtr<IConnection> spConnection;
-	 IFR(GetConnection(connectionHandle, &spConnection));
+    ComPtr<IConnection> spConnection;
+    IFR(GetConnection(connectionHandle, &spConnection));
+
+    // Default encoding activation
+    ComPtr<IMediaEncodingProfileStatics3> spEncodingProfileStatics;
+    IFR(Windows::Foundation::GetActivationFactory(
+        Wrappers::HStringReference(RuntimeClass_Windows_Media_MediaProperties_MediaEncodingProfile).Get(),
+        &spEncodingProfileStatics));
+
+    ComPtr<IMediaEncodingProfile> spMediaEncodingProfile;
+    IFR(spEncodingProfileStatics->CreateHevc(
+        ABI::Windows::Media::MediaProperties::VideoEncodingQuality_HD720p,
+        &spMediaEncodingProfile));
 
     ComPtr<RealtimeServerImpl> spRTServer;
-    IFR(MakeAndInitialize<RealtimeServerImpl>(&spRTServer, spConnection.Get()));
+    IFR(MakeAndInitialize<RealtimeServerImpl>(&spRTServer,
+        spConnection.Get(),
+        MFVideoFormat_RGB32,
+        spMediaEncodingProfile.Get()));
 
     auto lock = _lock.Lock();
 
@@ -766,202 +780,207 @@ HRESULT PluginManagerImpl::RTServerCreate(
 
     if (nullptr == _moduleManager)
     {
-		IFR(E_NOT_SET);
+        IFR(E_NOT_SET);
     }
 
     IFR(spRTServer.As(&module));
-        
-	IFR(_moduleManager->AddModule(module.Get(), &handle));
 
-	*serverHandle = handle;
+    IFR(_moduleManager->AddModule(module.Get(), &handle));
 
-	return S_OK;
+    *serverHandle = handle;
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTServerShutdown(
-	ModuleHandle serverHandle)
+    ModuleHandle serverHandle)
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTServerShutdown()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTServerShutdown()\n");
 
-	auto lock = _lock.Lock();
+    auto lock = _lock.Lock();
 
-	// get capture engine
-	ComPtr<IRealtimeServer> spRTServer;
-	IFR(GetRealtimeServer(serverHandle, &spRTServer));
+    // get capture engine
+    ComPtr<IRealtimeServer> spRTServer;
+    IFR(GetRealtimeServer(serverHandle, &spRTServer));
 
-	IFR(spRTServer->Shutdown());
+    IFR(spRTServer->Shutdown());
 
-	return S_OK;
+    // release the handle
+    return _moduleManager->ReleaseModule(serverHandle);
 }
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTServerWriteFrame(
-	ModuleHandle serverHandle,
-	 BYTE* pBuffer,
-	 UINT32 bufferSize)
+    ModuleHandle serverHandle,
+    BYTE* pBuffer,
+    UINT32 bufferSize)
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
 
-	auto lock = _lock.Lock();
+    auto lock = _lock.Lock();
 
-	// get realtime server
-	ComPtr<IRealtimeServer> spRTServer;
-	IFR(GetRealtimeServer(serverHandle, &spRTServer));
+    // get realtime server
+    ComPtr<IRealtimeServer> spRTServer;
+    IFR(GetRealtimeServer(serverHandle, &spRTServer));
 
-	ComPtr<IRealtimeServerWriter> spRTServerWriter;
-	spRTServer.As(&spRTServerWriter);
+    ComPtr<IRealtimeServerWriter> spRTServerWriter;
+    spRTServer.As(&spRTServerWriter);
 
-	// Create MediaBuffer
-	ComPtr<IMFMediaBuffer> spBuffer;
+    // Create MediaBuffer
+    ComPtr<IMFMediaBuffer> spBuffer;
 
-	UINT32 frameWidth, frameHeight;
-	IFR(spRTServerWriter->GetCurrentResolution(&frameWidth, &frameHeight));
+    UINT32 frameWidth, frameHeight;
+    IFR(spRTServerWriter->GetCurrentResolution(&frameWidth, &frameHeight));
 
-	const LONG cbWidth = sizeof(DWORD) * frameWidth;
-	const DWORD cbBuffer = cbWidth * frameHeight;
+    const LONG cbWidth = sizeof(DWORD) * frameWidth;
+    const DWORD cbBuffer = cbWidth * frameHeight;
 
-	if (cbBuffer != bufferSize)
-	{
-		return E_INVALIDARG;
-	}	
+    if (cbBuffer != bufferSize)
+    {
+        return E_INVALIDARG;
+    }
 
-	// Create a new memory buffer.
-	BYTE *pMFdata = NULL;
-	IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
+    // Create a new memory buffer.
+    BYTE *pMFdata = NULL;
+    IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
 
-	// Lock the buffer and copy the video frame to the buffer.
-	IFR(spBuffer->Lock(&pMFdata, NULL, NULL));
+    // Lock the buffer and copy the video frame to the buffer.
+    IFR(spBuffer->Lock(&pMFdata, NULL, NULL));
 
-	IFR(MFCopyImage(
-		pMFdata,                    // Destination buffer.
-		cbWidth,                    // Destination stride.
-		pBuffer,						    // First row in source image.
-		cbWidth,                    // Source stride.
-		cbWidth,                    // Image width in bytes.
-		frameHeight                 // Image height in pixels.
-	));
+    IFR(MFCopyImage(
+        pMFdata,                    // Destination buffer.
+        cbWidth,                    // Destination stride.
+        pBuffer,						    // First row in source image.
+        cbWidth,                    // Source stride.
+        cbWidth,                    // Image width in bytes.
+        frameHeight                 // Image height in pixels.
+    ));
 
-	if (spBuffer)
-	{
-		spBuffer->Unlock();
-	}
+    if (spBuffer)
+    {
+        spBuffer->Unlock();
+    }
 
-	// Set the data length of the buffer.
-	IFR(spBuffer->SetCurrentLength(cbBuffer));
+    // Set the data length of the buffer.
+    IFR(spBuffer->SetCurrentLength(cbBuffer));
 
-	// Send server IMFMediaBuffer
-	IFR(spRTServerWriter->WriteFrame(spBuffer.Get()));
+    // Send server IMFMediaBuffer
+    IFR(spRTServerWriter->WriteFrame(spBuffer.Get()));
 
-	return S_OK;
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTPlayerCreate(
-	ModuleHandle handle,
-	//StateChangedCallback fnCallback,
-	PluginCallback callback,
-	void* pCallbackObject)
-	//StreamingMediaPlayerImpl** ppStreamingPlayer)
+    ModuleHandle handle,
+    //StateChangedCallback fnCallback,
+    PlayerCreatedCallback callback,
+    void* pCallbackObject)
+    //StreamingMediaPlayerImpl** ppStreamingPlayer)
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate()\n");
 
-	NULL_CHK(callback);
+    NULL_CHK(callback);
 
-	auto lock = _lock.Lock();
+    auto lock = _lock.Lock();
 
-	// get connection
-	ComPtr<IConnection> spConnection;
-	IFR(GetConnection(handle, &spConnection));
+    // get connection
+    ComPtr<IConnection> spConnection;
+    IFR(GetConnection(handle, &spConnection));
 
-	UnityGfxRenderer unityGraphics = _unityGraphics->GetRenderer();
+    UnityGfxRenderer unityGraphics = _unityGraphics->GetRenderer();
 
-	ComPtr<IStreamingMediaPlayer> spPlayerPlayback;
-	IFR(StreamingMediaPlayerImpl::CreateStreamingMediaPlayer(unityGraphics,
-		_unityInterfaces,
-		spConnection.Get(),
-		//fnCallback,
-		&spPlayerPlayback));
+    ComPtr<IStreamingMediaPlayer> spPlayer;
+    IFR(StreamingMediaPlayerImpl::CreateStreamingMediaPlayer(unityGraphics,
+        _unityInterfaces,
+        spConnection.Get(),
+        //fnCallback,
+        &spPlayer));
 
-	// Copy out the streaming player
-	IFR(spPlayerPlayback.CopyTo(&s_spStreamingPlayer));
+    // Copy out the streaming player
+    IFR(spPlayer.CopyTo(&s_spStreamingPlayer));
 
-	ComPtr<IAsyncAction> spInitAction;
-	IFR(spPlayerPlayback.As(&spInitAction));
+    ComPtr<IAsyncAction> spInitAction;
+    IFR(spPlayer.As(&spInitAction));
 
-	ComPtr<PluginManagerImpl> spThis(this);
-	return StartAsyncThen(
-		spInitAction.Get(),
-		[this, spThis, spPlayerPlayback, callback, pCallbackObject](_In_ HRESULT hr, _In_ IAsyncAction* asyncAction, _In_ AsyncStatus asyncStatus)
-	{
-		Log(Log_Level_Info, L"PluginManagerImpl::CreateStreamingMediaPlayer() - InitAsync()\n");
+    ComPtr<PluginManagerImpl> spThis(this);
+    return StartAsyncThen(
+        spInitAction.Get(),
+        [this, spThis, spPlayer, callback, pCallbackObject](_In_ HRESULT hr, _In_ IAsyncAction* asyncAction, _In_ AsyncStatus asyncStatus)
+    {
+        Log(Log_Level_Info, L"PluginManagerImpl::CreateStreamingMediaPlayer() - InitAsync()\n");
 
-		auto lock = _lock.Lock();
+        auto lock = _lock.Lock();
 
-		// TODO: Create new plugin callback since don't need handle?
-		ModuleHandle handle = MODULE_HANDLE_INVALID;
-		ComPtr<IModule> module;
+        UINT32 width, height;
+        IFC(spPlayer->GetCurrentResolution(&width, &height));
 
-	done:
-		CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, hr);
+    done:
+        callback(pCallbackObject,
+            hr,
+            width,
+            height);
 
-		return hr;
-	});
+        return hr;
+    });
 }
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTPlayerRelease()
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerRelease()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerRelease()\n");
 
-	if (s_spStreamingPlayer != nullptr)
-	{
-		s_spStreamingPlayer.Reset();
-		s_spStreamingPlayer = nullptr;
-	}
+    if (s_spStreamingPlayer != nullptr)
+    {
+        s_spStreamingPlayer.Reset();
+        s_spStreamingPlayer = nullptr;
+    }
 
-	return S_OK;
+    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTPlayerCreateTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture)
+HRESULT PluginManagerImpl::RTPlayerCreateTexture(_In_ UINT32 width, 
+    _In_ UINT32 height,
+    _COM_Outptr_ void** ppvTexture)
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreateTexture()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreateTexture()\n");
 
-	NULL_CHK(ppvTexture);
-	NULL_CHK(s_spStreamingPlayer);
+    NULL_CHK(ppvTexture);
+    NULL_CHK(s_spStreamingPlayer);
 
-	return s_spStreamingPlayer->CreatePlaybackTexture(width, height, ppvTexture);
+    return s_spStreamingPlayer->CreateStreamingTexture(width, height, ppvTexture);
 }
 
 _Use_decl_annotations_
 HRESULT  PluginManagerImpl::RTPlayerStart()
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStart()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStart()\n");
 
-	NULL_CHK(s_spStreamingPlayer);
+    NULL_CHK(s_spStreamingPlayer);
 
-	return s_spStreamingPlayer->Play();
+    return s_spStreamingPlayer->Play();
 }
 
 _Use_decl_annotations_
 HRESULT  PluginManagerImpl::RTPlayerPause()
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerPause()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerPause()\n");
 
-	NULL_CHK(s_spStreamingPlayer);
+    NULL_CHK(s_spStreamingPlayer);
 
-	return s_spStreamingPlayer->Pause();
+    return s_spStreamingPlayer->Pause();
 }
 
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTPlayerStop()
 {
-	Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStop()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStop()\n");
 
-	NULL_CHK(s_spStreamingPlayer);
+    NULL_CHK(s_spStreamingPlayer);
 
-	return s_spStreamingPlayer->Stop();
+    return s_spStreamingPlayer->Stop();
 }
 
 
@@ -969,9 +988,9 @@ HRESULT PluginManagerImpl::RTPlayerStop()
 _Use_decl_annotations_
 void PluginManagerImpl::CompletePluginCallback(
     _In_ PluginCallback callback,
-	_In_ void* pCallbackObject,
-	_In_ ModuleHandle handle,
-	_In_ HRESULT hr)
+    _In_ void* pCallbackObject,
+    _In_ ModuleHandle handle,
+    _In_ HRESULT hr)
 {
     LOG_RESULT(PluginManagerStaticsImpl::IsOnThread() ? S_OK : RPC_E_WRONG_THREAD);
 
@@ -1044,7 +1063,7 @@ void PluginManagerImpl::StoreToken(
 
     // set eventList
     std::vector<EventRegistrationToken> &eventList = iter->second;
-    
+
     // register callback and track token
     eventList.emplace_back(std::move(newToken));
 }

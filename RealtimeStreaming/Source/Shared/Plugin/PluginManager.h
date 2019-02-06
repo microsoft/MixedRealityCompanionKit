@@ -20,6 +20,12 @@ namespace MixedRemoteViewCompositor
             _In_ HRESULT result, 
             _In_ LPCWSTR pszMessage);
 
+        extern "C" typedef void(UNITY_INTERFACE_API *PlayerCreatedCallback)(
+            _In_ void* pCallbackObject,
+            _In_ HRESULT result,
+            _In_ UINT32 width,
+            _In_ UINT32 height);
+
         extern "C" typedef void(UNITY_INTERFACE_API *DataReceivedHandler)(
             _In_ ModuleHandle handle, 
 			_In_ void* pCallbackObject,
@@ -127,9 +133,9 @@ namespace MixedRemoteViewCompositor
 
             STDMETHODIMP RTPlayerCreate(
                 _In_ ModuleHandle connectionHandle,
-					 //_In_ StateChangedCallback fnCallback,
-                _In_ PluginCallback createdCallback,
-					 _In_ void* pCallbackObject);
+				//_In_ StateChangedCallback fnCallback,
+                _In_ PlayerCreatedCallback createdCallback,
+				_In_ void* pCallbackObject);
 				//_COM_Outptr_opt_result_maybenull_ StreamingMediaPlayerImpl** ppStreamingPlayer);
 
 				STDMETHODIMP RTPlayerRelease();

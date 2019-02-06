@@ -44,7 +44,7 @@ namespace RealtimeStreaming
             return true;
         }
 
-        private void OnConnected(uint handle, int result, string message)
+        private void OnConnected(uint handle, long result, string message)
         {
             // create Connection and pass ownership to it
             var connection = Connection.CreateConnection(handle);
@@ -64,7 +64,7 @@ namespace RealtimeStreaming
                 }
                 else
                 {
-                    Plugin.CheckResult(result, "NetworkComponent.Connected()");
+                    Plugin.CheckHResult(result, "NetworkComponent.Connected()");
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace RealtimeStreaming
                 }
                 else
                 {
-                    Plugin.CheckResult(result, "NetworkComponent.Connected()");
+                    Plugin.CheckHResult(result, "NetworkComponent.Connected()");
                 }
                 return;
             }
@@ -140,7 +140,7 @@ namespace RealtimeStreaming
         internal static class NetworkComponent_PluginCallbackWrapper
         {
             [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnConnected_Callback(uint handle, IntPtr senderPtr, int result, string message)
+            internal static void OnConnected_Callback(uint handle, IntPtr senderPtr, long result, string message)
             {
                 var thisObj = Plugin.GetSenderObject<NetworkComponent>(senderPtr);
 

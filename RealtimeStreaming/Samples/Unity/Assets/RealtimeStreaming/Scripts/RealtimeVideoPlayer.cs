@@ -70,14 +70,6 @@ namespace RealtimeStreaming
         private PlaybackState currentState = PlaybackState.None;
         private PlaybackState previousState = PlaybackState.None;
 
-        public static void CheckHR(long hresult)
-        {
-            if (hresult != 0)
-            {
-                Debug.Log("Media Failed: HRESULT = 0x" + hresult.ToString("X", System.Globalization.NumberFormatInfo.InvariantInfo));
-            }
-        }
-
         // Components needed to interact with Plugin
         private Plugin plugin = null;
         private Connector connector = null;
@@ -174,7 +166,7 @@ namespace RealtimeStreaming
 
             if (this.playbackTexture != null)
             {
-                PlayerPlugin.exReleasePlayer();
+                Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.playbackTexture = null;
             }
         }
@@ -322,17 +314,16 @@ namespace RealtimeStreaming
             });
         }
 
-#endregion
+        #endregion
 
-#region Control Playback
+        #region Control Playback
 
-        public uint TextureWidth = 1280;
-        public uint TextureHeight = 720;
+        private uint textureWidth, textureHeight;
         private Texture2D playbackTexture;
         private PlayerPlugin.StateChangedCallback stateCallback;
         private GCHandle thisObject = default(GCHandle);
 
-        private PluginCallbackHandler createdHandler;
+        private PlayerPlugin.PlayerCreatedCallbackHandler createdHandler;
 
         private void CreateRealTimePlayer()
         {
@@ -342,36 +333,47 @@ namespace RealtimeStreaming
                 return;
             }
 
-            this.createdHandler = new PluginCallbackHandler(Player_PluginCallbackWrapper.OnCreated_Callback);
+            this.createdHandler = new PlayerPlugin.PlayerCreatedCallbackHandler(Player_PluginCallbackWrapper.OnCreated_Callback);
             this.stateCallback = new PlayerPlugin.StateChangedCallback(Player_PluginCallbackWrapper.OnStateChanged_Callback);
 
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
-            // create media playback
-            CheckHR(PlayerPlugin.exCreatePlayer(this.networkConnection.Handle,
+            // Create our RealtimePlayer at the Plugin C++ layer
+            Plugin.CheckHResult(PlayerPlugin.exCreatePlayer(this.networkConnection.Handle,
                 this.stateCallback,
                 this.createdHandler,
                 thisObjectPtr
-                ));
+                ), "RealtimeVideoPlayer::exCreatePlayer()");
         }
 
-        private void OnCreated(uint handle, int result, string message)
+        private void OnCreated(long result, UInt32 width, UInt32 height)
         {
             Plugin.ExecuteOnUnityThread(() =>
             {
-                Debug.Log("RealTimePlayer::OnCreated");
+                Plugin.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
+
+                // TODO: Check width & height are not zero
+
+                this.textureWidth = width;
+                this.textureHeight = height;
+
+                Debug.Log("RealTimePlayer::OnCreated - " + width + " by " + height);
 
                 // create native texture for playback
                 IntPtr nativeTexture = IntPtr.Zero;
-                CheckHR(PlayerPlugin.exCreateExternalTexture(this.TextureWidth,
-                    this.TextureHeight,
-                    out nativeTexture));
+                Plugin.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.textureWidth,
+                    this.textureHeight,
+                    out nativeTexture), 
+                    "RealtimeVideoPlayer::exCreateExternalTexture");
+
+                // TODO: textureformat on callback*
 
                 // create the unity texture2d 
                 this.playbackTexture =
-                    Texture2D.CreateExternalTexture((int)this.TextureWidth,
-                    (int)this.TextureHeight,
-                    TextureFormat.BGRA32,
+                    Texture2D.CreateExternalTexture((int)this.textureWidth,
+                    (int)this.textureHeight,
+                    //TextureFormat.BGRA32,
+                    TextureFormat.RGBA32,
                     false, false,
                     nativeTexture);
 
@@ -387,19 +389,19 @@ namespace RealtimeStreaming
         public void Play()
         {
             Debug.Log("RealTimePlayer::Play");
-            CheckHR(PlayerPlugin.exPlay());
+            Plugin.CheckHResult(PlayerPlugin.exPlay(), "RealTimePlayer::exPlay");
         }
 
         public void Pause()
         {
             Debug.Log("RealTimePlayer::Pause");
-            CheckHR(PlayerPlugin.exPause());
+            Plugin.CheckHResult(PlayerPlugin.exPause(), "RealTimePlayer::exPause");
         }
 
         public void Stop()
         {
             Debug.Log("RealTimePlayer::Stop");
-            CheckHR(PlayerPlugin.exStop());
+            Plugin.CheckHResult(PlayerPlugin.exStop(), "RealTimePlayer::exStop");
         }
 
         private void MediaPlayback_Changed(PlayerPlugin.PLAYBACK_STATE args)
@@ -425,7 +427,7 @@ namespace RealtimeStreaming
                     Debug.Log("Media Opened: " + description.ToString());
                     break;
                 case PlayerPlugin.StateType.StateType_Failed:
-                    CheckHR(args.hresult);
+                    Plugin.CheckHResult(args.hresult, "RealtimeVideoPlayer::OnStateChanged");
                     break;
                 default:
                     break;
@@ -484,14 +486,17 @@ namespace RealtimeStreaming
 
             public delegate void StateChangedCallback(PLAYBACK_STATE args);
 
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate void PlayerCreatedCallbackHandler(IntPtr senderPtr, long result, UInt32 width, UInt32 height);
+
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayer")]
             internal static extern long exCreatePlayer(uint connectionHandle,
                 [MarshalAs(UnmanagedType.FunctionPtr)]StateChangedCallback callback, 
-                [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, 
+                [MarshalAs(UnmanagedType.FunctionPtr)]PlayerCreatedCallbackHandler createdCallback, 
                 IntPtr objectPtr);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ReleaseRealtimePlayer")]
-            internal static extern void exReleasePlayer();
+            internal static extern long exReleasePlayer();
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayerTexture")]
             internal static extern long exCreateExternalTexture(UInt32 width, UInt32 height, out System.IntPtr playbackTexture);
@@ -508,13 +513,13 @@ namespace RealtimeStreaming
 
         internal static class Player_PluginCallbackWrapper
         {
-            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnCreated_Callback(uint handle, IntPtr senderPtr, int result, string message)
+            [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.PlayerCreatedCallbackHandler))]
+            internal static void OnCreated_Callback(IntPtr senderPtr, long result, UInt32 width, UInt32 height)
             {
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
 
                 Plugin.ExecuteOnUnityThread(() => {
-                    thisObj.OnCreated(handle, result, message);
+                    thisObj.OnCreated(result, width, height);
                 });
             }
 

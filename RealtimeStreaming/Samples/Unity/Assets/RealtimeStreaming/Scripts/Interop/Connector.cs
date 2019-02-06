@@ -29,7 +29,7 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
             var result = Wrapper.exOpenConnection(this.ConnectionUrl, ref this.handle, this.connectedHandler, thisObjectPtr);
 
-            Plugin.CheckResult(result, "Connector.StartAsync()");
+            Plugin.CheckHResult(result, "Connector.StartAsync()");
 
             base.OnStarted(result);
         }

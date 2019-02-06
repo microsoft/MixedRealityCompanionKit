@@ -29,7 +29,7 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
             var result = Wrapper.exStartListener(this.Port, ref this.handle, this.connectedHandler, thisObjectPtr);
 
-            Plugin.CheckResult(result, "Listener.StartAsync()");
+            Plugin.CheckHResult(result, "Listener.StartAsync()");
 
             base.OnStarted(result);
         }

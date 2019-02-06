@@ -8,6 +8,7 @@ using Windows.Media;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using MixedRemoteViewCompositor.Network;
+using MixedRemoteViewCompositor.Media;
 
 namespace Viewer
 {

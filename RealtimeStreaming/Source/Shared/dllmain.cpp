@@ -290,7 +290,7 @@ RTDLL RealtimeStreamingStop(
 RTDLL CreateRealtimePlayer(
 	_In_ ModuleHandle connectionHandle,
 	_In_ StateChangedCallback fnCallback,
-	_In_ PluginCallback callback,
+	_In_ PlayerCreatedCallback callback,
 	_In_ void* managedObject)
 {
 

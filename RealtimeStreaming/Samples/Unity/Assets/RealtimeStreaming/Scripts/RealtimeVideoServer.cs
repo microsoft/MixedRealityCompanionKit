@@ -62,6 +62,9 @@ namespace RealtimeStreaming
 
         public Texture2D tex;
 
+        private WebCamTexture webcam;
+        private Color32[] webcam_interop;
+
         private byte[] _videoFrameBuffer;
         const int VIDEO_PELS = 921600;
         const int BUFFER_SIZE = VIDEO_PELS * 4;
@@ -86,6 +89,11 @@ namespace RealtimeStreaming
             {
                 Debug.LogError("Input texture for RealtimeVideoServer.cs is not correct size. Expected to be " + BUFFER_SIZE + " bytes");
             }
+
+            webcam = new WebCamTexture(1280, 720);
+            webcam.Play();
+
+            webcam_interop = new Color32[webcam.width * webcam.height];
 
             StartListener();
         }
@@ -239,10 +247,12 @@ namespace RealtimeStreaming
             this.Handle = handle;
 
             // create timer for writing frames
+            /*
             writeTimer = new Timer(1000 / 30);
             writeTimer.Elapsed += WriteTimer_Elapsed;
             writeTimer.AutoReset = true;
             writeTimer.Enabled = true;
+            */
         }
 
         private void WriteTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -277,16 +287,26 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            /*
-            IntPtr unmanagedArray = Marshal.AllocHGlobal(_videoFrameBuffer.Length);
-            Marshal.Copy(_videoFrameBuffer, 0, unmanagedArray, _videoFrameBuffer.Length);
+            webcam.GetPixels32(webcam_interop);
 
-            VideoServerWrapper.exWrite(this.Handle, unmanagedArray, (uint)_videoFrameBuffer.Length);
+            // TODO: Parrelize copy?
+            int byteIdx = 0;
+            for (int i = 0; i < webcam_interop.Length; i++)
+            {
+                // TODO: webcamtexture vertically flipped?
+                Color32 c = !webcam.videoVerticallyMirrored ?
+                    webcam_interop[webcam_interop.Length - i - 1] :
+                    webcam_interop[i];
 
-            Marshal.FreeHGlobal(unmanagedArray);
-            return true;
-            */
+                _videoFrameBuffer[byteIdx] = c.r;
+                _videoFrameBuffer[byteIdx + 1] = c.g;
+                _videoFrameBuffer[byteIdx + 2] = c.b;
+                _videoFrameBuffer[byteIdx + 3] = c.a;
 
+                byteIdx += 4;
+            }
+
+            //return (VideoServerWrapper.exWrite(this.Handle, webcamData.byteArray, (uint)1280*720*4) == 0);
             return (VideoServerWrapper.exWrite(this.Handle, _videoFrameBuffer, (uint)this._videoFrameBuffer.Length) == 0);
         }
 

@@ -28,7 +28,9 @@ namespace MixedRemoteViewCompositor
             ~RealtimeServerImpl();
 
             HRESULT RuntimeClassInitialize(
-					 _In_ IConnection* pConnection);
+                _In_ IConnection* pConnection,
+                _In_ GUID inputMediaType,
+                _In_ IMediaEncodingProfile* pMediaEncodingProperties);
 
             // IModule
             IFACEMETHOD(get_IsInitialized)(
@@ -38,7 +40,7 @@ namespace MixedRemoteViewCompositor
             // IRealtimeServer
             IFACEMETHOD(Shutdown)();
 
-			// IRealtimeServerWriter
+            // IRealtimeServerWriter
 			IFACEMETHOD(WriteFrame)(
 				_In_ IMFMediaBuffer* pMediaBuffer);
 
@@ -50,49 +52,46 @@ namespace MixedRemoteViewCompositor
             Wrappers::CriticalSection _lock;
 
             boolean _isInitialized;
-            boolean _enableAudio;
-            boolean _captureStarted;
-			
-				ComPtr<IMediaEncodingProfile> _spMediaEncodingProfile;
-				ComPtr<NetworkMediaSinkImpl> _spNetworkMediaSink;
-				ComPtr<IMFSinkWriter> _spSinkWriter;
-				DWORD _sinkWriterStream;
 
-				LONGLONG rtStart = 0;
+            ComPtr<IMediaEncodingProfile> _spMediaEncodingProfile;
+            ComPtr<NetworkMediaSinkImpl> _spNetworkMediaSink;
+            ComPtr<IMFSinkWriter> _spSinkWriter;
+            DWORD m_sinkWriterStream;
 
-				// Buffer to hold the video frame data.
-				const UINT32 VIDEO_PELS = 921600; // 1280 x 720
-				DWORD _videoFrameBuffer[921600]; // TODO: remove hardcode
-				//const UINT32 VIDEO_WIDTH = 640;
-				//const UINT32 VIDEO_HEIGHT = 480;
-				const UINT32 VIDEO_FPS = 30;
-				const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS; // TODO: Needed???
-				const UINT32 VIDEO_BIT_RATE = 800000; // TODO: How to modulate?
-				//const GUID   VIDEO_ENCODING_FORMAT = MFVideoFormat_H265; //MFVideoFormat_H264
-				const GUID   VIDEO_INPUT_FORMAT = MFVideoFormat_RGB32;
-				//const UINT32 VIDEO_PELS = VIDEO_WIDTH * VIDEO_HEIGHT;
+            GUID m_mediaInputFormat;
+
+            LONGLONG rtStart = 0;
+
+            const UINT32 VIDEO_FPS = 30;
+            const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
+            //const UINT32 VIDEO_BIT_RATE = 800000;
         };
 
-		class RealtimeServerStaticsImpl
-			: public ActivationFactory
-			< ABI::MixedRemoteViewCompositor::Media::IRealtimeServerStatics
-			, FtmBase >
-		{
-			InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Media_RealtimeServer, BaseTrust);
+        class RealtimeServerStaticsImpl
+	        : public ActivationFactory
+	        < ABI::MixedRemoteViewCompositor::Media::IRealtimeServerStatics
+	        , FtmBase >
+        {
+            InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Media_RealtimeServer, BaseTrust);
 
-		public:
-			// IRealtimeServerStatics
-			STDMETHODIMP Create(
-				 _In_ ABI::MixedRemoteViewCompositor::Network::IConnection* pConnection,
-				_COM_Outptr_result_maybenull_ ABI::MixedRemoteViewCompositor::Media::IRealtimeServer** ppRealtimeServer) override
-			{
-				ComPtr<RealtimeServerImpl> spRealtimeServer;
-				IFR(Microsoft::WRL::MakeAndInitialize<RealtimeServerImpl>(&spRealtimeServer, pConnection));
+        public:
+            // IRealtimeServerStatics
+            STDMETHODIMP Create(
+                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection* pConnection,
+                _In_ GUID inputMediaType,
+                _In_ ABI::Windows::Media::MediaProperties::IMediaEncodingProfile *pMediaEncodingProfile,
+                _COM_Outptr_result_maybenull_ ABI::MixedRemoteViewCompositor::Media::IRealtimeServer** ppRealtimeServer) override
+            {
+                ComPtr<RealtimeServerImpl> spRealtimeServer;
+                IFR(Microsoft::WRL::MakeAndInitialize<RealtimeServerImpl>(&spRealtimeServer, 
+                    pConnection,
+                    inputMediaType,
+                    pMediaEncodingProfile));
 
-				NULL_CHK_HR(spRealtimeServer, E_OUTOFMEMORY);
+                NULL_CHK_HR(spRealtimeServer, E_OUTOFMEMORY);
 
-				return spRealtimeServer.CopyTo(ppRealtimeServer);
-			}
+                return spRealtimeServer.CopyTo(ppRealtimeServer);
+            }
 		};
     }
 }

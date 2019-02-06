@@ -133,12 +133,12 @@ namespace RealtimeStreaming
                 IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
                 this.disconnectedHandler = new PluginCallbackHandler(Connection_PluginCallbackWrapper.OnDisconnected_Callback);
-                Plugin.CheckResult(
+                Plugin.CheckHResult(
                     Wrapper.exAddDisconnected(this.Handle, this.disconnectedHandler, thisObjectPtr, ref this.disconnectedToken),
                     "Connection.AddDisconnected");
 
                 this.dataReceivedHandler = new Wrapper.DataReceivedHandler(Connection_PluginCallbackWrapper.OnDataReceived_Callback);
-                Plugin.CheckResult(
+                Plugin.CheckHResult(
                     Wrapper.exAddReceived(this.Handle, this.dataReceivedHandler, thisObjectPtr, ref this.dataReceivedToken),
                     "Connection.AddRecevied");
 
@@ -155,7 +155,7 @@ namespace RealtimeStreaming
                 return;
             }
 
-            Plugin.CheckResult(
+            Plugin.CheckHResult(
                 Wrapper.exSendRawMessage(this.Handle, messageType, buf, length),
                 "Connection.SendNetworkMessage");
         }
@@ -164,23 +164,19 @@ namespace RealtimeStreaming
         {
             if (this.Handle != Plugin.InvalidHandle)
             {
-                int result = Wrapper.exRemoveDisconnected(this.Handle, this.disconnectedToken);
-                Plugin.CheckResult(result, "Connection.Close() - RemoveDisconnected");
+                Plugin.CheckHResult(Wrapper.exRemoveDisconnected(this.Handle, this.disconnectedToken), "Connection.Close() - RemoveDisconnected - Handle= " + this.Handle);
 
-                result = Wrapper.exRemoveReceived(this.Handle, this.dataReceivedToken);
-                Plugin.CheckResult(result, "Connection.Close() - RemoveReceived");
+                Plugin.CheckHResult(Wrapper.exRemoveReceived(this.Handle, this.dataReceivedToken), "Connection.Close() - RemoveReceived - Handle= " + this.Handle);
 
-                result = Wrapper.exClose(this.Handle);
-                Plugin.CheckResult(result, "Connection.Close() - CloseConnection");
+                Plugin.CheckHResult(Wrapper.exClose(this.Handle), "Connection.Close() - CloseConnection - Handle= " + this.Handle);
             }
-
 
             this.Closed?.Invoke(this, EventArgs.Empty);
 
             this.Handle = Plugin.InvalidHandle;
         }
 
-        private void OnDisconnected(uint handle, int result, string message)
+        private void OnDisconnected(uint handle, long result, string message)
         {
             if (handle != this.Handle)
             {
@@ -210,28 +206,28 @@ namespace RealtimeStreaming
             internal delegate void DataReceivedHandler(uint msgHandle, IntPtr senderPtr, ushort messageType, int length, IntPtr buffer);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectionAddDisconnected")]
-            internal static extern int exAddDisconnected(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler disconnectedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
+            internal static extern long exAddDisconnected(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler disconnectedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectionRemoveDisconnected")]
-            internal static extern int exRemoveDisconnected(uint handle, UInt64 tokenValue);
+            internal static extern long exRemoveDisconnected(uint handle, UInt64 tokenValue);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectionAddReceived")]
-            internal static extern int exAddReceived(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]DataReceivedHandler dataReceivedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
+            internal static extern long exAddReceived(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]DataReceivedHandler dataReceivedCallback, IntPtr objectPtr, ref UInt64 tokenValue);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectionRemoveReceived")]
-            internal static extern int exRemoveReceived(uint handle, UInt64 tokenValue);
+            internal static extern long exRemoveReceived(uint handle, UInt64 tokenValue);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectionSendRawData")]
-            internal static extern int exSendRawMessage(uint handle, DataType messageType, [MarshalAs(UnmanagedType.LPArray)] byte[] buf, int bufLength);
+            internal static extern long exSendRawMessage(uint handle, DataType messageType, [MarshalAs(UnmanagedType.LPArray)] byte[] buf, int bufLength);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectionClose")]
-            internal static extern int exClose(uint handle);
+            internal static extern long exClose(uint handle);
         }
 
         internal static class Connection_PluginCallbackWrapper
         {
             [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnDisconnected_Callback(uint handle, IntPtr senderPtr, int result, string message)
+            internal static void OnDisconnected_Callback(uint handle, IntPtr senderPtr, long result, string message)
             {
                 var thisObj = Plugin.GetSenderObject<Connection>(senderPtr);
 

@@ -184,8 +184,23 @@ HRESULT StreamingMediaPlayerImpl::RuntimeClassInitialize(
 	return spInitSourceAction->put_Completed(sourceReady.Get());
 }
 
+HRESULT StreamingMediaPlayerImpl::GetCurrentResolution(
+    UINT32* pWidth,
+    UINT32* pHeight)
+{
+    NULL_CHK(pWidth);
+    NULL_CHK(pHeight);
+
+    if (m_RealtimeMediaSource == nullptr)
+    {
+        return E_FAIL;
+    }
+
+    return m_RealtimeMediaSource->get_StreamResolution(pWidth, pHeight);
+}
+
 _Use_decl_annotations_
-HRESULT StreamingMediaPlayerImpl::CreatePlaybackTexture(
+HRESULT StreamingMediaPlayerImpl::CreateStreamingTexture(
 	UINT32 width,
 	UINT32 height,
 	void** ppvTexture)

@@ -14,14 +14,14 @@ namespace RealtimeStreaming
     public enum NetworkMode { Listener, Connector }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, int result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
+    public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, long result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
 
     public class FailedEventArgs : EventArgs
     {
-        public int Result { get; private set; }
+        public long Result { get; private set; }
         public string Message { get; private set; }
 
-        public FailedEventArgs(int result, string message)
+        public FailedEventArgs(long result, string message)
         {
             this.Result = result;
             this.Message = message;
@@ -118,7 +118,7 @@ namespace RealtimeStreaming
             }
         }
 
-        internal static void CheckResult(int result, string fnName)
+        internal static void CheckHResult(long result, string fnName)
         {
             if (result < 0)
             {
