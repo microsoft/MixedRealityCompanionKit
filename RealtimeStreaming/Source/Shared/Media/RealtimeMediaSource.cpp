@@ -46,14 +46,30 @@ RealtimeMediaSourceImpl::~RealtimeMediaSourceImpl()
         m_deferral->Complete();
         m_deferral = nullptr;
     }
-
     if (m_mediaStreamSource != nullptr)
     {
-        m_mediaStreamSource->remove_Starting(m_startingRequestedToken);
-        m_mediaStreamSource->remove_SampleRequested(m_sampleRequestedToken);
-        m_mediaStreamSource->remove_Closed(m_closeRequestedToken);
+        LOG_RESULT(m_mediaStreamSource->remove_Starting(m_startingRequestedToken));
+        LOG_RESULT(m_mediaStreamSource->remove_SampleRequested(m_sampleRequestedToken));
+        LOG_RESULT(m_mediaStreamSource->remove_Closed(m_closeRequestedToken));
+
         m_mediaStreamSource.Reset();
         m_mediaStreamSource = nullptr;
+    }
+    
+    LOG_RESULT(_spConnection->remove_Received(_evtReceivedToken));
+    _spConnection.Reset();
+    _spConnection = nullptr;
+
+    if (m_spRequest != nullptr)
+    {
+        m_spRequest.Reset();
+        m_spRequest = nullptr;
+    }
+
+    if (m_spVideoEncoding != nullptr)
+    {
+        m_spVideoEncoding.Reset();
+        m_spVideoEncoding = nullptr;
     }
 }
 
@@ -123,9 +139,6 @@ HRESULT RealtimeMediaSourceImpl::CreateMediaSource(
     IFR(m_mediaStreamSource->add_Starting(startingCallback.Get(), &m_startingRequestedToken));
     IFR(m_mediaStreamSource->add_SampleRequested(sampleResquestedCallback.Get(), &m_sampleRequestedToken));
     IFR(m_mediaStreamSource->add_Closed(closedCallback.Get(), &m_closeRequestedToken))
-
-    // Save encoding internally
-    m_spVideoEncoding.Attach(pVideoEncodingProperties);
 
     return S_OK;
 }
@@ -455,6 +468,9 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaDescription(
 
     IFC(CreateMediaSource(spVideoEncoding.Get()));
 
+    // Save encoding internally
+    m_spVideoEncoding = spVideoEncoding;
+
     _eSourceState = SourceStreamState_Starting;
 
     // Ask the server to start sending media samples to process
@@ -582,6 +598,10 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
         // Obtain lock since the OnSampleRequested could be reading this on another thread
         //auto lock = m_lock.LockExclusive();
 
+        //IFC(SetSampleAttributes(pSampleHeader, pSampleTransforms, pSample));
+
+        // TODO: Consider switching back to SWRLocks and only lock the sample write, not the deferral
+
         //IFC(pBundleImpl->ToMFSample(&spSample));
         IFC(pBundleImpl->ToMFSample(&m_latestSample));
 
@@ -599,10 +619,6 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
             m_deferral = nullptr;
             m_spRequest = nullptr;
         }
-
-        //IFC(pStreamImpl->ProcessSample(&sampleHead, (sampleHead.cbCameraDataSize > 0) ? &sampleTransforms : nullptr, spSample.Get()));
-        // Set sample attributes
-        //IFC(SetSampleAttributes(pSampleHeader, pSampleTransforms, pSample));
     }
 
 done:

@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Timers;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace RealtimeStreaming
 {
@@ -61,13 +62,11 @@ namespace RealtimeStreaming
         private uint Handle { get; set; }
 
         public Texture2D tex;
+        public RawImage debugImg;
 
         private WebCamTexture webcam;
         private Color32[] webcam_interop;
-
-        private byte[] _videoFrameBuffer;
-        const int VIDEO_PELS = 921600;
-        const int BUFFER_SIZE = VIDEO_PELS * 4;
+        private byte[] frameBuffer;
 
         private Timer writeTimer;
 
@@ -82,18 +81,14 @@ namespace RealtimeStreaming
 
         private void Start()
         {
-            this._videoFrameBuffer = tex.GetRawTextureData();
-            Debug.Log("Texture bytes: " + this._videoFrameBuffer.Length);
-
-            if (this._videoFrameBuffer.Length != BUFFER_SIZE)
-            {
-                Debug.LogError("Input texture for RealtimeVideoServer.cs is not correct size. Expected to be " + BUFFER_SIZE + " bytes");
-            }
-
             webcam = new WebCamTexture(1280, 720);
+            debugImg.texture = webcam;
+            debugImg.material.mainTexture = webcam;
             webcam.Play();
 
             webcam_interop = new Color32[webcam.width * webcam.height];
+
+            frameBuffer = new byte[webcam.width * webcam.height * 4];
 
             StartListener();
         }
@@ -288,29 +283,37 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            Debug.Log("RealtimeVideoServer::WriteFrame()");
-
             webcam.GetPixels32(webcam_interop);
 
             // TODO: Parrelize copy?
             int byteIdx = 0;
+            bool notAlpha = false;
             for (int i = 0; i < webcam_interop.Length; i++)
             {
                 // TODO: webcamtexture vertically flipped?
+                /*
                 Color32 c = !webcam.videoVerticallyMirrored ?
                     webcam_interop[webcam_interop.Length - i - 1] :
                     webcam_interop[i];
+                */
 
-                _videoFrameBuffer[byteIdx] = c.r;
-                _videoFrameBuffer[byteIdx + 1] = c.g;
-                _videoFrameBuffer[byteIdx + 2] = c.b;
-                _videoFrameBuffer[byteIdx + 3] = c.a;
+                Color32 c = webcam_interop[webcam_interop.Length - i - 1];
+
+                frameBuffer[byteIdx] = c.b;
+                frameBuffer[byteIdx + 1] = c.g;
+                frameBuffer[byteIdx + 2] = c.r;
+                frameBuffer[byteIdx + 3] = c.a;
+
+                if (c.a < 255)
+                    notAlpha = true;
 
                 byteIdx += 4;
             }
 
-            //return (VideoServerWrapper.exWrite(this.Handle, webcamData.byteArray, (uint)1280*720*4) == 0);
-            return (VideoServerWrapper.exWrite(this.Handle, _videoFrameBuffer, (uint)this._videoFrameBuffer.Length) == 0);
+            if (notAlpha)
+                Debug.Log("Pixel had < 255 alpha");
+
+            return (VideoServerWrapper.exWrite(this.Handle, frameBuffer, (uint)this.frameBuffer.Length) == 0);
         }
 
         public void Shutdown()

@@ -372,9 +372,10 @@ namespace RealtimeStreaming
                 this.playbackTexture =
                     Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
-                    //TextureFormat.BGRA32,
-                    TextureFormat.RGBA32,
-                    false, false,
+                    TextureFormat.BGRA32,
+                    //TextureFormat.RGBA32,
+                    false, 
+                    true,
                     nativeTexture);
 
                 // set texture for the shader

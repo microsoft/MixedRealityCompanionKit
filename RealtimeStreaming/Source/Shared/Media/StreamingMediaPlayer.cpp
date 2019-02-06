@@ -213,7 +213,7 @@ HRESULT StreamingMediaPlayerImpl::CreateStreamingTexture(
 	*ppvTexture = nullptr;
 
 	// create the video texture description based on texture format
-	m_textureDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, width, height);
+    m_textureDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, width, height);
 	m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	m_textureDesc.MipLevels = 1;
 	m_textureDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
@@ -479,6 +479,9 @@ void StreamingMediaPlayerImpl::ReleaseResources()
 
 	m_d3dDevice.Reset();
 	m_d3dDevice = nullptr;
+
+    m_RealtimeMediaSource.Reset();
+    m_RealtimeMediaSource = nullptr;
 }
 
 _Use_decl_annotations_
