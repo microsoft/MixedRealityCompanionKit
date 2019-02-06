@@ -304,11 +304,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1214978307}
-  ConnectTo: 192.168.1.18
+  ConnectTo: 10.91.186.104
   Port: 27772
   StopOnPaused: 0
-  TextureWidth: 1280
-  TextureHeight: 720
 --- !u!114 &1487948638
 MonoBehaviour:
   m_ObjectHideFlags: 0

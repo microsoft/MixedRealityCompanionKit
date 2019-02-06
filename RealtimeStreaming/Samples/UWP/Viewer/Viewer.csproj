@@ -101,7 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MixedRemoteViewCompositor">
-      <HintPath>..\..\..\Build\Release\Plugins\WSA\x86\MixedRemoteViewCompositor.winmd</HintPath>
+      <HintPath>..\..\..\Build\Debug\Plugins\WSA\x86\MixedRemoteViewCompositor.winmd</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
