@@ -122,8 +122,8 @@ HRESULT RealtimeMediaSourceImpl::CreateMediaSource(
     IFR(m_mediaStreamSource->add_SampleRequested(sampleResquestedCallback.Get(), &m_sampleRequestedToken));
     IFR(m_mediaStreamSource->add_Closed(closedCallback.Get(), &m_closeRequestedToken))
 
-        // Save encoding internally
-        m_spVideoEncoding.Attach(pVideoEncodingProperties);
+    // Save encoding internally
+    m_spVideoEncoding.Attach(pVideoEncodingProperties);
 
     return S_OK;
 }
@@ -185,11 +185,11 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
 {
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested()\n");
 
-    //ComPtr<IMediaStreamSourceSampleRequest> spRequest;
-    IFR(args->get_Request(&m_spRequest));
-
     //auto lock = m_lock.LockShared();
     auto lock = m_lock.LockExclusive();
+
+    //ComPtr<IMediaStreamSourceSampleRequest> spRequest;
+    IFR(args->get_Request(&m_spRequest));
 
     if (m_latestSample == nullptr)
     {
@@ -207,6 +207,7 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
         IFR(spIMFRequest->SetSample(m_latestSample.Get()));
     }
 
+    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested() done\n");
     return S_OK;
 }
 
@@ -622,6 +623,9 @@ done:
     {
         return HandleError(hr);
     }
+
+
+    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample() done\n");
 
     return hr;
 }

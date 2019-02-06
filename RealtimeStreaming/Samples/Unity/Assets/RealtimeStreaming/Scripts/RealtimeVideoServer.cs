@@ -213,6 +213,8 @@ namespace RealtimeStreaming
 
         public void InitializeServer(Connection connection)
         {
+            Debug.Log("RealtimeVideoServer::InitializeServer()");
+
             if (connection == null)
             {
                 Debug.LogError("RealtimeVideoServer.Initialize() - requires a valid connection component to start.");
@@ -247,17 +249,16 @@ namespace RealtimeStreaming
             this.Handle = handle;
 
             // create timer for writing frames
-            /*
             writeTimer = new Timer(1000 / 30);
             writeTimer.Elapsed += WriteTimer_Elapsed;
-            writeTimer.AutoReset = true;
+            writeTimer.AutoReset = false;
             writeTimer.Enabled = true;
-            */
         }
 
         private void WriteTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            this.plugin.QueueAction(() =>
+            //Plugin.ExecuteOnUnityThread(() =>
             {
                 WriteFrame();
             });
@@ -313,6 +314,12 @@ namespace RealtimeStreaming
         public void Shutdown()
         {
             // TODO: turn off listener?
+
+            if (writeTimer != null)
+            {
+                writeTimer.Close();
+                writeTimer = null;
+            }
 
             this.StopServer();
 
