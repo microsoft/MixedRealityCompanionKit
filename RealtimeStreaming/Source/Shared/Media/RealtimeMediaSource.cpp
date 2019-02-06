@@ -38,7 +38,8 @@ RealtimeMediaSourceImpl::RealtimeMediaSourceImpl()
 _Use_decl_annotations_
 RealtimeMediaSourceImpl::~RealtimeMediaSourceImpl()
 {
-    auto lock = m_lock.LockExclusive();
+    auto lock = _lock.Lock();
+    //auto lock = m_lock.LockExclusive();
 
     if (m_deferral != nullptr)
     {
@@ -62,7 +63,8 @@ HRESULT RealtimeMediaSourceImpl::RuntimeClassInitialize(
 {
     NULL_CHK(pConnection);
 
-    auto lock = m_lock.LockExclusive();
+    auto lock = _lock.Lock();
+    //auto lock = m_lock.LockExclusive();
 
     ComPtr<IConnection> spConnection(pConnection);
     IFR(spConnection.As(&_spConnection));
@@ -132,7 +134,8 @@ _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::get_MediaStreamSource(
     ABI::Windows::Media::Core::IMediaStreamSource** ppMediaStreamSource)
 {
-    auto lock = m_lock.LockShared();
+    auto lock = _lock.Lock();
+    //auto lock = m_lock.LockShared();
 
     return m_mediaStreamSource.CopyTo(ppMediaStreamSource);
 }
@@ -142,7 +145,8 @@ HRESULT RealtimeMediaSourceImpl::get_StreamResolution(
     UINT32* pWidth,
     UINT32* pHeight)
 {
-    auto lock = m_lock.LockShared();
+    //auto lock = m_lock.LockShared();
+    auto lock = _lock.Lock();
 
     if (m_spVideoEncoding == nullptr)
     {
@@ -164,7 +168,8 @@ HRESULT RealtimeMediaSourceImpl::OnStarting(IMediaStreamSource* sender, IMediaSt
     ComPtr<ABI::Windows::Foundation::IReference<ABI::Windows::Foundation::TimeSpan>> spStartPosition;
     IFR(spRequest->get_StartPosition(&spStartPosition));
 
-    auto lock = m_lock.LockShared();
+    //auto lock = m_lock.LockShared();
+    //auto lock = _lock.Lock();
 
     ABI::Windows::Foundation::TimeSpan value;
     if (spStartPosition != nullptr)
@@ -186,7 +191,8 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested()\n");
 
     //auto lock = m_lock.LockShared();
-    auto lock = m_lock.LockExclusive();
+    //auto lock = m_lock.LockExclusive();
+    auto lock = _lock.Lock();
 
     //ComPtr<IMediaStreamSourceSampleRequest> spRequest;
     IFR(args->get_Request(&m_spRequest));
@@ -214,7 +220,8 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
 _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::OnClosed(IMediaStreamSource* sender, IMediaStreamSourceClosedEventArgs* args)
 {
-    auto lock = m_lock.LockShared();
+    //auto lock = m_lock.LockShared();
+    auto lock = _lock.Lock();
 
     ComPtr<IMediaStreamSourceClosedRequest> spRequest;
     IFR(args->get_Request(&spRequest));
@@ -330,11 +337,12 @@ done:
     return S_OK;
 }
 
-
 // Helper methods to handle received network bundles
 _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::ProcessCaptureReady()
 {
+    auto lock = _lock.Lock();
+
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessCaptureReady()\n");
 
     if (_eSourceState == SourceStreamState_Started || _eSourceState == SourceStreamState_Stopped)
@@ -344,32 +352,6 @@ HRESULT RealtimeMediaSourceImpl::ProcessCaptureReady()
 
     IFR(SendDescribeRequest());
 
-    /*
-    if (_eSourceState == SourceStreamState_Stopped)
-        //&& _streams.GetCount() > 0)
-    {
-        return S_OK;
-    }
-
-    if (_eSourceState == SourceStreamState_Invalid)
-        //|| _streams.GetCount() == 0)
-    {
-        _eSourceState = SourceStreamState_Opening;
-
-        auto lock = m_lock.LockShared();
-
-        IFR(CheckShutdown());
-
-        ComPtr<SourceOperation> spInitOp;
-        spInitOp.Attach(new (std::nothrow) SourceOperation(SourceOperation::Operation_Init));
-        NULL_CHK_HR(spInitOp, E_OUTOFMEMORY);
-
-        // Queue asynchronous stop
-        return QueueOperation(spInitOp.Get());
-    }
-
-    return HandleError(MF_E_INVALID_STATE_TRANSITION);
-    */
     return S_OK;
 }
 
@@ -558,7 +540,8 @@ _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
     IDataBundle* pBundle)
 {
-    auto lock = m_lock.TryLockExclusive();
+    //auto lock = m_lock.TryLockExclusive();
+    auto lock = _lock.Lock();
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample()\n");
 

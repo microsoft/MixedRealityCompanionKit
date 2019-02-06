@@ -128,6 +128,7 @@ namespace MixedRemoteViewCompositor
 
         private:
             Microsoft::WRL::Wrappers::SRWLock m_lock;
+            Wrappers::CriticalSection _lock;
 
             Microsoft::WRL::ComPtr<ABI::Windows::Media::Core::IMediaStreamSource> m_mediaStreamSource;
             EventRegistrationToken m_startingRequestedToken;
