@@ -107,17 +107,13 @@ namespace RealtimeStreaming
 
         private void Update()
         {
-            if (Input.GetKey(KeyCode.P))
+            if (this.Handle != Plugin.InvalidHandle)
             {
-                Debug.Log("Write frame input");
-                if (this.Handle != Plugin.InvalidHandle)
-                {
-                    if (debugTarget != null)
-                    {
-                        debugTarget.transform.Rotate(Vector3.up, speed * Time.deltaTime);
-                    }
+                this.WriteFrame();
 
-                    this.WriteFrame();
+                if (debugTarget != null)
+                {
+                    debugTarget.transform.Rotate(Vector3.up, speed * Time.deltaTime);
                 }
             }
         }
@@ -247,11 +243,14 @@ namespace RealtimeStreaming
             }
                 
             this.Handle = handle;
+        }
 
+        private void StartTimer()
+        {
             // create timer for writing frames
             writeTimer = new Timer(1000 / 30);
             writeTimer.Elapsed += WriteTimer_Elapsed;
-            writeTimer.AutoReset = false;
+            writeTimer.AutoReset = true;
             writeTimer.Enabled = true;
         }
 
@@ -260,6 +259,7 @@ namespace RealtimeStreaming
             this.plugin.QueueAction(() =>
             //Plugin.ExecuteOnUnityThread(() =>
             {
+                Debug.Log("Timer!");
                 WriteFrame();
             });
         }
@@ -287,6 +287,8 @@ namespace RealtimeStreaming
                 Debug.Log("Cannot WriteFrame() - server not active");
                 return false;
             }
+
+            Debug.Log("RealtimeVideoServer::WriteFrame()");
 
             webcam.GetPixels32(webcam_interop);
 

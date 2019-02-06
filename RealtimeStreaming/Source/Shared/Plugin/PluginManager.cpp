@@ -816,6 +816,8 @@ HRESULT PluginManagerImpl::RTServerWriteFrame(
     BYTE* pBuffer,
     UINT32 bufferSize)
 {
+    NULL_CHK(pBuffer);
+
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
 
     auto lock = _lock.Lock();
@@ -833,37 +835,11 @@ HRESULT PluginManagerImpl::RTServerWriteFrame(
     UINT32 frameWidth, frameHeight;
     IFR(spRTServerWriter->GetCurrentResolution(&frameWidth, &frameHeight));
 
-    const LONG cbWidth = sizeof(DWORD) * frameWidth;
-    const DWORD cbBuffer = cbWidth * frameHeight;
-
-    if (cbBuffer != bufferSize)
-    {
-        return E_INVALIDARG;
-    }
-
-    // Create a new memory buffer.
-    BYTE *pMFdata = NULL;
-    IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
-
-    // Lock the buffer and copy the video frame to the buffer.
-    IFR(spBuffer->Lock(&pMFdata, NULL, NULL));
-
-    IFR(MFCopyImage(
-        pMFdata,                    // Destination buffer.
-        cbWidth,                    // Destination stride.
-        pBuffer,						    // First row in source image.
-        cbWidth,                    // Source stride.
-        cbWidth,                    // Image width in bytes.
-        frameHeight                 // Image height in pixels.
-    ));
-
-    if (spBuffer)
-    {
-        spBuffer->Unlock();
-    }
-
-    // Set the data length of the buffer.
-    IFR(spBuffer->SetCurrentLength(cbBuffer));
+    IFR(CreateIMFMediaBuffer(frameWidth, 
+        frameHeight, 
+        bufferSize, 
+        pBuffer, 
+        &spBuffer));
 
     // Send server IMFMediaBuffer
     IFR(spRTServerWriter->WriteFrame(spBuffer.Get()));
@@ -882,6 +858,7 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
     Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate()\n");
 
     NULL_CHK(callback);
+    NULL_CHK(pCallbackObject);
 
     auto lock = _lock.Lock();
 

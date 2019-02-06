@@ -383,3 +383,50 @@ HRESULT CreateMediaDevice(
 
 	 return S_OK;
 }
+
+_Use_decl_annotations_
+HRESULT CreateIMFMediaBuffer(
+    UINT32 width,
+    UINT32 height,
+    UINT32 bufferSize,
+    BYTE* pBuffer,
+    IMFMediaBuffer** ppIMFBuffer)
+{
+    ComPtr<IMFMediaBuffer> spBuffer;
+
+    const LONG cbWidth = sizeof(DWORD) * width;
+    const DWORD cbBuffer = cbWidth * height;
+
+    if (cbBuffer != bufferSize)
+    {
+        return E_INVALIDARG;
+    }
+
+    // Create a new memory buffer.
+    BYTE *pMFdata = NULL;
+    IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
+
+    // Lock the buffer and copy the video frame to the buffer.
+    IFR(spBuffer->Lock(&pMFdata, NULL, NULL));
+
+    IFR(MFCopyImage(
+        pMFdata,                    // Destination buffer.
+        cbWidth,                    // Destination stride.
+        pBuffer,						    // First row in source image.
+        cbWidth,                    // Source stride.
+        cbWidth,                    // Image width in bytes.
+        height                 // Image height in pixels.
+    ));
+
+    if (spBuffer)
+    {
+        spBuffer->Unlock();
+    }
+
+    // Set the data length of the buffer.
+    IFR(spBuffer->SetCurrentLength(cbBuffer));
+
+    spBuffer.CopyTo(ppIMFBuffer);
+
+    return S_OK;
+}

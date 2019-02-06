@@ -814,6 +814,7 @@ namespace MixedRemoteViewCompositor{ namespace Media {
         MixedRemoteViewCompositor.Plugin.IModule
     {
         HRESULT Shutdown();
+        HRESULT WriteDirect([in] UINT32 bufferSize, [in, size_is(bufferSize)] byte* buffer);
     };
 
     [exclusiveto(MixedRemoteViewCompositor.Media.RealtimeServer)]

@@ -25,3 +25,10 @@ HRESULT GetSurfaceFromTexture(
 HRESULT CreateMediaDevice(
 	 _In_ IDXGIAdapter* pDXGIAdapter,
 	 _COM_Outptr_ ID3D11Device** ppDevice);
+
+HRESULT CreateIMFMediaBuffer(
+    _In_ UINT32 width,
+    _In_ UINT32 height,
+    _In_ UINT32 bufferSize,
+    __in_ecount(bufferSize) BYTE* pBuffer,
+    _COM_Outptr_ IMFMediaBuffer** ppIMFBuffer);

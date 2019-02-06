@@ -253,7 +253,7 @@ HRESULT RealtimeMediaSourceImpl::OnClosed(IMediaStreamSource* sender, IMediaStre
 _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::SendDescribeRequest()
 {
-    Log(Log_Level_Info, L"NetworkMediaSourceImpl::SendDescribeRequest()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendDescribeRequest()\n");
 
     NULL_CHK_HR(_spConnection, E_POINTER);
 
@@ -263,7 +263,7 @@ HRESULT RealtimeMediaSourceImpl::SendDescribeRequest()
 _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::SendStartRequest()
 {
-    Log(Log_Level_Info, L"NetworkMediaSourceImpl::SendStartRequest()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendStartRequest()\n");
 
     NULL_CHK_HR(_spConnection, E_POINTER);
 
@@ -558,7 +558,9 @@ _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
     IDataBundle* pBundle)
 {
-    Log(Log_Level_Info, L"NetworkMediaSourceImpl::ProcessMediaSample()\n");
+    auto lock = m_lock.TryLockExclusive();
+
+    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample()\n");
 
     ComPtr<IDataBundle> spBundle(pBundle);
     DataBundleImpl* pBundleImpl = static_cast<DataBundleImpl*>(pBundle);
@@ -569,7 +571,7 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
     {
         if (FAILED(ProcessCaptureReady()))
         {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"NetworkMediaSourceImpl::ProcessMediaSample() - not in a state to receive data.");
+            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSourceImpl::ProcessMediaSample() - not in a state to receive data.");
         }
         else
         {
@@ -595,12 +597,14 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
     {
         // Save the recorded sample off the network to be given to OnSampleRequested called by the internal MediaStreamSource
         // Obtain lock since the OnSampleRequested could be reading this on another thread
-        auto lock = m_lock.LockExclusive();
+        //auto lock = m_lock.LockExclusive();
 
         //IFC(pBundleImpl->ToMFSample(&spSample));
         IFC(pBundleImpl->ToMFSample(&m_latestSample));
 
         if (m_deferral != nullptr) {
+
+            Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample - Fire Deferral()\n");
 
             ComPtr<IMFMediaStreamSourceSampleRequest> spIMFRequest;
             IFC(m_spRequest.As(&spIMFRequest));
@@ -623,7 +627,6 @@ done:
     {
         return HandleError(hr);
     }
-
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample() done\n");
 
@@ -652,7 +655,7 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaFormatChange(
     {
         if (FAILED(ProcessCaptureReady()))
         {
-            IFC_MSG(MF_E_INVALID_STATE_TRANSITION, L"NetworkMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
+            IFC_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
         }
     }
 

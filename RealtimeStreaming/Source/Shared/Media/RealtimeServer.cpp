@@ -187,6 +187,28 @@ HRESULT RealtimeServerImpl::WriteFrame(
 }
 
 _Use_decl_annotations_
+HRESULT RealtimeServerImpl::WriteDirect(
+    UINT32 bufferSize,
+    BYTE* pBuffer)
+{
+    NULL_CHK(pBuffer);
+
+    // Create MediaBuffer
+    ComPtr<IMFMediaBuffer> spBuffer;
+
+    UINT32 frameWidth, frameHeight;
+    IFR(GetCurrentResolution(&frameWidth, &frameHeight));
+
+    IFR(CreateIMFMediaBuffer(frameWidth,
+        frameHeight,
+        bufferSize,
+        pBuffer,
+        &spBuffer));
+
+    return WriteFrame(spBuffer.Get());
+}
+
+_Use_decl_annotations_
 HRESULT RealtimeServerImpl::GetCurrentResolution(
 	UINT32* pWidth,
 	UINT32* pHeight)

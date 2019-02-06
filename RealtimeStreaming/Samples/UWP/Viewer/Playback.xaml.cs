@@ -21,6 +21,10 @@ namespace Viewer
 
         public Playback()
         {
+            //var rt = MixedRemoteViewCompositor.Media.RealtimeServer.Create();
+            RealtimeServer s;
+            MixedRemoteViewCompositor.Plugin.PluginManager t;
+            
             this.InitializeComponent();
         }
 

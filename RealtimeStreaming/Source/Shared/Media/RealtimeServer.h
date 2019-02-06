@@ -39,6 +39,10 @@ namespace MixedRemoteViewCompositor
 
             // IRealtimeServer
             IFACEMETHOD(Shutdown)();
+            
+            IFACEMETHOD(WriteDirect)(
+                _In_ UINT32 bufferSize,
+                __in_ecount(bufferSize) BYTE* pBuffer);
 
             // IRealtimeServerWriter
 			IFACEMETHOD(WriteFrame)(

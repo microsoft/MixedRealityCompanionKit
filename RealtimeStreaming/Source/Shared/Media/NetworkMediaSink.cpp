@@ -435,7 +435,7 @@ HRESULT NetworkMediaSinkImpl::GetStreamSinkByIndex(
     NULL_CHK(ppStreamSink);
 
     auto lock = _lock.Lock();
-
+    
     ComPtr<IMFStreamSink> spStream;
     DWORD const cStreams = _streams.GetCount();
     if (cStreams <= dwIndex)
