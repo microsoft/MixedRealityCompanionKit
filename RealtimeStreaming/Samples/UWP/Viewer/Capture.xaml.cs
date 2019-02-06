@@ -7,6 +7,7 @@ using Windows.UI.Xaml.Controls;
 using MixedRemoteViewCompositor.Media;
 using MixedRemoteViewCompositor.Network;
 using System.Threading;
+using Windows.Media.MediaProperties;
 
 namespace Viewer
 {
@@ -19,11 +20,20 @@ namespace Viewer
         private Connection connection = null;
         private RealtimeServer rtServer = null;
 
+        private byte[] frameBuffer;
+        const int BUFFER_SIZE = 1280 * 720 * 4;
+
         private Timer writeFrameTimer;
 
         public Capture()
         {
             this.InitializeComponent();
+
+            frameBuffer = new byte[BUFFER_SIZE];
+            for(int i = 2; i < BUFFER_SIZE; i += 4)
+            {
+                frameBuffer[i] = 0xFF;
+            }
         }
 
         private async void bnListen_Click(object sender, RoutedEventArgs e)
@@ -51,7 +61,11 @@ namespace Viewer
 
         private void StartCapture()
         {
-            rtServer = RealtimeServer.Create(this.connection);
+            this.rtServer = RealtimeServer.Create(this.connection,
+                Guid.Empty, // TODO: need to figure out the MFFormat import?
+                MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p)
+                );
+
             if (this.rtServer != null)
             {
                 writeFrameTimer = null;
@@ -64,8 +78,7 @@ namespace Viewer
         {
             if (this.rtServer != null)
             {
-                // TODO: Need to fix interface
-                //this.rtServer.
+                rtServer.WriteDirect(frameBuffer);
             }
         }
 
