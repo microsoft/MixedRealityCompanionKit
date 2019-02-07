@@ -3,17 +3,17 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Network
     {
         class DataBundleArgsImpl
             : public Microsoft::WRL::RuntimeClass
             < Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::RuntimeClassType::WinRtClassicComMix>
-            , ABI::MixedRemoteViewCompositor::Network::IBundleReceivedArgs
+            , ABI::RealtimeStreaming::Network::IBundleReceivedArgs
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Network_BundleReceivedArgs, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Network_BundleReceivedArgs, BaseTrust);
 
         public:
             ~DataBundleArgsImpl();
@@ -25,24 +25,24 @@ namespace MixedRemoteViewCompositor
             // RuntimeClass
             STDMETHODIMP RuntimeClassInitialize(
                 _In_ PayloadType payloadType,
-                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection *connection,
-                _In_ ABI::MixedRemoteViewCompositor::Network::IDataBundle *bundle,
+                _In_ ABI::RealtimeStreaming::Network::IConnection *connection,
+                _In_ ABI::RealtimeStreaming::Network::IDataBundle *bundle,
                 _In_ ABI::Windows::Foundation::IUriRuntimeClass *uri);
 
             // IDataBundleArgs
             IFACEMETHOD(get_PayloadType)(
                 _Out_ PayloadType* payloadType);
             IFACEMETHOD(get_Connection)(
-                _COM_Outptr_ ABI::MixedRemoteViewCompositor::Network::IConnection** connection);
+                _COM_Outptr_ ABI::RealtimeStreaming::Network::IConnection** connection);
             IFACEMETHOD(get_DataBundle)(
-                _COM_Outptr_ ABI::MixedRemoteViewCompositor::Network::IDataBundle** bundle);
+                _COM_Outptr_ ABI::RealtimeStreaming::Network::IDataBundle** bundle);
             IFACEMETHOD(get_RemoteUri)(
                 _COM_Outptr_ ABI::Windows::Foundation::IUriRuntimeClass** uri);
 
         private:
             PayloadType   _payloadType;
-            ComPtr<ABI::MixedRemoteViewCompositor::Network::IConnection>    _connection;
-            ComPtr<ABI::MixedRemoteViewCompositor::Network::IDataBundle>    _bundle;
+            ComPtr<ABI::RealtimeStreaming::Network::IConnection>    _connection;
+            ComPtr<ABI::RealtimeStreaming::Network::IDataBundle>    _bundle;
             ComPtr<ABI::Windows::Foundation::IUriRuntimeClass>              _uri;
         };
     }

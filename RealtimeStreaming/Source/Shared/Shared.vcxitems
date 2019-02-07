@@ -39,10 +39,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.def" />
+    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\AsyncOperations.h" />

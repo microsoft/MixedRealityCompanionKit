@@ -7,8 +7,8 @@ using Windows.Foundation.Collections;
 using Windows.Media;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using MixedRemoteViewCompositor.Network;
-using MixedRemoteViewCompositor.Media;
+using RealtimeStreaming.Network;
+using RealtimeStreaming.Media;
 
 namespace Viewer
 {
@@ -20,11 +20,7 @@ namespace Viewer
         private Connection connection = null;
 
         public Playback()
-        {
-            //var rt = MixedRemoteViewCompositor.Media.RealtimeServer.Create();
-            RealtimeServer s;
-            MixedRemoteViewCompositor.Plugin.PluginManager t;
-            
+        {            
             this.InitializeComponent();
         }
 

@@ -26,7 +26,7 @@ cpp_quote("#if defined(__cplusplus)")
 cpp_quote("extern \"C\" {")
 cpp_quote("#endif // defined(__cplusplus)")
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     typedef UINT32 ModuleHandle;
     cpp_quote("#ifndef MODULE_HANDLE")
@@ -44,13 +44,13 @@ namespace MixedRemoteViewCompositor
 }
 
 cpp_quote("#ifdef __cplusplus")
-cpp_quote("namespace MixedRemoteViewCompositor { namespace Network {")
+cpp_quote("namespace RealtimeStreaming { namespace Network {")
 cpp_quote("typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Networking::Sockets::StreamSocketListener*, ABI::Windows::Networking::Sockets::StreamSocketListenerConnectionReceivedEventArgs*> IConnectionReceivedEventHandler;")
 cpp_quote("}}")
 cpp_quote("#endif //__cplusplus")
 
 // Forward Declare
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     typedef enum PayloadType PayloadType;
     typedef enum SampleFlags SampleFlags;
@@ -65,7 +65,7 @@ namespace MixedRemoteViewCompositor
 }
 
 // forward declares
-namespace MixedRemoteViewCompositor { namespace Plugin {
+namespace RealtimeStreaming { namespace Plugin {
     typedef enum DeviceType DeviceType;
     typedef enum PluginEventType PluginEventType;
 
@@ -83,7 +83,7 @@ namespace MixedRemoteViewCompositor { namespace Plugin {
     interface IDirectXManager;
 } }
 
-namespace MixedRemoteViewCompositor{ namespace Network {
+namespace RealtimeStreaming{ namespace Network {
     delegate DisconnectedEventHandler;
     delegate BundleReceivedEventHandler;
     delegate ConnectedEventHandler;
@@ -120,7 +120,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     runtimeclass Listener;
 } }
 
-namespace MixedRemoteViewCompositor { namespace Media {
+namespace RealtimeStreaming { namespace Media {
     typedef enum SourceStreamState SourceStreamState;
     typedef enum SinkStreamState SinkStreamState;
     typedef enum SinkStreamOperation SinkStreamOperation;
@@ -149,7 +149,7 @@ namespace MixedRemoteViewCompositor { namespace Media {
 } }
 
 // interface defines
-namespace MixedRemoteViewCompositor {
+namespace RealtimeStreaming {
 
     // enums
     [version(1.0)]
@@ -261,7 +261,7 @@ namespace MixedRemoteViewCompositor {
 
 }
 
-namespace MixedRemoteViewCompositor { namespace Plugin {
+namespace RealtimeStreaming { namespace Plugin {
 
     [version(1.0)]
     enum DeviceType
@@ -302,13 +302,13 @@ namespace MixedRemoteViewCompositor { namespace Plugin {
     interface IModuleManager : IInspectable
     {
         HRESULT AddModule(
-            [in] MixedRemoteViewCompositor.Plugin.IModule* pluginModule,
-            [out, retval] MixedRemoteViewCompositor.ModuleHandle* moduleHandle);
+            [in] RealtimeStreaming.Plugin.IModule* pluginModule,
+            [out, retval] RealtimeStreaming.ModuleHandle* moduleHandle);
         HRESULT GetModule(
-            [in] MixedRemoteViewCompositor.ModuleHandle moduleHandle,
-            [out, retval] MixedRemoteViewCompositor.Plugin.IModule** pluginModule);
+            [in] RealtimeStreaming.ModuleHandle moduleHandle,
+            [out, retval] RealtimeStreaming.Plugin.IModule** pluginModule);
         HRESULT ReleaseModule(
-            [in] MixedRemoteViewCompositor.ModuleHandle moduleHandle);
+            [in] RealtimeStreaming.ModuleHandle moduleHandle);
         HRESULT Uninitialize();
     };
 
@@ -318,15 +318,15 @@ namespace MixedRemoteViewCompositor { namespace Plugin {
     interface IModuleManagerStatics : IInspectable
     {
         [propget] HRESULT InvalidModuleHandle(
-            [out, retval] MixedRemoteViewCompositor.ModuleHandle* moduleHandle);
+            [out, retval] RealtimeStreaming.ModuleHandle* moduleHandle);
     };
 
     [activatable(1.0)]
-    [static(MixedRemoteViewCompositor.Plugin.IModuleManagerStatics, 1.0)]
+    [static(RealtimeStreaming.Plugin.IModuleManagerStatics, 1.0)]
     [version(1.0)]
     runtimeclass ModuleManager
     {
-        [default] interface MixedRemoteViewCompositor.Plugin.IModuleManager;
+        [default] interface RealtimeStreaming.Plugin.IModuleManager;
     };
 
     // PluginManager
@@ -336,9 +336,9 @@ namespace MixedRemoteViewCompositor { namespace Plugin {
     interface IPluginManager : IInspectable
     {
         [propget] HRESULT ModuleManager(
-            [out][retval] MixedRemoteViewCompositor.Plugin.ModuleManager** moduleManager);
+            [out][retval] RealtimeStreaming.Plugin.ModuleManager** moduleManager);
         [propget] HRESULT DirectXManager(
-            [out][retval] MixedRemoteViewCompositor.Plugin.IDirectXManager** dxManager);
+            [out][retval] RealtimeStreaming.Plugin.IDirectXManager** dxManager);
     };
 
     [exclusiveto(PluginManager)]
@@ -346,14 +346,14 @@ namespace MixedRemoteViewCompositor { namespace Plugin {
     [version(1.0)]
     interface IPluginManagerStatics : IInspectable
     {
-        [propget] HRESULT Instance([out][retval] MixedRemoteViewCompositor.Plugin.PluginManager** pluginManager);
+        [propget] HRESULT Instance([out][retval] RealtimeStreaming.Plugin.PluginManager** pluginManager);
     };
 
-    [static(MixedRemoteViewCompositor.Plugin.IPluginManagerStatics, 1.0)]
+    [static(RealtimeStreaming.Plugin.IPluginManagerStatics, 1.0)]
     [version(1.0)]
     runtimeclass PluginManager
     {
-        [default] interface MixedRemoteViewCompositor.Plugin.IPluginManager;
+        [default] interface RealtimeStreaming.Plugin.IPluginManager;
     };
 
     // IDirectXManager
@@ -365,31 +365,31 @@ namespace MixedRemoteViewCompositor { namespace Plugin {
 
 } }
 
-namespace MixedRemoteViewCompositor{ namespace Network {
+namespace RealtimeStreaming{ namespace Network {
 
     declare
     {
-        interface Windows.Foundation.Collections.IVector<MixedRemoteViewCompositor.Network.DataBuffer*>;
-        interface Windows.Foundation.Collections.IIterable<MixedRemoteViewCompositor.Network.DataBuffer*>;
-        interface Windows.Foundation.IAsyncOperation<MixedRemoteViewCompositor.Network.Connection*>;
+        interface Windows.Foundation.Collections.IVector<RealtimeStreaming.Network.DataBuffer*>;
+        interface Windows.Foundation.Collections.IIterable<RealtimeStreaming.Network.DataBuffer*>;
+        interface Windows.Foundation.IAsyncOperation<RealtimeStreaming.Network.Connection*>;
     }
 
     // delegates
     [uuid(7f6533cb-58a5-4634-a0ca-1af12e82f508)]
     [version(1.0)]
     delegate HRESULT DisconnectedEventHandler(
-        [in] MixedRemoteViewCompositor.Network.Connection* sender);
+        [in] RealtimeStreaming.Network.Connection* sender);
 
     [uuid(351aade9-5b42-4ae8-9d72-dd5b765d3420)]
     [version(1.0)]
     delegate HRESULT BundleReceivedEventHandler(
-        [in] MixedRemoteViewCompositor.Network.Connection* sender,
-        [in] MixedRemoteViewCompositor.Network.BundleReceivedArgs* args);
+        [in] RealtimeStreaming.Network.Connection* sender,
+        [in] RealtimeStreaming.Network.BundleReceivedArgs* args);
 
     [uuid(6f17b4ae-f506-4d6e-a666-893638581b19)]
     [version(1.0)]
     delegate HRESULT ConnectedEventHandler(
-        [in] MixedRemoteViewCompositor.Network.Connection* connection);
+        [in] RealtimeStreaming.Network.Connection* connection);
 
     // DataPacket
     [uuid(3fcabce1-d85d-4990-93cc-64b26b8b9505)]
@@ -404,7 +404,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     [version(1.0)]
     runtimeclass DataPacket
     {
-        [default] interface MixedRemoteViewCompositor.Network.IDataPacket;
+        [default] interface RealtimeStreaming.Network.IDataPacket;
     };
 
     // DataBuffer
@@ -426,7 +426,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
             [in] ULONG cbSize);
         HRESULT TrimRight(
             [in] ULONG cbSize,
-            [out] MixedRemoteViewCompositor.Network.DataBuffer** dataBuffer);
+            [out] RealtimeStreaming.Network.DataBuffer** dataBuffer);
 
         HRESULT Reset();
     };
@@ -444,7 +444,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     [version(1.0)]
     runtimeclass DataBuffer
     {
-        [default] interface MixedRemoteViewCompositor.Network.IDataBuffer;
+        [default] interface RealtimeStreaming.Network.IDataBuffer;
     };
 
     // DataBufferLock
@@ -459,7 +459,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     [version(1.0)]
     runtimeclass DataBufferLock
     {
-        [default] interface MixedRemoteViewCompositor.Network.IDataBufferLock;
+        [default] interface RealtimeStreaming.Network.IDataBufferLock;
     };
 
     // DataBundle
@@ -473,15 +473,15 @@ namespace MixedRemoteViewCompositor{ namespace Network {
             [out][retval] ULONG* size);
 
         HRESULT AddBuffer(
-            [in] MixedRemoteViewCompositor.Network.DataBuffer* dataBuffer);
+            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
         HRESULT InsertBuffer(
             [in] UINT32 index,
-            [in] MixedRemoteViewCompositor.Network.DataBuffer* dataBuffer);
+            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
         HRESULT RemoveBuffer(
-            [in] MixedRemoteViewCompositor.Network.DataBuffer* dataBuffer);
+            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
         HRESULT RemoveBufferByIndex(
             [in] UINT32 index,
-            [out][retval] MixedRemoteViewCompositor.Network.DataBuffer** dataBuffer);
+            [out][retval] RealtimeStreaming.Network.DataBuffer** dataBuffer);
         HRESULT Reset(void);
     };
 
@@ -490,7 +490,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     interface IDataBundleStatics :IInspectable
     {
         [overload("Create")] HRESULT Create(
-            [in] MixedRemoteViewCompositor.Network.DataBuffer* dataBuffer);
+            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
     };
 
     [marshaling_behavior(agile)]
@@ -498,7 +498,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     [version(1.0)]
     runtimeclass DataBundle
     {
-        [default] interface MixedRemoteViewCompositor.Network.IDataBundle;
+        [default] interface RealtimeStreaming.Network.IDataBundle;
     };
 
     // BundleReceivedArgs
@@ -507,74 +507,74 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     interface IBundleReceivedArgs : IInspectable
     {
         [propget] HRESULT PayloadType(
-            [out][retval] MixedRemoteViewCompositor.PayloadType* payloadType);
+            [out][retval] RealtimeStreaming.PayloadType* payloadType);
 
         [propget] HRESULT Connection(
-            [out][retval] MixedRemoteViewCompositor.Network.Connection** connection);
+            [out][retval] RealtimeStreaming.Network.Connection** connection);
 
         [propget] HRESULT DataBundle(
-            [out][retval] MixedRemoteViewCompositor.Network.DataBundle** dataBundle);
+            [out][retval] RealtimeStreaming.Network.DataBundle** dataBundle);
 
         [propget] HRESULT RemoteUri(
             [out][retval] Windows.Foundation.Uri** uri);
     };
 
-    [exclusiveto(MixedRemoteViewCompositor.Network.BundleReceivedArgs)]
+    [exclusiveto(RealtimeStreaming.Network.BundleReceivedArgs)]
     [uuid(3fa67b47-6b91-42ad-912c-ddd97ce02d50)]
     [version(1.0)]
     interface IBundleReceivedArgsStatics : IInspectable
     {
         [overload("Create")] HRESULT Create(
-            [in] MixedRemoteViewCompositor.PayloadType type,
-            [in] MixedRemoteViewCompositor.Network.Connection* connection,
-            [in] MixedRemoteViewCompositor.Network.DataBundle* dataBundle,
+            [in] RealtimeStreaming.PayloadType type,
+            [in] RealtimeStreaming.Network.Connection* connection,
+            [in] RealtimeStreaming.Network.DataBundle* dataBundle,
             [in] Windows.Foundation.Uri* uri,
-            [out][retval] MixedRemoteViewCompositor.Network.BundleReceivedArgs** args);
+            [out][retval] RealtimeStreaming.Network.BundleReceivedArgs** args);
     };
 
-    [activatable(MixedRemoteViewCompositor.Network.IBundleReceivedArgsStatics, 1.0)]
+    [activatable(RealtimeStreaming.Network.IBundleReceivedArgsStatics, 1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
     runtimeclass BundleReceivedArgs
     {
-        [default] interface MixedRemoteViewCompositor.Network.IBundleReceivedArgs;
+        [default] interface RealtimeStreaming.Network.IBundleReceivedArgs;
     };
 
     // Connection
-    [exclusiveto(MixedRemoteViewCompositor.Network.Connection)]
+    [exclusiveto(RealtimeStreaming.Network.Connection)]
     [uuid(027d0a6d-3ffb-480e-9e68-255cba264d40)]
     [version(1.0)]
     interface IConnection : IInspectable requires
-        MixedRemoteViewCompositor.Network.IConnectionInternal,
-        MixedRemoteViewCompositor.Plugin.IModule,
+        RealtimeStreaming.Network.IConnectionInternal,
+        RealtimeStreaming.Plugin.IModule,
         Windows.Foundation.IClosable
     {
         [propget] HRESULT IsConnected(
             [out][retval] boolean* connected);
 
         [eventadd] HRESULT Disconnected(
-            [in] MixedRemoteViewCompositor.Network.DisconnectedEventHandler* eventHandler,
+            [in] RealtimeStreaming.Network.DisconnectedEventHandler* eventHandler,
             [out, retval] EventRegistrationToken* token);
         [eventremove] HRESULT Disconnected(
             [in] EventRegistrationToken token);
 
         [eventadd] HRESULT Received(
-            [in] MixedRemoteViewCompositor.Network.BundleReceivedEventHandler* eventHandler,
+            [in] RealtimeStreaming.Network.BundleReceivedEventHandler* eventHandler,
             [out, retval] EventRegistrationToken* token);
         [eventremove] HRESULT Received(
             [in] EventRegistrationToken token);
 
         HRESULT SendPayloadType(
-            [in] MixedRemoteViewCompositor.PayloadType type);
+            [in] RealtimeStreaming.PayloadType type);
         HRESULT SendBundle(
-            [in] MixedRemoteViewCompositor.Network.DataBundle* dataBundle);
+            [in] RealtimeStreaming.Network.DataBundle* dataBundle);
         HRESULT SendBundleAsync(
-            [in] MixedRemoteViewCompositor.Network.DataBundle* dataBundle,
+            [in] RealtimeStreaming.Network.DataBundle* dataBundle,
             [out, retval] Windows.Foundation.IAsyncAction** asyncAction);
     };
 
-    [exclusiveto(MixedRemoteViewCompositor.Network.Connection)]
+    [exclusiveto(RealtimeStreaming.Network.Connection)]
     [uuid(7e41360e-7307-4ee3-8f5d-b644e7e5c55a)]
     [version(1.0)]
     interface IConnectionInternal : IInspectable
@@ -585,38 +585,38 @@ namespace MixedRemoteViewCompositor{ namespace Network {
         HRESULT ResetBundle();
     };
 
-    [exclusiveto(MixedRemoteViewCompositor.Network.Connection)]
+    [exclusiveto(RealtimeStreaming.Network.Connection)]
     [uuid(b3c719f9-b1c6-425a-9b21-8a36eaac7be4)]
     [version(1.0)]
     interface IConnectionStatics : IInspectable
     {
         HRESULT Create(
             [in] Windows.Networking.Sockets.StreamSocket* streamSocket,
-            [out][retval] MixedRemoteViewCompositor.Network.Connection** connection);
+            [out][retval] RealtimeStreaming.Network.Connection** connection);
     };
 
-    [activatable(MixedRemoteViewCompositor.Network.IConnectionStatics, 1.0)]
+    [activatable(RealtimeStreaming.Network.IConnectionStatics, 1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
     runtimeclass Connection
     {
-        [default] interface MixedRemoteViewCompositor.Network.IConnection;
-        interface MixedRemoteViewCompositor.Network.IConnectionInternal;
-        interface MixedRemoteViewCompositor.Plugin.IModule;
+        [default] interface RealtimeStreaming.Network.IConnection;
+        interface RealtimeStreaming.Network.IConnectionInternal;
+        interface RealtimeStreaming.Plugin.IModule;
         interface Windows.Foundation.IClosable;
     };
 
     // Listener
-    [exclusiveto(MixedRemoteViewCompositor.Network.Listener)]
+    [exclusiveto(RealtimeStreaming.Network.Listener)]
     [uuid(887397c7-ce0f-4ced-86f1-54f4ee079d0b)]
     [version(1.0)]
     interface IListener : IInspectable requires
         Windows.Foundation.IClosable,
-        MixedRemoteViewCompositor.Plugin.IModule
+        RealtimeStreaming.Plugin.IModule
     {
         [eventadd] HRESULT Closed(
-            [in] MixedRemoteViewCompositor.Plugin.ClosedEventHandler* eventHandler,
+            [in] RealtimeStreaming.Plugin.ClosedEventHandler* eventHandler,
             [out][retval] EventRegistrationToken* token);
         [eventremove] HRESULT Closed([in] EventRegistrationToken token);
 
@@ -630,30 +630,30 @@ namespace MixedRemoteViewCompositor{ namespace Network {
     {
         [overload("Create")] HRESULT Create(
             [in] UINT16 port,
-            [out][retval] MixedRemoteViewCompositor.Network.Listener** listener);
+            [out][retval] RealtimeStreaming.Network.Listener** listener);
     };
 
-    [activatable(MixedRemoteViewCompositor.Network.IListenerStatics, 1.0)]
+    [activatable(RealtimeStreaming.Network.IListenerStatics, 1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
     runtimeclass Listener
     {
-        [default] interface MixedRemoteViewCompositor.Network.IListener;
-        interface MixedRemoteViewCompositor.Plugin.IModule;
+        [default] interface RealtimeStreaming.Network.IListener;
+        interface RealtimeStreaming.Plugin.IModule;
         interface Windows.Foundation.IClosable;
     };
 
     // Connector
-    [exclusiveto(MixedRemoteViewCompositor.Network.Connector)]
+    [exclusiveto(RealtimeStreaming.Network.Connector)]
     [uuid(4d3288f4-b509-4ffe-848d-200218029096)]
     [version(1.0)]
     interface IConnector : IInspectable requires
         Windows.Foundation.IClosable,
-        MixedRemoteViewCompositor.Plugin.IModule
+        RealtimeStreaming.Plugin.IModule
     {
         [eventadd] HRESULT Closed(
-            [in] MixedRemoteViewCompositor.Plugin.ClosedEventHandler* eventHandler,
+            [in] RealtimeStreaming.Plugin.ClosedEventHandler* eventHandler,
             [out][retval] EventRegistrationToken* token);
         [eventremove] HRESULT Closed(
             [in] EventRegistrationToken token);
@@ -662,7 +662,7 @@ namespace MixedRemoteViewCompositor{ namespace Network {
             [out][retval] Windows.Foundation.IAsyncOperation<Connection*>** operation);
     };
 
-    [exclusiveto(MixedRemoteViewCompositor.Network.Connector)]
+    [exclusiveto(RealtimeStreaming.Network.Connector)]
     [uuid(5af2e9f2-5052-46f5-a118-85d281b11314)]
     [version(1.0)]
     interface IConnectorStatics : IInspectable
@@ -670,22 +670,22 @@ namespace MixedRemoteViewCompositor{ namespace Network {
         HRESULT Create(
             [in] HSTRING hostAddress,
             [in] UINT16 port,
-            [out][retval] MixedRemoteViewCompositor.Network.Connector** connector);
+            [out][retval] RealtimeStreaming.Network.Connector** connector);
     };
 
-    [activatable(MixedRemoteViewCompositor.Network.IConnectorStatics, 1.0)]
+    [activatable(RealtimeStreaming.Network.IConnectorStatics, 1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
     runtimeclass Connector
     {
-        [default] interface MixedRemoteViewCompositor.Network.IConnector;
-        interface MixedRemoteViewCompositor.Plugin.IModule;
+        [default] interface RealtimeStreaming.Network.IConnector;
+        interface RealtimeStreaming.Plugin.IModule;
         interface Windows.Foundation.IClosable;
     };
 } }
 
-namespace MixedRemoteViewCompositor{ namespace Media {
+namespace RealtimeStreaming{ namespace Media {
 
     [version(1.0)]
     enum SourceStreamState
@@ -732,16 +732,16 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     };
 
     // MrvcSchemeHandler
-    [exclusiveto(MixedRemoteViewCompositor.Media.MrvcSchemeHandler)]
+    [exclusiveto(RealtimeStreaming.Media.MrvcSchemeHandler)]
     [uuid(5a4a9427-1f66-40c6-ad6a-b3df73370112)]
     [version(1.0)]
     interface IMrvcSchemeHandler : IInspectable requires
         Windows.Media.IMediaExtension
     {
         [propget] HRESULT Connection(
-            [out][retval] MixedRemoteViewCompositor.Network.Connection** connection);
+            [out][retval] RealtimeStreaming.Network.Connection** connection);
         [propput] HRESULT Connection(
-            [in] MixedRemoteViewCompositor.Network.Connection* connection);
+            [in] RealtimeStreaming.Network.Connection* connection);
     };
 
     [activatable(1.0)]
@@ -755,27 +755,27 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     };
 
     // NetworkMediaSink
-    [exclusiveto(MixedRemoteViewCompositor.Media.NetworkMediaSink)]
+    [exclusiveto(RealtimeStreaming.Media.NetworkMediaSink)]
     [uuid(c9fff32c-31f3-452f-b126-3c5c6da57206)]
     [version(1.0)]
     interface INetworkMediaSink : IInspectable requires
         Windows.Media.IMediaExtension
     {
         [eventadd] HRESULT Closed(
-            [in] MixedRemoteViewCompositor.Plugin.ClosedEventHandler* eventHandler,
+            [in] RealtimeStreaming.Plugin.ClosedEventHandler* eventHandler,
             [out][retval] EventRegistrationToken* token);
         [eventremove] HRESULT Closed(
             [in] EventRegistrationToken token);
 
 		  /*
         [eventadd] HRESULT FormatChanged(
-            [in] MixedRemoteViewCompositor.Media.FormatChangedEventHandler* eventHandler,
+            [in] RealtimeStreaming.Media.FormatChangedEventHandler* eventHandler,
             [out][retval] EventRegistrationToken* token);
 				[eventremove] HRESULT FormatChanged(
             [in] EventRegistrationToken token);
 
         [eventadd] HRESULT SampleUpdated(
-            [in] MixedRemoteViewCompositor.Media.SampleUpdatedEventHandler* eventhandler,
+            [in] RealtimeStreaming.Media.SampleUpdatedEventHandler* eventhandler,
             [out][retval] EventRegistrationToken* token);
         [eventremove] HRESULT SampleUpdated(
             [in] EventRegistrationToken token);
@@ -807,38 +807,38 @@ namespace MixedRemoteViewCompositor{ namespace Media {
     };
 
     // RealtimeServer
-    [exclusiveto(MixedRemoteViewCompositor.Media.RealtimeServer)]
+    [exclusiveto(RealtimeStreaming.Media.RealtimeServer)]
     [uuid(5e9858a9-5ef5-4b84-9645-eb3c11610a17)]
     [version(1.0)]
     interface IRealtimeServer : IInspectable requires
-        MixedRemoteViewCompositor.Plugin.IModule
+        RealtimeStreaming.Plugin.IModule
     {
         HRESULT Shutdown();
         HRESULT WriteDirect([in] UINT32 bufferSize, [in, size_is(bufferSize)] byte* buffer);
     };
 
-    [exclusiveto(MixedRemoteViewCompositor.Media.RealtimeServer)]
+    [exclusiveto(RealtimeStreaming.Media.RealtimeServer)]
     [uuid(da706722-7bf4-4527-ad4c-2222cb81a7ab)]
     [version(1.0)]
     interface IRealtimeServerStatics : IInspectable
     {
         HRESULT Create(
-            [in] MixedRemoteViewCompositor.Network.Connection* connection,
+            [in] RealtimeStreaming.Network.Connection* connection,
             [in] GUID inputMediaType,
             [in] Windows.Media.MediaProperties.MediaEncodingProfile *mediaEncodingProfile,
-            [out][retval] MixedRemoteViewCompositor.Media.RealtimeServer** RealtimeServer);
+            [out][retval] RealtimeStreaming.Media.RealtimeServer** RealtimeServer);
     };
 
-    //[activatable(MixedRemoteViewCompositor.Media.IRealtimeServerStatics, 1.0)]
+    //[activatable(RealtimeStreaming.Media.IRealtimeServerStatics, 1.0)]
     //[activatable(1.0)]
-    [static(MixedRemoteViewCompositor.Media.IRealtimeServerStatics, 1.0)]
+    [static(RealtimeStreaming.Media.IRealtimeServerStatics, 1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
     runtimeclass RealtimeServer
     {
-        [default] interface MixedRemoteViewCompositor.Media.IRealtimeServer;
-        interface MixedRemoteViewCompositor.Plugin.IModule;
+        [default] interface RealtimeStreaming.Media.IRealtimeServer;
+        interface RealtimeStreaming.Plugin.IModule;
     };
 
 } }

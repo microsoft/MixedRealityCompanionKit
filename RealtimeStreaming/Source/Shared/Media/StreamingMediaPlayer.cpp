@@ -325,6 +325,9 @@ _Use_decl_annotations_
 void StreamingMediaPlayerImpl::ReleaseMediaPlayer()
 {
 	Log(Log_Level_Info, L"StreamingMediaPlayerImpl::ReleaseMediaPlayer()");
+    
+    // stop playback
+    LOG_RESULT(Stop());
 
 	RemoveStateChanged();
 
@@ -342,9 +345,6 @@ void StreamingMediaPlayerImpl::ReleaseMediaPlayer()
 		LOG_RESULT(m_mediaPlayer->remove_MediaOpened(m_openedEventToken));
 		LOG_RESULT(m_mediaPlayer->remove_MediaEnded(m_endedEventToken));
 		LOG_RESULT(m_mediaPlayer->remove_MediaFailed(m_failedEventToken));
-
-		// stop playback
-		LOG_RESULT(Stop());
 
 		m_mediaPlayer.Reset();
 		m_mediaPlayer = nullptr;

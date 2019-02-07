@@ -20,7 +20,7 @@
 #include <queue>
 #include <mutex>
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Media
     {
@@ -50,7 +50,7 @@ namespace MixedRemoteViewCompositor
             virtual ~RealtimeMediaSourceImpl();
 
             HRESULT RuntimeClassInitialize(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection *pConnection);
+                _In_ ABI::RealtimeStreaming::Network::IConnection *pConnection);
 
             // IRealtimeMediaSource
             IFACEMETHOD(get_MediaStreamSource)(_COM_Outptr_ ABI::Windows::Media::Core::IMediaStreamSource** ppMediaStreamSource);

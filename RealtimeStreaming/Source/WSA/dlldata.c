@@ -20,11 +20,13 @@ extern "C"   {
 #endif
 
 EXTERN_PROXY_FILE( MixedRemoteViewCompositor )
+EXTERN_PROXY_FILE( RealtimeStreaming )
 
 
 PROXYFILE_LIST_START
 /* Start of list */
   REFERENCE_PROXY_FILE( MixedRemoteViewCompositor ),
+  REFERENCE_PROXY_FILE( RealtimeStreaming ),
 /* End of list */
 PROXYFILE_LIST_END
 

@@ -3,22 +3,22 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Network
     {
-        using namespace ABI::MixedRemoteViewCompositor;
+        using namespace ABI::RealtimeStreaming;
 
         class ListenerImpl
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , Plugin::IModule
-            , ABI::MixedRemoteViewCompositor::Network::IListener
-            , IAsyncOperation<ABI::MixedRemoteViewCompositor::Network::Connection*>
-            , AsyncBase<IAsyncOperationCompletedHandler<ABI::MixedRemoteViewCompositor::Network::Connection*>>
+            , ABI::RealtimeStreaming::Network::IListener
+            , IAsyncOperation<ABI::RealtimeStreaming::Network::Connection*>
+            , AsyncBase<IAsyncOperationCompletedHandler<ABI::RealtimeStreaming::Network::Connection*>>
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Network_Listener, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Network_Listener, BaseTrust);
 
         public:
             ListenerImpl();
@@ -40,15 +40,15 @@ namespace MixedRemoteViewCompositor
                 _In_ EventRegistrationToken token);
 
             IFACEMETHOD(ListenAsync)(
-                _Out_ IAsyncOperation<ABI::MixedRemoteViewCompositor::Network::Connection*>** operation);
+                _Out_ IAsyncOperation<ABI::RealtimeStreaming::Network::Connection*>** operation);
 
             // IAsyncOperation<IConnection*>
             IFACEMETHOD(put_Completed)(
-                _In_ IAsyncOperationCompletedHandler<ABI::MixedRemoteViewCompositor::Network::Connection*>* operation);
+                _In_ IAsyncOperationCompletedHandler<ABI::RealtimeStreaming::Network::Connection*>* operation);
             IFACEMETHOD(get_Completed)(
-                _Out_ IAsyncOperationCompletedHandler<ABI::MixedRemoteViewCompositor::Network::Connection*>** operation);
+                _Out_ IAsyncOperationCompletedHandler<ABI::RealtimeStreaming::Network::Connection*>** operation);
             IFACEMETHOD(GetResults)(
-                _Out_ ABI::MixedRemoteViewCompositor::Network::IConnection** result);
+                _Out_ ABI::RealtimeStreaming::Network::IConnection** result);
             virtual HRESULT OnStart(void);
             virtual void OnClose(void);
             virtual void OnCancel(void);
@@ -82,16 +82,16 @@ namespace MixedRemoteViewCompositor
 
         class ListenerStaticsImpl
             : public ActivationFactory
-            < ABI::MixedRemoteViewCompositor::Network::IListenerStatics
+            < ABI::RealtimeStreaming::Network::IListenerStatics
             , FtmBase >
         {
-            InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Network_Listener, BaseTrust);
+            InspectableClassStatic(RuntimeClass_RealtimeStreaming_Network_Listener, BaseTrust);
 
         public:
             // IListenerStatics
             STDMETHODIMP Create(
                 _In_ UINT16 port,
-                _COM_Outptr_result_maybenull_ ABI::MixedRemoteViewCompositor::Network::IListener** ppListener) override
+                _COM_Outptr_result_maybenull_ ABI::RealtimeStreaming::Network::IListener** ppListener) override
             {
                 ComPtr<ListenerImpl> spListener;
                 IFR(Microsoft::WRL::MakeAndInitialize<ListenerImpl>(&spListener, port));

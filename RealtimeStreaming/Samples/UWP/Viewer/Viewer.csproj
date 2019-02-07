@@ -100,8 +100,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="MixedRemoteViewCompositor">
-      <HintPath>..\..\..\Build\Debug\Plugins\WSA\x86\MixedRemoteViewCompositor.winmd</HintPath>
+    <Reference Include="RealtimeStreaming">
+      <HintPath>..\..\..\Build\Debug\Plugins\WSA\x86\RealtimeStreaming.winmd</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

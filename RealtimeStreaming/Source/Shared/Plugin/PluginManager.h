@@ -3,22 +3,22 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Plugin
     {
-        using namespace ABI::MixedRemoteViewCompositor;
-		using namespace ABI::MixedRemoteViewCompositor::Media;
-        using namespace ABI::MixedRemoteViewCompositor::Plugin;
+        using namespace ABI::RealtimeStreaming;
+		using namespace ABI::RealtimeStreaming::Media;
+        using namespace ABI::RealtimeStreaming::Plugin;
 
         using namespace ABI::Windows::Foundation;
         using namespace ABI::Windows::System::Threading;
 
         extern "C" typedef void(UNITY_INTERFACE_API *PluginCallback)(
             _In_ ModuleHandle handle,
-			_In_ void* pCallbackObject,
-            _In_ HRESULT result, 
-            _In_ LPCWSTR pszMessage);
+            _In_ void* pCallbackObject,
+            _In_ HRESULT result);
+            //_In_ LPCWSTR pszMessage); // TODO: issue with instantiating data in c++ and marshalling back to C#
 
         extern "C" typedef void(UNITY_INTERFACE_API *PlayerCreatedCallback)(
             _In_ void* pCallbackObject,

@@ -109,9 +109,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.def" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
@@ -171,6 +168,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
   </ItemGroup>
 </Project>

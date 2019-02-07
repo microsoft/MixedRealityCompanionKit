@@ -10,7 +10,7 @@
 //*********************************************************
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
 	namespace Media
 	{
@@ -83,7 +83,7 @@ namespace MixedRemoteViewCompositor
 			static HRESULT CreateStreamingMediaPlayer(
 				_In_ UnityGfxRenderer apiType,
 				_In_ IUnityInterfaces* pUnityInterfaces,
-				_In_ ABI::MixedRemoteViewCompositor::Network::IConnection *pConnection,
+				_In_ ABI::RealtimeStreaming::Network::IConnection *pConnection,
 				//_In_ StateChangedCallback fnCallback,
 				_COM_Outptr_ IStreamingMediaPlayer** ppMediaPlayback);
 
@@ -91,7 +91,7 @@ namespace MixedRemoteViewCompositor
 			~StreamingMediaPlayerImpl();
 
 			HRESULT RuntimeClassInitialize(
-				_In_ ABI::MixedRemoteViewCompositor::Network::IConnection *pConnection,
+				_In_ ABI::RealtimeStreaming::Network::IConnection *pConnection,
 				//_In_ StateChangedCallback fnCallback,
 				_In_ ID3D11Device* pDevice);
 

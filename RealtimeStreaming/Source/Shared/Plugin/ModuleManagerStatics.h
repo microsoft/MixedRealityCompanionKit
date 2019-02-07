@@ -3,19 +3,19 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Plugin
     {
-        using namespace ABI::MixedRemoteViewCompositor;
-        using namespace ABI::MixedRemoteViewCompositor::Plugin;
+        using namespace ABI::RealtimeStreaming;
+        using namespace ABI::RealtimeStreaming::Plugin;
 
         class ModuleManagerStaticsImpl
             : public ActivationFactory
             < IModuleManagerStatics
             , FtmBase >
         {
-            InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Plugin_ModuleManager, BaseTrust);
+            InspectableClassStatic(RuntimeClass_RealtimeStreaming_Plugin_ModuleManager, BaseTrust);
 
         public:
             // IModuleManagerStatics

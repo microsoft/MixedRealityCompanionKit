@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Network
     {
@@ -13,7 +13,7 @@ namespace MixedRemoteViewCompositor
             , IDataBundle
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Network_DataBundle, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Network_DataBundle, BaseTrust);
 
         public:
             typedef std::list<ComPtr<IDataBuffer> > Container;

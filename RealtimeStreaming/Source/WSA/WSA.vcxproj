@@ -29,7 +29,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0b2c8eac-5a4a-40d4-8252-f02d90ebb5d9}</ProjectGuid>
     <Keyword>DynamicLibrary</Keyword>
-    <RootNamespace>MixedRemoteViewCompositor</RootNamespace>
+    <RootNamespace>RealtimeStreaming</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
@@ -144,13 +144,13 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <HeaderFileName>%(Filename).h</HeaderFileName>
@@ -168,13 +168,13 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Unity\$(SolutionNa
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <HeaderFileName>%(Filename).h</HeaderFileName>
@@ -192,13 +192,13 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Unity\$(SolutionNa
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <HeaderFileName>%(Filename).h</HeaderFileName>
@@ -216,13 +216,13 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Unity\$(SolutionNa
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <HeaderFileName>%(Filename).h</HeaderFileName>
@@ -240,13 +240,13 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Unity\$(SolutionNa
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <HeaderFileName>%(Filename).h</HeaderFileName>
@@ -264,13 +264,13 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Unity\$(SolutionNa
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <HeaderFileName>%(Filename).h</HeaderFileName>

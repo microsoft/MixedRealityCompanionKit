@@ -161,6 +161,8 @@ namespace RealtimeStreaming
             }
             else
             {
+                this.Stop();
+
                 this.CloseNetworkConnection();
             }
 
@@ -348,7 +350,7 @@ namespace RealtimeStreaming
 
         private void OnCreated(long result, UInt32 width, UInt32 height)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            this.plugin.QueueAction(() =>
             {
                 Plugin.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
 
@@ -407,7 +409,7 @@ namespace RealtimeStreaming
 
         private void MediaPlayback_Changed(PlayerPlugin.PLAYBACK_STATE args)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            this.plugin.QueueAction(() =>
             {
                 OnStateChanged(args);
             });
@@ -518,7 +520,7 @@ namespace RealtimeStreaming
             internal static void OnCreated_Callback(IntPtr senderPtr, long result, UInt32 width, UInt32 height)
             {
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
-
+                
                 Plugin.ExecuteOnUnityThread(() => {
                     thisObj.OnCreated(result, width, height);
                 });

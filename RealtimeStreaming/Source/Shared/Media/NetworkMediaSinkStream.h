@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Media
     {
@@ -42,8 +42,8 @@ namespace MixedRemoteViewCompositor
 
             HRESULT RuntimeClassInitialize(
                 _In_ DWORD id, 
-                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection* pConnection,
-                _In_ ABI::MixedRemoteViewCompositor::Media::INetworkMediaSink* parentMediaSink);
+                _In_ ABI::RealtimeStreaming::Network::IConnection* pConnection,
+                _In_ ABI::RealtimeStreaming::Media::INetworkMediaSink* parentMediaSink);
 
             // IMFMediaEventGenerator
             IFACEMETHOD(GetEvent)(
@@ -174,8 +174,8 @@ namespace MixedRemoteViewCompositor
 
             LONGLONG _adjustedStartTime;    // Presentation time when the clock started.
 
-            ComPtr<ABI::MixedRemoteViewCompositor::Network::IConnection> _spConnection;
-            ComPtr<ABI::MixedRemoteViewCompositor::Media::INetworkMediaSink>  _spParentMediaSink;
+            ComPtr<ABI::RealtimeStreaming::Network::IConnection> _spConnection;
+            ComPtr<ABI::RealtimeStreaming::Media::INetworkMediaSink>  _spParentMediaSink;
 
             ComPtr<IMFMediaType> _currentType;
             GUID _currentSubtype;

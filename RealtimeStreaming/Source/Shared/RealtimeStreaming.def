@@ -1,4 +1,4 @@
-LIBRARY     MixedRemoteViewCompositor.dll
+LIBRARY     RealtimeStreaming.dll
 
 EXPORTS
     DllGetActivationFactory

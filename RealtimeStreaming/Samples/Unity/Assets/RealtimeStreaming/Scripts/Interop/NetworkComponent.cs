@@ -140,12 +140,12 @@ namespace RealtimeStreaming
         internal static class NetworkComponent_PluginCallbackWrapper
         {
             [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnConnected_Callback(uint handle, IntPtr senderPtr, long result, string message)
+            internal static void OnConnected_Callback(uint handle, IntPtr senderPtr, long result)
             {
                 var thisObj = Plugin.GetSenderObject<NetworkComponent>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
-                    thisObj.OnConnected(handle, result, message);
+                Plugin.ExecuteOnUnityThread(() => {
+                    thisObj.OnConnected(handle, result, string.Empty);
                 });
             }
         }

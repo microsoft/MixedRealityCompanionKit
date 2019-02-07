@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor 
+namespace RealtimeStreaming 
 {
     namespace Media 
     {
@@ -16,12 +16,12 @@ namespace MixedRemoteViewCompositor
         class RealtimeServerImpl
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , ABI::MixedRemoteViewCompositor::Plugin::IModule
-            , ABI::MixedRemoteViewCompositor::Media::IRealtimeServer
+            , ABI::RealtimeStreaming::Plugin::IModule
+            , ABI::RealtimeStreaming::Media::IRealtimeServer
 			, IRealtimeServerWriter
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Media_RealtimeServer, BaseTrust)
+            InspectableClass(RuntimeClass_RealtimeStreaming_Media_RealtimeServer, BaseTrust)
 
         public:
             RealtimeServerImpl();
@@ -73,18 +73,18 @@ namespace MixedRemoteViewCompositor
 
         class RealtimeServerStaticsImpl
 	        : public ActivationFactory
-	        < ABI::MixedRemoteViewCompositor::Media::IRealtimeServerStatics
+	        < ABI::RealtimeStreaming::Media::IRealtimeServerStatics
 	        , FtmBase >
         {
-            InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Media_RealtimeServer, BaseTrust);
+            InspectableClassStatic(RuntimeClass_RealtimeStreaming_Media_RealtimeServer, BaseTrust);
 
         public:
             // IRealtimeServerStatics
             STDMETHODIMP Create(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection* pConnection,
+                _In_ ABI::RealtimeStreaming::Network::IConnection* pConnection,
                 _In_ GUID inputMediaType,
                 _In_ ABI::Windows::Media::MediaProperties::IMediaEncodingProfile *pMediaEncodingProfile,
-                _COM_Outptr_result_maybenull_ ABI::MixedRemoteViewCompositor::Media::IRealtimeServer** ppRealtimeServer) override
+                _COM_Outptr_result_maybenull_ ABI::RealtimeStreaming::Media::IRealtimeServer** ppRealtimeServer) override
             {
                 ComPtr<RealtimeServerImpl> spRealtimeServer;
                 IFR(Microsoft::WRL::MakeAndInitialize<RealtimeServerImpl>(&spRealtimeServer, 

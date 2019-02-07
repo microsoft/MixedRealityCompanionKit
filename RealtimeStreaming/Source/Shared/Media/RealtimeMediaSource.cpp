@@ -46,6 +46,7 @@ RealtimeMediaSourceImpl::~RealtimeMediaSourceImpl()
         m_deferral->Complete();
         m_deferral = nullptr;
     }
+
     if (m_mediaStreamSource != nullptr)
     {
         LOG_RESULT(m_mediaStreamSource->remove_Starting(m_startingRequestedToken));

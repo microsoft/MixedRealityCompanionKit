@@ -44,7 +44,10 @@ namespace RealtimeStreaming
         private static class Wrapper
         {
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectorCreateAndStart")]
-            internal static extern int exOpenConnection([MarshalAsAttribute(UnmanagedType.LPWStr)]string serverUrl, ref uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler ConnectionOpenedCallback, IntPtr senderObject);
+            internal static extern int exOpenConnection([MarshalAsAttribute(UnmanagedType.LPWStr)]string serverUrl, 
+                ref uint handle, 
+                [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler ConnectionOpenedCallback, 
+                IntPtr senderObject);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectorStopAndClose")]
             internal static extern int exCloseConnector(uint handle);

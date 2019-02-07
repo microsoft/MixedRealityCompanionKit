@@ -136,7 +136,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;REALTIMESTREAMING_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -144,7 +144,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories>$(WinRT_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -165,7 +165,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;REALTIMESTREAMING_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -173,7 +173,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories>$(WinRT_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -194,7 +194,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;REALTIMESTREAMING_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -202,7 +202,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories>$(WinRT_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -225,7 +225,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;REALTIMESTREAMING_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -235,7 +235,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories>$(WinRT_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -258,7 +258,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;REALTIMESTREAMING_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -268,7 +268,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories>$(WinRT_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -291,7 +291,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;REALTIMESTREAMING_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WIN32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -301,7 +301,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)Shared\MixedRemoteViewCompositor.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)Shared\RealtimeStreaming.def</ModuleDefinitionFile>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories>$(WinRT_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

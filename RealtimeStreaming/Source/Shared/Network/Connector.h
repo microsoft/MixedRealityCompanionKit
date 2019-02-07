@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Network
     {
@@ -11,12 +11,12 @@ namespace MixedRemoteViewCompositor
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , Plugin::IModule
-            , ABI::MixedRemoteViewCompositor::Network::IConnector
+            , ABI::RealtimeStreaming::Network::IConnector
             , IConnectionCreatedOperation
             , AsyncBase<IAsyncOperationCompletedHandler<Connection*>>
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Network_Connector, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Network_Connector, BaseTrust);
 
         public:
             ConnectorImpl();
@@ -70,17 +70,17 @@ namespace MixedRemoteViewCompositor
 
         class ConnectorStaticsImpl
             : public ActivationFactory
-            < ABI::MixedRemoteViewCompositor::Network::IConnectorStatics
+            < ABI::RealtimeStreaming::Network::IConnectorStatics
             , FtmBase >
         {
-            InspectableClassStatic(RuntimeClass_MixedRemoteViewCompositor_Network_Connector, BaseTrust);
+            InspectableClassStatic(RuntimeClass_RealtimeStreaming_Network_Connector, BaseTrust);
 
         public:
             // IConnectorStatics
             STDMETHODIMP Create(
                 _In_ HSTRING hostAddress,
                 _In_ UINT16 port,
-                _COM_Outptr_result_maybenull_ ABI::MixedRemoteViewCompositor::Network::IConnector** ppConnector) override
+                _COM_Outptr_result_maybenull_ ABI::RealtimeStreaming::Network::IConnector** ppConnector) override
             {
                 // Get IHostNameFactory instance
                 ComPtr<ABI::Windows::Networking::IHostNameFactory> spHostNameFactory;

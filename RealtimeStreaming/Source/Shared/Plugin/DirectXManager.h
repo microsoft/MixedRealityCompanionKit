@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Plugin
     {
@@ -14,7 +14,7 @@ namespace MixedRemoteViewCompositor
             , IDirectXManager
             , FtmBase >
         {
-            InspectableClass(L"MixedRemoteViewCompositor.Plugin.DirectXManager", BaseTrust)
+            InspectableClass(L"RealtimeStreaming.Plugin.DirectXManager", BaseTrust)
 
         public:
             DirectXManagerImpl();

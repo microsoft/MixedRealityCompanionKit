@@ -227,12 +227,12 @@ namespace RealtimeStreaming
         internal static class Connection_PluginCallbackWrapper
         {
             [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnDisconnected_Callback(uint handle, IntPtr senderPtr, long result, string message)
+            internal static void OnDisconnected_Callback(uint handle, IntPtr senderPtr, long result)
             {
                 var thisObj = Plugin.GetSenderObject<Connection>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
-                    thisObj.OnDisconnected(handle, result, message);
+                Plugin.ExecuteOnUnityThread(() => {
+                    thisObj.OnDisconnected(handle, result, string.Empty);
                 });
             }
 

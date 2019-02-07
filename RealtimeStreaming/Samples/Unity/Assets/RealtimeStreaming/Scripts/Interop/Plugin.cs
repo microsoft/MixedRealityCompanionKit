@@ -14,7 +14,9 @@ namespace RealtimeStreaming
     public enum NetworkMode { Listener, Connector }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, long result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
+    public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, long result);
+        // TODO: Troy investigate failure of c++ to instantiate message and marshall to C#
+        //[MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
 
     public class FailedEventArgs : EventArgs
     {

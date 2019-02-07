@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Network
     {
@@ -109,13 +109,13 @@ namespace MixedRemoteViewCompositor
         class ConnectionImpl
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , ABI::MixedRemoteViewCompositor::Network::IConnection
-            , ABI::MixedRemoteViewCompositor::Network::IConnectionInternal
+            , ABI::RealtimeStreaming::Network::IConnection
+            , ABI::RealtimeStreaming::Network::IConnectionInternal
             , Plugin::IModule
             , ABI::Windows::Foundation::IClosable
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Network_Connection, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Network_Connection, BaseTrust);
 
         public:
             ConnectionImpl();
@@ -137,21 +137,21 @@ namespace MixedRemoteViewCompositor
             IFACEMETHOD(get_IsConnected)(
                 _Out_ boolean *connected);
             IFACEMETHOD(add_Disconnected)(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IDisconnectedEventHandler *eventHandler,
+                _In_ ABI::RealtimeStreaming::Network::IDisconnectedEventHandler *eventHandler,
                 _Out_ EventRegistrationToken *token);
             IFACEMETHOD(remove_Disconnected)(
                 _In_ EventRegistrationToken token);
             IFACEMETHOD(add_Received)(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IBundleReceivedEventHandler *eventHandler,
+                _In_ ABI::RealtimeStreaming::Network::IBundleReceivedEventHandler *eventHandler,
                 _Out_ EventRegistrationToken *token);
             IFACEMETHOD(remove_Received)(
                 _In_ EventRegistrationToken token);
             IFACEMETHOD(SendPayloadType)(
                 _In_ PayloadType payloadType);
             IFACEMETHOD(SendBundle)(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IDataBundle *dataBundle);
+                _In_ ABI::RealtimeStreaming::Network::IDataBundle *dataBundle);
             IFACEMETHOD(SendBundleAsync)(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IDataBundle *dataBundle,
+                _In_ ABI::RealtimeStreaming::Network::IDataBundle *dataBundle,
                 _Out_ ABI::Windows::Foundation::IAsyncAction **sendAction);
 
         protected:
@@ -171,14 +171,14 @@ namespace MixedRemoteViewCompositor
                 _In_ AsyncStatus asyncStatus);
             STDMETHODIMP NotifyBundleComplete(
                 _In_ PayloadType operation,
-                _In_ ABI::MixedRemoteViewCompositor::Network::IDataBundle *dataBundle);
+                _In_ ABI::RealtimeStreaming::Network::IDataBundle *dataBundle);
 
             IFACEMETHOD(ResetBundle)();
 
         private:
             HRESULT ProcessHeaderBuffer(
                 _In_ PayloadHeader* header,
-                _In_ ABI::MixedRemoteViewCompositor::Network::IDataBuffer *dataBuffer);
+                _In_ ABI::RealtimeStreaming::Network::IDataBuffer *dataBuffer);
 
         private:
             Wrappers::CriticalSection _lock;
@@ -190,13 +190,13 @@ namespace MixedRemoteViewCompositor
             ComPtr<IThreadPoolStatics> _threadPoolStatics;
             ComPtr<ABI::Windows::Networking::Sockets::IStreamSocket>    _streamSocket;
 
-            ComPtr<MixedRemoteViewCompositor::Network::DataBufferImpl>  _spHeaderBuffer;
+            ComPtr<RealtimeStreaming::Network::DataBufferImpl>  _spHeaderBuffer;
 
             // currently bundle that is incoming
             PayloadHeader _receivedHeader;
-            ComPtr<ABI::MixedRemoteViewCompositor::Network::IDataBundle>    _receivedBundle;
-            EventSource<ABI::MixedRemoteViewCompositor::Network::IDisconnectedEventHandler>    _evtDisconnected;
-            EventSource<ABI::MixedRemoteViewCompositor::Network::IBundleReceivedEventHandler>    _evtBundleReceived;
+            ComPtr<ABI::RealtimeStreaming::Network::IDataBundle>    _receivedBundle;
+            EventSource<ABI::RealtimeStreaming::Network::IDisconnectedEventHandler>    _evtDisconnected;
+            EventSource<ABI::RealtimeStreaming::Network::IBundleReceivedEventHandler>    _evtBundleReceived;
         };
     }
 }

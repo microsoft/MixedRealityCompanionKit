@@ -492,7 +492,7 @@ HRESULT PluginManagerImpl::ConnectionAddDisconnected(
     {
         NULL_CHK(sender);
 
-        callback(handle, pCallbackObject, S_OK, L"");
+        callback(handle, pCallbackObject, S_OK); //L"");
 
         return S_OK;
     });
@@ -969,17 +969,17 @@ void PluginManagerImpl::CompletePluginCallback(
     _In_ ModuleHandle handle,
     _In_ HRESULT hr)
 {
-    LOG_RESULT(PluginManagerStaticsImpl::IsOnThread() ? S_OK : RPC_E_WRONG_THREAD);
+    //LOG_RESULT(PluginManagerStaticsImpl::IsOnThread() ? S_OK : RPC_E_WRONG_THREAD);
 
     LOG_RESULT(ExceptionBoundary([&]() -> HRESULT
     {
         if (FAILED(hr))
         {
-            callback(handle, pCallbackObject, hr, ErrorMessage(hr));
+            callback(handle, pCallbackObject, hr);//, ErrorMessage(hr));
         }
         else
         {
-            callback(handle, pCallbackObject, S_OK, L"");
+            callback(handle, pCallbackObject, S_OK);// , L"");
         }
 
         return S_OK;

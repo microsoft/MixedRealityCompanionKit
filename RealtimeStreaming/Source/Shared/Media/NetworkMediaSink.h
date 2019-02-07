@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Media
     {
@@ -13,12 +13,12 @@ namespace MixedRemoteViewCompositor
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , ABI::Windows::Media::IMediaExtension
-            , ABI::MixedRemoteViewCompositor::Media::INetworkMediaSink
+            , ABI::RealtimeStreaming::Media::INetworkMediaSink
             , IMFMediaSink
             , IMFClockStateSink
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Media_NetworkMediaSink, BaseTrust)
+            InspectableClass(RuntimeClass_RealtimeStreaming_Media_NetworkMediaSink, BaseTrust)
 
         public:
             NetworkMediaSinkImpl();
@@ -27,7 +27,7 @@ namespace MixedRemoteViewCompositor
             HRESULT RuntimeClassInitialize(
                 _In_ ABI::Windows::Media::MediaProperties::IAudioEncodingProperties* audioEncodingProperties,
                 _In_ ABI::Windows::Media::MediaProperties::IVideoEncodingProperties* videoEncodingProperties,
-                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection* connection);
+                _In_ ABI::RealtimeStreaming::Network::IConnection* connection);
 
             // IMediaExtension
             IFACEMETHOD(SetProperties)(
@@ -80,13 +80,13 @@ namespace MixedRemoteViewCompositor
 
 				/*
             IFACEMETHOD(add_FormatChanged)(
-                _In_ ABI::MixedRemoteViewCompositor::Media::IFormatChangedEventHandler *eventHandler,
+                _In_ ABI::RealtimeStreaming::Media::IFormatChangedEventHandler *eventHandler,
                 _Out_ EventRegistrationToken *token);
             IFACEMETHOD(remove_FormatChanged)(
                 _In_ EventRegistrationToken token);
 
             IFACEMETHOD(add_SampleUpdated)(
-                _In_ ABI::MixedRemoteViewCompositor::Media::ISampleUpdatedEventHandler *eventhandler,
+                _In_ ABI::RealtimeStreaming::Media::ISampleUpdatedEventHandler *eventhandler,
                 _Out_ EventRegistrationToken *token);
             IFACEMETHOD(remove_SampleUpdated)(
                 _In_ EventRegistrationToken token);
@@ -136,7 +136,7 @@ namespace MixedRemoteViewCompositor
 
             long _cStreamsEnded;
 
-            ComPtr<ABI::MixedRemoteViewCompositor::Network::IConnection> _spConnection;
+            ComPtr<ABI::RealtimeStreaming::Network::IConnection> _spConnection;
             EventRegistrationToken _bundleReceivedEventToken;
 
             EventSource<Plugin::IClosedEventHandler> _evtClosed;

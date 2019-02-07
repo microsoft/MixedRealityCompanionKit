@@ -68,13 +68,13 @@
 #pragma comment(lib, "mfreadwrite.lib")
 
 #ifndef RTDLL
-#ifdef MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS
+#ifdef REALTIMESTREAMING_EXPORTS
 #define RTDLL EXTERN_C HRESULT __declspec(dllexport) STDAPICALLTYPE
 #define RTDLL_(type) EXTERN_C type __declspec(dllexport) STDAPICALLTYPE
 #else
 #define RTDLL EXTERN_C HRESULT __declspec(dllimport) STDAPICALLTYPE
 #define RTDLL_(type) EXTERN_C type __declspec(dllimport) STDAPICALLTYPE
-#endif // MIXEDREMOTEVIEWCOMPOSITOR_EXPORTS
+#endif // REALTIMESTREAMING_EXPORTS
 #endif
 
 // mf guids for pulling sample data
@@ -140,11 +140,12 @@ using namespace ABI::Windows::System::Threading;
 #include "LinkList.h"
 #include "MediaUtils.h"
 
-#include "MixedRemoteViewCompositor.h"
-using namespace ABI::MixedRemoteViewCompositor;
-using namespace ABI::MixedRemoteViewCompositor::Plugin;
-using namespace ABI::MixedRemoteViewCompositor::Network;
-using namespace ABI::MixedRemoteViewCompositor::Media;
+#include "RealtimeStreaming.h"
+
+using namespace ABI::RealtimeStreaming;
+using namespace ABI::RealtimeStreaming::Plugin;
+using namespace ABI::RealtimeStreaming::Network;
+using namespace ABI::RealtimeStreaming::Media;
 
 #include "RenderingPlugin.h"
 #include "ModuleManager.h"
@@ -166,6 +167,6 @@ using namespace ABI::MixedRemoteViewCompositor::Media;
 #include "PluginManagerStatics.h"
 
 
-using namespace MixedRemoteViewCompositor::Plugin;
-using namespace MixedRemoteViewCompositor::Network;
-using namespace MixedRemoteViewCompositor::Media;
+using namespace RealtimeStreaming::Plugin;
+using namespace RealtimeStreaming::Network;
+using namespace RealtimeStreaming::Media;

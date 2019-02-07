@@ -7,7 +7,7 @@
 
 namespace ABI
 {
-    namespace MixedRemoteViewCompositor
+    namespace RealtimeStreaming
     {
         namespace Media
         {
@@ -28,7 +28,7 @@ namespace ABI
     }
 }
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Media
     {

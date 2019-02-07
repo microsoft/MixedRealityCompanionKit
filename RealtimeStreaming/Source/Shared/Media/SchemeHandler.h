@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Media
     {
@@ -13,7 +13,7 @@ namespace MixedRemoteViewCompositor
             , IMFSchemeHandler
             , IMrvcSchemeHandler>
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Media_MrvcSchemeHandler, BaseTrust)
+            InspectableClass(RuntimeClass_RealtimeStreaming_Media_MrvcSchemeHandler, BaseTrust)
 
         public:
             MrvcSchemeHandlerImpl();
@@ -27,10 +27,10 @@ namespace MixedRemoteViewCompositor
 
             // IMrvcSchemeHandler
             IFACEMETHOD(get_Connection)(
-                _Out_ ABI::MixedRemoteViewCompositor::Network::IConnection** connection);
+                _Out_ ABI::RealtimeStreaming::Network::IConnection** connection);
 
             IFACEMETHOD(put_Connection)(
-                _In_ ABI::MixedRemoteViewCompositor::Network::IConnection *connection);
+                _In_ ABI::RealtimeStreaming::Network::IConnection *connection);
 
             // IMFSchemeHandler
             IFACEMETHOD(BeginCreateObject) (
@@ -50,7 +50,7 @@ namespace MixedRemoteViewCompositor
                 _In_ IUnknown* pIUnknownCancelCookie);
 
         private:
-            ComPtr<ABI::MixedRemoteViewCompositor::Network::IConnection> _connection;
+            ComPtr<ABI::RealtimeStreaming::Network::IConnection> _connection;
         };
     }
 }

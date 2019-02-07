@@ -345,7 +345,7 @@ namespace RealtimeStreaming
 
         private void OnDisconnected(object sender, EventArgs e)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            this.plugin.QueueAction(() =>
             {
                 this.ConnectionState = ConnectionState.Disconnected;
 
@@ -355,7 +355,7 @@ namespace RealtimeStreaming
 
         private void OnConnectionClosed(object sender, EventArgs eventArgs)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            this.plugin.QueueAction(() =>
             {
                 this.ConnectionState = ConnectionState.Closed;
 
@@ -385,15 +385,16 @@ namespace RealtimeStreaming
         private static class VideoServerWrapper
         {
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimeStreamingServer")]
-            //internal static extern int exCreate(bool enableAudio, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, IntPtr senderObject);
-            internal static extern int exCreate(uint connectionHandle, ref uint serverHandle);
+            internal static extern int exCreate(uint connectionHandle, 
+                ref uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingStop")]
             internal static extern int exStop(uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingWrite")]
-            internal static extern int exWrite(uint serverHandle, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]byte[] bufferData, uint bufferSize);
-            //internal static extern int exWrite(uint serverHandle, IntPtr bufferData, uint bufferSize);
+            internal static extern int exWrite(uint serverHandle, 
+                [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]byte[] bufferData, 
+                uint bufferSize);
         };
     }
 }

@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Network
     {
@@ -11,12 +11,12 @@ namespace MixedRemoteViewCompositor
         class DataBufferImpl
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , ABI::MixedRemoteViewCompositor::Network::IDataBuffer
+            , ABI::RealtimeStreaming::Network::IDataBuffer
             , ABI::Windows::Storage::Streams::IBuffer
             , Windows::Storage::Streams::IBufferByteAccess
             , FtmBase >
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Network_DataBuffer, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Network_DataBuffer, BaseTrust);
 
         public:
             DataBufferImpl();

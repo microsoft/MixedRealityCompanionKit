@@ -4,8 +4,8 @@
 using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using MixedRemoteViewCompositor.Media;
-using MixedRemoteViewCompositor.Network;
+using RealtimeStreaming.Media;
+using RealtimeStreaming.Network;
 using System.Threading;
 using Windows.Media.MediaProperties;
 
@@ -61,8 +61,14 @@ namespace Viewer
 
         private void StartCapture()
         {
+            var p = MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p);
+            p.Video.Width = 1000;
+            p.Video.Height = 1000;
+
+            Guid MFVideoFormat_RGB32 = new Guid("{00000016-0000-0010-8000-00AA00389B71}");
+
             this.rtServer = RealtimeServer.Create(this.connection,
-                Guid.Empty, // TODO: need to figure out the MFFormat import?
+                MFVideoFormat_RGB32,
                 MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p)
                 );
 

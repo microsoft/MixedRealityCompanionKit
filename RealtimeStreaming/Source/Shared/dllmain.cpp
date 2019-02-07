@@ -6,8 +6,8 @@
 #include "PluginManagerStatics.h"
 
 using namespace Microsoft::WRL;
-using namespace MixedRemoteViewCompositor::Plugin;
-using namespace MixedRemoteViewCompositor::Network;
+using namespace RealtimeStreaming::Plugin;
+using namespace RealtimeStreaming::Network;
 
 STDAPI_(BOOL) DllMain(
     _In_opt_ HINSTANCE hInstance, _In_ DWORD dwReason, _In_opt_ LPVOID lpReserved)
@@ -215,7 +215,7 @@ RTDLL ConnectionSendRawData(
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->ConnectionSendRawData(connectionHandle, (MixedRemoteViewCompositor::Network::PayloadType)payloadType, pBuffer, bufferSize);
+        return instance->ConnectionSendRawData(connectionHandle, (RealtimeStreaming::Network::PayloadType)payloadType, pBuffer, bufferSize);
     }
 
     return RPC_E_WRONG_THREAD;

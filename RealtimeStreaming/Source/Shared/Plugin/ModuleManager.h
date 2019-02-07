@@ -3,12 +3,12 @@
 
 #pragma once
 
-namespace MixedRemoteViewCompositor
+namespace RealtimeStreaming
 {
     namespace Plugin
     {
-        using namespace ABI::MixedRemoteViewCompositor;
-        using namespace ABI::MixedRemoteViewCompositor::Plugin;
+        using namespace ABI::RealtimeStreaming;
+        using namespace ABI::RealtimeStreaming::Plugin;
 
         class ModuleManagerImpl
             : public Microsoft::WRL::RuntimeClass
@@ -16,7 +16,7 @@ namespace MixedRemoteViewCompositor
             , IModuleManager
             , FtmBase>
         {
-            InspectableClass(RuntimeClass_MixedRemoteViewCompositor_Plugin_ModuleManager, BaseTrust);
+            InspectableClass(RuntimeClass_RealtimeStreaming_Plugin_ModuleManager, BaseTrust);
 
         public:
             ~ModuleManagerImpl();
