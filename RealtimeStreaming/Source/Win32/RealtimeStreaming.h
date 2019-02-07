@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Mon Jan 18 19:14:07 2038
  */
-/* Compiler settings for C:\Users\TRFERR~1.RED\AppData\Local\Temp\RealtimeStreaming.idl-25d6f05c:
+/* Compiler settings for C:\Users\TRFERR~1.RED\AppData\Local\Temp\RealtimeStreaming.idl-a1d234cc:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 

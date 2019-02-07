@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace RealtimeStreaming
 {
@@ -18,6 +19,7 @@ namespace RealtimeStreaming
             Ended
         };
 
+        public Text ipAddressInput;
         public MeshRenderer target;
         public string ConnectTo;
         public ushort Port = 27772;
@@ -90,11 +92,6 @@ namespace RealtimeStreaming
             this.isStarted = true;
 
             this.ConnectionState = ConnectionState.Idle;
-
-#if !UNITY_EDITOR
-            connecting = true;
-            StartConnector();
-#endif
         }
 
         private bool connecting = false;
@@ -107,7 +104,7 @@ namespace RealtimeStreaming
                 if (!connecting)
                 {
                     connecting = true;
-                    StartConnector();
+                    ConnectPlayer();
                 }
             }
         }
@@ -174,11 +171,12 @@ namespace RealtimeStreaming
         }
 
 #region Control Network 
-        private void StartConnector()
+        public void ConnectPlayer()
         {
-            Debug.Log("StartConnector()");
             // we own the connection so we can just stop if if needed
             StopConnector();
+
+            this.ConnectTo = this.ipAddressInput.text;
 
             this.connector = new Connector { ConnectionUrl = string.Format(Plugin.MediaUrlFormat, this.ConnectTo, this.Port) };
             if (this.connector != null)
