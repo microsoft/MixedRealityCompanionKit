@@ -27,6 +27,7 @@ namespace RealtimeStreaming
         public bool StopOnPaused = false;
         public Action<object, StateChangedEventArgs<PlaybackState>> PlayerStateChanged;
 
+        // TODO: move into Connection class?
         public ConnectionState ConnectionState
         {
             get { return this.connectionState; }
@@ -43,6 +44,7 @@ namespace RealtimeStreaming
                             var args = new StateChangedEventArgs<PlaybackState>(this.previousState, 
                                 this.currentState, this.previousConnectionState, 
                                 this.connectionState);
+
                             this.PlayerStateChanged(this, args);
                         }
                     });
@@ -52,7 +54,7 @@ namespace RealtimeStreaming
         private ConnectionState connectionState = ConnectionState.Idle;
         private ConnectionState previousConnectionState = ConnectionState.Idle;
 
-        public PlaybackState State
+        public PlaybackState PlayerState
         {
             get { return this.currentState; }
             private set
@@ -63,7 +65,10 @@ namespace RealtimeStreaming
                     this.currentState = value;
                     if (this.PlayerStateChanged != null)
                     {
-                        var args = new StateChangedEventArgs<PlaybackState>(this.previousState, this.currentState);
+                        var args = new StateChangedEventArgs<PlaybackState>(this.previousState,
+                                this.currentState, this.previousConnectionState,
+                                this.connectionState);
+
                         this.PlayerStateChanged(this, args);
                     }
                 }
@@ -77,8 +82,17 @@ namespace RealtimeStreaming
         private Connector connector = null;
         private Connection networkConnection = null;
 
+        private uint textureWidth, textureHeight;
+        private Texture2D playbackTexture;
+        private PlayerPlugin.StateChangedCallback stateCallback;
+        private GCHandle thisObject = default(GCHandle);
+
+        private PlayerPlugin.PlayerCreatedCallbackHandler createdHandler;
+
         private bool isPaused = false;
         private bool isStarted = false;
+        private bool isPlayerCreated = false;
+        private bool isConnectorActive = false;
 
         private void Awake()
         {
@@ -92,20 +106,15 @@ namespace RealtimeStreaming
             this.isStarted = true;
 
             this.ConnectionState = ConnectionState.Idle;
+            this.PlayerState = PlaybackState.None;
         }
-
-        private bool connecting = false;
 
 #if UNITY_EDITOR
         private void Update()
         {
             if (Input.GetKey(KeyCode.Space))
             {
-                if (!connecting)
-                {
-                    connecting = true;
-                    ConnectPlayer();
-                }
+                ConnectPlayer();
             }
         }
 #endif
@@ -163,10 +172,11 @@ namespace RealtimeStreaming
                 this.CloseNetworkConnection();
             }
 
-            if (this.playbackTexture != null)
+            if (isPlayerCreated)
             {
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.playbackTexture = null;
+                isPlayerCreated = false;
             }
         }
 
@@ -185,6 +195,8 @@ namespace RealtimeStreaming
                 this.connector.Connected += this.OnConnectorConnected;
                 this.connector.Failed += this.OnConnectorFailed;
                 this.connector.StartAsync();
+
+                this.isConnectorActive = true;
             }
         }
 
@@ -194,6 +206,8 @@ namespace RealtimeStreaming
             {
                 return;
             }
+
+            this.isConnectorActive = false;
 
             this.connector.Started -= this.OnConnectorStarted;
             this.connector.Connected -= this.OnConnectorConnected;
@@ -234,6 +248,7 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                // TODO: need action plan here
                 Debug.Log("RealtimeVideoPlayer::OnConnectorFailed");
 
                 this.ConnectionState = ConnectionState.Failed;
@@ -249,9 +264,18 @@ namespace RealtimeStreaming
                 return;
             }
 
+            if (isPlayerCreated)
+            {
+                Debug.Log("RealtimeVideoPlayer::OnConnectorConnected - Player has already been created");
+                return;
+            }
+
             this.plugin.QueueAction(() =>
             {
                 Debug.Log("RealtimeVideoPlayer::OnConnectorConnected");
+
+                // We connected so stop the Connector
+                this.StopConnector();
 
                 this.ConnectionState = ConnectionState.Connected;
 
@@ -260,8 +284,6 @@ namespace RealtimeStreaming
                 this.networkConnection.Closed += this.OnConnectionClosed;
 
                 this.CreateRealTimePlayer();
-
-                this.StopConnector();
             });
         }
 
@@ -297,8 +319,6 @@ namespace RealtimeStreaming
                 this.networkConnection.Closed -= this.OnConnectionClosed;
                 this.networkConnection.Dispose();
                 this.networkConnection = null;
-
-                //this.ConnectionState = ConnectionState.Closed;
             });
         }
 
@@ -318,17 +338,10 @@ namespace RealtimeStreaming
 
         #region Control Playback
 
-        private uint textureWidth, textureHeight;
-        private Texture2D playbackTexture;
-        private PlayerPlugin.StateChangedCallback stateCallback;
-        private GCHandle thisObject = default(GCHandle);
-
-        private PlayerPlugin.PlayerCreatedCallbackHandler createdHandler;
-
         private void CreateRealTimePlayer()
         {
-            // Only initialize if we have a connection and we don't already have a playback engine
-            if (this.networkConnection == null)
+            // Only initialize if we have a connection 
+            if (this.networkConnection == null || isPlayerCreated)
             {
                 return;
             }
@@ -344,6 +357,8 @@ namespace RealtimeStreaming
                 this.createdHandler,
                 thisObjectPtr
                 ), "RealtimeVideoPlayer::exCreatePlayer()");
+
+            isPlayerCreated = true;
         }
 
         private void OnCreated(long result, UInt32 width, UInt32 height)
@@ -352,7 +367,12 @@ namespace RealtimeStreaming
             {
                 Plugin.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
 
-                // TODO: Check width & height are not zero
+                if (width <= 0 || height <= 0)
+                {
+                    Debug.LogError("Width or height returned from RealtimeVideoPlayer::OnCreated were <= 0");
+                    this.Shutdown();
+                    return;
+                }
 
                 this.textureWidth = width;
                 this.textureHeight = height;
@@ -420,8 +440,8 @@ namespace RealtimeStreaming
             switch (stateType)
             {
                 case PlayerPlugin.StateType.StateType_StateChanged:
-                    this.State = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
-                    Debug.Log("Playback State: " + stateType.ToString() + " - " + this.State.ToString());
+                    this.PlayerState = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
+                    Debug.Log("Playback State: " + stateType.ToString() + " - " + this.PlayerState.ToString());
                     break;
                 case PlayerPlugin.StateType.StateType_Opened:
                     PlayerPlugin.MEDIA_DESCRIPTION description = args.description;

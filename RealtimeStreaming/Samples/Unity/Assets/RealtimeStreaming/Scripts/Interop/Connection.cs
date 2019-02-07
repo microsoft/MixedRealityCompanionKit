@@ -19,6 +19,7 @@ namespace RealtimeStreaming
     public enum ConnectionState
     {
         Idle,
+        Connecting,
         Connected,
         Closing,
         Closed,
