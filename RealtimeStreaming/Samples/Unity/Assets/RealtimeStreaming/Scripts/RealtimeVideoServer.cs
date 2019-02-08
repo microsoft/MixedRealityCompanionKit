@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Timers;
+//using System.Timers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -68,6 +68,11 @@ namespace RealtimeStreaming
         private Color32[] webcam_interop;
         private byte[] frameBuffer;
 
+<<<<<<< HEAD
+=======
+        //private Timer writeTimer;
+
+>>>>>>> 975e813dd629a3aded53ddbc0d191836096824a2
         private void Awake()
         {
             this.Handle = Plugin.InvalidHandle;
@@ -246,6 +251,29 @@ namespace RealtimeStreaming
             this.Handle = handle;
         }
 
+<<<<<<< HEAD
+=======
+        /*
+        private void StartTimer()
+        {
+            // create timer for writing frames
+            writeTimer = new Timer(1000 / 30);
+            writeTimer.Elapsed += WriteTimer_Elapsed;
+            writeTimer.AutoReset = true;
+            writeTimer.Enabled = true;
+        }
+
+        private void WriteTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            this.plugin.QueueAction(() =>
+            //Plugin.ExecuteOnUnityThread(() =>
+            {
+                Debug.Log("Timer!");
+                WriteFrame();
+            });
+        }*/
+
+>>>>>>> 975e813dd629a3aded53ddbc0d191836096824a2
         private bool IsServerRunning()
         {
             return this.listenerConnection != null && this.Handle != Plugin.InvalidHandle;
@@ -299,6 +327,7 @@ namespace RealtimeStreaming
 
         public void Shutdown()
         {
+<<<<<<< HEAD
             if (this.listener != null)
             {
                 this.StopListener();
@@ -306,6 +335,15 @@ namespace RealtimeStreaming
             else
             {
                 this.StopServer();
+=======
+            // TODO: turn off listener?
+            /*
+            if (writeTimer != null)
+            {
+                writeTimer.Close();
+                writeTimer = null;
+            }*/
+>>>>>>> 975e813dd629a3aded53ddbc0d191836096824a2
 
                 this.ConnectionClose();
             }

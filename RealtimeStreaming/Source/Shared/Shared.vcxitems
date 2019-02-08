@@ -22,7 +22,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\StreamingMediaPlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\Connection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\Connector.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\DataBuffer.cpp" />
@@ -57,7 +57,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\StreamingMediaPlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Network\Connection.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Network\Connector.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Network\DataBuffer.h" />

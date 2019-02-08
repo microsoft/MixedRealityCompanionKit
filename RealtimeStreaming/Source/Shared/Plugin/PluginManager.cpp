@@ -5,7 +5,7 @@
 #include "PluginManager.h"
 #include "IUnityGraphicsD3D11.h"
 
-static ComPtr<IStreamingMediaPlayer> s_spStreamingPlayer;
+static ComPtr<IRealtimeMediaPlayer> s_spStreamingPlayer;
 
 PluginManagerImpl::~PluginManagerImpl()
 {
@@ -218,7 +218,7 @@ _Use_decl_annotations_
 void PluginManagerImpl::SetTime(float t)
 {
     // TODO: uncomment these
-    //Log(Log_Level_Info, L"PluginManagerImpl::SetTime()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::SetTime()\n");
 
     auto lock = _lock.Lock();
 
@@ -239,7 +239,7 @@ _Use_decl_annotations_
 void PluginManagerImpl::OnPlugInEvent(PluginEventType event)
 {
     // TODO: uncomment these
-    //Log(Log_Level_Info, L"PluginManagerImpl::OnRenderEvent()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::OnRenderEvent()\n");
 
     // we have no control that the callback is still valid
     LOG_RESULT(
@@ -307,9 +307,10 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
     *listenerHandle = handle;
 
     // wait until we get a conneciton from the listner
+    ComPtr<PluginManagerImpl> spThis(this);
     return StartAsyncThen(
         connectedOp.Get(),
-        [this, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation *result, _In_ AsyncStatus asyncStatus) -> HRESULT
+        [this, spThis, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation *result, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
 
@@ -326,17 +327,19 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
         IFC(connection.As(&module));
 
     done:
-        auto lock = _lock.Lock();
-
-        if (nullptr == _moduleManager)
         {
-            return S_OK;
-        }
+            auto lock = _lock.Lock();
 
-        if (SUCCEEDED(hr))
-        {
-            hr = _moduleManager->AddModule(module.Get(), &handle);
-            LOG_RESULT(hr);
+            if (nullptr == _moduleManager)
+            {
+                return S_OK;
+            }
+
+            if (SUCCEEDED(hr))
+            {
+                hr = _moduleManager->AddModule(module.Get(), &handle);
+                LOG_RESULT(hr);
+            }
         }
 
         CompletePluginCallback(callback, pCallbackObject, handle, hr);
@@ -371,7 +374,7 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
     PluginCallback callback,
     void* pCallbackObject)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(connectorHandle);
     NULL_CHK(callback);
@@ -419,11 +422,15 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
     *connectorHandle = handle;
 
     // wait until we get a conneciton from the listner
+    ComPtr<PluginManagerImpl> spThis(this);
     return StartAsyncThen(
         connectedOp.Get(),
-        [this, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
+        [this, spThis, callback, pCallbackObject](_In_ HRESULT hr,
+            _In_ IConnectionCreatedOperation* pResult, 
+            _In_ AsyncStatus asyncStatus) -> HRESULT
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - ConnectAsync()\n");
+        //Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - ConnectAsync()\n");
+        Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() [ConnectAsync()] -Tid:%d \n", GetCurrentThreadId());
 
         ModuleHandle handle = MODULE_HANDLE_INVALID;
 
@@ -437,17 +444,19 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
         IFC(connection.As(&module));
 
     done:
-        auto lock = _lock.Lock();
-
-        if (nullptr == _moduleManager)
         {
-            return S_OK;
-        }
+            auto lock = _lock.Lock();
 
-        if (SUCCEEDED(hr))
-        {
-            hr = _moduleManager->AddModule(module.Get(), &handle);
-            LOG_RESULT(hr);
+            if (nullptr == _moduleManager)
+            {
+                return S_OK;
+            }
+
+            if (SUCCEEDED(hr))
+            {
+                hr = _moduleManager->AddModule(module.Get(), &handle);
+                LOG_RESULT(hr);
+            }
         }
 
         CompletePluginCallback(callback, pCallbackObject, handle, hr);
@@ -480,7 +489,8 @@ HRESULT PluginManagerImpl::ConnectionAddDisconnected(
     void* pCallbackObject,
     INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
+    //Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddDisconnected\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddDisconnected() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
@@ -542,7 +552,8 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
     void* pCallbackObject,
     INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
+    //Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
@@ -555,6 +566,8 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
             _In_ IConnection *sender,
             _In_ IBundleReceivedArgs *args) -> HRESULT
     {
+        Log(Log_Level_Info, L"PluginManagerImpl::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
+
         HRESULT hr = S_OK;
 
         PayloadType payloadType;
@@ -575,7 +588,9 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
             hr = dataBundle->get_TotalSize(&cbTotalLen);
             if (SUCCEEDED(hr))
             {
-                auto lock = _lock.Lock();
+                // TODO: need better locking mechanism? cicular lock
+                // PluginManager -> Add_ConnectionReceived hold locks but then connection class is locked against this finishing
+                //auto lock = _lock.Lock();
 
                 // Copy the data structure
                 DWORD copiedBytes = 0;
@@ -595,7 +610,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
         break;
 
         default:
-            auto lock = _lock.Lock();
+            //auto lock = _lock.Lock();
             callback(handle, pCallbackObject, static_cast<UINT16>(payloadType), 0, nullptr);
             break;
         };
@@ -649,7 +664,7 @@ HRESULT PluginManagerImpl::ConnectionSendRawData(
     byte* pBuffer,
     UINT32 bufferSize)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionSendRawData\n");
 
     HRESULT hr = S_OK;
 
@@ -853,9 +868,8 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
     //StateChangedCallback fnCallback,
     PlayerCreatedCallback callback,
     void* pCallbackObject)
-    //StreamingMediaPlayerImpl** ppStreamingPlayer)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(pCallbackObject);
@@ -868,8 +882,8 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
 
     UnityGfxRenderer unityGraphics = _unityGraphics->GetRenderer();
 
-    ComPtr<IStreamingMediaPlayer> spPlayer;
-    IFR(StreamingMediaPlayerImpl::CreateStreamingMediaPlayer(unityGraphics,
+    ComPtr<IRealtimeMediaPlayer> spPlayer;
+    IFR(RealtimeMediaPlayerImpl::Create(unityGraphics,
         _unityInterfaces,
         spConnection.Get(),
         //fnCallback,
@@ -884,15 +898,17 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
     ComPtr<PluginManagerImpl> spThis(this);
     return StartAsyncThen(
         spInitAction.Get(),
-        [this, spThis, spPlayer, callback, pCallbackObject](_In_ HRESULT hr, _In_ IAsyncAction* asyncAction, _In_ AsyncStatus asyncStatus)
+        [this, spThis, spPlayer, callback, pCallbackObject](_In_ HRESULT hr, 
+            _In_ IAsyncAction* asyncAction, 
+            _In_ AsyncStatus asyncStatus)
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::CreateStreamingMediaPlayer() - InitAsync()\n");
-
+        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
         auto lock = _lock.Lock();
 
         UINT32 width, height;
         IFC(spPlayer->GetCurrentResolution(&width, &height));
 
+        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() w:%d - h:%d \n", width, height);
     done:
         callback(pCallbackObject,
             hr,
@@ -906,7 +922,7 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
 _Use_decl_annotations_
 HRESULT PluginManagerImpl::RTPlayerRelease()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerRelease()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerRelease() -Tid:%d \n", GetCurrentThreadId());
 
     if (s_spStreamingPlayer != nullptr)
     {
@@ -922,7 +938,7 @@ HRESULT PluginManagerImpl::RTPlayerCreateTexture(_In_ UINT32 width,
     _In_ UINT32 height,
     _COM_Outptr_ void** ppvTexture)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreateTexture()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreateTexture(%d, %d) -Tid:%d \n", width, height, GetCurrentThreadId());
 
     NULL_CHK(ppvTexture);
     NULL_CHK(s_spStreamingPlayer);
@@ -969,8 +985,6 @@ void PluginManagerImpl::CompletePluginCallback(
     _In_ ModuleHandle handle,
     _In_ HRESULT hr)
 {
-    //LOG_RESULT(PluginManagerStaticsImpl::IsOnThread() ? S_OK : RPC_E_WRONG_THREAD);
-
     LOG_RESULT(ExceptionBoundary([&]() -> HRESULT
     {
         if (FAILED(hr))

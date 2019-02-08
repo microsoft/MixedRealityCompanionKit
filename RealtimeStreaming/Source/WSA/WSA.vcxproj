@@ -241,6 +241,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Unity\$(SolutionNa
       <CompileAsWinRT>false</CompileAsWinRT>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PreprocessorDefinitions>REALTIMESTREAMING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CallingConvention>StdCall</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

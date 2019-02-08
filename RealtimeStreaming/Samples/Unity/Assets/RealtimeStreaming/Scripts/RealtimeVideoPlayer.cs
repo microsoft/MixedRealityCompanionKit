@@ -112,7 +112,7 @@ namespace RealtimeStreaming
 #if UNITY_EDITOR
         private void Update()
         {
-            if (Input.GetKey(KeyCode.Space))
+            if (Input.GetKey(KeyCode.P))
             {
                 ConnectPlayer();
             }
@@ -127,14 +127,14 @@ namespace RealtimeStreaming
 
         private void OnDestroy()
         {
+            this.Shutdown();
+
             // free unmanaged resources (unmanaged objects) and override a finalizer below.
             if (thisObject.IsAllocated)
             {
                 thisObject.Free();
                 thisObject = default(GCHandle);
             }
-
-            this.Shutdown();
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -212,7 +212,6 @@ namespace RealtimeStreaming
             this.connector.Started -= this.OnConnectorStarted;
             this.connector.Connected -= this.OnConnectorConnected;
             this.connector.Failed -= this.OnConnectorFailed;
-            this.connector.Close();
             this.connector.Dispose();
             this.connector = null;
         }
@@ -401,8 +400,6 @@ namespace RealtimeStreaming
                 // set texture for the shader
                 this.target.material.mainTexture = this.playbackTexture;
 
-                Debug.Log("RealTimePlayer::CreateStreamingTexture");
-
                 this.Play();
             });
         }
@@ -540,7 +537,10 @@ namespace RealtimeStreaming
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
                 
                 Plugin.ExecuteOnUnityThread(() => {
-                    thisObj.OnCreated(result, width, height);
+                    Debug.Log("Player_PluginCallbackWrapper::OnCreated_Callback" + width + " = " + height);
+                    // TODO: weird arm bug that converts 1280x720 to 300610376x193538080
+                    //thisObj.OnCreated(result, width, height);
+                    thisObj.OnCreated(result, 1280, 720);
                 });
             }
 
