@@ -68,8 +68,6 @@ namespace RealtimeStreaming
         private Color32[] webcam_interop;
         private byte[] frameBuffer;
 
-        private Timer writeTimer;
-
         private void Awake()
         {
             this.Handle = Plugin.InvalidHandle;
@@ -99,12 +97,20 @@ namespace RealtimeStreaming
         }
 
         private float speed = 10.0f;
+        private float timer = 0.0f;
+        private float WRITE_FPS = 1.0f / 30.0f;
 
         private void Update()
         {
             if (this.Handle != Plugin.InvalidHandle)
             {
-                this.WriteFrame();
+                timer += Time.deltaTime;
+
+                if (timer > WRITE_FPS)
+                {
+                    timer = 0;
+                    this.WriteFrame();
+                }
 
                 if (debugTarget != null)
                 {
@@ -240,25 +246,6 @@ namespace RealtimeStreaming
             this.Handle = handle;
         }
 
-        private void StartTimer()
-        {
-            // create timer for writing frames
-            writeTimer = new Timer(1000 / 30);
-            writeTimer.Elapsed += WriteTimer_Elapsed;
-            writeTimer.AutoReset = true;
-            writeTimer.Enabled = true;
-        }
-
-        private void WriteTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            this.plugin.QueueAction(() =>
-            //Plugin.ExecuteOnUnityThread(() =>
-            {
-                Debug.Log("Timer!");
-                WriteFrame();
-            });
-        }
-
         private bool IsServerRunning()
         {
             return this.listenerConnection != null && this.Handle != Plugin.InvalidHandle;
@@ -272,7 +259,12 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            return (VideoServerWrapper.exStop(this.Handle) == 0);
+            var hr = VideoServerWrapper.exShutdown(this.Handle);
+            Plugin.CheckHResult(hr, "RealtimeVideoServer::StopServer");
+
+            this.Handle = Plugin.InvalidHandle;
+
+            return hr == 0;
         }
 
         public bool WriteFrame()
@@ -287,16 +279,10 @@ namespace RealtimeStreaming
 
             // TODO: Parrelize copy?
             int byteIdx = 0;
-            bool notAlpha = false;
+            //  Parallel.For<long>
             for (int i = 0; i < webcam_interop.Length; i++)
             {
                 // TODO: webcamtexture vertically flipped?
-                /*
-                Color32 c = !webcam.videoVerticallyMirrored ?
-                    webcam_interop[webcam_interop.Length - i - 1] :
-                    webcam_interop[i];
-                */
-
                 Color32 c = webcam_interop[webcam_interop.Length - i - 1];
 
                 frameBuffer[byteIdx] = c.b;
@@ -304,31 +290,25 @@ namespace RealtimeStreaming
                 frameBuffer[byteIdx + 2] = c.r;
                 frameBuffer[byteIdx + 3] = c.a;
 
-                if (c.a < 255)
-                    notAlpha = true;
-
                 byteIdx += 4;
             }
 
-            if (notAlpha)
-                Debug.Log("Pixel had < 255 alpha");
 
             return (VideoServerWrapper.exWrite(this.Handle, frameBuffer, (uint)this.frameBuffer.Length) == 0);
         }
 
         public void Shutdown()
         {
-            // TODO: turn off listener?
-
-            if (writeTimer != null)
+            if (this.listener != null)
             {
-                writeTimer.Close();
-                writeTimer = null;
+                this.StopListener();
             }
+            else
+            {
+                this.StopServer();
 
-            this.StopServer();
-
-            this.ConnectionClose();
+                this.ConnectionClose();
+            }
         }
 
         private void ConnectionClose()
@@ -340,6 +320,9 @@ namespace RealtimeStreaming
 
             this.ConnectionState = ConnectionState.Closing;
 
+            this.Handle = Plugin.InvalidHandle;
+
+            this.listenerConnection.Disconnected -= this.OnDisconnected;
             this.listenerConnection.Close();
         }
 
@@ -347,6 +330,8 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoServer::OnDisconnected");
+
                 this.ConnectionState = ConnectionState.Disconnected;
 
                 this.Shutdown();
@@ -357,6 +342,8 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoServer::OnConnectionClosed");
+
                 this.ConnectionState = ConnectionState.Closed;
 
                 if (this.listenerConnection == null)
@@ -389,7 +376,7 @@ namespace RealtimeStreaming
                 ref uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingStop")]
-            internal static extern int exStop(uint serverHandle);
+            internal static extern int exShutdown(uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingWrite")]
             internal static extern int exWrite(uint serverHandle, 
