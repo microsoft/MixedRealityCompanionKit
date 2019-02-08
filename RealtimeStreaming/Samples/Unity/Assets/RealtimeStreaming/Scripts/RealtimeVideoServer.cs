@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Timers;
+//using System.Timers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -68,7 +68,7 @@ namespace RealtimeStreaming
         private Color32[] webcam_interop;
         private byte[] frameBuffer;
 
-        private Timer writeTimer;
+        //private Timer writeTimer;
 
         private void Awake()
         {
@@ -240,6 +240,7 @@ namespace RealtimeStreaming
             this.Handle = handle;
         }
 
+        /*
         private void StartTimer()
         {
             // create timer for writing frames
@@ -257,7 +258,7 @@ namespace RealtimeStreaming
                 Debug.Log("Timer!");
                 WriteFrame();
             });
-        }
+        }*/
 
         private bool IsServerRunning()
         {
@@ -319,12 +320,12 @@ namespace RealtimeStreaming
         public void Shutdown()
         {
             // TODO: turn off listener?
-
+            /*
             if (writeTimer != null)
             {
                 writeTimer.Close();
                 writeTimer = null;
-            }
+            }*/
 
             this.StopServer();
 

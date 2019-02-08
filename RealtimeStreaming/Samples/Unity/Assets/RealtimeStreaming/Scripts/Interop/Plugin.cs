@@ -63,12 +63,12 @@ namespace RealtimeStreaming
         
         private void OnEnable()
         {
-            this.StartCoroutine("ProcessPluginEvents");
+            //this.StartCoroutine("ProcessPluginEvents");
         }
 
         private void OnDisable()
         {
-            GL.IssuePluginEvent(Wrapper.exGetPluginEventFunction(), (int)PluginEvent.Flush);
+            //GL.IssuePluginEvent(Wrapper.exGetPluginEventFunction(), (int)PluginEvent.Flush);
         }
 
         // TODO: Deprecate this in favor of execute on other thread

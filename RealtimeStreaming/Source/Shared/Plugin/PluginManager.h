@@ -8,7 +8,7 @@ namespace RealtimeStreaming
     namespace Plugin
     {
         using namespace ABI::RealtimeStreaming;
-		using namespace ABI::RealtimeStreaming::Media;
+        using namespace ABI::RealtimeStreaming::Media;
         using namespace ABI::RealtimeStreaming::Plugin;
 
         using namespace ABI::Windows::Foundation;
@@ -18,7 +18,7 @@ namespace RealtimeStreaming
             _In_ ModuleHandle handle,
             _In_ void* pCallbackObject,
             _In_ HRESULT result);
-            //_In_ LPCWSTR pszMessage); // TODO: issue with instantiating data in c++ and marshalling back to C#
+        //_In_ LPCWSTR pszMessage); // TODO: issue with instantiating data in c++ and marshalling back to C#
 
         extern "C" typedef void(UNITY_INTERFACE_API *PlayerCreatedCallback)(
             _In_ void* pCallbackObject,
@@ -27,10 +27,10 @@ namespace RealtimeStreaming
             _In_ UINT32 height);
 
         extern "C" typedef void(UNITY_INTERFACE_API *DataReceivedHandler)(
-            _In_ ModuleHandle handle, 
-			_In_ void* pCallbackObject,
+            _In_ ModuleHandle handle,
+            _In_ void* pCallbackObject,
             _In_ UINT16 opertion,
-            _In_ UINT32 bufferSize, 
+            _In_ UINT32 bufferSize,
             _In_ const byte* buffer);
 
         extern "C" struct MediaSampleArgs
@@ -82,10 +82,10 @@ namespace RealtimeStreaming
 
             // Plugin
             STDMETHODIMP ListenerCreateAndStart(
-                _In_ UINT16 port, 
+                _In_ UINT16 port,
                 _Inout_ ModuleHandle* listenerHandle,
                 _In_ PluginCallback callback,
-				_In_ void* pCallbackObject);
+                _In_ void* pCallbackObject);
             STDMETHODIMP ListenerStopAndClose(
                 _In_ ModuleHandle listenerHandle);
 
@@ -93,14 +93,14 @@ namespace RealtimeStreaming
                 _In_ LPCWSTR address,
                 _Inout_ ModuleHandle* connectorHandle,
                 _In_ PluginCallback callback,
-				_In_ void* pCallbackObject);
+                _In_ void* pCallbackObject);
             STDMETHODIMP ConnectorStopAndClose(
                 _In_ ModuleHandle connectorHandle);
 
             STDMETHODIMP ConnectionAddDisconnected(
                 _In_ ModuleHandle connectionHandle,
                 _In_ PluginCallback callback,
-				_In_ void* pCallbackObject,
+                _In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP ConnectionRemoveDisconnected(
                 _In_ ModuleHandle connectionHandle,
@@ -108,7 +108,7 @@ namespace RealtimeStreaming
             STDMETHODIMP ConnectionAddReceived(
                 _In_ ModuleHandle connectionHandle,
                 _In_ DataReceivedHandler callback,
-				_In_ void* pCallbackObject,
+                _In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP ConnectionRemoveReceived(
                 _In_ ModuleHandle connectionHandle,
@@ -116,45 +116,44 @@ namespace RealtimeStreaming
             STDMETHODIMP ConnectionSendRawData(
                 _In_ ModuleHandle connectionHandle,
                 _In_ PayloadType payloadType,
-                __in_ecount(bufferSize) byte* pBuffer, 
+                __in_ecount(bufferSize) byte* pBuffer,
                 _In_ UINT32 bufferSize);
             STDMETHODIMP ConnectionClose(
                 _In_ ModuleHandle connectionHandle);
 
             STDMETHODIMP RTServerCreate(
-					 _In_ ModuleHandle connectionHandle,
-					 _Inout_ ModuleHandle* serverHandle);
-				STDMETHODIMP RTServerShutdown(
-					 _In_ ModuleHandle serverHandle);
-				STDMETHODIMP RTServerWriteFrame(
-					 _In_ ModuleHandle serverHandle,
-					 __in_ecount(bufferSize) BYTE* pBuffer,
-					 _In_ UINT32 bufferSize);
+                _In_ ModuleHandle connectionHandle,
+                _Inout_ ModuleHandle* serverHandle);
+            STDMETHODIMP RTServerShutdown(
+                _In_ ModuleHandle serverHandle);
+            STDMETHODIMP RTServerWriteFrame(
+                _In_ ModuleHandle serverHandle,
+                __in_ecount(bufferSize) BYTE* pBuffer,
+                _In_ UINT32 bufferSize);
 
             STDMETHODIMP RTPlayerCreate(
                 _In_ ModuleHandle connectionHandle,
-				//_In_ StateChangedCallback fnCallback,
+                //_In_ StateChangedCallback fnCallback,
                 _In_ PlayerCreatedCallback createdCallback,
-				_In_ void* pCallbackObject);
-				//_COM_Outptr_opt_result_maybenull_ StreamingMediaPlayerImpl** ppStreamingPlayer);
+                _In_ void* pCallbackObject);
 
-				STDMETHODIMP RTPlayerRelease();
+            STDMETHODIMP RTPlayerRelease();
 
-				STDMETHODIMP RTPlayerCreateTexture(
-					 _In_ UINT32 width,
-					 _In_ UINT32 height, 
-					 _COM_Outptr_ void** ppvTexture);
+            STDMETHODIMP RTPlayerCreateTexture(
+                _In_ UINT32 width,
+                _In_ UINT32 height,
+                _COM_Outptr_ void** ppvTexture);
 
             STDMETHODIMP RTPlayerStart();
             STDMETHODIMP RTPlayerStop();
-				STDMETHODIMP RTPlayerPause();
+            STDMETHODIMP RTPlayerPause();
 
         private:
             STDMETHODIMP_(void) Uninitialize();
 
             STDMETHODIMP_(void) CompletePluginCallback(
-                _In_ PluginCallback callback, 
-					 _In_ void* pCallbackObject,
+                _In_ PluginCallback callback,
+                _In_ void* pCallbackObject,
                 _In_ ModuleHandle handle,
                 _In_ HRESULT hr);
 

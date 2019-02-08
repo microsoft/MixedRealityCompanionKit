@@ -152,7 +152,7 @@ using namespace ABI::RealtimeStreaming::Media;
 #include "ModuleManagerStatics.h"
 #include "DirectXManager.h"
 #include "RealtimeMediaSource.h"
-#include "StreamingMediaPlayer.h"
+#include "RealtimeMediaPlayer.h"
 #include "DataBuffer.h"
 #include "DataBundle.h"
 #include "DataBundleArgs.h"

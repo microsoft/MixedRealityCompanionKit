@@ -191,7 +191,8 @@ HRESULT ConnectionImpl::add_Disconnected(
     IDisconnectedEventHandler* eventHandler, 
     EventRegistrationToken* token)
 {
-    Log(Log_Level_Info, L"ConnectionImpl::add_Disconnected()\n");
+    //Log(Log_Level_Info, L"ConnectionImpl::add_Disconnected()\n");
+     Log(Log_Level_All, L"ConnectionImpl::add_Disconnected() - Tid: %d \n", GetCurrentThreadId());
 
     NULL_CHK(eventHandler);
     NULL_CHK(token);
@@ -252,7 +253,8 @@ _Use_decl_annotations_
 HRESULT ConnectionImpl::SendPayloadType(
     PayloadType payloadType)
 {
-    Log(Log_Level_Info, L"ConnectionImpl::SendRequest(%d)\n", payloadType);
+    //Log(Log_Level_Info, L"ConnectionImpl::SendRequest(%d)\n", payloadType);
+    Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
 
     // send an PayloadType header, contains no payload.
     ComPtr<IDataBuffer> dataBuffer;
@@ -330,7 +332,8 @@ HRESULT ConnectionImpl::SendBundleAsync(
     IDataBundle *dataBundle,
     IAsyncAction **sendAction)
 {
-    Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync\n");
+    //Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync\n");
+    Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync - Tid: %d \n", GetCurrentThreadId());
 
     NULL_CHK(dataBundle);
     NULL_CHK(sendAction);
@@ -438,7 +441,8 @@ HRESULT ConnectionImpl::SendBundleAsync(
 _Use_decl_annotations_
 HRESULT ConnectionImpl::WaitForHeader()
 {
-    Log(Log_Level_Info, L"ConnectionImpl::WaitForHeader()\n");
+    //Log(Log_Level_Info, L"ConnectionImpl::WaitForHeader()\n");
+    Log(Log_Level_All, L"ConnectionImpl::WaitForHeader - Tid: %d \n", GetCurrentThreadId());
 
     IFR(CheckClosed());
 
@@ -598,9 +602,13 @@ HRESULT ConnectionImpl::NotifyBundleComplete(
 
     NULL_CHK(dataBundle);
 
-    if (FAILED(CheckClosed()))
     {
-        return S_OK;
+        auto lock = _lock.Lock();
+
+        if (FAILED(CheckClosed()))
+        {
+            return S_OK;
+        }
     }
 
     ComPtr<IStreamSocketInformation> spInfo;
@@ -621,7 +629,7 @@ HRESULT ConnectionImpl::OnHeaderReceived(
     IAsyncOperationWithProgress<IBuffer*, UINT32>* asyncResult,
     AsyncStatus asyncStatus)
 {
-    Log(Log_Level_All, L"ConnectionImpl::OnHeaderReceived\n");
+    Log(Log_Level_All, L"ConnectionImpl::OnHeaderReceived - Tid: %d \n", GetCurrentThreadId());
 
     NULL_CHK(asyncResult);
 

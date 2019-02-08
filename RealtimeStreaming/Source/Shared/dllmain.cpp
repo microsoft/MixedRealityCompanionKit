@@ -285,7 +285,7 @@ RTDLL RealtimeStreamingStop(
 //
 
 // TODO: Clean up -> Use module manager?
-//static ComPtr<IStreamingMediaPlayer> s_spStreamingPlayer;
+//static ComPtr<IRealtimeMediaPlayer> s_spStreamingPlayer;
 
 RTDLL CreateRealtimePlayer(
 	_In_ ModuleHandle connectionHandle,

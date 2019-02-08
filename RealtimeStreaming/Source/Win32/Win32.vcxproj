@@ -262,6 +262,7 @@ REM copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Asse
       <SDLCheck>true</SDLCheck>
       <AdditionalUsingDirectories>$(VCInstallDir_140)vcpackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <CallingConvention>StdCall</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
