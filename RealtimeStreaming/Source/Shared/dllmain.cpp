@@ -266,7 +266,7 @@ RTDLL RealtimeStreamingWrite(
 	return RPC_E_WRONG_THREAD;
 }
 
-RTDLL RealtimeStreamingStop(
+RTDLL RealtimeStreamingShutdown(
 	 _In_ UINT32 serverHandle)
 {
 	 auto instance = PluginManagerStaticsImpl::GetInstance();

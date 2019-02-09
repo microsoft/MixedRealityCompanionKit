@@ -3,9 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-//using System.Timers;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace RealtimeStreaming
 {
@@ -19,131 +17,76 @@ namespace RealtimeStreaming
             Listening,
             ListenerConnected,
             ListenerFailed,
+            Closing,
+            Disconnected,
+            Failed,
             Ready,
         }
-
-        public GameObject debugTarget;
 
         public string ConnectTo;
         public ushort Port = 27772;
 
-        public ServerState CurrentState {get;set;}
+        public Action<object, StateChangedEventArgs<ServerState>> ServerStateChanged { get; internal set; }
 
-        //public Action<object, StateChangedEventArgs<ConnectionState>> CaptureStateChanged { get; internal set; }
-
-        public ConnectionState ConnectionState
+        public ServerState CurrentState
         {
-            get { return this.connectionState; }
+            get { return this.serverState; }
             private set
             {
-                if (this.connectionState != value)
+                if (this.serverState != value)
                 {
-                    this.previousConnectionState = this.connectionState;
-                    this.connectionState = value;
-                    /*
-                    this.plugin.QueueAction(() =>
+                    this.previousServerState = this.serverState;
+                    this.serverState = value;
+                    
+                    Plugin.ExecuteOnUnityThread(() =>
                     {
-                        if (this.CaptureStateChanged != null)
-                        {
-                            var args = new StateChangedEventArgs<ConnectionState>(this.previousConnectionState, this.connectionState);
-                            this.CaptureStateChanged(this, args);
-                        }
-                    });*/
+                        this.ServerStateChanged?.Invoke(this,
+                            new StateChangedEventArgs<ServerState>(this.previousServerState, this.serverState));
+                    });
                 }
             }
         }
-        private ConnectionState connectionState = ConnectionState.Idle;
-        private ConnectionState previousConnectionState = ConnectionState.Idle;
+        private ServerState serverState = ServerState.Idle;
+        private ServerState previousServerState = ServerState.Idle;
 
         private Plugin plugin = null;
         private Listener listener;
         private Connection listenerConnection;
 
-        private uint Handle { get; set; }
-
-        public Texture2D tex;
-        public RawImage debugImg;
-
-        private WebCamTexture webcam;
-        private Color32[] webcam_interop;
-        private byte[] frameBuffer;
+        private uint serverHandle = Plugin.InvalidHandle;
 
         private void Awake()
         {
-            this.Handle = Plugin.InvalidHandle;
+            this.serverHandle = Plugin.InvalidHandle;
 
             this.plugin = this.GetComponent<Plugin>();
 
             this.CurrentState = ServerState.Idle;
         }
 
-        private void Start()
-        {
-            webcam = new WebCamTexture(1280, 720);
-            debugImg.texture = webcam;
-            debugImg.material.mainTexture = webcam;
-            webcam.Play();
-
-            webcam_interop = new Color32[webcam.width * webcam.height];
-
-            frameBuffer = new byte[webcam.width * webcam.height * 4];
-
-            StartListener();
-        }
-
         private void OnDisable()
         {
-            this.Shutdown();
+            this.Teardown();
         }
 
-        private float speed = 10.0f;
-        private float timer = 0.0f;
-        private float WRITE_FPS = 1.0f / 30.0f;
-
-        private void Update()
+        public void Teardown()
         {
-            if (this.Handle != Plugin.InvalidHandle)
+            if (this.listener != null)
             {
-                timer += Time.deltaTime;
-
-                if (timer > WRITE_FPS)
-                {
-                    timer = 0;
-                    this.WriteFrame();
-                }
-
-                if (debugTarget != null)
-                {
-                    debugTarget.transform.Rotate(Vector3.up, speed * Time.deltaTime);
-                }
-            }
-        }
-
-        /*
-        private void OnApplicationPause(bool pauseStatus)
-        {
-            this.isPaused = pauseStatus;
-
-            if (!this.isStarted || !this.StopOnPaused)
-            {
-                return;
-            }
-
-            if (this.isPaused)
-            {
-                this.StopCapture();
+                this.StopListener();
             }
             else
             {
-                //this.InitCaptureEngine(this.networkConnection);
-            }
-        }*/
+                this.ShutdownServer();
 
-        private void StartListener()
+                this.ConnectionClose();
+            }
+        }
+
+        #region Listener Control & Callback Handlers
+        public void StartListener()
         {
-            Debug.Log("StartListener()");
-            
-            // we own the listener so we can just stop if needed
+            // If listener is active, we will stop & re-create it
             StopListener();
 
             this.CurrentState = ServerState.ListenerStarting;
@@ -159,7 +102,7 @@ namespace RealtimeStreaming
             }
         }
 
-        private void StopListener()
+        public void StopListener()
         {
             if (this.listener == null)
             {
@@ -169,7 +112,6 @@ namespace RealtimeStreaming
             this.listener.Started -= this.OnListenerStarted;
             this.listener.Connected -= this.OnListenerConnected;
             this.listener.Failed -= this.OnListenerFailed;
-            this.listener.Close();
             this.listener.Dispose();
             this.listener = null;
         }
@@ -202,56 +144,52 @@ namespace RealtimeStreaming
 
                 this.CurrentState = ServerState.ListenerConnected;
 
-                this.InitializeServer(connection);
+                this.CreateServerForConnection(connection);
 
                 this.StopListener();
             });
         }
 
-        public void InitializeServer(Connection connection)
+    #endregion
+
+        public bool CreateServerForConnection(Connection connection)
         {
             Debug.Log("RealtimeVideoServer::InitializeServer()");
 
             if (connection == null)
             {
                 Debug.LogError("RealtimeVideoServer.Initialize() - requires a valid connection component to start.");
-
-                return;
+                return false;
             }
 
             if (this.listenerConnection != null)
             {
                 Debug.LogError("RealtimeVideoServer.Initialize() - cannot start until previous instance is stopped.");
-
-                return;
+                return false;
             }
 
             this.listenerConnection = connection;
             this.listenerConnection.Disconnected += this.OnDisconnected;
             this.listenerConnection.Closed += this.OnConnectionClosed;
 
-            this.ConnectionState = ConnectionState.Connected;
-
             uint handle = Plugin.InvalidHandle;
-            VideoServerWrapper.exCreate(this.listenerConnection.Handle, ref handle);
+            var hr = VideoServerWrapper.exCreate(this.listenerConnection.Handle, ref handle);
+            Plugin.CheckHResult(hr, "RealtimeVideoServer::exCreate");
 
-            if (handle == Plugin.InvalidHandle)
+            if (handle == Plugin.InvalidHandle || hr != Plugin.S_OK)
             {
-                // TODO: Handle errors here
                 Debug.Log("VideoServerWrapper.exCreate - Failed");
-                this.Shutdown();
-                return;
+                this.Teardown();
+                return false;
             }
                 
-            this.Handle = handle;
+            this.serverHandle = handle;
+            this.CurrentState = ServerState.Ready;
+
+            return true;
         }
 
-        private bool IsServerRunning()
-        {
-            return this.listenerConnection != null && this.Handle != Plugin.InvalidHandle;
-        }
-
-        public bool StopServer()
+        public bool ShutdownServer()
         {
             if (!IsServerRunning())
             {
@@ -259,56 +197,38 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            var hr = VideoServerWrapper.exShutdown(this.Handle);
+            var hr = VideoServerWrapper.exShutdown(this.serverHandle);
             Plugin.CheckHResult(hr, "RealtimeVideoServer::StopServer");
 
-            this.Handle = Plugin.InvalidHandle;
+            // Invalidate our handle
+            this.serverHandle = Plugin.InvalidHandle;
 
             return hr == 0;
         }
 
-        public bool WriteFrame()
+        public bool WriteFrame(byte[] data)
         {
+            if (data == null || data.Length <= 0)
+            {
+                Debug.LogError("RealtimeVideoServer::WriteFrame - byte[] data cannot be null");
+                return false;
+            }
+
             if (!IsServerRunning())
             {
                 Debug.Log("Cannot WriteFrame() - server not active");
                 return false;
             }
 
-            webcam.GetPixels32(webcam_interop);
+            var hr = VideoServerWrapper.exWrite(this.serverHandle, data, (uint)data.Length);
+            Plugin.CheckHResult(hr, "RealtimeVideoServer::WriteFrame");
 
-            // TODO: Parrelize copy?
-            int byteIdx = 0;
-            //  Parallel.For<long>
-            for (int i = 0; i < webcam_interop.Length; i++)
-            {
-                // TODO: webcamtexture vertically flipped?
-                Color32 c = webcam_interop[webcam_interop.Length - i - 1];
-
-                frameBuffer[byteIdx] = c.b;
-                frameBuffer[byteIdx + 1] = c.g;
-                frameBuffer[byteIdx + 2] = c.r;
-                frameBuffer[byteIdx + 3] = c.a;
-
-                byteIdx += 4;
-            }
-
-
-            return (VideoServerWrapper.exWrite(this.Handle, frameBuffer, (uint)this.frameBuffer.Length) == 0);
+            return hr == Plugin.S_OK;
         }
 
-        public void Shutdown()
+        private bool IsServerRunning()
         {
-            if (this.listener != null)
-            {
-                this.StopListener();
-            }
-            else
-            {
-                this.StopServer();
-
-                this.ConnectionClose();
-            }
+            return this.listenerConnection != null && this.serverHandle != Plugin.InvalidHandle;
         }
 
         private void ConnectionClose()
@@ -318,9 +238,9 @@ namespace RealtimeStreaming
                 return;
             }
 
-            this.ConnectionState = ConnectionState.Closing;
+            this.CurrentState = ServerState.Closing;
 
-            this.Handle = Plugin.InvalidHandle;
+            this.serverHandle = Plugin.InvalidHandle;
 
             this.listenerConnection.Disconnected -= this.OnDisconnected;
             this.listenerConnection.Close();
@@ -332,9 +252,9 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoServer::OnDisconnected");
 
-                this.ConnectionState = ConnectionState.Disconnected;
+                this.CurrentState = ServerState.Disconnected;
 
-                this.Shutdown();
+                this.Teardown();
             });
         }
 
@@ -344,7 +264,7 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoServer::OnConnectionClosed");
 
-                this.ConnectionState = ConnectionState.Closed;
+                this.CurrentState = ServerState.Idle;
 
                 if (this.listenerConnection == null)
                 {
@@ -354,8 +274,6 @@ namespace RealtimeStreaming
                 this.listenerConnection.Closed -= this.OnConnectionClosed;
                 this.listenerConnection.Dispose();
                 this.listenerConnection = null;
-
-                this.ConnectionState = ConnectionState.Closed;
             });
         }
 
@@ -363,9 +281,9 @@ namespace RealtimeStreaming
         {
             Plugin.ExecuteOnUnityThread(() =>
             {
-                this.ConnectionState = ConnectionState.Failed;
+                this.CurrentState = ServerState.Failed;
 
-                this.Shutdown();
+                this.Teardown();
             });
         }
 
@@ -375,7 +293,7 @@ namespace RealtimeStreaming
             internal static extern int exCreate(uint connectionHandle, 
                 ref uint serverHandle);
 
-            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingStop")]
+            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingShutdown")]
             internal static extern int exShutdown(uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingWrite")]

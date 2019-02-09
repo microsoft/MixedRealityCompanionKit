@@ -34,6 +34,8 @@ namespace RealtimeStreaming
     {
         public const uint InvalidHandle = 0x00000bad;
 
+        public const uint S_OK = 0;
+
         public const string MediaUrlFormat = "mrvc://{0}:{1}";
 
         public const string DataUrlFormat = "data://{0}:{1}";

@@ -103,12 +103,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaSource.h">
       <Filter>Media</Filter>
     </ClInclude>
-    <ClInclude Include="G:\MixedRealityCompanionKit\RealtimeStreaming\Source\Shared\Media\RealtimeMediaPlayer.h">
-      <Filter>Media</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\MediaUtils.h">
       <Filter>Media</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp">
@@ -164,12 +162,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaSource.cpp">
       <Filter>Media</Filter>
     </ClCompile>
-    <ClCompile Include="G:\MixedRealityCompanionKit\RealtimeStreaming\Source\Shared\Media\RealtimeMediaPlayer.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\MediaUtils.cpp">
       <Filter>Media</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />

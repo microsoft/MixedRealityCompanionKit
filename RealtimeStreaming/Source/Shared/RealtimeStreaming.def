@@ -18,11 +18,11 @@ EXPORTS
     ConnectionClose
     ConnectionSendRawData
     CreateRealtimeStreamingServer
-	 RealtimeStreamingWrite
-    RealtimeStreamingStop
-	 CreateRealtimePlayer
-	 ReleaseRealtimePlayer
-	 CreateRealtimePlayerTexture
-	 RealtimePlayerPlay
-	 RealtimePlayerPause
-	 RealtimePlayerStop
+	RealtimeStreamingWrite
+    RealtimeStreamingShutdown
+	CreateRealtimePlayer
+	ReleaseRealtimePlayer
+	CreateRealtimePlayerTexture
+	RealtimePlayerPlay
+	RealtimePlayerPause
+	RealtimePlayerStop
