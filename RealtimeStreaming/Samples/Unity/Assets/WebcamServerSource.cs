@@ -1,4 +1,6 @@
 ﻿using RealtimeStreaming;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -70,16 +72,36 @@ public class WebcamServerSource : MonoBehaviour
 
     private void CaptureWebcam()
     {
-        if (webcam == null)
+        if (webcam == null && !webcam.isPlaying)
         {
             return;
         }
 
         webcam.GetPixels32(webcam_interop);
 
+        Stopwatch sw = new Stopwatch();
+
+        sw.Start();
+
+        Parallel.For(0, webcam_interop.Length,
+            index =>
+            {
+                int byteIdx = index << 2; // multiply by 4
+                Color32 c = webcam_interop[webcam_interop.Length - index - 1];
+
+                frameBuffer[byteIdx] = c.b;
+                frameBuffer[byteIdx + 1] = c.g;
+                frameBuffer[byteIdx + 2] = c.r;
+                frameBuffer[byteIdx + 3] = c.a;
+            });
+
+        sw.Stop();
+
+        UnityEngine.Debug.LogFormat("Elapsed={%d}", sw.Elapsed);
+
+        /*
         // TODO: Parrelize copy?
         int byteIdx = 0;
-        //  Parallel.For<long>
         for (int i = 0; i < webcam_interop.Length; i++)
         {
             // TODO: webcamtexture vertically flipped?
@@ -91,7 +113,7 @@ public class WebcamServerSource : MonoBehaviour
             frameBuffer[byteIdx + 3] = c.a;
 
             byteIdx += 4;
-        }
+        }*/
 
         this.server.WriteFrame(this.frameBuffer);
     }

@@ -116,6 +116,11 @@ namespace RealtimeStreaming
             {
                 ConnectPlayer();
             }
+
+            if (Input.GetKey(KeyCode.Space))
+            {
+                this.target.material.mainTexture = this.playbackTexture;
+            }
         }
 #endif
 
@@ -398,7 +403,7 @@ namespace RealtimeStreaming
                     nativeTexture);
 
                 // set texture for the shader
-                this.target.material.mainTexture = this.playbackTexture;
+                //this.target.material.mainTexture = this.playbackTexture;
 
                 this.Play();
             });
