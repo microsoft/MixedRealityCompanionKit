@@ -83,7 +83,7 @@ namespace RealtimeStreaming
         private Connection networkConnection = null;
 
         private uint textureWidth, textureHeight;
-        private Texture2D playbackTexture;
+        private Texture2D streamingTexture;
         private PlayerPlugin.StateChangedCallback stateCallback;
         private GCHandle thisObject = default(GCHandle);
 
@@ -119,7 +119,7 @@ namespace RealtimeStreaming
 
             if (Input.GetKey(KeyCode.Space))
             {
-                this.target.material.mainTexture = this.playbackTexture;
+                this.target.material.mainTexture = this.streamingTexture;
             }
         }
 #endif
@@ -154,13 +154,10 @@ namespace RealtimeStreaming
             if (this.isPaused)
             {
                 this.Pause();
-                //this.StopPlayback();
             }
             else
             {
-                // TODO: What to do here?
-                //this.InitializePlaybackEngine();
-                //this.PlaybackInitialize(this.networkConnection);
+                this.Play();
             }
         }
 
@@ -180,7 +177,7 @@ namespace RealtimeStreaming
             if (isPlayerCreated)
             {
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(), "RealtimeVideoPlayer::exReleasePlayer()");
-                this.playbackTexture = null;
+                this.streamingTexture = null;
                 isPlayerCreated = false;
             }
         }
@@ -392,8 +389,8 @@ namespace RealtimeStreaming
 
                 // TODO: textureformat on callback*
 
-                // create the unity texture2d 
-                this.playbackTexture =
+                // Create the unity texture2d 
+                this.streamingTexture =
                     Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
                     TextureFormat.BGRA32,
@@ -403,7 +400,10 @@ namespace RealtimeStreaming
                     nativeTexture);
 
                 // set texture for the shader
-                //this.target.material.mainTexture = this.playbackTexture;
+                if (this.target != null)
+                {
+                    this.target.material.mainTexture = this.streamingTexture;
+                }
 
                 this.Play();
             });

@@ -160,6 +160,15 @@ HRESULT RealtimeMediaPlayerImpl::RuntimeClassInitialize(
 
 		HRESULT hr = S_OK;
 
+		ComPtr<IAsyncAction> spAction(asyncResult);
+		if (AsyncStatus::Completed != asyncStatus)
+		{
+			ComPtr<IAsyncInfo> spInfo;
+			IFR(spAction.As(&spInfo));
+			spInfo->get_ErrorCode(&hr);
+			IFR(hr);
+		}
+
 		IFC(spInteropMediaSource->get_MediaStreamSource(&spMediaStreamSource));
 
 		IFC(ABI::Windows::Foundation::GetActivationFactory(

@@ -137,35 +137,27 @@ HRESULT RealtimeServerImpl::Shutdown()
 
 	_spSinkWriter = nullptr; // release sinkwriter
 
-	// TODO: call _evtClosed???
-
 	return S_OK;
 }
 
-/* 
-	// TODO: Generate random color whole image*
-	// Generate random image
-	std::random_device rd;
-	std::uniform_int_distribution<int> dist(0, 255);
-
-	DWORD imgColor = (static_cast<BYTE>(dist(rd) & 0xFF) << 16)
-		+ (static_cast<BYTE>(dist(rd) & 0xFF) << 8)
-		+ (static_cast<BYTE>(dist(rd) & 0xFF));
-
-	//std::fill(_videoFrameBuffer, _videoFrameBuffer + VIDEO_PELS, imgColor);
-
-	for (int i = 0; i < VIDEO_PELS; i++)
-	{
-		_videoFrameBuffer[i] = imgColor;
-	}
-
-*/
-
 _Use_decl_annotations_
 HRESULT RealtimeServerImpl::WriteFrame(
-	IMFMediaBuffer* pMediaBuffer)
+    UINT32 bufferSize,
+    BYTE* pBuffer)
 {
-	ComPtr<IMFMediaBuffer> spBuffer(pMediaBuffer);
+    NULL_CHK(pBuffer);
+
+    // Create MediaBuffer
+    ComPtr<IMFMediaBuffer> spBuffer;
+
+    UINT32 frameWidth, frameHeight;
+    IFR(GetCurrentResolution(&frameWidth, &frameHeight));
+
+    IFR(CreateIMFMediaBuffer(frameWidth,
+        frameHeight,
+        bufferSize,
+        pBuffer,
+        &spBuffer));
 
 	// Create a media sample and add the buffer to the sample.
 	ComPtr<IMFSample> spSample;
@@ -184,28 +176,6 @@ HRESULT RealtimeServerImpl::WriteFrame(
 	rtStart += VIDEO_FRAME_DURATION;
 
 	return S_OK;
-}
-
-_Use_decl_annotations_
-HRESULT RealtimeServerImpl::WriteDirect(
-    UINT32 bufferSize,
-    BYTE* pBuffer)
-{
-    NULL_CHK(pBuffer);
-
-    // Create MediaBuffer
-    ComPtr<IMFMediaBuffer> spBuffer;
-
-    UINT32 frameWidth, frameHeight;
-    IFR(GetCurrentResolution(&frameWidth, &frameHeight));
-
-    IFR(CreateIMFMediaBuffer(frameWidth,
-        frameHeight,
-        bufferSize,
-        pBuffer,
-        &spBuffer));
-
-    return WriteFrame(spBuffer.Get());
 }
 
 _Use_decl_annotations_

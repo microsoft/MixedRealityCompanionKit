@@ -7,18 +7,11 @@ namespace RealtimeStreaming
 {
     namespace Media 
     {
-		DECLARE_INTERFACE_IID_(IRealtimeServerWriter, IUnknown, "a43cdc39-c524-45b4-9aba-f79b1b897dfd")
-		{
-			STDMETHOD(WriteFrame)(_In_ IMFMediaBuffer* pBuffer) PURE;
-			STDMETHOD(GetCurrentResolution)(_Out_ UINT32* pWidth, _Out_ UINT32* pHeight) PURE;
-		};
-
         class RealtimeServerImpl
             : public RuntimeClass
             < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , ABI::RealtimeStreaming::Plugin::IModule
             , ABI::RealtimeStreaming::Media::IRealtimeServer
-			, IRealtimeServerWriter
             , FtmBase >
         {
             InspectableClass(RuntimeClass_RealtimeStreaming_Media_RealtimeServer, BaseTrust)
@@ -40,13 +33,9 @@ namespace RealtimeStreaming
             // IRealtimeServer
             IFACEMETHOD(Shutdown)();
             
-            IFACEMETHOD(WriteDirect)(
+            IFACEMETHOD(WriteFrame)(
                 _In_ UINT32 bufferSize,
                 __in_ecount(bufferSize) BYTE* pBuffer);
-
-            // IRealtimeServerWriter
-			IFACEMETHOD(WriteFrame)(
-				_In_ IMFMediaBuffer* pMediaBuffer);
 
 			IFACEMETHOD(GetCurrentResolution)(
 				_Out_ UINT32* pWidth,
@@ -68,7 +57,6 @@ namespace RealtimeStreaming
 
             const UINT32 VIDEO_FPS = 30;
             const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
-            //const UINT32 VIDEO_BIT_RATE = 800000;
         };
 
         class RealtimeServerStaticsImpl

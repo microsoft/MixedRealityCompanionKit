@@ -106,7 +106,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\MediaUtils.h">
       <Filter>Media</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp">
@@ -165,7 +167,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\MediaUtils.cpp">
       <Filter>Media</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />

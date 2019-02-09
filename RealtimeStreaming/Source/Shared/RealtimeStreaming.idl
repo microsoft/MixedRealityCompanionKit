@@ -814,7 +814,8 @@ namespace RealtimeStreaming{ namespace Media {
         RealtimeStreaming.Plugin.IModule
     {
         HRESULT Shutdown();
-        HRESULT WriteDirect([in] UINT32 bufferSize, [in, size_is(bufferSize)] byte* buffer);
+        HRESULT WriteFrame([in] UINT32 bufferSize, [in, size_is(bufferSize)] byte* buffer);
+		HRESULT GetCurrentResolution([out] UINT32* pWidth, [out] UINT32* pHeight);
     };
 
     [exclusiveto(RealtimeStreaming.Media.RealtimeServer)]

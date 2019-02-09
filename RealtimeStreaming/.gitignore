@@ -16,3 +16,4 @@ Source/**/*_i.c
 Source/**/*_p.c
 Source/**/*.winmd
 Source/**/MixedRemoteViewCompositor.h
+*.dll

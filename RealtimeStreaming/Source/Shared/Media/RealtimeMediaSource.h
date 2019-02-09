@@ -113,6 +113,9 @@ namespace RealtimeStreaming
                 _In_ MediaTypeDescription* pStreamDescription,
                 _In_ IDataBundle* pAttributesBuffer,
                 _COM_Outptr_ IVideoEncodingProperties** ppVideoEncodingProperties);
+			HRESULT SetSampleAttributes(
+				_In_ MediaSampleHeader* pSampleHeader,
+				_In_ IMFSample* pSample);
 
             inline HRESULT CheckShutdown() const
             {

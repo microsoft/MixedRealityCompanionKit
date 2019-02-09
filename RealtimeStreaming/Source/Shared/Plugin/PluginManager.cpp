@@ -841,7 +841,7 @@ HRESULT PluginManagerImpl::RTServerWriteFrame(
     ComPtr<IRealtimeServer> spRTServer;
     IFR(GetRealtimeServer(serverHandle, &spRTServer));
 
-	 IFR(spRTServer->WriteDirect(bufferSize, pBuffer));
+	IFR(spRTServer->WriteFrame(bufferSize, pBuffer));
 
     return S_OK;
 }
@@ -877,7 +877,7 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
     IFR(spPlayer.CopyTo(&s_spStreamingPlayer));
 
     ComPtr<IAsyncAction> spInitAction;
-    IFR(spPlayer.As(&spInitAction));
+    IFR(s_spStreamingPlayer.As(&spInitAction));
 
     ComPtr<PluginManagerImpl> spThis(this);
     return StartAsyncThen(

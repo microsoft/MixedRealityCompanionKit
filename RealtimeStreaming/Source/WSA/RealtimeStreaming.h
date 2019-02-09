@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Mon Jan 18 19:14:07 2038
  */
-/* Compiler settings for C:\Users\TroyF\AppData\Local\Temp\RealtimeStreaming.idl-fb4f5c22:
+/* Compiler settings for C:\Users\TROYFE~1\AppData\Local\Temp\RealtimeStreaming.idl-ab48c09d:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -7303,9 +7303,13 @@ EXTERN_C const IID IID___x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer;
                 public:
                     virtual HRESULT STDMETHODCALLTYPE Shutdown( void) = 0;
                     
-                    virtual HRESULT STDMETHODCALLTYPE WriteDirect( 
+                    virtual HRESULT STDMETHODCALLTYPE WriteFrame( 
                         /* [in] */ UINT32 bufferSize,
                         /* [in][size_is] */ byte *buffer) = 0;
+                    
+                    virtual HRESULT STDMETHODCALLTYPE GetCurrentResolution( 
+                        /* [out] */ UINT32 *pWidth,
+                        /* [out] */ UINT32 *pHeight) = 0;
                     
                 };
 
@@ -7351,10 +7355,15 @@ EXTERN_C const IID IID___x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer;
         HRESULT ( STDMETHODCALLTYPE *Shutdown )( 
             __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer * This);
         
-        HRESULT ( STDMETHODCALLTYPE *WriteDirect )( 
+        HRESULT ( STDMETHODCALLTYPE *WriteFrame )( 
             __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer * This,
             /* [in] */ UINT32 bufferSize,
             /* [in][size_is] */ byte *buffer);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetCurrentResolution )( 
+            __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer * This,
+            /* [out] */ UINT32 *pWidth,
+            /* [out] */ UINT32 *pHeight);
         
         END_INTERFACE
     } __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServerVtbl;
@@ -7392,8 +7401,11 @@ EXTERN_C const IID IID___x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer;
 #define __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer_Shutdown(This)	\
     ( (This)->lpVtbl -> Shutdown(This) ) 
 
-#define __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer_WriteDirect(This,bufferSize,buffer)	\
-    ( (This)->lpVtbl -> WriteDirect(This,bufferSize,buffer) ) 
+#define __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer_WriteFrame(This,bufferSize,buffer)	\
+    ( (This)->lpVtbl -> WriteFrame(This,bufferSize,buffer) ) 
+
+#define __x_ABI_CRealtimeStreaming_CMedia_CIRealtimeServer_GetCurrentResolution(This,pWidth,pHeight)	\
+    ( (This)->lpVtbl -> GetCurrentResolution(This,pWidth,pHeight) ) 
 
 #endif /* COBJMACROS */
 

@@ -72,7 +72,6 @@ namespace RealtimeStreaming
 
 		class RealtimeMediaPlayerImpl
 			: public Microsoft::WRL::RuntimeClass
-			//< Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>
 			<RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
 			, IRealtimeMediaPlayer
 			, ABI::Windows::Foundation::IAsyncAction
