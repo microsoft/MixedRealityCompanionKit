@@ -841,23 +841,7 @@ HRESULT PluginManagerImpl::RTServerWriteFrame(
     ComPtr<IRealtimeServer> spRTServer;
     IFR(GetRealtimeServer(serverHandle, &spRTServer));
 
-    ComPtr<IRealtimeServerWriter> spRTServerWriter;
-    spRTServer.As(&spRTServerWriter);
-
-    // Create MediaBuffer
-    ComPtr<IMFMediaBuffer> spBuffer;
-
-    UINT32 frameWidth, frameHeight;
-    IFR(spRTServerWriter->GetCurrentResolution(&frameWidth, &frameHeight));
-
-    IFR(CreateIMFMediaBuffer(frameWidth, 
-        frameHeight, 
-        bufferSize, 
-        pBuffer, 
-        &spBuffer));
-
-    // Send server IMFMediaBuffer
-    IFR(spRTServerWriter->WriteFrame(spBuffer.Get()));
+	 IFR(spRTServer->WriteDirect(bufferSize, pBuffer));
 
     return S_OK;
 }

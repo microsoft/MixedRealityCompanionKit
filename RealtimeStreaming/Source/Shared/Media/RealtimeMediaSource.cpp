@@ -208,7 +208,6 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
     //auto lock = m_lock.LockExclusive();
     auto lock = _lock.Lock();
 
-    //ComPtr<IMediaStreamSourceSampleRequest> spRequest;
     IFR(args->get_Request(&m_spRequest));
 
     if (m_latestSample == nullptr)
@@ -225,6 +224,9 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
         IFR(m_spRequest.As(&spIMFRequest));
 
         IFR(spIMFRequest->SetSample(m_latestSample.Get()));
+
+		  m_latestSample = nullptr;
+		  m_spRequest = nullptr;
     }
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested() done\n");
@@ -603,7 +605,6 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
 
         // TODO: Consider switching back to SWRLocks and only lock the sample write, not the deferral
 
-        //IFC(pBundleImpl->ToMFSample(&spSample));
         IFC(pBundleImpl->ToMFSample(&m_latestSample));
 
         if (m_deferral != nullptr) {
@@ -619,6 +620,7 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
 
             m_deferral = nullptr;
             m_spRequest = nullptr;
+				m_latestSample = nullptr;
         }
     }
 

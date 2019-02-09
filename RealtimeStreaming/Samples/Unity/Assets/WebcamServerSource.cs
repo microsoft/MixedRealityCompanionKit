@@ -79,10 +79,7 @@ public class WebcamServerSource : MonoBehaviour
 
         webcam.GetPixels32(webcam_interop);
 
-        Stopwatch sw = new Stopwatch();
-
-        sw.Start();
-
+        // Parraelize copy of Colo32 webcam data into framebuffer
         Parallel.For(0, webcam_interop.Length,
             index =>
             {
@@ -94,26 +91,6 @@ public class WebcamServerSource : MonoBehaviour
                 frameBuffer[byteIdx + 2] = c.r;
                 frameBuffer[byteIdx + 3] = c.a;
             });
-
-        sw.Stop();
-
-        UnityEngine.Debug.LogFormat("Elapsed={%d}", sw.Elapsed);
-
-        /*
-        // TODO: Parrelize copy?
-        int byteIdx = 0;
-        for (int i = 0; i < webcam_interop.Length; i++)
-        {
-            // TODO: webcamtexture vertically flipped?
-            Color32 c = webcam_interop[webcam_interop.Length - i - 1];
-
-            frameBuffer[byteIdx] = c.b;
-            frameBuffer[byteIdx + 1] = c.g;
-            frameBuffer[byteIdx + 2] = c.r;
-            frameBuffer[byteIdx + 3] = c.a;
-
-            byteIdx += 4;
-        }*/
 
         this.server.WriteFrame(this.frameBuffer);
     }
