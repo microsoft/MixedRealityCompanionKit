@@ -524,7 +524,7 @@ HRESULT ForEach(ComPtrList<T> &col, TFunc fn)
 
     for (; pos != endPos; pos = col.Next(pos))
     {
-        ComPtr<T> spStream;
+        com_ptr<T> spStream;
 
         hr =col.GetItemPos(pos, &spStream);
         if (FAILED(hr))
@@ -532,7 +532,7 @@ HRESULT ForEach(ComPtrList<T> &col, TFunc fn)
             break;
         }
 
-        hr =fn(spStream.Get());
+        hr =fn(spStream.get());
     }
 
     return hr;

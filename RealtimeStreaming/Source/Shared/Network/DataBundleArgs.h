@@ -8,8 +8,8 @@ namespace RealtimeStreaming
     namespace Network
     {
         class DataBundleArgsImpl
-            : public Microsoft::WRL::RuntimeClass
-            < Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::RuntimeClassType::WinRtClassicComMix>
+            : public RuntimeClass
+            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , ABI::RealtimeStreaming::Network::IBundleReceivedArgs
             , FtmBase >
         {
@@ -41,9 +41,9 @@ namespace RealtimeStreaming
 
         private:
             PayloadType   _payloadType;
-            ComPtr<ABI::RealtimeStreaming::Network::IConnection>    _connection;
-            ComPtr<ABI::RealtimeStreaming::Network::IDataBundle>    _bundle;
-            ComPtr<ABI::Windows::Foundation::IUriRuntimeClass>              _uri;
+            com_ptr<ABI::RealtimeStreaming::Network::IConnection>    _connection;
+            com_ptr<ABI::RealtimeStreaming::Network::IDataBundle>    _bundle;
+            com_ptr<ABI::Windows::Foundation::IUriRuntimeClass>              _uri;
         };
     }
 }

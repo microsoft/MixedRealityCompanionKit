@@ -3,17 +3,17 @@
 
 #pragma once
 
-namespace RealtimeStreaming
-{
-    namespace Media
-    {
+#include "Media/NetworkMediaSinkStream.g.h"
 
-        class NetworkMediaSinkStreamImpl
-            : public RuntimeClass<RuntimeClassFlags<RuntimeClassType::ClassicCom>
-            , IMFMediaEventGenerator
-            , IMFStreamSink
-            , IMFMediaTypeHandler>
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mferror.h>
+
+namespace winrt::RealtimeStreaming::Media::implementation
+{
+        struct NetworkMediaSinkStream : NetworkMediaSinkStreamT<NetworkMediaSinkStream, IMFStreamSink, IMFMediaEventGenerator, IMFMediaTypeHandler>
         {
+            /*
             // AsyncOperation:
             // Used to queue asynchronous operations. When we call MFPutWorkItem, we use this
             // object for the callback state (pState). Then, when the callback is invoked,
@@ -35,15 +35,13 @@ namespace RealtimeStreaming
                 long    _cRef;
                 virtual ~AsyncOperation();
             };
+            */
 
         public:
-            NetworkMediaSinkStreamImpl();
-            virtual ~NetworkMediaSinkStreamImpl();
-
-            HRESULT RuntimeClassInitialize(
-                _In_ DWORD id, 
-                _In_ ABI::RealtimeStreaming::Network::IConnection* pConnection,
-                _In_ ABI::RealtimeStreaming::Media::INetworkMediaSink* parentMediaSink);
+            NetworkMediaSinkStream(_In_ DWORD id,
+                _In_ RealtimeStreaming::Network::Connection connection,
+                _In_ RealtimeStreaming::Media::NetworkMediaSink parentMediaSink);
+            virtual ~NetworkMediaSinkStream();
 
             // IMFMediaEventGenerator
             IFACEMETHOD(GetEvent)(
@@ -91,6 +89,8 @@ namespace RealtimeStreaming
             IFACEMETHOD(GetMajorType) (
                 _Out_ GUID* pguidMajorType);
 
+            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
+
             HRESULT Start(_In_ MFTIME start);
             HRESULT Restart();
             HRESULT Stop();
@@ -125,6 +125,7 @@ namespace RealtimeStreaming
 
             HRESULT OnDispatchWorkItem(
                 _In_ IMFAsyncResult* pAsyncResult);
+
             HRESULT DispatchProcessedSample(
                 _In_ AsyncOperation* pOp);
 
@@ -174,15 +175,15 @@ namespace RealtimeStreaming
 
             LONGLONG _adjustedStartTime;    // Presentation time when the clock started.
 
-            ComPtr<ABI::RealtimeStreaming::Network::IConnection> _spConnection;
-            ComPtr<ABI::RealtimeStreaming::Media::INetworkMediaSink>  _spParentMediaSink;
+            com_ptr<ABI::RealtimeStreaming::Network::IConnection> m_connection;
+            com_ptr<ABI::RealtimeStreaming::Media::INetworkMediaSink>  _spParentMediaSink;
 
-            ComPtr<IMFMediaType> _currentType;
+            com_ptr<IMFMediaType> _currentType;
             GUID _currentSubtype;
 
             DWORD _workQueueId;     // ID of the work queue for asynchronous operations.
-            AsyncCallback<NetworkMediaSinkStreamImpl> _workQueueCB;     // Callback for the work queue.
-            ComPtr<IMFMediaEventQueue>  _eventQueue;    // Event queue
+            AsyncCallback<NetworkMediaSinkStream> _workQueueCB;     // Callback for the work queue.
+            com_ptr<IMFMediaEventQueue>  _eventQueue;    // Event queue
             ComPtrList<IUnknown>        _sampleQueue;   // Queue to hold samples and markers.
                                                         // Applies to: ProcessSample, PlaceMarker
 
@@ -190,5 +191,11 @@ namespace RealtimeStreaming
             // are valid from which states.
             static BOOL ValidStateMatrix[SinkStreamState_Count][SinkStreamOperation_Count];
         };
-    }
+}
+
+namespace winrt::RealtimeStreaming::Media::factory_implementation
+{
+    struct NetworkMediaSinkStream : NetworkMediaSinkStreamT<NetworkMediaSinkStream, implementation::NetworkMediaSinkStream>
+    {
+    };
 }

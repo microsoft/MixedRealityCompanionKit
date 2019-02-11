@@ -40,10 +40,10 @@ HRESULT DataBufferImpl::RuntimeClassInitialize(
 {
     Log(Log_Level_All, L"DataBufferImpl::RuntimeClassInitialize(DWORD)\n");
 
-    ComPtr<IMFMediaBuffer> spMediaBuffer;
-    IFR(MFCreateMemoryBuffer(maxLength, &spMediaBuffer));
+    com_ptr<IMFMediaBuffer> spMediaBuffer;
+    check_hresult(MFCreateMemoryBuffer(maxLength, &spMediaBuffer));
 
-    return RuntimeClassInitialize(spMediaBuffer.Get());
+    return RuntimeClassInitialize(spMediaBuffer.get());
 }
 
 _Use_decl_annotations_
@@ -54,18 +54,18 @@ HRESULT DataBufferImpl::RuntimeClassInitialize(
 
     NULL_CHK(pMediaBuffer);
 
-    ComPtr<IMFMediaBuffer> spMediaBuffer(pMediaBuffer);
+    com_ptr<IMFMediaBuffer> spMediaBuffer(pMediaBuffer);
     HRESULT hr = spMediaBuffer.As(&_mf2DBuffer);
     if (SUCCEEDED(hr))
     {
         LONG lPitch;
-        IFR(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
+        check_hresult(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
     }
     else
     {
         DWORD cbMaxLength;
         DWORD cbCurrentLength;
-        IFR(spMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
+        check_hresult(spMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
     }
 
     return spMediaBuffer.As(&_mfMediaBuffer);
@@ -79,7 +79,7 @@ HRESULT DataBufferImpl::get_Capacity(UINT32 *value)
     NULL_CHK(value);
 
     DWORD maxLength = 0;
-    IFR(_mfMediaBuffer->GetMaxLength(&maxLength));
+    check_hresult(_mfMediaBuffer->GetMaxLength(&maxLength));
 
     *value = maxLength;
 
@@ -92,7 +92,7 @@ HRESULT DataBufferImpl::get_Length(UINT32 *value)
     NULL_CHK(value);
 
     DWORD length = 0;
-    IFR(get_CurrentLength(&length));
+    check_hresult(get_CurrentLength(&length));
 
     *value = length;
 
@@ -134,10 +134,10 @@ HRESULT DataBufferImpl::put_Offset(
 {
     // validate the offset is within bounds
     DWORD cbCurrentLength;
-    IFR(_mfMediaBuffer->GetCurrentLength(&cbCurrentLength));
+    check_hresult(_mfMediaBuffer->GetCurrentLength(&cbCurrentLength));
     if (cbCurrentLength < offset)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     _bufferOffset = offset;
@@ -152,7 +152,7 @@ HRESULT DataBufferImpl::get_CurrentLength(
     NULL_CHK(currentLength);
 
     DWORD cbCurrentLength;
-    IFR(_mfMediaBuffer->GetCurrentLength(&cbCurrentLength));
+    check_hresult(_mfMediaBuffer->GetCurrentLength(&cbCurrentLength));
 
     if (cbCurrentLength <= _bufferOffset)
     {
@@ -173,7 +173,7 @@ HRESULT DataBufferImpl::put_CurrentLength(
     DWORD currentLength)
 {
     DWORD cbMaxLen = 0;
-    IFR(_mfMediaBuffer->GetMaxLength(&cbMaxLen));
+    check_hresult(_mfMediaBuffer->GetMaxLength(&cbMaxLen));
     if (_bufferOffset > cbMaxLen)
     {
         _bufferOffset = cbMaxLen;
@@ -181,7 +181,7 @@ HRESULT DataBufferImpl::put_CurrentLength(
 
     if (currentLength > (cbMaxLen - _bufferOffset))
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     return _mfMediaBuffer->SetCurrentLength(currentLength + _bufferOffset);
@@ -192,7 +192,7 @@ HRESULT DataBufferImpl::TrimLeft(
     DWORD cbSize)
 {
     DWORD cbCurrentLen;
-    IFR(get_CurrentLength(&cbCurrentLen));
+    check_hresult(get_CurrentLength(&cbCurrentLen));
 
     if (cbCurrentLen >= cbSize)
     {
@@ -200,7 +200,7 @@ HRESULT DataBufferImpl::TrimLeft(
     }
     else
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     return S_OK;
@@ -226,7 +226,7 @@ HRESULT DataBufferImpl::TrimRight(
 
     *dataBuffer = nullptr;
 
-    ComPtr<IDataBuffer> spResult;
+    com_ptr<IDataBuffer> spResult;
 
     DWORD cbCurrentLen;
     HRESULT hr = this->get_CurrentLength(&cbCurrentLen);
@@ -240,12 +240,12 @@ HRESULT DataBufferImpl::TrimRight(
     // Create result buffer representing at the end of the current one
     if (SUCCEEDED(hr))
     {
-        ComPtr<IMFMediaBuffer> spMediaBuffer;
+        com_ptr<IMFMediaBuffer> spMediaBuffer;
         hr = MFCreateMediaBufferWrapper(GetMediaBuffer(), GetOffset() + cbCurrentLen - cbSize, cbSize, &spMediaBuffer);
 
         if (SUCCEEDED(hr))
         {
-            hr = MakeAndInitialize<DataBufferImpl>(&spResult, spMediaBuffer.Get());
+            hr = MakeAndInitialize<DataBufferImpl>(&spResult, spMediaBuffer.get());
         }
     }
 
@@ -257,7 +257,7 @@ HRESULT DataBufferImpl::TrimRight(
 
     if (SUCCEEDED(hr))
     {
-        *dataBuffer = spResult.Detach();
+        *dataBuffer = spResult.detach();
     }
 
     return hr;
@@ -286,11 +286,11 @@ HRESULT DataBufferImpl::get_Texture(
     ID3D11Texture2D** ppTexture,
     UINT *subIndex)
 {
-    ComPtr<IMFDXGIBuffer> spDXGIBuffer;
-    IFR(_mfMediaBuffer.As(&spDXGIBuffer));
+    com_ptr<IMFDXGIBuffer> spDXGIBuffer;
+    check_hresult(_mfMediaBuffer.As(&spDXGIBuffer));
 
     // get resourceView
-    IFR(spDXGIBuffer->GetResource(__uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(ppTexture)));
+    check_hresult(spDXGIBuffer->GetResource(__uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(ppTexture)));
 
     HRESULT hr = S_OK;
 

@@ -79,10 +79,10 @@ HRESULT ListenerImpl::ListenAsync(
 {
     NULL_CHK(operation);
 
-    ComPtr<IAsyncOperation<Connection*>> spThis(this);
-    NULL_CHK_HR(spThis.Get(), E_POINTER);
+    com_ptr<IAsyncOperation<Connection*>> spThis(this);
+    NULL_CHK_HR(spThis.get(), E_POINTER);
 
-    IFR(spThis.CopyTo(operation));
+    check_hresult(spThis.CopyTo(operation));
 
     return Start();
 }
@@ -160,10 +160,10 @@ HRESULT ListenerImpl::GetResults(
 {
     auto lock = _lock.Lock();
 
-    IFR(AsyncBase::CheckValidStateForResultsCall());
+    check_hresult(AsyncBase::CheckValidStateForResultsCall());
 
-    ComPtr<ConnectionImpl> spConnection;
-    IFR(Microsoft::WRL::MakeAndInitialize<ConnectionImpl>(&spConnection, _streamSocketResult.Detach()));
+    com_ptr<ConnectionImpl> spConnection;
+    check_hresult(MakeAndInitialize<ConnectionImpl>(&spConnection, _streamSocketResult.detach()));
 
     NULL_CHK_HR(spConnection, E_OUTOFMEMORY);
 
@@ -181,9 +181,9 @@ HRESULT ListenerImpl::OnStart(void)
     std::wstring wsPort = to_wstring(_port);
 
     // create a listener
-    ComPtr<ABI::Windows::Networking::Sockets::IStreamSocketListener> socketListener;
-    IFR(Windows::Foundation::ActivateInstance(
-        Wrappers::HStringReference(RuntimeClass_Windows_Networking_Sockets_StreamSocketListener).Get(), 
+    com_ptr<ABI::Windows::Networking::Sockets::IStreamSocketListener> socketListener;
+    check_hresult(Windows::Foundation::ActivateInstance(
+        Wrappers::HStringReference(RuntimeClass_Windows_Networking_Sockets_StreamSocketListener).get(), 
         &socketListener));
 
     // define callback for any connections
@@ -192,18 +192,18 @@ HRESULT ListenerImpl::OnStart(void)
     auto connectionReceivedCallback = Callback<IConnectionReceivedEventHandler>(receivedFn);
 
     // register for callbacks
-    IFR(socketListener->add_ConnectionReceived(connectionReceivedCallback.Get(), &_connectionReceivedEventToken));
+    check_hresult(socketListener->add_ConnectionReceived(connectionReceivedCallback.get(), &_connectionReceivedEventToken));
 
     // setup bindAsync
-    ComPtr<IAsyncAction> bindOperation;
-    IFR(socketListener->BindServiceNameAsync(
-        Wrappers::HStringReference(wsPort.data()).Get(),
+    com_ptr<IAsyncAction> bindOperation;
+    check_hresult(socketListener->BindServiceNameAsync(
+        Wrappers::HStringReference(wsPort.data()).get(),
         &bindOperation));
 
     // setup callback and start
-    ComPtr<ListenerImpl> spThis(this);
+    com_ptr<ListenerImpl> spThis(this);
     return StartAsyncThen(
-        bindOperation.Get(),
+        bindOperation.get(),
         [this, spThis, socketListener](_In_ HRESULT hr, _In_ IAsyncAction* pAsyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         auto lock = _lock.Lock();
@@ -239,7 +239,7 @@ void ListenerImpl::OnCancel(void)
 _Use_decl_annotations_
 void ListenerImpl::CloseInternal()
 {
-    ComPtr<ABI::Windows::Foundation::IClosable> closeable;
+    com_ptr<ABI::Windows::Foundation::IClosable> closeable;
     if (nullptr != _socketListener)
     {
         // cleanup socket
@@ -249,8 +249,8 @@ void ListenerImpl::CloseInternal()
             LOG_RESULT(closeable->Close());
         }
 
-        ComPtr<IListener> spThis(this);
-        LOG_RESULT(_evtClosed.InvokeAll(spThis.Get()));
+        com_ptr<IListener> spThis(this);
+        LOG_RESULT(_evtClosed.InvokeAll(spThis.get()));
     }
     _socketListener.Reset();
     _socketListener = nullptr;

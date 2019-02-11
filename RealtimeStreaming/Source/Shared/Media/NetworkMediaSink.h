@@ -3,35 +3,28 @@
 
 #pragma once
 
-namespace RealtimeStreaming
+#include "RealtimeStreaming.g.h"
+
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mferror.h>
+
+namespace winrt::RealtimeStreaming::Media::implementation
 {
-    namespace Media
-    {
         typedef ComPtrList<IMFStreamSink> StreamContainer;
 
-        class NetworkMediaSinkImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , ABI::Windows::Media::IMediaExtension
-            , ABI::RealtimeStreaming::Media::INetworkMediaSink
-            , IMFMediaSink
-            , IMFClockStateSink
-            , FtmBase >
+        struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, IMFStreamSink, IMFClockStateSink, IMFMediaTypeHandler>
         {
-            InspectableClass(RuntimeClass_RealtimeStreaming_Media_NetworkMediaSink, BaseTrust)
-
         public:
-            NetworkMediaSinkImpl();
-            virtual ~NetworkMediaSinkImpl();
-
-            HRESULT RuntimeClassInitialize(
+            NetworkMediaSink(
                 _In_ ABI::Windows::Media::MediaProperties::IAudioEncodingProperties* audioEncodingProperties,
                 _In_ ABI::Windows::Media::MediaProperties::IVideoEncodingProperties* videoEncodingProperties,
                 _In_ ABI::RealtimeStreaming::Network::IConnection* connection);
 
+            virtual ~NetworkMediaSink();
+
             // IMediaExtension
-            IFACEMETHOD(SetProperties)(
-                _In_ ABI::Windows::Foundation::Collections::IPropertySet* configuration);
+            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
 
             // IMFMediaSink methods
             IFACEMETHOD(GetCharacteristics)(
@@ -70,49 +63,32 @@ namespace RealtimeStreaming
                 _In_ MFTIME hnsSystemTime, 
                 _In_ float flRate);
 
-            // INetworkMediaSink
-
+            // NetworkMediaSink
             IFACEMETHOD(add_Closed)(
                 _In_ Plugin::IClosedEventHandler *eventHandler,
                 _In_ EventRegistrationToken *token);
             IFACEMETHOD(remove_Closed)(
                 _In_ EventRegistrationToken token);
 
-				/*
-            IFACEMETHOD(add_FormatChanged)(
-                _In_ ABI::RealtimeStreaming::Media::IFormatChangedEventHandler *eventHandler,
-                _Out_ EventRegistrationToken *token);
-            IFACEMETHOD(remove_FormatChanged)(
-                _In_ EventRegistrationToken token);
+        private:
+            HRESULT SendCaptureReady();
+            HRESULT SendDescription();
+            HRESULT HandleError(_In_ HRESULT hr);
 
-            IFACEMETHOD(add_SampleUpdated)(
-                _In_ ABI::RealtimeStreaming::Media::ISampleUpdatedEventHandler *eventhandler,
-                _Out_ EventRegistrationToken *token);
-            IFACEMETHOD(remove_SampleUpdated)(
-                _In_ EventRegistrationToken token);
-				*/
+            HRESULT SetMediaStreamProperties(
+                _In_ Windows::Media::Capture::MediaStreamType mediaStreamType,
+                _In_ Windows::Media::MediaProperties::IMediaEncodingProperties mediaEncodingProperties);
 
-            // INetworkMediaSinkInternal
-            IFACEMETHOD(SendCaptureReady)(void);
-            IFACEMETHOD(SendCaptureStarted)(void);
-            IFACEMETHOD(SendCaptureStopped)(void);
-            IFACEMETHOD(SendDescription)(void);
-            IFACEMETHOD(HandleError)(
-                _In_ HRESULT hr);
-            IFACEMETHOD(SetMediaStreamProperties)(
-                _In_ ABI::Windows::Media::Capture::MediaStreamType MediaStreamType,
-                _In_ ABI::Windows::Media::MediaProperties::IMediaEncodingProperties *mediaEncodingProperties);
-
-            IFACEMETHOD(CheckShutdown)()
+            HRESULT CheckShutdown()
             {
-                NULL_CHK_HR(_spConnection, MF_E_SHUTDOWN);
-                
-                IFR(_cStreamsEnded == 0 ? S_OK : MF_E_SHUTDOWN);
+                NULL_CHK_HR(m_connection, MF_E_SHUTDOWN);
+
+                check_hresult(_cStreamsEnded == 0 ? S_OK : MF_E_SHUTDOWN);
 
                 return S_OK;
             }
 
-            IFACEMETHOD(OnEndOfStream) (
+            HRESULT OnEndOfStream(
                 _In_ DWORD dwStreamId)
             {
                 auto lock = _lock.Lock();
@@ -123,23 +99,25 @@ namespace RealtimeStreaming
             }
 
         private:
-            HRESULT FormatChanged(_In_ IMFMediaType* pMediaType);
-            HRESULT SampleUpdated(_In_ IMFSample* pSample);
-
-        private:
             Wrappers::CriticalSection _lock;
 
             LONGLONG _llStartTime;
-            Microsoft::WRL::ComPtr<IMFPresentationClock> _presentationClock;  // Presentation clock.
+            com_ptr<IMFPresentationClock> _presentationClock;  // Presentation clock.
 
             StreamContainer _streams;
 
             long _cStreamsEnded;
 
-            ComPtr<ABI::RealtimeStreaming::Network::IConnection> _spConnection;
-            EventRegistrationToken _bundleReceivedEventToken;
+            RealtimeStreaming::Network::Connection m_connection;
+            winrt::event_token m_bundleReceivedEventToken;
 
-            EventSource<Plugin::IClosedEventHandler> _evtClosed;
+            winrt::event<Windows::Foundation::EventHandler> m_evtClosed;
         };
-    }
+}
+
+namespace winrt::RealtimeStreaming::Media::factory_implementation
+{
+    struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, implementation::NetworkMediaSink>
+    {
+    };
 }

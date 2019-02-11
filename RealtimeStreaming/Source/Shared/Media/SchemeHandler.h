@@ -50,7 +50,7 @@ namespace RealtimeStreaming
                 _In_ IUnknown* pIUnknownCancelCookie);
 
         private:
-            ComPtr<ABI::RealtimeStreaming::Network::IConnection> _connection;
+            com_ptr<ABI::RealtimeStreaming::Network::IConnection> _connection;
         };
     }
 }

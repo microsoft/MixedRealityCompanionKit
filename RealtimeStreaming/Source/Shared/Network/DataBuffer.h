@@ -66,7 +66,7 @@ namespace RealtimeStreaming
                 _Outptr_ ID3D11Texture2D** ppTexture,
                 _Out_ UINT *uiViewIndex);
 
-            IFACEMETHOD_(IMFMediaBuffer*, GetMediaBuffer) () const { return _mfMediaBuffer.Get(); }
+            IFACEMETHOD_(IMFMediaBuffer*, GetMediaBuffer) () const { return _mfMediaBuffer.get(); }
             IFACEMETHOD_(BYTE*, GetBuffer) () const { return _byteBuffer + _bufferOffset; }
             IFACEMETHOD_(DWORD, GetOffset) () const { return _bufferOffset; }
 
@@ -74,9 +74,9 @@ namespace RealtimeStreaming
                 _Outptr_ BYTE** buffer);
 
         private:
-            ComPtr<IMFMediaBuffer>  _mfMediaBuffer;
-            ComPtr<IMF2DBuffer>     _mf2DBuffer;
-            ComPtr<IMFDXGIBuffer>   _mfDXGIBuffer;
+            com_ptr<IMFMediaBuffer>  _mfMediaBuffer;
+            com_ptr<IMF2DBuffer>     _mf2DBuffer;
+            com_ptr<IMFDXGIBuffer>   _mfDXGIBuffer;
 
             BYTE* _byteBuffer;
             DWORD _bufferOffset;

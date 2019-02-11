@@ -28,7 +28,7 @@ namespace RealtimeStreaming
             , CloakedIid<IWriteCompleted>
             , IAsyncAction
             , AsyncBase<IAsyncActionCompletedHandler>
-            , Microsoft::WRL::FtmBase >
+            , FtmBase >
         {
             InspectableClass(L"Windows.Foundation.IAsyncAction", BaseTrust);
 
@@ -187,14 +187,14 @@ namespace RealtimeStreaming
             UINT16      _concurrentFailedBuffers;
             UINT16      _concurrentFailedBundles;
 
-            ComPtr<IThreadPoolStatics> _threadPoolStatics;
-            ComPtr<ABI::Windows::Networking::Sockets::IStreamSocket>    _streamSocket;
+            com_ptr<IThreadPoolStatics> m_threadPoolStatics;
+            com_ptr<ABI::Windows::Networking::Sockets::IStreamSocket>    _streamSocket;
 
-            ComPtr<RealtimeStreaming::Network::DataBufferImpl>  _spHeaderBuffer;
+            com_ptr<RealtimeStreaming::Network::DataBufferImpl>  _spHeaderBuffer;
 
             // currently bundle that is incoming
             PayloadHeader _receivedHeader;
-            ComPtr<ABI::RealtimeStreaming::Network::IDataBundle>    _receivedBundle;
+            com_ptr<ABI::RealtimeStreaming::Network::IDataBundle>    _receivedBundle;
             EventSource<ABI::RealtimeStreaming::Network::IDisconnectedEventHandler>    _evtDisconnected;
             EventSource<ABI::RealtimeStreaming::Network::IBundleReceivedEventHandler>    _evtBundleReceived;
         };

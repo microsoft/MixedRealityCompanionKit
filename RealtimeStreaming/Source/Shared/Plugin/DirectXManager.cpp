@@ -26,7 +26,7 @@ inline HRESULT SdkLayersAvailable()
 }
 
 _Use_decl_annotations_
-DirectXManagerImpl::DirectXManagerImpl()
+DirectXManager::DirectXManager(ID3D11Device* pD3D11Device)
     : _deviceType(DeviceType_Null)
     , _spDevice(nullptr)
     , _spContext(nullptr)
@@ -34,37 +34,26 @@ DirectXManagerImpl::DirectXManagerImpl()
     , _spContext2(nullptr)
     , _spDxgiOutput(nullptr)
 {
-}
-
-_Use_decl_annotations_
-DirectXManagerImpl::~DirectXManagerImpl()
-{
-}
-
-_Use_decl_annotations_
-HRESULT DirectXManagerImpl::RuntimeClassInitialize(
-    ID3D11Device* pD3D11Device)
-{
     Log(Log_Level_Info, L"DeviceResource::RuntimeClassInitialize()\n");
-    
+
     HRESULT hr = S_OK;
 
     IFR_MSG(MFStartup(MF_VERSION), L"Not able to start Media Foundation.");
 
     auto lock = _lock.Lock();
-    ComPtr<ID3D11Device> altDevice;
-    ComPtr<ID3D11DeviceContext> altContext;
+    com_ptr<ID3D11Device> altDevice;
+    com_ptr<ID3D11DeviceContext> altContext;
     D3D_FEATURE_LEVEL featureLevel;
-    ComPtr<IDXGIFactory1> spFactory;
-    ComPtr<IDXGIAdapter> spAdapter;
+    com_ptr<IDXGIFactory1> spFactory;
+    com_ptr<IDXGIAdapter> spAdapter;
 
     // store local version of passed in device
     if (nullptr != pD3D11Device)
     {
-        ComPtr<ID3D11Device> device;
+        com_ptr<ID3D11Device> device;
         IFC(pD3D11Device->QueryInterface(IID_PPV_ARGS(&device)));
 
-        ComPtr<ID3D11DeviceContext> ctx;
+        com_ptr<ID3D11DeviceContext> ctx;
         device->GetImmediateContext(&ctx);
         if (nullptr == ctx)
         {
@@ -72,9 +61,9 @@ HRESULT DirectXManagerImpl::RuntimeClassInitialize(
         }
 
         // set local version of the device/context
-        IFC(device.As(&_spDevice));
+        IFC(device.as(&_spDevice));
 
-        IFC(ctx.As(&_spContext));
+        IFC(ctx.as(&_spContext));
     }
 
     // create d3d for media foundation device
@@ -143,11 +132,11 @@ HRESULT DirectXManagerImpl::RuntimeClassInitialize(
         else
         {
             // workaround for nvidia GPU's
-            ComPtr<ID3D11VideoDevice> videoDevice;
+            com_ptr<ID3D11VideoDevice> videoDevice;
             altDevice.As(&videoDevice);
 
             // MF support for shared textures
-            ComPtr<ID3D10Multithread> spMultithread;
+            com_ptr<ID3D10Multithread> spMultithread;
             if (SUCCEEDED(altDevice.As(&spMultithread)))
             {
                 spMultithread->SetMultithreadProtected(TRUE);
@@ -157,7 +146,7 @@ HRESULT DirectXManagerImpl::RuntimeClassInitialize(
                 Log(Log_Level_Warning, L"%s(%d): not able to QI for ID3D10Multithread.", __FILEW__, __LINE__);
             }
 
-            _deviceType =  DeviceType_DX11;
+            _deviceType = DeviceType_DX11;
         }
     }
 
@@ -189,17 +178,17 @@ done:
         Uninitialize();
     }
 
-    return hr;
+    check_hresult(hr);
 }
 
 _Use_decl_annotations_
-void DirectXManagerImpl::Uninitialize()
+DirectXManager::~DirectXManager()
 {
     Log(Log_Level_Info, L"DeviceResource::Uninitialize()\n");
 
     auto lock = _lock.Lock();
 
-    _deviceType =  DeviceType_Null;
+    _deviceType = DeviceType_Null;
     _spDevice = nullptr;
     _spContext = nullptr;
     _spDevice2 = nullptr;
@@ -207,23 +196,22 @@ void DirectXManagerImpl::Uninitialize()
     _spDxgiOutput = nullptr;
 }
 
+
 // Private
 _Use_decl_annotations_
-void DirectXManagerImpl::Lost()
+void DirectXManager::Lost()
 {
     Log(Log_Level_Info, L"DeviceResource::Lost()\n");
-
 }
 
 _Use_decl_annotations_
-void DirectXManagerImpl::Reset()
+void DirectXManager::Reset()
 {
     Log(Log_Level_Info, L"DeviceResource::Reset()\n");
-
 }
 
 _Use_decl_annotations_
-HRESULT DirectXManagerImpl::GetFrameStatistics(DXGI_FRAME_STATISTICS& stats)
+HRESULT DirectXManager::GetFrameStatistics(DXGI_FRAME_STATISTICS& stats)
 {
     auto lock = _lock.Lock();
 
@@ -238,7 +226,7 @@ HRESULT DirectXManagerImpl::GetFrameStatistics(DXGI_FRAME_STATISTICS& stats)
 }
 
 _Use_decl_annotations_
-HRESULT DirectXManagerImpl::WaitForVBlank()
+HRESULT DirectXManager::WaitForVBlank()
 {
     auto lock = _lock.Lock();
 
@@ -246,7 +234,7 @@ HRESULT DirectXManagerImpl::WaitForVBlank()
 
     if (nullptr != _spDxgiOutput)
     {
-        hr = _spDxgiOutput.Get()->WaitForVBlank();
+        hr = _spDxgiOutput.get()->WaitForVBlank();
     }
 
     return hr;

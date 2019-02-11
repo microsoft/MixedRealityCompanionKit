@@ -13,54 +13,18 @@
 #include "RealtimeMediaPlayer.h"
 #include "IUnityGraphicsD3D11.h"
 
-using namespace Microsoft::WRL;
-using namespace ABI::Windows::Graphics::DirectX::Direct3D11;
-using namespace ABI::Windows::Media;
-using namespace ABI::Windows::Media::Core;
-using namespace ABI::Windows::Media::Playback;
+using namespace winrt;
+using namespace Windows::Graphics::DirectX::Direct3D11;
+using namespace Windows::Media;
+using namespace Windows::Media::Core;
+using namespace Windows::Media::Playback;
 using namespace Windows::Foundation;
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::Create(
+RealtimeMediaPlayer::RealtimeMediaPlayer(
     UnityGfxRenderer apiType,
-    IUnityInterfaces* pUnityInterfaces,
-    IConnection* pConnection,
+    IUnityInterfaces* pUnityInterfaces)
     //StateChangedCallback fnCallback,
-    IRealtimeMediaPlayer** ppMediaPlayback)
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Create()\n");
-
-    NULL_CHK(pUnityInterfaces);
-    //NULL_CHK(fnCallback);
-    NULL_CHK(ppMediaPlayback);
-
-    *ppMediaPlayback = nullptr;
-
-    if (apiType == kUnityGfxRendererD3D11)
-    {
-        IUnityGraphicsD3D11* d3d = pUnityInterfaces->Get<IUnityGraphicsD3D11>();
-        NULL_CHK_HR(d3d, E_INVALIDARG);
-
-        ComPtr<IConnection> spConnection(pConnection);
-
-        ComPtr<RealtimeMediaPlayerImpl> spMediaPlayback(nullptr);
-        IFR(MakeAndInitialize<RealtimeMediaPlayerImpl>(&spMediaPlayback,
-            spConnection.Get(),
-            //fnCallback, 
-            d3d->GetDevice()));
-
-        *ppMediaPlayback = spMediaPlayback.Detach();
-    }
-    else
-    {
-        IFR(E_INVALIDARG);
-    }
-
-    return S_OK;
-}
-
-_Use_decl_annotations_
-RealtimeMediaPlayerImpl::RealtimeMediaPlayerImpl()
     : m_d3dDevice(nullptr)
     , m_mediaDevice(nullptr)
     , m_fnStateCallback(nullptr)
@@ -72,10 +36,74 @@ RealtimeMediaPlayerImpl::RealtimeMediaPlayerImpl()
     , m_primaryMediaTexture(nullptr)
     , m_primaryMediaSurface(nullptr)
 {
+    Log(Log_Level_Info, L"RealtimeMediaPlayer::RealtimeMediaPlayer()\n");
+
+    NULL_CHK(pUnityInterfaces);
+    //NULL_CHK(fnCallback);
+
+    com_ptr<ID3D11Device> spDevice;
+
+    if (apiType == kUnityGfxRendererD3D11)
+    {
+        IUnityGraphicsD3D11* d3d = pUnityInterfaces->Get<IUnityGraphicsD3D11>();
+        
+        NULL_CHK_HR(d3d, E_INVALIDARG);
+
+        spDevice.attach(d3d->GetDevice());
+    }
+    else
+    {
+        check_hresult(E_INVALIDARG);
+    }
+
+    // make sure creation of the device is on the same adapter
+    com_ptr<IDXGIDevice> spDXGIDevice;
+    check_hresult(spDevice.as(spDXGIDevice.put()));
+
+    com_ptr<IDXGIAdapter> spAdapter;
+    check_hresult(spDXGIDevice->GetAdapter(spAdapter.put()));
+
+    // create dx device for media pipeline
+    com_ptr<ID3D11Device> spMediaDevice;
+    check_hresult(CreateMediaDevice(spAdapter.get(), spMediaDevice.put()));
+
+    // lock the shared dxgi device manager
+    // will keep lock open for the life of object
+    //     call MFUnlockDXGIDeviceManager when unloading
+    UINT uiResetToken;
+    com_ptr<IMFDXGIDeviceManager> spDeviceManager;
+    check_hresult(MFLockDXGIDeviceManager(&uiResetToken, spDeviceManager.put()));
+
+    // associtate the device with the manager
+    check_hresult(spDeviceManager->ResetDevice(spMediaDevice.get(), uiResetToken));
+
+    // create media player object
+    CreateMediaPlayer();
+
+    // TODO: Need to hook-back up callback?
+    //m_fnStateCallback = fnCallback;
+    m_d3dDevice.attach(spDevice.detach());
+    m_mediaDevice.attach(spMediaDevice.detach());
+}
+
+IAsyncAction RealtimeMediaPlayer::InitAsync(
+    Connection connection)
+{
+    m_RealtimeMediaSource = RealtimeMediaSource(connection);
+
+    co_await m_RealtimeMediaSource.connectasync();
+
+    MediaStreamSource mediaStreamSource = m_RealtimeMediaSource.GetMediaStreamSource();
+
+    MediaSource source = MediaSource.CreateFromMediaStreamSource(mediaStreamSource);
+
+    MediaPlaybackItem item = MediaPlaybackItem(source);
+
+    m_mediaPlayer.Source(item);
 }
 
 _Use_decl_annotations_
-RealtimeMediaPlayerImpl::~RealtimeMediaPlayerImpl()
+RealtimeMediaPlayer::~RealtimeMediaPlayer()
 {
     ReleaseTextures();
 
@@ -86,114 +114,8 @@ RealtimeMediaPlayerImpl::~RealtimeMediaPlayerImpl()
     ReleaseResources();
 }
 
-_Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::RuntimeClassInitialize(
-    IConnection* pConnection,
-    //StateChangedCallback fnCallback,
-    ID3D11Device* pDevice)
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::RuntimeClassInitialize()\n");
 
-    //NULL_CHK(fnCallback);
-    NULL_CHK(pDevice);
-
-    // ref count passed in device
-    ComPtr<ID3D11Device> spDevice(pDevice);
-
-    // make sure creation of the device is on the same adapter
-    ComPtr<IDXGIDevice> spDXGIDevice;
-    IFR(spDevice.As(&spDXGIDevice));
-
-    ComPtr<IDXGIAdapter> spAdapter;
-    IFR(spDXGIDevice->GetAdapter(&spAdapter));
-
-    // create dx device for media pipeline
-    ComPtr<ID3D11Device> spMediaDevice;
-    IFR(CreateMediaDevice(spAdapter.Get(), &spMediaDevice));
-
-    // lock the shared dxgi device manager
-    // will keep lock open for the life of object
-    //     call MFUnlockDXGIDeviceManager when unloading
-    UINT uiResetToken;
-    ComPtr<IMFDXGIDeviceManager> spDeviceManager;
-    IFR(MFLockDXGIDeviceManager(&uiResetToken, &spDeviceManager));
-
-    // associtate the device with the manager
-    IFR(spDeviceManager->ResetDevice(spMediaDevice.Get(), uiResetToken));
-
-    // create media player object
-    IFR(CreateMediaPlayer());
-
-    // TODO: Need to hook-back up callback?
-    //m_fnStateCallback = fnCallback;
-    m_d3dDevice.Attach(spDevice.Detach());
-    m_mediaDevice.Attach(spMediaDevice.Detach());
-
-    // Start the async operation that this class implements interface
-    IFR(Start());
-
-    // Create the media source asyncrhonsouly 
-    ComPtr<IConnection> spConnection(pConnection);
-
-    ComPtr<IRealtimeMediaSource> spInteropMediaSource;
-    IFR(MakeAndInitialize<RealtimeMediaSourceImpl>(&spInteropMediaSource, spConnection.Get()));
-
-    // Save Streaming Media Source locally
-    IFR(spInteropMediaSource.CopyTo(&m_RealtimeMediaSource));
-
-    ComPtr<IAsyncAction> spInitSourceAction;
-    IFR(spInteropMediaSource.As(&spInitSourceAction));
-
-    // setup callback, only when the source gets the describe message, is it valid
-    ComPtr<IRealtimeMediaPlayer> spThis(this);
-    auto sourceReady = Callback<IAsyncActionCompletedHandler>(
-        [this, spThis, spInteropMediaSource](_In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
-    {
-        NULL_CHK(asyncResult);
-
-        ComPtr<IMediaStreamSource> spMediaStreamSource;
-        ComPtr<IMediaSourceStatics> spMediaSourceStatics;
-        ComPtr<IMediaSource2> spMediaSource2;
-        ComPtr<IMediaPlaybackItem> spPlaybackItem;
-        ComPtr<IMediaPlaybackSource> spMediaPlaybackSource;
-        ComPtr<IMediaPlayerSource2> spMediaPlayerSource;
-
-        HRESULT hr = S_OK;
-
-        ComPtr<IAsyncAction> spAction(asyncResult);
-        if (AsyncStatus::Completed != asyncStatus)
-        {
-            ComPtr<IAsyncInfo> spInfo;
-            IFR(spAction.As(&spInfo));
-            spInfo->get_ErrorCode(&hr);
-            IFR(hr);
-        }
-
-        IFC(spInteropMediaSource->get_MediaStreamSource(&spMediaStreamSource));
-
-        IFC(ABI::Windows::Foundation::GetActivationFactory(
-            Wrappers::HStringReference(RuntimeClass_Windows_Media_Core_MediaSource).Get(),
-            &spMediaSourceStatics));
-
-        IFC(spMediaSourceStatics->CreateFromMediaStreamSource(
-            spMediaStreamSource.Get(),
-            &spMediaSource2));
-
-        IFC(CreateMediaPlaybackItem(spMediaSource2.Get(), &spPlaybackItem));
-
-        IFC(spPlaybackItem.As(&spMediaPlaybackSource));
-
-        IFC(m_mediaPlayer.As(&spMediaPlayerSource));
-        IFC(spMediaPlayerSource->put_Source(spMediaPlaybackSource.Get()));
-
-    done:
-        return CompleteAsyncAction(hr);
-    });
-
-    return spInitSourceAction->put_Completed(sourceReady.Get());
-}
-
-HRESULT RealtimeMediaPlayerImpl::GetCurrentResolution(
+HRESULT RealtimeMediaPlayer::GetCurrentResolution(
     UINT32* pWidth,
     UINT32* pHeight)
 {
@@ -209,7 +131,7 @@ HRESULT RealtimeMediaPlayerImpl::GetCurrentResolution(
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::CreateStreamingTexture(
+HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
     UINT32 width,
     UINT32 height,
     void** ppvTexture)
@@ -219,7 +141,7 @@ HRESULT RealtimeMediaPlayerImpl::CreateStreamingTexture(
     NULL_CHK(ppvTexture);
 
     if (width < 1 || height < 1)
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
 
     *ppvTexture = nullptr;
 
@@ -230,184 +152,135 @@ HRESULT RealtimeMediaPlayerImpl::CreateStreamingTexture(
     m_textureDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
     m_textureDesc.Usage = D3D11_USAGE_DEFAULT;
 
-    IFR(CreateTextures());
+    check_hresult(CreateTextures());
 
-    ComPtr<ID3D11ShaderResourceView> spSRV;
-    IFR(m_primaryTextureSRV.CopyTo(&spSRV));
+    com_ptr<ID3D11ShaderResourceView> spSRV;
+    check_hresult(m_primaryTextureSRV.CopyTo(&spSRV));
 
-    *ppvTexture = spSRV.Detach();
+    *ppvTexture = spSRV.detach();
 
     return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::Play()
+void RealtimeMediaPlayer::Play()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Play()\n");
 
     if (nullptr != m_mediaPlayer)
     {
-        ComPtr<IMediaPlayer3> spMediaPlayer3;
-        IFR(m_mediaPlayer.As(&spMediaPlayer3));
+        //LOG_RESULT(m_mediaPlayer.PlaybackSession().State);
 
-        ComPtr<IMediaPlaybackSession> spPlaybackSession;
-        IFR(spMediaPlayer3->get_PlaybackSession(&spPlaybackSession));
-
-        MediaPlaybackState state;
-        LOG_RESULT(spPlaybackSession->get_PlaybackState(&state));
-
-        IFR(m_mediaPlayer->Play());
+        m_mediaPlayer.Play();
     }
-
-    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::Pause()
+void RealtimeMediaPlayer::Pause()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Pause()\n");
 
     if (nullptr != m_mediaPlayer)
     {
-        IFR(m_mediaPlayer->Pause());
+        m_mediaPlayer.Pause();
     }
-
-    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::Stop()
+void RealtimeMediaPlayer::Stop()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Stop()\n");
 
     if (nullptr != m_mediaPlayer)
     {
-        IFR(Pause());
-
-        ComPtr<IMediaPlayerSource2> spMediaPlayerSource;
-        IFR(m_mediaPlayer.As(&spMediaPlayerSource));
-        IFR(spMediaPlayerSource->put_Source(nullptr));
+        Pause();
+        m_mediaPlayer.Source = nullptr;
     }
-
-    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::CreateMediaPlayer()
+void RealtimeMediaPlayer::CreateMediaPlayer()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::CreateMediaPlayer()\n");
 
-    // create media player
-    ComPtr<IMediaPlayer> spMediaPlayer;
-    IFR(Windows::Foundation::ActivateInstance(
-        Wrappers::HStringReference(RuntimeClass_Windows_Media_Playback_MediaPlayer).Get(),
-        &spMediaPlayer));
-
     // setup callbacks
-    EventRegistrationToken openedEventToken;
-    auto mediaOpened = Microsoft::WRL::Callback<IMediaPlayerEventHandler>(this, &RealtimeMediaPlayerImpl::OnOpened);
-    IFR(spMediaPlayer->add_MediaOpened(mediaOpened.Get(), &openedEventToken));
+    m_mediaPlayer = MediaPlayer();
+    m_mediaPlayer.IsVideoFrameServerEnabled = true;
 
-    EventRegistrationToken endedEventToken;
-    auto mediaEnded = Microsoft::WRL::Callback<IMediaPlayerEventHandler>(this, &RealtimeMediaPlayerImpl::OnEnded);
-    IFR(spMediaPlayer->add_MediaEnded(mediaEnded.Get(), &endedEventToken));
+    // Subscribe to events
+    m_openedEventToken = m_mediaPlayer.MediaOpened({ this, &RealtimeMediaPlayer::OnOpened });
+    m_endedEventToken = m_mediaPlayer.MediaEnded({ this, &RealtimeMediaPlayer::OnEnded });
+    m_failedEventToken = m_mediaPlayer.MediaFailed({ this, &RealtimeMediaPlayer::OnFailed });
+    m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable({ this, &RealtimeMediaPlayer::OnVideoFrameAvailable });
 
-    EventRegistrationToken failedEventToken;
-    auto mediaFailed = Microsoft::WRL::Callback<IFailedEventHandler>(this, &RealtimeMediaPlayerImpl::OnFailed);
-    IFR(spMediaPlayer->add_MediaFailed(mediaFailed.Get(), &failedEventToken));
-
-    // frameserver mode is on the IMediaPlayer5 interface
-    ComPtr<IMediaPlayer5> spMediaPlayer5;
-    IFR(spMediaPlayer.As(&spMediaPlayer5));
-
-    // set frameserver mode
-    IFR(spMediaPlayer5->put_IsVideoFrameServerEnabled(true));
-
-    // register for frame available callback
-    EventRegistrationToken videoFrameAvailableToken;
-    auto videoFrameAvailableCallback = Microsoft::WRL::Callback<IMediaPlayerEventHandler>(this, &RealtimeMediaPlayerImpl::OnVideoFrameAvailable);
-    IFR(spMediaPlayer5->add_VideoFrameAvailable(videoFrameAvailableCallback.Get(), &videoFrameAvailableToken));
-
-    // store the player and token
-    m_mediaPlayer.Attach(spMediaPlayer.Detach());
-    m_openedEventToken = openedEventToken;
-    m_endedEventToken = endedEventToken;
-    m_failedEventToken = failedEventToken;
-    m_videoFrameAvailableToken = videoFrameAvailableToken;
-
-    IFR(AddStateChanged());
-
-    return S_OK;
+    m_mediaPlaybackSession = m_mediaPlayer.PlaybackSession;
+    m_stateChangedEventToken = m_mediaPlaybackSession.PlaybackStateChanged({ this, &RealtimeMediaPlayer::OnStateChanged });)
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayerImpl::ReleaseMediaPlayer()
+void RealtimeMediaPlayer::ReleaseMediaPlayer()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::ReleaseMediaPlayer()\n");
 
     // stop playback
-    LOG_RESULT(Stop());
+    Stop();
 
-    RemoveStateChanged();
+    // Unsubscribe from event handlers
+    if (nullptr != m_mediaPlaybackSession)
+    {
+        m_mediaPlaybackSession.PlaybackStateChanged(m_stateChangedEventToken);
+    }
 
     if (nullptr != m_mediaPlayer)
     {
-        ComPtr<IMediaPlayer5> spMediaPlayer5;
-        if (SUCCEEDED(m_mediaPlayer.As(&spMediaPlayer5)))
-        {
-            LOG_RESULT(spMediaPlayer5->remove_VideoFrameAvailable(m_videoFrameAvailableToken));
-
-            spMediaPlayer5.Reset();
-            spMediaPlayer5 = nullptr;
-        }
-
-        LOG_RESULT(m_mediaPlayer->remove_MediaOpened(m_openedEventToken));
-        LOG_RESULT(m_mediaPlayer->remove_MediaEnded(m_endedEventToken));
-        LOG_RESULT(m_mediaPlayer->remove_MediaFailed(m_failedEventToken));
-
-        m_mediaPlayer.Reset();
-        m_mediaPlayer = nullptr;
+        m_mediaPlayer.MediaOpened(m_openedEventToken);
+        m_mediaPlayer.MediaEnded(m_endedEventToken);
+        m_mediaPlayer.MediaFailed(m_failedEventToken);
+        m_mediaPlayer.VideoFrameAvailable(m_videoFrameAvailableToken);
     }
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::CreateTextures()
+HRESULT RealtimeMediaPlayer::CreateTextures()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::CreateTextures()\n");
 
     if (nullptr != m_primaryTexture || nullptr != m_primaryTextureSRV)
+    {
         ReleaseTextures();
+    }
 
     // create staging texture on unity device
-    ComPtr<ID3D11Texture2D> spTexture;
-    IFR(m_d3dDevice->CreateTexture2D(&m_textureDesc, nullptr, &spTexture));
+    com_ptr<ID3D11Texture2D> spTexture;
+    check_hresult(m_d3dDevice->CreateTexture2D(&m_textureDesc, nullptr, &spTexture));
 
-    auto srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.Get(), D3D11_SRV_DIMENSION_TEXTURE2D);
-    ComPtr<ID3D11ShaderResourceView> spSRV;
-    IFR(m_d3dDevice->CreateShaderResourceView(spTexture.Get(), &srvDesc, &spSRV));
+    auto srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.get(), D3D11_SRV_DIMENSION_TEXTURE2D);
+    com_ptr<ID3D11ShaderResourceView> spSRV;
+    check_hresult(m_d3dDevice->CreateShaderResourceView(spTexture.get(), &srvDesc, &spSRV));
 
     // create shared texture from the unity texture
-    ComPtr<IDXGIResource1> spDXGIResource;
-    IFR(spTexture.As(&spDXGIResource));
+    com_ptr<IDXGIResource1> spDXGIResource;
+    check_hresult(spTexture.As(&spDXGIResource));
 
     HANDLE sharedHandle = INVALID_HANDLE_VALUE;
-    ComPtr<ID3D11Texture2D> spMediaTexture;
-    ComPtr<IDirect3DSurface> spMediaSurface;
+    com_ptr<ID3D11Texture2D> spMediaTexture;
+    com_ptr<IDirect3DSurface> spMediaSurface;
     HRESULT hr = spDXGIResource->CreateSharedHandle(
         nullptr,
         DXGI_SHARED_RESOURCE_READ | DXGI_SHARED_RESOURCE_WRITE,
         L"SharedTextureHandle",
         &sharedHandle);
+
     if (SUCCEEDED(hr))
     {
-        ComPtr<ID3D11Device1> spMediaDevice;
+        com_ptr<ID3D11Device1> spMediaDevice;
         hr = m_mediaDevice.As(&spMediaDevice);
         if (SUCCEEDED(hr))
         {
             hr = spMediaDevice->OpenSharedResource1(sharedHandle, IID_PPV_ARGS(&spMediaTexture));
             if (SUCCEEDED(hr))
             {
-                hr = GetSurfaceFromTexture(spMediaTexture.Get(), &spMediaSurface);
+                hr = GetSurfaceFromTexture(spMediaTexture.get(), &spMediaSurface);
             }
         }
     }
@@ -418,21 +291,21 @@ HRESULT RealtimeMediaPlayerImpl::CreateTextures()
         if (sharedHandle != INVALID_HANDLE_VALUE)
             CloseHandle(sharedHandle);
 
-        IFR(hr);
+        check_hresult(hr);
     }
 
-    m_primaryTexture.Attach(spTexture.Detach());
-    m_primaryTextureSRV.Attach(spSRV.Detach());
+    m_primaryTexture.attach(spTexture.detach());
+    m_primaryTextureSRV.attach(spSRV.detach());
 
     m_primarySharedHandle = sharedHandle;
-    m_primaryMediaTexture.Attach(spMediaTexture.Detach());
-    m_primaryMediaSurface.Attach(spMediaSurface.Detach());
+    m_primaryMediaTexture.attach(spMediaTexture.detach());
+    m_primaryMediaSurface.attach(spMediaSurface.detach());
 
     return hr;
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayerImpl::ReleaseTextures()
+void RealtimeMediaPlayer::ReleaseTextures()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::ReleaseTextures()");
 
@@ -443,128 +316,65 @@ void RealtimeMediaPlayerImpl::ReleaseTextures()
         m_primarySharedHandle = INVALID_HANDLE_VALUE;
     }
 
-    m_primaryMediaSurface.Reset();
     m_primaryMediaSurface = nullptr;
-
-    m_primaryMediaTexture.Reset();
     m_primaryMediaTexture = nullptr;
-
-    m_primaryTextureSRV.Reset();
     m_primaryTextureSRV = nullptr;
-
-    m_primaryTexture.Reset();
     m_primaryTexture = nullptr;
 
     ZeroMemory(&m_textureDesc, sizeof(m_textureDesc));
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::AddStateChanged()
-{
-    ComPtr<IMediaPlayer3> spMediaPlayer3;
-    IFR(m_mediaPlayer.As(&spMediaPlayer3));
-
-    ComPtr<IMediaPlaybackSession> spSession;
-    IFR(spMediaPlayer3->get_PlaybackSession(&spSession));
-
-    EventRegistrationToken stateChangedToken;
-    auto stateChanged = Microsoft::WRL::Callback<IMediaPlaybackSessionEventHandler>(this, &RealtimeMediaPlayerImpl::OnStateChanged);
-    IFR(spSession->add_PlaybackStateChanged(stateChanged.Get(), &stateChangedToken));
-    m_stateChangedEventToken = stateChangedToken;
-    m_mediaPlaybackSession.Attach(spSession.Detach());
-
-    return S_OK;
-}
-
-_Use_decl_annotations_
-void RealtimeMediaPlayerImpl::RemoveStateChanged()
-{
-    // remove playback session callbacks
-    if (nullptr != m_mediaPlaybackSession)
-    {
-        LOG_RESULT(m_mediaPlaybackSession->remove_PlaybackStateChanged(m_stateChangedEventToken));
-
-        m_mediaPlaybackSession.Reset();
-        m_mediaPlaybackSession = nullptr;
-    }
-}
-
-_Use_decl_annotations_
-void RealtimeMediaPlayerImpl::ReleaseResources()
+void RealtimeMediaPlayer::ReleaseResources()
 {
     m_fnStateCallback = nullptr;
 
     // release dx devices
-    m_mediaDevice.Reset();
     m_mediaDevice = nullptr;
-
-    m_d3dDevice.Reset();
     m_d3dDevice = nullptr;
 
-    m_RealtimeMediaSource.Reset();
     m_RealtimeMediaSource = nullptr;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::OnVideoFrameAvailable(IMediaPlayer* sender, IInspectable* arg)
+HRESULT RealtimeMediaPlayer::OnVideoFrameAvailable(IMediaPlayer* sender, IInspectable* arg)
 {
-    ComPtr<IMediaPlayer> spMediaPlayer(sender);
+    com_ptr<IMediaPlayer> spMediaPlayer(sender);
 
-    ComPtr<IMediaPlayer5> spMediaPlayer5;
-    IFR(spMediaPlayer.As(&spMediaPlayer5));
+    com_ptr<IMediaPlayer5> spMediaPlayer5;
+    check_hresult(spMediaPlayer.As(&spMediaPlayer5));
 
     if (nullptr != m_primaryMediaSurface)
     {
-        IFR(spMediaPlayer5->CopyFrameToVideoSurface(m_primaryMediaSurface.Get()));
+        check_hresult(spMediaPlayer5->CopyFrameToVideoSurface(m_primaryMediaSurface.get()));
     }
 
     return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::OnOpened(
-    IMediaPlayer* sender,
-    IInspectable* args)
+void RealtimeMediaPlayer::OnOpened(
+    MediaPlayer sender,
+    IInspectable args)
 {
-    ComPtr<IMediaPlayer> spMediaPlayer(sender);
-
-    ComPtr<IMediaPlayer3> spMediaPlayer3;
-    IFR(spMediaPlayer.As(&spMediaPlayer3));
-
-    ComPtr<IMediaPlaybackSession> spSession;
-    IFR(spMediaPlayer3->get_PlaybackSession(&spSession));
-
-    // width & height of video
-    UINT32 width = 0;
-    IFR(spSession->get_NaturalVideoWidth(&width));
-
-    UINT32 height = 0;
-    IFR(spSession->get_NaturalVideoHeight(&height));
-
-    boolean canSeek = false;
-    IFR(spSession->get_CanSeek(&canSeek));
-
-    ABI::Windows::Foundation::TimeSpan duration;
-    IFR(spSession->get_NaturalDuration(&duration));
-
     PLAYBACK_STATE playbackState;
     ZeroMemory(&playbackState, sizeof(playbackState));
     playbackState.type = StateType::StateType_Opened;
-    playbackState.value.description.width = width;
-    playbackState.value.description.height = height;
-    playbackState.value.description.canSeek = canSeek;
-    playbackState.value.description.duration = duration.Duration;
+    playbackState.value.description.width = playbackSession.NaturalVideoWidth;
+    playbackState.value.description.height = playbackSession.NaturalVideoHeight;
+    playbackState.value.description.canSeek = playbackSession.CanSeek;
+    playbackState.value.description.duration = playbackSession.NaturalDuration.Duration;
 
     if (m_fnStateCallback != nullptr)
+    {
         m_fnStateCallback(playbackState);
-
-    return S_OK;
+    }
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::OnEnded(
-    IMediaPlayer* sender,
-    IInspectable* args)
+void RealtimeMediaPlayer::OnEnded(
+    IMediaPlayer sender,
+    IInspectable args)
 {
     PLAYBACK_STATE playbackState;
     ZeroMemory(&playbackState, sizeof(playbackState));
@@ -572,23 +382,21 @@ HRESULT RealtimeMediaPlayerImpl::OnEnded(
     playbackState.value.state = PlaybackState::PlaybackState_Ended;
 
     if (m_fnStateCallback != nullptr)
+    {
         m_fnStateCallback(playbackState);
+    }
 
-    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::OnFailed(
-    IMediaPlayer* sender,
-    IMediaPlayerFailedEventArgs* args)
+void RealtimeMediaPlayer::OnFailed(
+    MediaPlayer sender,
+    MediaPlayerFailedEventArgs args)
 {
-    HRESULT hr = S_OK;
-    IFR(args->get_ExtendedErrorCode(&hr));
-
     /*
     // TODO: Troy fix to get back logging
-    ComPtr<HSTRING> errorMessage;
-    IFR(args->get_ErrorMessage(errorMessage.Get()));
+    com_ptr<HSTRING> errorMessage;
+    check_hresult(args->get_ErrorMessage(errorMessage.get()));
 
     //LOG_RESULT_MSG(hr, WindowsGetStringRawBuffer(*errorMessage, nullptr));
         //errorMessage->c_str());
@@ -597,58 +405,26 @@ HRESULT RealtimeMediaPlayerImpl::OnFailed(
     PLAYBACK_STATE playbackState;
     ZeroMemory(&playbackState, sizeof(playbackState));
     playbackState.type = StateType::StateType_Failed;
-    playbackState.value.hresult = hr;
+    playbackState.value.hresult = args.ExtendedErrorCode;
 
     if (m_fnStateCallback != nullptr)
+    {
         m_fnStateCallback(playbackState);
-
-    return S_OK;
+    }
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::OnStateChanged(
-    IMediaPlaybackSession* sender,
-    IInspectable* args)
+void RealtimeMediaPlayer::OnStateChanged(
+    MediaPlaybackSession sender,
+    IInspectable args)
 {
-    MediaPlaybackState state;
-    IFR(sender->get_PlaybackState(&state));
-
     PLAYBACK_STATE playbackState;
     ZeroMemory(&playbackState, sizeof(playbackState));
     playbackState.type = StateType::StateType_StateChanged;
-    playbackState.value.state = static_cast<PlaybackState>(state);
+    playbackState.value.state = static_cast<PlaybackState>(sender.PlaybackState);
 
     if (m_fnStateCallback != nullptr)
+    {
         m_fnStateCallback(playbackState);
-
-    return S_OK;
-}
-
-_Use_decl_annotations_
-HRESULT RealtimeMediaPlayerImpl::CompleteAsyncAction(HRESULT hr)
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::CompleteAsyncAction()\n");
-
-    ABI::Windows::Foundation::AsyncStatus status;
-    IFC(get_Status(&status));
-
-    if (AsyncStatus::Completed == status)
-    {
-        return S_OK;
     }
-
-    if (AsyncStatus::Started != status)
-    {
-        IFC(hr);
-
-        IFC(get_ErrorCode(&hr));
-    }
-
-done:
-    if (FAILED(hr))
-    {
-        LOG_RESULT(TryTransitionToError(hr));
-    }
-
-    return FireCompletion();
 }

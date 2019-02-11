@@ -33,8 +33,8 @@ HRESULT MarkerImpl::Create(
 
     HRESULT hr = S_OK;
 
-    Microsoft::WRL::ComPtr<MarkerImpl> spMarker;
-    spMarker.Attach(new (std::nothrow) MarkerImpl(eMarkerType));
+    com_ptr<MarkerImpl> spMarker;
+    spMarker.attach(new (std::nothrow) MarkerImpl(eMarkerType));
     if (spMarker == nullptr)
     {
         hr = E_OUTOFMEMORY;
@@ -59,7 +59,7 @@ HRESULT MarkerImpl::Create(
 
     if (SUCCEEDED(hr))
     {
-       * ppMarker = spMarker.Detach();
+       * ppMarker = spMarker.detach();
     }
 
     return hr;

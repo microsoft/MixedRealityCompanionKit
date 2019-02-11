@@ -213,7 +213,7 @@ inline void __stdcall LogResult(
 
 #ifndef IFR
 #define IFR_MSG(hrToCheck, message) if (FAILED(hrToCheck)) { LOG_RESULT_MSG(hrToCheck, message); return hrToCheck; }
-#define IFR(hrToCheck) IFR_MSG(hrToCheck, L"RETURN_")
+#define check_hresult(hrToCheck) IFR_MSG(hrToCheck, L"RETURN_")
 #endif
 
 #ifndef IFRV

@@ -11,8 +11,8 @@ namespace RealtimeStreaming
         using namespace ABI::RealtimeStreaming::Plugin;
 
         class ModuleManagerImpl
-            : public Microsoft::WRL::RuntimeClass
-            < Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::RuntimeClassType::WinRtClassicComMix>
+            : public RuntimeClass
+            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
             , IModuleManager
             , FtmBase>
         {
@@ -43,7 +43,7 @@ namespace RealtimeStreaming
 
             ModuleHandle _lastModuleHandleIndex;
 
-            std::map<ModuleHandle, ComPtr<IModule>> _moduleHandleMap;
+            std::map<ModuleHandle, com_ptr<IModule>> _moduleHandleMap;
         };
 
     }

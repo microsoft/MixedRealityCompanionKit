@@ -61,11 +61,11 @@ namespace RealtimeStreaming
             Wrappers::CriticalSection _lock;
             boolean _isInitialized;
 
-            ComPtr<IHostName> _hostName;
+            com_ptr<IHostName> _hostName;
             UINT16 _port;
-            Microsoft::WRL::EventSource<IClosedEventHandler> _evtClosed;
+            EventSource<IClosedEventHandler> _evtClosed;
 
-            ComPtr<IStreamSocket> _streamSocketResult;
+            com_ptr<IStreamSocket> _streamSocketResult;
         };
 
         class ConnectorStaticsImpl
@@ -83,17 +83,17 @@ namespace RealtimeStreaming
                 _COM_Outptr_result_maybenull_ ABI::RealtimeStreaming::Network::IConnector** ppConnector) override
             {
                 // Get IHostNameFactory instance
-                ComPtr<ABI::Windows::Networking::IHostNameFactory> spHostNameFactory;
-                IFR(Windows::Foundation::GetActivationFactory(
-                    Wrappers::HStringReference(RuntimeClass_Windows_Networking_HostName).Get(),
+                com_ptr<ABI::Windows::Networking::IHostNameFactory> spHostNameFactory;
+                check_hresult(Windows::Foundation::GetActivationFactory(
+                    Wrappers::HStringReference(RuntimeClass_Windows_Networking_HostName).get(),
                     &spHostNameFactory));
 
                 // create hostname
-                ComPtr<ABI::Windows::Networking::IHostName> spHostName;
-                IFR(spHostNameFactory->CreateHostName(hostAddress, &spHostName));
+                com_ptr<ABI::Windows::Networking::IHostName> spHostName;
+                check_hresult(spHostNameFactory->CreateHostName(hostAddress, &spHostName));
 
-                ComPtr<ConnectorImpl> spConnector;
-                IFR(MakeAndInitialize<ConnectorImpl>(&spConnector, spHostName.Get(), port));
+                com_ptr<ConnectorImpl> spConnector;
+                check_hresult(MakeAndInitialize<ConnectorImpl>(&spConnector, spHostName.get(), port));
 
                 NULL_CHK_HR(spConnector, E_OUTOFMEMORY);
 

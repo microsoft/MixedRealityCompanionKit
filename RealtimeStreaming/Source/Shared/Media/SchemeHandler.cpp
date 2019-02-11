@@ -31,13 +31,13 @@ HRESULT MrvcSchemeHandlerImpl::SetProperties(
 {
     NULL_CHK(propertySet);
 
-    ComPtr<IPropertySet> spProperties(propertySet);
+    com_ptr<IPropertySet> spProperties(propertySet);
 
-    ComPtr<IMap<HSTRING, IInspectable*>> spMap;
-    IFR(spProperties.As(&spMap));
+    com_ptr<IMap<HSTRING, IInspectable*>> spMap;
+    check_hresult(spProperties.As(&spMap));
 
-    ComPtr<IConnection> spConnection;
-    IFR(spMap->Lookup(Wrappers::HStringReference(L"Connection").Get(), &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(spMap->Lookup(Wrappers::HStringReference(L"Connection").get(), &spConnection));
 
     HRESULT hr = E_INVALIDARG;
 
@@ -66,7 +66,7 @@ HRESULT MrvcSchemeHandlerImpl::put_Connection(
 {
     NULL_CHK(connection);
 
-    ComPtr<IConnection> spConnection(connection);
+    com_ptr<IConnection> spConnection(connection);
 
     return spConnection.As(&_connection);
 }
@@ -89,7 +89,7 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
 
     if ((dwFlags & MF_RESOLUTION_MEDIASOURCE) == 0)
     {
-        IFR(MF_E_UNSUPPORTED_BYTESTREAM_TYPE);
+        check_hresult(MF_E_UNSUPPORTED_BYTESTREAM_TYPE);
     }
 
     if (nullptr != ppCancelCookie)
@@ -97,26 +97,26 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
        * ppCancelCookie = nullptr;
     }
 
-    ComPtr<IRealtimeMediaSource> spMediaSource;
-    IFR(MakeAndInitialize<RealtimeMediaSourceImpl>(&spMediaSource, _connection.Get()));
+    com_ptr<IRealtimeMediaSource> spMediaSource;
+    check_hresult(MakeAndInitialize<RealtimeMediaSource>(&spMediaSource, _connection.get()));
 
-    ComPtr<IUnknown> spSourceUnk;
-    IFR(spMediaSource.As(&spSourceUnk));
+    com_ptr<IUnknown> spSourceUnk;
+    check_hresult(spMediaSource.As(&spSourceUnk));
 
-    ComPtr<IAsyncAction> initMediaSourceOp;
-    IFR(spMediaSource.As(&initMediaSourceOp));
+    com_ptr<IAsyncAction> initMediaSourceOp;
+    check_hresult(spMediaSource.As(&initMediaSourceOp));
 
-    ComPtr<IMFAsyncResult> spAsyncResult;
-    IFR(MFCreateAsyncResult(spSourceUnk.Get(), pCallback, punkState, &spAsyncResult));
+    com_ptr<IMFAsyncResult> spAsyncResult;
+    check_hresult(MFCreateAsyncResult(spSourceUnk.get(), pCallback, punkState, &spAsyncResult));
 
     // until the source gets the stream descriptions, the event will not fire
     return StartAsyncThen(
-        initMediaSourceOp.Get(),
+        initMediaSourceOp.get(),
         [spAsyncResult](HRESULT hr, IAsyncAction *asyncResult, AsyncStatus asyncStatus) -> HRESULT
     {
         LOG_RESULT(spAsyncResult->SetStatus(hr));
 
-        return MFInvokeCallback(spAsyncResult.Get());
+        return MFInvokeCallback(spAsyncResult.get());
     });
 }
 
@@ -135,12 +135,12 @@ HRESULT MrvcSchemeHandlerImpl::EndCreateObject(
    * pObjectType = MF_OBJECT_INVALID;
    * ppObject = nullptr;
 
-    IFR(pResult->GetStatus());
+    check_hresult(pResult->GetStatus());
 
-    ComPtr<IUnknown> spUnkSource;
-    IFR(pResult->GetObject(&spUnkSource));
+    com_ptr<IUnknown> spUnkSource;
+    check_hresult(pResult->GetObject(&spUnkSource));
    * pObjectType = MF_OBJECT_MEDIASOURCE;
-   * ppObject = spUnkSource.Detach();
+   * ppObject = spUnkSource.detach();
 
     return S_OK;
 }

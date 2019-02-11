@@ -1,0 +1,40 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+#pragma once
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+namespace RealtimeStreaming.Network
+{
+    runtimeclass DataBuffer;
+
+    [version(1.0), exclusiveto(DataBuffer), uuid(f6e3e7f0-2dd9-11e9-b210-d663bd873d93)]
+    interface IDataBuffer : IInspectable
+    {
+        void Test();
+
+        //long Offset{ get; set; };
+        //long CurrentLength{ get; set; };
+    };
+
+    [version(1.0), exclusiveto(DataBuffer), uuid(f6e3ea8e-2dd9-11e9-b210-d663bd873d93)]
+    interface IDataBufferFactory : IInspectable
+    {
+    }
+
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    [composable(IDataBufferFactory, protected, 1.0)]
+    runtimeclass DataBuffer
+    {
+        DataBuffer(ULONG size);
+
+        HRESULT TrimLeft(ULONG cbSize);
+        RealtimeStreaming.Network.DataBuffer TrimRight(ULONG cbSize);
+
+        HRESULT Reset();
+    };
+}

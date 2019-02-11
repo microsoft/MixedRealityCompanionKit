@@ -19,11 +19,11 @@ STDAPI_(BOOL) DllMain(
         //  Don't need per-thread callbacks
         DisableThreadLibraryCalls(hInstance);
 
-        Microsoft::WRL::Module<Microsoft::WRL::InProc>::GetModule().Create();
+        Module<InProc>::GetModule().Create();
     }
     else if (DLL_PROCESS_DETACH == dwReason)
     {
-        Microsoft::WRL::Module<Microsoft::WRL::InProc>::GetModule().Terminate();
+        Module<InProc>::GetModule().Terminate();
     }
 
     return TRUE;
@@ -31,13 +31,13 @@ STDAPI_(BOOL) DllMain(
 
 STDAPI DllGetActivationFactory(_In_ HSTRING activatibleClassId, _COM_Outptr_ IActivationFactory** factory)
 {
-    auto &module = Microsoft::WRL::Module< Microsoft::WRL::InProc>::GetModule();
+    auto &module = Module< InProc>::GetModule();
     return module.GetActivationFactory(activatibleClassId, factory);
 }
 
 STDAPI DllCanUnloadNow()
 {
-    const auto &module = Microsoft::WRL::Module<Microsoft::WRL::InProc>::GetModule();
+    const auto &module = Module<InProc>::GetModule();
     return module.GetObjectCount() == 0 ? S_OK : S_FALSE;
 }
 
@@ -285,7 +285,7 @@ RTDLL RealtimeStreamingShutdown(
 //
 
 // TODO: Clean up -> Use module manager?
-//static ComPtr<IRealtimeMediaPlayer> s_spStreamingPlayer;
+//static com_ptr<IRealtimeMediaPlayer> s_spStreamingPlayer;
 
 RTDLL CreateRealtimePlayer(
 	_In_ ModuleHandle connectionHandle,

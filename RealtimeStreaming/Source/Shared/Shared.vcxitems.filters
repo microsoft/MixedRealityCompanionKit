@@ -173,6 +173,45 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)ModuleManager.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)PluginManager.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DirectXManager.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeServer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Connector.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Listener.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Connection.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBuffer.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundle.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundleArgs.idl">
+      <Filter>Network</Filter>
+    </Midl>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />

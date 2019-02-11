@@ -42,6 +42,19 @@
     <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
   </ItemGroup>
   <ItemGroup>
+    <Midl Include="$(MSBuildThisFileDirectory)Connection.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)Connector.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DataBuffer.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundle.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundleArgs.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DirectXManager.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)Listener.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)ModuleManager.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)PluginManager.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeServer.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
   </ItemGroup>
   <ItemGroup>

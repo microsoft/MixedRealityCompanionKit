@@ -4,184 +4,130 @@
 #include "pch.h"
 #include "RealtimeServer.h"
 
-ActivatableStaticOnlyFactory(RealtimeServerStaticsImpl);
+namespace winrt;
+namespace RealtimeStreaming::Media::implementation;
 
-typedef IAsyncOperationCompletedHandler<HSTRING*> IDeviceInformationOperationCompletedHandler;
-
-RealtimeServerImpl::RealtimeServerImpl()
-    : _isInitialized(true)
-{
-
-}
-
-RealtimeServerImpl::~RealtimeServerImpl()
-{
-    Uninitialize();
-}
-
-// TODO: need to pass in IMediaEncodingProfile instead of hardcoded
-HRESULT RealtimeServerImpl::RuntimeClassInitialize(
-    IConnection* pConnection,
+RealtimeServer::RealtimeServer(
+    Connection connection,
     GUID inputMediaType,
-    IMediaEncodingProfile* pMediaEncodingProperties)
+    MediaEncodingProfile mediaEncodingProperties)
+    : m_spMediaEncodingProfile(mediaEncodingProperties)
 {
     Log(Log_Level_Info, L"RealtimeServerImpl::RuntimeClassInitialize()\n");
-    NULL_CHK(pConnection);
-    NULL_CHK(pMediaEncodingProperties);
-
-    ComPtr<IConnection> spConnection(pConnection);
-    ComPtr<IMediaEncodingProfile> mediaEncodingProfile(pMediaEncodingProperties);
 
     // TODO: Currently hardcoded to not accept audio
-    mediaEncodingProfile->put_Audio(nullptr);
-    mediaEncodingProfile->put_Container(nullptr);
-
-    // get the audio/video profiles
-    ComPtr<IAudioEncodingProperties> audioEncodingProperties;
-    IFR(mediaEncodingProfile->get_Audio(&audioEncodingProperties));
-
-    ComPtr<IVideoEncodingProperties> videoEncodingProperties;
-    IFR(mediaEncodingProfile->get_Video(&videoEncodingProperties));
+    m_spMediaEncodingProfile.Audio = nullptr;
+    m_spMediaEncodingProfile.Container = nullptr;
 
     // create the custom network sink
-    ComPtr<NetworkMediaSinkImpl> networkSink;
-    IFR(Microsoft::WRL::Details::MakeAndInitialize<NetworkMediaSinkImpl>(
-	    &networkSink,
-	    audioEncodingProperties.Get(),
-	    videoEncodingProperties.Get(),
-	    spConnection.Get()));
+    m_spNetworkMediaSink = NetworkMediaSink(m_spMediaEncodingProfile.Audio(),
+        m_spMediaEncodingProfile.Video(),
+        connection);
 
     // Create sink writer which will write to our custom network sink
-    ComPtr<IMFSinkWriter> spSinkWriter;
+    com_ptr<IMFSinkWriter> spSinkWriter;
 
     // TODO: https://docs.microsoft.com/en-us/windows/desktop/medfound/sink-writer-attributes
     // Add sink writer attributes*
 
-    IFR(MFCreateSinkWriterFromMediaSink(networkSink.Get(), nullptr, &spSinkWriter));
+    IFR(MFCreateSinkWriterFromMediaSink(m_spNetworkMediaSink,
+        nullptr,
+        &spSinkWriter));
 
     // Set the output media type.
-    ComPtr<IMFMediaType>  spMediaTypeOut;
-    IFR(MFCreateMediaTypeFromProperties(videoEncodingProperties.Get(), &spMediaTypeOut));
-    IFR(spSinkWriter->AddStream(spMediaTypeOut.Get(), &m_sinkWriterStream));
+    com_ptr<IMFMediaType>  spMediaTypeOut;
+    IFR(MFCreateMediaTypeFromProperties(videoEncodingProperties.get(), &spMediaTypeOut));
+    IFR(spSinkWriter->AddStream(spMediaTypeOut.get(), &m_sinkWriterStream));
 
     // Set the input media type.
-    ComPtr<IMFMediaType>  spMediaTypeIn;
+    com_ptr<IMFMediaType>  spMediaTypeIn;
     IFR(MFCreateMediaType(&spMediaTypeIn));
 
     UINT32 videoWidth, videoHeight;
-    IFR(GetVideoResolution(mediaEncodingProfile.Get(), &videoWidth, &videoHeight));
+    IFR(GetVideoResolution(mediaEncodingProfile.get(), &videoWidth, &videoHeight));
 
     IFR(spMediaTypeIn->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video));
     IFR(spMediaTypeIn->SetGUID(MF_MT_SUBTYPE, inputMediaType));
     IFR(spMediaTypeIn->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive));
-    IFR(MFSetAttributeSize(spMediaTypeIn.Get(), MF_MT_FRAME_SIZE, videoWidth, videoHeight));
-    IFR(MFSetAttributeRatio(spMediaTypeIn.Get(), MF_MT_FRAME_RATE, VIDEO_FPS, 1));
-    IFR(MFSetAttributeRatio(spMediaTypeIn.Get(), MF_MT_PIXEL_ASPECT_RATIO, 1, 1));
+    IFR(MFSetAttributeSize(spMediaTypeIn.get(), MF_MT_FRAME_SIZE, videoWidth, videoHeight));
+    IFR(MFSetAttributeRatio(spMediaTypeIn.get(), MF_MT_FRAME_RATE, VIDEO_FPS, 1));
+    IFR(MFSetAttributeRatio(spMediaTypeIn.get(), MF_MT_PIXEL_ASPECT_RATIO, 1, 1));
 
-    IFR(spSinkWriter->SetInputMediaType(m_sinkWriterStream, spMediaTypeIn.Get(), NULL));
+    IFR(spSinkWriter->SetInputMediaType(m_sinkWriterStream, spMediaTypeIn.get(), NULL));
 
     // Tell the sink writer to start accepting data.
     IFR(spSinkWriter->BeginWriting());
 
     m_mediaInputFormat = inputMediaType;
-    _spMediaEncodingProfile = mediaEncodingProfile;
-    _spNetworkMediaSink = networkSink;
-    _spSinkWriter = spSinkWriter;
+
+    m_spSinkWriter = spSinkWriter;
+
     return S_OK;
 }
 
-// IModule
-_Use_decl_annotations_
-HRESULT RealtimeServerImpl::get_IsInitialized(
-    _Out_ boolean *initialized)
+RealtimeServer::~RealtimeServer()
 {
-    Log(Log_Level_Info, L"RealtimeServerImpl::get_IsInitialized()\n");
+    Uninitialize();
+}
 
-    NULL_CHK(initialized);
-
-    auto lock = _lock.Lock();
-
-    *initialized = _isInitialized;
-
-    return S_OK;
-};
 
 _Use_decl_annotations_
-HRESULT RealtimeServerImpl::Uninitialize(void)
+void RealtimeServer::Shutdown()
 {
-    Log(Log_Level_Info, L"RealtimeServerImpl::Uninitialize()\n");
-
     auto lock = _lock.Lock();
 
-    if (!_isInitialized)
+    if (nullptr == m_spSinkWriter)
     {
         return S_OK;
     }
 
-    _isInitialized = false;
+    check_hresult(m_spSinkWriter->Finalize()); // Close sinkwriter
 
-    return Shutdown();
+    m_spSinkWriter = nullptr; // release sinkwriter
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeServerImpl::Shutdown()
-{
-	auto lock = _lock.Lock();
-
-	if (nullptr == _spSinkWriter)
-	{
-		return S_OK;
-	}
-
-	IFR(_spSinkWriter->Finalize()); // Close sinkwriter
-
-	_spSinkWriter = nullptr; // release sinkwriter
-
-	return S_OK;
-}
-
-_Use_decl_annotations_
-HRESULT RealtimeServerImpl::WriteFrame(
+void RealtimeServer::WriteFrame(
     UINT32 bufferSize,
     BYTE* pBuffer)
 {
-    NULL_CHK(pBuffer);
+    HRESULT hr = S_OK;
+
+    IFC(NULL_CHK(pBuffer));
 
     // Create MediaBuffer
-    ComPtr<IMFMediaBuffer> spBuffer;
+    com_ptr<IMFMediaBuffer> spBuffer;
 
-    UINT32 frameWidth, frameHeight;
-    IFR(GetCurrentResolution(&frameWidth, &frameHeight));
+    auto videoProps = m_spMediaEncodingProfile.Video;
 
-    IFR(CreateIMFMediaBuffer(frameWidth,
-        frameHeight,
+    IFC(CreateIMFMediaBuffer(videoProps.Width,
+        videoProps.Height,
         bufferSize,
         pBuffer,
         &spBuffer));
 
-	// Create a media sample and add the buffer to the sample.
-	ComPtr<IMFSample> spSample;
-	IFR(MFCreateSample(&spSample));
+    // Create a media sample and add the buffer to the sample.
+    com_ptr<IMFSample> spSample;
+    IFC(MFCreateSample(&spSample));
 
-	IFR(spSample->AddBuffer(spBuffer.Get()));
+    IFC(spSample->AddBuffer(spBuffer.get()));
 
-	// Set the time stamp and the duration.
-	IFR(spSample->SetSampleTime(rtStart));
+    // Set the time stamp and the duration.
+    IFC(spSample->SetSampleTime(rtStart));
 
-	IFR(spSample->SetSampleDuration(VIDEO_FRAME_DURATION));
+    IFC(spSample->SetSampleDuration(VIDEO_FRAME_DURATION));
 
-	// Send the sample to the Sink Writer.
-	IFR(_spSinkWriter->WriteSample(m_sinkWriterStream, spSample.Get()));
+    // Send the sample to the Sink Writer.
+    IFC(m_spSinkWriter->WriteSample(m_sinkWriterStream, spSample.get()));
 
-	rtStart += VIDEO_FRAME_DURATION;
+    rtStart += VIDEO_FRAME_DURATION;
 
-	return S_OK;
+done:
+    check_hresult(hr);
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeServerImpl::GetCurrentResolution(
-	UINT32* pWidth,
-	UINT32* pHeight)
+VideoEncodingProperties RealtimeServer::VideoProperties()
 {
-	return GetVideoResolution(_spMediaEncodingProfile.Get(), pWidth, pHeight);
+    return m_videoProperties;
 }

@@ -5,106 +5,99 @@
 #include "PluginManager.h"
 #include "IUnityGraphicsD3D11.h"
 
-static ComPtr<IRealtimeMediaPlayer> s_spStreamingPlayer;
+using namespace winrt;
+using namespace RealtimeStreaming::Plugin::implementation;
+using namespace RealtimeStreaming::Media::implementation;
+using namespace RealtimeStreaming::Network::implementation;
 
-PluginManagerImpl::~PluginManagerImpl()
+static com_ptr<IRealtimeMediaPlayer> s_spStreamingPlayer;
+
+_Use_decl_annotations_
+PluginManager::PluginManager()
+{
+    ENSURE_HR(MakeAndInitialize<ModuleManagerImpl>(&m_moduleManager));
+
+    com_ptr<IThreadPoolStatics> threadPoolStatics;
+    check_hresult(Windows::Foundation::GetActivationFactory(
+        Wrappers::HStringReference(RuntimeClass_Windows_System_Threading_ThreadPool).get(),
+        &threadPoolStatics));
+
+    m_unityInterfaces = nullptr;
+    m_unityGraphics = nullptr;
+    m_unityCallback = nullptr;
+
+    m_dxManager = nullptr;
+
+    threadPoolStatics.as(&m_threadPoolStatics);
+}
+
+PluginManager::~PluginManager()
 {
     Uninitialize();
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RuntimeClassInitialize()
-{
-    ENSURE_HR(MakeAndInitialize<ModuleManagerImpl>(&_moduleManager));
-
-    ComPtr<IThreadPoolStatics> threadPoolStatics;
-    IFR(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_System_Threading_ThreadPool).Get(),
-        &threadPoolStatics));
-
-    _unityInterfaces = nullptr;
-    _unityGraphics = nullptr;
-    _unityCallback = nullptr;
-    _timeElasped = 0.0f;
-    _deltaTime = 0.0f;
-
-    _dxManager = nullptr;
-
-    _updateQueue.clear();
-    _renderQueue.clear();
-
-    return threadPoolStatics.As(&_threadPoolStatics);
-}
-
-_Use_decl_annotations_
-void PluginManagerImpl::Uninitialize()
+void PluginManager::Uninitialize()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::Uninitialize()\n");
 
     auto lock = _lock.Lock();
 
-    if (nullptr != _dxManager)
+    if (nullptr != m_dxManager)
     {
-        _dxManager->Uninitialize();
-        LOG_RESULT(_dxManager.Reset());
-        _dxManager = nullptr;
+        m_dxManager->Uninitialize();
+        LOG_RESULT(m_dxManager.Reset());
+        m_dxManager = nullptr;
     }
 
-    _timeElasped = _deltaTime = 0.0f;
+    m_streamingAssetsPath.clear();
 
-    _streamingAssetsPath.clear();
+    assert(0 == m_eventTokens.size());
+    m_eventTokens.clear();
 
-    _updateQueue.clear();
-    _renderQueue.clear();
-
-    assert(0 == _eventTokens.size());
-    _eventTokens.clear();
-
-    if (nullptr != _moduleManager)
+    if (nullptr != m_moduleManager)
     {
-        LOG_RESULT(_moduleManager->Uninitialize());
-        LOG_RESULT(_moduleManager.Reset());
-        _moduleManager = nullptr;
+        LOG_RESULT(m_moduleManager->Uninitialize());
+        LOG_RESULT(m_moduleManager.Reset());
+        m_moduleManager = nullptr;
     }
 }
 
-
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::get_ModuleManager(
-    IModuleManager** ppModuleManager)
+ModuleManager PluginManager::ModuleManager()
 {
-    NULL_CHK_HR(_moduleManager, E_NOT_SET);
+    NULL_CHK_HR(m_moduleManager, E_NOT_SET);
 
-    return _moduleManager.CopyTo(ppModuleManager);
+    return m_moduleManager;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::get_ThreadPool(
+DirectXManager PluginManager::DirectXManager()
+{
+    NULL_CHK_HR(m_dxManager, E_NOT_SET);
+
+    return m_dxManager;
+}
+
+_Use_decl_annotations_
+HRESULT PluginManager::get_ThreadPool(
     IThreadPoolStatics** ppThreadPoolStatics)
 {
-    NULL_CHK_HR(_threadPoolStatics, E_NOT_SET);
+    NULL_CHK_HR(m_threadPoolStatics, E_NOT_SET);
 
-    return _threadPoolStatics.CopyTo(ppThreadPoolStatics);
+    return m_threadPoolStatics.CopyTo(ppThreadPoolStatics);
 }
 
-_Use_decl_annotations_
-HRESULT PluginManagerImpl::get_DirectXManager(
-    IDirectXManager** ppDXManager)
-{
-    NULL_CHK(ppDXManager);
-
-    return _dxManager.CopyTo(ppDXManager);
-}
 
 _Use_decl_annotations_
-void PluginManagerImpl::Load(IUnityInterfaces* unityInterfaces, IUnityGraphicsDeviceEventCallback callback)
+void PluginManager::Load(IUnityInterfaces* unityInterfaces, IUnityGraphicsDeviceEventCallback callback)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::Load()\n");
 
     auto lock = _lock.Lock();
 
     // was already initialized, so need to reset
-    if (nullptr != _dxManager)
+    if (nullptr != m_dxManager)
     {
         Uninitialize();
     }
@@ -120,42 +113,42 @@ void PluginManagerImpl::Load(IUnityInterfaces* unityInterfaces, IUnityGraphicsDe
         return;
     }
 
-    _unityInterfaces = unityInterfaces;
+    m_unityInterfaces = unityInterfaces;
 
-    _unityGraphics = unityGraphics;
+    m_unityGraphics = unityGraphics;
 
-    _unityCallback = callback;
-    _unityGraphics->RegisterDeviceEventCallback(_unityCallback);
+    m_unityCallback = callback;
+    m_unityGraphics->RegisterDeviceEventCallback(m_unityCallback);
 
     // Run OnGraphicsDeviceEvent(initialize) manually on plugin load
     OnDeviceEvent(kUnityGfxDeviceEventInitialize);
 }
 
 _Use_decl_annotations_
-void PluginManagerImpl::UnLoad()
+void PluginManager::UnLoad()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::UnLoad()\n");
 
     auto lock = _lock.Lock();
 
-    if (nullptr == _unityGraphics || nullptr == _unityCallback)
+    if (nullptr == m_unityGraphics || nullptr == m_unityCallback)
     {
         return;
     }
 
     Uninitialize();
 
-    _unityGraphics->UnregisterDeviceEventCallback(_unityCallback);
+    m_unityGraphics->UnregisterDeviceEventCallback(m_unityCallback);
 
-    _unityCallback = nullptr;
+    m_unityCallback = nullptr;
 
-    _unityInterfaces = nullptr;
+    m_unityInterfaces = nullptr;
 
-    _unityGraphics = nullptr;
+    m_unityGraphics = nullptr;
 }
 
 _Use_decl_annotations_
-void PluginManagerImpl::OnDeviceEvent(UnityGfxDeviceEventType eventType)
+void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::OnDeviceEvent ");
 
@@ -165,12 +158,12 @@ void PluginManagerImpl::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 
     UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
 
-    if (nullptr == _unityGraphics)
+    if (nullptr == m_unityGraphics)
     {
         return;
     }
 
-    currentDeviceType = _unityGraphics->GetRenderer();
+    currentDeviceType = m_unityGraphics->GetRenderer();
     switch (eventType)
     {
     case kUnityGfxDeviceEventInitialize:
@@ -192,17 +185,17 @@ void PluginManagerImpl::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 
     case kUnityGfxDeviceEventBeforeReset:
         Log(Log_Level_Info, L"- Lost\n");
-        if (nullptr != _dxManager)
+        if (nullptr != m_dxManager)
         {
-            _dxManager->Lost();
+            m_dxManager->Lost();
         }
         break;
 
     case kUnityGfxDeviceEventAfterReset:
         Log(Log_Level_Info, L"- Reset\n");
-        if (nullptr != _dxManager)
+        if (nullptr != m_dxManager)
         {
-            _dxManager->Reset();
+            m_dxManager->Reset();
         }
         break;
     };
@@ -215,74 +208,7 @@ done:
 }
 
 _Use_decl_annotations_
-void PluginManagerImpl::SetTime(float t)
-{
-    // TODO: uncomment these
-    Log(Log_Level_Info, L"PluginManagerImpl::SetTime()\n");
-
-    auto lock = _lock.Lock();
-
-    if (_deltaTime == 0 && _timeElasped == 0)
-    {
-        // first timed called since last reset
-        _deltaTime = 0.0f;
-    }
-    else
-    {
-        _deltaTime = t - _timeElasped;
-    }
-
-    _timeElasped = t;
-}
-
-_Use_decl_annotations_
-void PluginManagerImpl::OnPlugInEvent(PluginEventType event)
-{
-    // TODO: uncomment these
-    Log(Log_Level_Info, L"PluginManagerImpl::OnRenderEvent()\n");
-
-    // we have no control that the callback is still valid
-    LOG_RESULT(
-        ExceptionBoundary([this, event]()->HRESULT
-    {
-        auto lock = _lock.Lock();
-
-        switch (event)
-        {
-        case PluginEventType_Update:
-            if (!_updateQueue.empty())
-            {
-                UpdateAction action;
-                while (_updateQueue.try_pop(action))
-                {
-                    action(_deltaTime, _timeElasped);
-                }
-            }
-            break;
-
-        case PluginEventType_Render:
-            if (!_renderQueue.empty())
-            {
-                RenderAction action;
-                while (_renderQueue.try_pop(action))
-                {
-                    action();
-                }
-            }
-            break;
-
-        case PluginEventType_Flush:
-            _updateQueue.clear();
-            _renderQueue.clear();
-            break;
-        }
-
-        return S_OK;
-    }));
-}
-
-_Use_decl_annotations_
-HRESULT PluginManagerImpl::ListenerCreateAndStart(
+HRESULT PluginManager::ListenerCreateAndStart(
     UINT16 port,
     ModuleHandle *listenerHandle,
     PluginCallback callback,
@@ -293,31 +219,31 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
     NULL_CHK(listenerHandle);
     NULL_CHK(callback);
 
-    ComPtr<ListenerImpl> listener;
-    IFR(MakeAndInitialize<ListenerImpl>(&listener, port));
+    com_ptr<ListenerImpl> listener;
+    check_hresult(MakeAndInitialize<ListenerImpl>(&listener, port));
 
-    ComPtr<IConnectionCreatedOperation> connectedOp;
-    IFR(listener->ListenAsync(&connectedOp));
+    com_ptr<IConnectionCreatedOperation> connectedOp;
+    check_hresult(listener->ListenAsync(&connectedOp));
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
-    ComPtr<IModule> module;
-    IFR(listener.As(&module));
-    IFR(_moduleManager->AddModule(module.Get(), &handle));
+    com_ptr<IModule> module;
+    check_hresult(listener.As(&module));
+    check_hresult(m_moduleManager->AddModule(module.get(), &handle));
 
     *listenerHandle = handle;
 
     // wait until we get a conneciton from the listner
-    ComPtr<PluginManagerImpl> spThis(this);
+    com_ptr<PluginManager> spThis(this);
     return StartAsyncThen(
-        connectedOp.Get(),
+        connectedOp.get(),
         [this, spThis, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation *result, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
 
         ModuleHandle handle = MODULE_HANDLE_INVALID;
 
-        ComPtr<IConnection> connection;
-        ComPtr<IModule> module;
+        com_ptr<IConnection> connection;
+        com_ptr<IModule> module;
 
         IFC(hr);
 
@@ -330,14 +256,14 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
         {
             auto lock = _lock.Lock();
 
-            if (nullptr == _moduleManager)
+            if (nullptr == m_moduleManager)
             {
                 return S_OK;
             }
 
             if (SUCCEEDED(hr))
             {
-                hr = _moduleManager->AddModule(module.Get(), &handle);
+                hr = m_moduleManager->AddModule(module.get(), &handle);
                 LOG_RESULT(hr);
             }
         }
@@ -349,26 +275,26 @@ HRESULT PluginManagerImpl::ListenerCreateAndStart(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ListenerStopAndClose(
+HRESULT PluginManager::ListenerStopAndClose(
     ModuleHandle handle)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::StopListener()\n");
 
     auto lock = _lock.Lock();
 
-    if (nullptr == _moduleManager)
+    if (nullptr == m_moduleManager)
     {
         return S_OK;
     }
 
     // release the handle
-    ComPtr<IModule> module;
-    return _moduleManager->ReleaseModule(handle);
+    com_ptr<IModule> module;
+    return m_moduleManager->ReleaseModule(handle);
 }
 
 // connector
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectorCreateAndStart(
+HRESULT PluginManager::ConnectorCreateAndStart(
     LPCWSTR address,
     ModuleHandle *connectorHandle,
     PluginCallback callback,
@@ -381,50 +307,50 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
     std::wstring wsUri = address;
 
     // Get Factories
-    ComPtr<ABI::Windows::Foundation::IUriRuntimeClassFactory> uriFactory;
-    IFR(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_Foundation_Uri).Get(),
+    com_ptr<ABI::Windows::Foundation::IUriRuntimeClassFactory> uriFactory;
+    check_hresult(Windows::Foundation::GetActivationFactory(
+        Wrappers::HStringReference(RuntimeClass_Windows_Foundation_Uri).get(),
         uriFactory.GetAddressOf()));
 
-    ComPtr<ABI::Windows::Networking::IHostNameFactory> hostNameFactory;
-    IFR(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_Networking_HostName).Get(),
+    com_ptr<ABI::Windows::Networking::IHostNameFactory> hostNameFactory;
+    check_hresult(Windows::Foundation::GetActivationFactory(
+        Wrappers::HStringReference(RuntimeClass_Windows_Networking_HostName).get(),
         &hostNameFactory));
 
     // convert to Uri
-    Microsoft::WRL::Wrappers::HString uriHString;
-    IFR(WindowsCreateString(wsUri.c_str(), wsUri.size(), uriHString.GetAddressOf()));
+    Wrappers::HString uriHString;
+    check_hresult(WindowsCreateString(wsUri.c_str(), wsUri.size(), uriHString.GetAddressOf()));
 
-    ComPtr<ABI::Windows::Foundation::IUriRuntimeClass> uri;
-    IFR(uriFactory->CreateUri(uriHString.Get(), &uri));
+    com_ptr<ABI::Windows::Foundation::IUriRuntimeClass> uri;
+    check_hresult(uriFactory->CreateUri(uriHString.get(), &uri));
 
     // generate hostname
-    Microsoft::WRL::Wrappers::HString uriHostname;
-    IFR(uri->get_Host(uriHostname.GetAddressOf()));
+    Wrappers::HString uriHostname;
+    check_hresult(uri->get_Host(uriHostname.GetAddressOf()));
 
     INT32 uriPort = 0;
-    IFR(uri->get_Port(&uriPort));
+    check_hresult(uri->get_Port(&uriPort));
 
-    ComPtr<ABI::Windows::Networking::IHostName> hostName;
-    IFR(hostNameFactory->CreateHostName(uriHostname.Get(), &hostName));
+    com_ptr<ABI::Windows::Networking::IHostName> hostName;
+    check_hresult(hostNameFactory->CreateHostName(uriHostname.get(), &hostName));
 
-    ComPtr<ConnectorImpl> connector;
-    IFR(MakeAndInitialize<ConnectorImpl>(&connector, hostName.Get(), uriPort));
+    com_ptr<ConnectorImpl> connector;
+    check_hresult(MakeAndInitialize<ConnectorImpl>(&connector, hostName.get(), uriPort));
 
-    ComPtr<IConnectionCreatedOperation> connectedOp;
-    IFR(connector->ConnectAsync(&connectedOp));
+    com_ptr<IConnectionCreatedOperation> connectedOp;
+    check_hresult(connector->ConnectAsync(&connectedOp));
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
-    ComPtr<IModule> module;
-    IFR(connector.As(&module));
-    IFR(_moduleManager->AddModule(module.Get(), &handle));
+    com_ptr<IModule> module;
+    check_hresult(connector.As(&module));
+    check_hresult(m_moduleManager->AddModule(module.get(), &handle));
 
     *connectorHandle = handle;
 
     // wait until we get a conneciton from the listner
-    ComPtr<PluginManagerImpl> spThis(this);
+    com_ptr<PluginManager> spThis(this);
     return StartAsyncThen(
-        connectedOp.Get(),
+        connectedOp.get(),
         [this, spThis, callback, pCallbackObject](_In_ HRESULT hr,
             _In_ IConnectionCreatedOperation* pResult, 
             _In_ AsyncStatus asyncStatus) -> HRESULT
@@ -434,8 +360,8 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
 
         ModuleHandle handle = MODULE_HANDLE_INVALID;
 
-        ComPtr<IConnection> connection;
-        ComPtr<IModule> module;
+        com_ptr<IConnection> connection;
+        com_ptr<IModule> module;
 
         IFC(hr);
 
@@ -447,14 +373,14 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
         {
             auto lock = _lock.Lock();
 
-            if (nullptr == _moduleManager)
+            if (nullptr == m_moduleManager)
             {
                 return S_OK;
             }
 
             if (SUCCEEDED(hr))
             {
-                hr = _moduleManager->AddModule(module.Get(), &handle);
+                hr = m_moduleManager->AddModule(module.get(), &handle);
                 LOG_RESULT(hr);
             }
         }
@@ -466,24 +392,24 @@ HRESULT PluginManagerImpl::ConnectorCreateAndStart(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectorStopAndClose(
+HRESULT PluginManager::ConnectorStopAndClose(
     ModuleHandle handle)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::CloseConnector()\n");
 
     auto lock = _lock.Lock();
 
-    if (nullptr == _moduleManager)
+    if (nullptr == m_moduleManager)
     {
         return S_OK;
     }
 
     // release the handle
-    return _moduleManager->ReleaseModule(handle);
+    return m_moduleManager->ReleaseModule(handle);
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectionAddDisconnected(
+HRESULT PluginManager::ConnectionAddDisconnected(
     ModuleHandle handle,
     PluginCallback callback,
     void* pCallbackObject,
@@ -508,12 +434,12 @@ HRESULT PluginManagerImpl::ConnectionAddDisconnected(
     });
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
     // register for callback
     EventRegistrationToken newToken;
-    IFR(spConnection->add_Disconnected(disconnectedCallback.Get(), &newToken));
+    check_hresult(spConnection->add_Disconnected(disconnectedCallback.get(), &newToken));
 
     // set return
     *tokenValue = newToken.value;
@@ -525,7 +451,7 @@ HRESULT PluginManagerImpl::ConnectionAddDisconnected(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectionRemoveDisconnected(
+HRESULT PluginManager::ConnectionRemoveDisconnected(
     ModuleHandle handle,
     INT64 tokenValue)
 {
@@ -534,8 +460,8 @@ HRESULT PluginManagerImpl::ConnectionRemoveDisconnected(
     auto lock = _lock.Lock();
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
     // get the token stored in the event list
     EventRegistrationToken removeToken;
@@ -546,7 +472,7 @@ HRESULT PluginManagerImpl::ConnectionRemoveDisconnected(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectionAddReceived(
+HRESULT PluginManager::ConnectionAddReceived(
     ModuleHandle handle,
     DataReceivedHandler callback,
     void* pCallbackObject,
@@ -578,10 +504,10 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
         case PayloadType_State_Scene:
         case PayloadType_State_Input:
         {
-            ComPtr<IDataBundle> dataBundle;
+            com_ptr<IDataBundle> dataBundle;
             IFC(args->get_DataBundle(&dataBundle));
 
-            DataBundleImpl* rawDataBundle = static_cast<DataBundleImpl*>(dataBundle.Get());
+            DataBundleImpl* rawDataBundle = static_cast<DataBundleImpl*>(dataBundle.get());
             IFC(rawDataBundle == nullptr ? E_INVALIDARG : S_OK);
 
             DWORD cbTotalLen = 0;
@@ -620,12 +546,12 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
     });
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
     // register for callback
     EventRegistrationToken newToken;
-    IFR(spConnection->add_Received(bundleReceivedCallback.Get(), &newToken));
+    check_hresult(spConnection->add_Received(bundleReceivedCallback.get(), &newToken));
 
     // set return
     *tokenValue = newToken.value;
@@ -637,7 +563,7 @@ HRESULT PluginManagerImpl::ConnectionAddReceived(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectionRemoveReceived(
+HRESULT PluginManager::ConnectionRemoveReceived(
     ModuleHandle handle,
     INT64 tokenValue)
 {
@@ -646,8 +572,8 @@ HRESULT PluginManagerImpl::ConnectionRemoveReceived(
     auto lock = _lock.Lock();
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
     // get the token stored in the event list
     EventRegistrationToken removeToken;
@@ -658,7 +584,7 @@ HRESULT PluginManagerImpl::ConnectionRemoveReceived(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectionSendRawData(
+HRESULT PluginManager::ConnectionSendRawData(
     ModuleHandle handle,
     PayloadType payloadType,
     byte* pBuffer,
@@ -682,21 +608,21 @@ HRESULT PluginManagerImpl::ConnectionSendRawData(
     auto lock = _lock.Lock();
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
     const DWORD c_cbPayloadSize = static_cast<DWORD>(bufferSize);
     const DWORD c_cbBufferSize = sizeof(PayloadHeader) + c_cbPayloadSize;
 
     // Create send buffer
-    ComPtr<IDataBuffer> spDataBuffer;
-    IFR(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, c_cbBufferSize));
+    com_ptr<IDataBuffer> spDataBuffer;
+    check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, c_cbBufferSize));
 
-    ComPtr<IBuffer> spBuffer;
-    IFR(spDataBuffer.As(&spBuffer));
+    com_ptr<IBuffer> spBuffer;
+    check_hresult(spDataBuffer.As(&spBuffer));
 
     // Prepare operation header
-    PayloadHeader* pHeader = GetDataType<PayloadHeader*>(spBuffer.Get());
+    PayloadHeader* pHeader = GetDataType<PayloadHeader*>(spBuffer.get());
     NULL_CHK_HR(pHeader, E_POINTER);
     pHeader->ePayloadType = type;
     pHeader->cbPayloadSize = c_cbPayloadSize;
@@ -707,19 +633,19 @@ HRESULT PluginManagerImpl::ConnectionSendRawData(
     memcpy_s(pBlobStart, c_cbPayloadSize, pBuffer, c_cbPayloadSize);
 
     // Set length of the packet
-    IFR(spDataBuffer->put_CurrentLength(c_cbBufferSize));
+    check_hresult(spDataBuffer->put_CurrentLength(c_cbBufferSize));
 
-    ComPtr<IDataBundle> spBundle;
-    IFR(MakeAndInitialize<DataBundleImpl>(&spBundle));
+    com_ptr<IDataBundle> spBundle;
+    check_hresult(MakeAndInitialize<DataBundleImpl>(&spBundle));
 
-    IFR(spBundle->AddBuffer(spDataBuffer.Get()));
+    check_hresult(spBundle->AddBuffer(spDataBuffer.get()));
 
-    ComPtr<IAsyncAction> spSendAction;
-    IFR(spConnection->SendBundleAsync(spBundle.Get(), &spSendAction));
+    com_ptr<IAsyncAction> spSendAction;
+    check_hresult(spConnection->SendBundleAsync(spBundle.get(), &spSendAction));
 
-    ComPtr<PluginManagerImpl> spThis(this);
+    com_ptr<PluginManager> spThis(this);
     return StartAsyncThen(
-        spSendAction.Get(),
+        spSendAction.get(),
         [this, spThis](_In_ HRESULT hr, _In_ IAsyncAction* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         LOG_RESULT(hr);
@@ -729,7 +655,7 @@ HRESULT PluginManagerImpl::ConnectionSendRawData(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::ConnectionClose(
+HRESULT PluginManager::ConnectionClose(
     ModuleHandle handle)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionClose()\n");
@@ -737,12 +663,12 @@ HRESULT PluginManagerImpl::ConnectionClose(
     auto lock = _lock.Lock();
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
     // find any tokens register to this handle
-    auto iter = _eventTokens.find(handle);
-    if (iter != _eventTokens.end())
+    auto iter = m_eventTokens.find(handle);
+    if (iter != m_eventTokens.end())
     {
         for each (auto token in (*iter).second)
         {
@@ -751,16 +677,16 @@ HRESULT PluginManagerImpl::ConnectionClose(
         }
         (*iter).second.clear();
 
-        _eventTokens.erase(iter);
+        m_eventTokens.erase(iter);
     }
 
     // unregister from the connection
-    return _moduleManager->ReleaseModule(handle);
+    return m_moduleManager->ReleaseModule(handle);
 }
 
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTServerCreate(
+HRESULT PluginManager::RTServerCreate(
     ModuleHandle connectionHandle,
     ModuleHandle* serverHandle)
 {
@@ -768,39 +694,39 @@ HRESULT PluginManagerImpl::RTServerCreate(
 
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerCreate()\n");
 
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(connectionHandle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(connectionHandle, &spConnection));
 
     // Default encoding activation
-    ComPtr<IMediaEncodingProfileStatics3> spEncodingProfileStatics;
-    IFR(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_Media_MediaProperties_MediaEncodingProfile).Get(),
+    com_ptr<IMediaEncodingProfileStatics3> spEncodingProfileStatics;
+    check_hresult(Windows::Foundation::GetActivationFactory(
+        Wrappers::HStringReference(RuntimeClass_Windows_Media_MediaProperties_MediaEncodingProfile).get(),
         &spEncodingProfileStatics));
 
-    ComPtr<IMediaEncodingProfile> spMediaEncodingProfile;
-    IFR(spEncodingProfileStatics->CreateHevc(
+    com_ptr<IMediaEncodingProfile> spMediaEncodingProfile;
+    check_hresult(spEncodingProfileStatics->CreateHevc(
         ABI::Windows::Media::MediaProperties::VideoEncodingQuality_HD720p,
         &spMediaEncodingProfile));
 
-    ComPtr<RealtimeServerImpl> spRTServer;
-    IFR(MakeAndInitialize<RealtimeServerImpl>(&spRTServer,
-        spConnection.Get(),
+    com_ptr<RealtimeServer> spRTServer;
+    check_hresult(MakeAndInitialize<RealtimeServer>(&spRTServer,
+        spConnection.get(),
         MFVideoFormat_RGB32,
-        spMediaEncodingProfile.Get()));
+        spMediaEncodingProfile.get()));
 
     auto lock = _lock.Lock();
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
-    ComPtr<IModule> module;
+    com_ptr<IModule> module;
 
-    if (nullptr == _moduleManager)
+    if (nullptr == m_moduleManager)
     {
-        IFR(E_NOT_SET);
+        check_hresult(E_NOT_SET);
     }
 
-    IFR(spRTServer.As(&module));
+    check_hresult(spRTServer.As(&module));
 
-    IFR(_moduleManager->AddModule(module.Get(), &handle));
+    check_hresult(m_moduleManager->AddModule(module.get(), &handle));
 
     *serverHandle = handle;
 
@@ -808,7 +734,7 @@ HRESULT PluginManagerImpl::RTServerCreate(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTServerShutdown(
+HRESULT PluginManager::RTServerShutdown(
     ModuleHandle serverHandle)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerShutdown()\n");
@@ -816,17 +742,17 @@ HRESULT PluginManagerImpl::RTServerShutdown(
     auto lock = _lock.Lock();
 
     // get capture engine
-    ComPtr<IRealtimeServer> spRTServer;
-    IFR(GetRealtimeServer(serverHandle, &spRTServer));
+    com_ptr<IRealtimeServer> spRTServer;
+    check_hresult(GetRealtimeServer(serverHandle, &spRTServer));
 
-    IFR(spRTServer->Shutdown());
+    check_hresult(spRTServer->Shutdown());
 
     // release the handle
-    return _moduleManager->ReleaseModule(serverHandle);
+    return m_moduleManager->ReleaseModule(serverHandle);
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTServerWriteFrame(
+HRESULT PluginManager::RTServerWriteFrame(
     ModuleHandle serverHandle,
     BYTE* pBuffer,
     UINT32 bufferSize)
@@ -838,16 +764,16 @@ HRESULT PluginManagerImpl::RTServerWriteFrame(
     auto lock = _lock.Lock();
 
     // get realtime server
-    ComPtr<IRealtimeServer> spRTServer;
-    IFR(GetRealtimeServer(serverHandle, &spRTServer));
+    com_ptr<IRealtimeServer> spRTServer;
+    check_hresult(GetRealtimeServer(serverHandle, &spRTServer));
 
-	IFR(spRTServer->WriteFrame(bufferSize, pBuffer));
+	check_hresult(spRTServer->WriteFrame(bufferSize, pBuffer));
 
     return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTPlayerCreate(
+HRESULT PluginManager::RTPlayerCreate(
     ModuleHandle handle,
     //StateChangedCallback fnCallback,
     PlayerCreatedCallback callback,
@@ -861,27 +787,27 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
     auto lock = _lock.Lock();
 
     // get connection
-    ComPtr<IConnection> spConnection;
-    IFR(GetConnection(handle, &spConnection));
+    com_ptr<IConnection> spConnection;
+    check_hresult(GetConnection(handle, &spConnection));
 
-    UnityGfxRenderer unityGraphics = _unityGraphics->GetRenderer();
+    UnityGfxRenderer unityGraphics = m_unityGraphics->GetRenderer();
 
-    ComPtr<IRealtimeMediaPlayer> spPlayer;
-    IFR(RealtimeMediaPlayerImpl::Create(unityGraphics,
-        _unityInterfaces,
-        spConnection.Get(),
+    com_ptr<IRealtimeMediaPlayer> spPlayer;
+    check_hresult(RealtimeMediaPlayer::Create(unityGraphics,
+        m_unityInterfaces,
+        spConnection.get(),
         //fnCallback,
         &spPlayer));
 
     // Copy out the streaming player
-    IFR(spPlayer.CopyTo(&s_spStreamingPlayer));
+    check_hresult(spPlayer.CopyTo(&s_spStreamingPlayer));
 
-    ComPtr<IAsyncAction> spInitAction;
-    IFR(s_spStreamingPlayer.As(&spInitAction));
+    com_ptr<IAsyncAction> spInitAction;
+    check_hresult(s_spStreamingPlayer.As(&spInitAction));
 
-    ComPtr<PluginManagerImpl> spThis(this);
+    com_ptr<PluginManager> spThis(this);
     return StartAsyncThen(
-        spInitAction.Get(),
+        spInitAction.get(),
         [this, spThis, spPlayer, callback, pCallbackObject](_In_ HRESULT hr, 
             _In_ IAsyncAction* asyncAction, 
             _In_ AsyncStatus asyncStatus)
@@ -904,7 +830,7 @@ HRESULT PluginManagerImpl::RTPlayerCreate(
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTPlayerRelease()
+HRESULT PluginManager::RTPlayerRelease()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerRelease() -Tid:%d \n", GetCurrentThreadId());
 
@@ -918,7 +844,7 @@ HRESULT PluginManagerImpl::RTPlayerRelease()
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTPlayerCreateTexture(_In_ UINT32 width, 
+HRESULT PluginManager::RTPlayerCreateTexture(_In_ UINT32 width, 
     _In_ UINT32 height,
     _COM_Outptr_ void** ppvTexture)
 {
@@ -931,7 +857,7 @@ HRESULT PluginManagerImpl::RTPlayerCreateTexture(_In_ UINT32 width,
 }
 
 _Use_decl_annotations_
-HRESULT  PluginManagerImpl::RTPlayerStart()
+HRESULT  PluginManager::RTPlayerStart()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStart()\n");
 
@@ -941,7 +867,7 @@ HRESULT  PluginManagerImpl::RTPlayerStart()
 }
 
 _Use_decl_annotations_
-HRESULT  PluginManagerImpl::RTPlayerPause()
+HRESULT  PluginManager::RTPlayerPause()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerPause()\n");
 
@@ -951,7 +877,7 @@ HRESULT  PluginManagerImpl::RTPlayerPause()
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::RTPlayerStop()
+HRESULT PluginManager::RTPlayerStop()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStop()\n");
 
@@ -963,7 +889,7 @@ HRESULT PluginManagerImpl::RTPlayerStop()
 
 // internal
 _Use_decl_annotations_
-void PluginManagerImpl::CompletePluginCallback(
+void PluginManager::CompletePluginCallback(
     _In_ PluginCallback callback,
     _In_ void* pCallbackObject,
     _In_ ModuleHandle handle,
@@ -984,56 +910,47 @@ void PluginManagerImpl::CompletePluginCallback(
     }));
 }
 
+// TODO: Change this into template
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::GetConnection(
-    _In_ ModuleHandle handle,
-    _Out_ IConnection** ppConnection)
+Connection PluginManager::GetConnection(
+    _In_ ModuleHandle handle)
 {
-    NULL_CHK_HR(_moduleManager, E_NOT_SET);
+    if (m_moduleManager != nullptr)
+    {
 
-    // find the module for handle
-    ComPtr<IModule> module;
-    IFR(_moduleManager->GetModule(handle, &module));
+        return m_moduleManager.GetModule(handle);
+    }
 
-    // make sure its of capture type
-    ComPtr<IConnection> spConnection;
-    IFR(module.As(&spConnection));
-
-    return spConnection.CopyTo(ppConnection);
+    return nullptr;
 }
 
 _Use_decl_annotations_
-HRESULT PluginManagerImpl::GetRealtimeServer(
-    _In_ ModuleHandle handle,
-    _Out_ IRealtimeServer** ppPlaybackEngine)
+RealtimeServer PluginManager::GetRealtimeServer(
+    _In_ ModuleHandle handle)
 {
-    NULL_CHK_HR(_moduleManager, E_NOT_SET);
+    if (m_moduleManager != nullptr)
+    {
 
-    // find the module for handle
-    ComPtr<IModule> module;
-    IFR(_moduleManager->GetModule(handle, &module));
+        return m_moduleManager.GetModule(handle);
+    }
 
-    // make sure its of capture type
-    ComPtr<IRealtimeServer> spRTServer;
-    IFR(module.As(&spRTServer));
-
-    return spRTServer.CopyTo(ppPlaybackEngine);
+    return nullptr;
 }
 
 _Use_decl_annotations_
-void PluginManagerImpl::StoreToken(
+void PluginManager::StoreToken(
     ModuleHandle handle,
     EventRegistrationToken &newToken)
 {
     // get the list of tokens for connection
-    auto iter = _eventTokens.find(handle);
-    if (iter == _eventTokens.end())
+    auto iter = m_eventTokens.find(handle);
+    if (iter == m_eventTokens.end())
     {
         // if none exist, create then list
-        _eventTokens.insert(std::move(std::make_pair(handle, std::vector<EventRegistrationToken>())));
+        m_eventTokens.insert(std::move(std::make_pair(handle, std::vector<EventRegistrationToken>())));
 
         // it should be in the list now
-        iter = _eventTokens.find(handle);
+        iter = m_eventTokens.find(handle);
     }
 
     // set eventList
@@ -1044,14 +961,14 @@ void PluginManagerImpl::StoreToken(
 }
 
 _Use_decl_annotations_
-void PluginManagerImpl::RemoveToken(
+void PluginManager::RemoveToken(
     ModuleHandle handle,
     INT64 tokenValue,
     EventRegistrationToken* token)
 {
     // get the list of tokens for connection
-    auto mapIt = _eventTokens.find(handle);
-    if (mapIt != _eventTokens.end())
+    auto mapIt = m_eventTokens.find(handle);
+    if (mapIt != m_eventTokens.end())
     {
         // iterate tokens to match value
         std::vector<EventRegistrationToken> &eventList = mapIt->second;
@@ -1071,3 +988,4 @@ void PluginManagerImpl::RemoveToken(
         }
     }
 }
+

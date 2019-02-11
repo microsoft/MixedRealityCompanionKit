@@ -44,7 +44,7 @@ protected:
     // Initializes the object by creating the standard Media Foundation attribute store.
     HRESULT Initialize(UINT32 cInitialSize = 0)
     {
-        if (nullptr == _spAttributes.Get())
+        if (nullptr == _spAttributes.get())
         {
             return MFCreateAttributes(&_spAttributes, cInitialSize);
         }
@@ -258,13 +258,13 @@ public:
         // dwOptions: Flags from MF_ATTRIBUTE_SERIALIZE_OPTIONS
     {
         assert(_spAttributes);
-        return MFSerializeAttributesToStream(_spAttributes.Get(), dwOptions, pStm);
+        return MFSerializeAttributesToStream(_spAttributes.get(), dwOptions, pStm);
     }
 
     HRESULT DeserializeFromStream(DWORD dwOptions, IStream* pStm)
     {
         assert(_spAttributes);
-        return MFDeserializeAttributesFromStream(_spAttributes.Get(), dwOptions, pStm);
+        return MFDeserializeAttributesFromStream(_spAttributes.get(), dwOptions, pStm);
     }
 
     // SerializeToBlob: Stores the attributes in a byte array. 
@@ -290,7 +290,7 @@ public:
         UINT32 cbSize = 0;
         BYTE* pBuffer = NULL;
 
-        CHECK_HR(hr = MFGetAttributesAsBlobSize(_spAttributes.Get(), &cbSize), L"CBaseAttributes::SerializeToBlob()");
+        CHECK_HR(hr = MFGetAttributesAsBlobSize(_spAttributes.get(), &cbSize), L"CBaseAttributes::SerializeToBlob()");
 
         pBuffer = (BYTE*)CoTaskMemAlloc(cbSize);
         if (pBuffer == NULL)
@@ -298,7 +298,7 @@ public:
             CHECK_HR(hr = E_OUTOFMEMORY, L"CBaseAttributes::SerializeToBlob()");
         }
 
-        CHECK_HR(hr = MFGetAttributesAsBlob(_spAttributes.Get(), pBuffer, cbSize), L"CBaseAttributes::SerializeToBlob()");
+        CHECK_HR(hr = MFGetAttributesAsBlob(_spAttributes.get(), pBuffer, cbSize), L"CBaseAttributes::SerializeToBlob()");
 
        * ppBuffer = pBuffer;
        * pcbSize = cbSize;
@@ -316,35 +316,35 @@ public:
     HRESULT DeserializeFromBlob(const UINT8* pBuffer, UINT cbSize)
     {
         assert(_spAttributes);
-        return MFInitAttributesFromBlob(_spAttributes.Get(), pBuffer, cbSize);
+        return MFInitAttributesFromBlob(_spAttributes.get(), pBuffer, cbSize);
     }
 
     HRESULT GetRatio(REFGUID guidKey, UINT32* pnNumerator, UINT32* punDenominator)
     {
         assert(_spAttributes);
-        return MFGetAttributeRatio(_spAttributes.Get(), guidKey, pnNumerator, punDenominator);
+        return MFGetAttributeRatio(_spAttributes.get(), guidKey, pnNumerator, punDenominator);
     }
 
     HRESULT SetRatio(REFGUID guidKey, UINT32 unNumerator, UINT32 unDenominator)
     {
         assert(_spAttributes);
-        return MFSetAttributeRatio(_spAttributes.Get(), guidKey, unNumerator, unDenominator);
+        return MFSetAttributeRatio(_spAttributes.get(), guidKey, unNumerator, unDenominator);
     }
 
     // Gets an attribute whose value represents the size of something (eg a video frame).
     HRESULT GetSize(REFGUID guidKey, UINT32* punWidth, UINT32* punHeight)
     {
         assert(_spAttributes);
-        return MFGetAttributeSize(_spAttributes.Get(), guidKey, punWidth, punHeight);
+        return MFGetAttributeSize(_spAttributes.get(), guidKey, punWidth, punHeight);
     }
 
     // Sets an attribute whose value represents the size of something (eg a video frame).
     HRESULT SetSize(REFGUID guidKey, UINT32 unWidth, UINT32 unHeight)
     {
         assert(_spAttributes);
-        return MFSetAttributeSize(_spAttributes.Get(), guidKey, unWidth, unHeight);
+        return MFSetAttributeSize(_spAttributes.get(), guidKey, unWidth, unHeight);
     }
 
 protected:
-    Microsoft::WRL::ComPtr<IMFAttributes> _spAttributes;
+    com_ptr<IMFAttributes> _spAttributes;
 };

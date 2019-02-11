@@ -74,10 +74,10 @@ namespace RealtimeStreaming
             UINT16                      _port;
             EventSource<Plugin::IClosedEventHandler>    _evtClosed;
 
-            ComPtr<IStreamSocketListener>   _socketListener;
+            com_ptr<IStreamSocketListener>   _socketListener;
             EventRegistrationToken          _connectionReceivedEventToken;
 
-            ComPtr<IStreamSocket>           _streamSocketResult;
+            com_ptr<IStreamSocket>           _streamSocketResult;
         };
 
         class ListenerStaticsImpl
@@ -93,8 +93,8 @@ namespace RealtimeStreaming
                 _In_ UINT16 port,
                 _COM_Outptr_result_maybenull_ ABI::RealtimeStreaming::Network::IListener** ppListener) override
             {
-                ComPtr<ListenerImpl> spListener;
-                IFR(Microsoft::WRL::MakeAndInitialize<ListenerImpl>(&spListener, port));
+                com_ptr<ListenerImpl> spListener;
+                check_hresult(MakeAndInitialize<ListenerImpl>(&spListener, port));
                 
                 NULL_CHK_HR(spListener, E_OUTOFMEMORY);
 

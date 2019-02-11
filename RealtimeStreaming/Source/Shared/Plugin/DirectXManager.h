@@ -3,41 +3,31 @@
 
 #pragma once
 
-namespace RealtimeStreaming
+#include "DirectXManager.g.h"
+
+namespace winrt::RealtimeStreaming::Plugin::implementation
 {
-    namespace Plugin
+    struct DirectXManager : DirectXManagerT<DirectXManager, Module>
     {
-
-        class DirectXManagerImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , IDirectXManager
-            , FtmBase >
-        {
-            InspectableClass(L"RealtimeStreaming.Plugin.DirectXManager", BaseTrust)
-
         public:
-            DirectXManagerImpl();
-            ~DirectXManagerImpl();
+            DirectXManager(_In_ ID3D11Device* pD3D11Device);
+            ~DirectXManager();
 
             // RuntimeClass
-            STDMETHODIMP RuntimeClassInitialize(_In_ ID3D11Device* pD3D11Device);
-
-            STDMETHODIMP_(void) Uninitialize();
-            STDMETHODIMP_(void) Lost();
-            STDMETHODIMP_(void) Reset();
+            void Lost();
+            void Reset();
 
             STDMETHODIMP GetFrameStatistics(_In_ DXGI_FRAME_STATISTICS& pStats);
 
             STDMETHODIMP WaitForVBlank();
 
         public:
-            STDMETHODIMP_(ID3D11Device*) GetDevice() const { return _spDevice.Get(); }
-            STDMETHODIMP_(ID3D11DeviceContext*) GetDeviceContext() const { return _spContext.Get(); }
+            STDMETHODIMP_(ID3D11Device*) GetDevice() const { return _spDevice.get(); }
+            STDMETHODIMP_(ID3D11DeviceContext*) GetDeviceContext() const { return _spContext.get(); }
 
             STDMETHODIMP_(Plugin::DeviceType) GetDeviceType() { return _deviceType; }
-            STDMETHODIMP_(ID3D11Device2*) GetDevice2() const { return _spDevice2.Get(); }
-            STDMETHODIMP_(ID3D11DeviceContext2*) GetDeviceContext2() const { return _spContext2.Get(); }
+            STDMETHODIMP_(ID3D11Device2*) GetDevice2() const { return _spDevice2.get(); }
+            STDMETHODIMP_(ID3D11DeviceContext2*) GetDeviceContext2() const { return _spContext2.get(); }
 
         private:
             Wrappers::CriticalSection _lock;
@@ -45,11 +35,11 @@ namespace RealtimeStreaming
             // seperate dx device for features not provided by unity device
             Plugin::DeviceType _deviceType;
             D3D_FEATURE_LEVEL _featureLevel;
-            ComPtr<ID3D11Device2> _spDevice;
-            ComPtr<ID3D11DeviceContext2> _spContext;
-            ComPtr<ID3D11Device2> _spDevice2;
-            ComPtr<ID3D11DeviceContext2> _spContext2;
-            ComPtr<IDXGIOutput> _spDxgiOutput;
+            com_ptr<ID3D11Device2> _spDevice;
+            com_ptr<ID3D11DeviceContext2> _spContext;
+            com_ptr<ID3D11Device2> _spDevice2;
+            com_ptr<ID3D11DeviceContext2> _spContext2;
+            com_ptr<IDXGIOutput> _spDxgiOutput;
         };
     }
 }

@@ -1,37 +1,24 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-import "inspectable.idl";
+
+/*
 import "AsyncInfo.idl";
 import "EventToken.idl";
 import "Windows.Foundation.idl";
 import "Windows.Foundation.Numerics.idl";
 import "Windows.Media.idl";
-import "Windows.Media.Capture.idl";
-import "Windows.Media.Capture.Core.idl";
 import "Windows.Networking.Sockets.idl";
-import "Windows.Perception.Spatial.idl";
 import "Windows.Storage.idl";
 import "Windows.Storage.Streams.idl";
+*/
 
 // Additional imports to ensure that all required headers are included
-/*
-cpp_quote("#if defined(__cplusplus)")
-cpp_quote("}")
-cpp_quote("#endif // defined(__cplusplus)")
-
-cpp_quote("#include <Windows.Foundation.h>")
-cpp_quote("#if !defined(__windows2Enetworking2Esockets_h__)")
-cpp_quote("#include <Windows.Networking.Sockets.h>")
-cpp_quote("#endif // !defined(__windows2Enetworking2Esockets_h__)")
-cpp_quote("#if defined(__cplusplus)")
-cpp_quote("extern \"C\" {")
-cpp_quote("#endif // defined(__cplusplus)")
-*/
 
 namespace RealtimeStreaming
 {
-    typedef UINT32 ModuleHandle;
+    
+/*
     cpp_quote("#ifndef MODULE_HANDLE")
         cpp_quote("typedef UINT32 MODULE_HANDLE;")
         cpp_quote("#define MODULE_HANDLE_INVALID (UINT)0x0bad")
@@ -44,13 +31,16 @@ namespace RealtimeStreaming
     cpp_quote("const UINT16 c_cbMaxBundleFailures = 3;")
     cpp_quote("extern wchar_t const __declspec(selectany)c_szNetworkScheme[] = L\"mrvc\";")
     cpp_quote("extern wchar_t const __declspec(selectany)c_szNetworkSchemeWithColon[] = L\"mrvc:\";")
+*/
 }
 
+/*
 cpp_quote("#ifdef __cplusplus")
 cpp_quote("namespace RealtimeStreaming { namespace Network {")
 cpp_quote("typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Networking::Sockets::StreamSocketListener*, ABI::Windows::Networking::Sockets::StreamSocketListenerConnectionReceivedEventArgs*> IConnectionReceivedEventHandler;")
 cpp_quote("}}")
 cpp_quote("#endif //__cplusplus")
+*/
 
 // Forward Declare
 namespace RealtimeStreaming
@@ -58,97 +48,16 @@ namespace RealtimeStreaming
     typedef enum PayloadType PayloadType;
     typedef enum SampleFlags SampleFlags;
 
-    typedef struct MF_FLOAT2 MF_FLOAT2;
-
     typedef struct PayloadHeader PayloadHeader;
     typedef struct MediaTypeDescription MediaTypeDescription;
     typedef struct MediaSampleHeader MediaSampleHeader;
-    typedef struct MediaSampleTransforms MediaSampleTransforms;
     typedef struct MediaStreamTick MediaStreamTick;
 }
 
-// forward declares
-namespace RealtimeStreaming { namespace Plugin {
-    typedef enum DeviceType DeviceType;
-    typedef enum PluginEventType PluginEventType;
-
-    delegate ClosedEventHandler;
-
-    interface IModule;
-    interface IModuleManager;
-    interface IModuleManagerStatics;
-    runtimeclass ModuleManager;
-
-    interface IPluginManager;
-    interface IPluginManagerStatics;
-    runtimeclass PluginManager;
-
-    interface IDirectXManager;
-} }
-
-namespace RealtimeStreaming{ namespace Network {
-    delegate DisconnectedEventHandler;
-    delegate BundleReceivedEventHandler;
-    delegate ConnectedEventHandler;
-
-    interface IDataBuffer;
-    interface IDataBufferStatics;
-    runtimeclass DataBuffer;
-
-    interface IDataBundle;
-    interface IDataBundleStatics;
-    runtimeclass DataBundle;
-
-    interface IBundleReceivedArgs;
-    interface IBundleReceivedArgsStatics;
-    runtimeclass BundleReceivedArgs;
-
-    interface IConnection;
-    interface IConnectionInternal;
-    interface IConnectionStatics;
-    runtimeclass Connection;
-
-    interface IConnectionLock;
-    runtimeclass ConnectionLock;
-
-    interface IConnectedEventArgs;
-    runtimeclass ConnectedEventArgs;
-
-    interface IConnector;
-    interface IConnectorStatics;
-    runtimeclass Connector;
-
-    interface IListener;
-    interface IListenerStatics;
-    runtimeclass Listener;
-} }
-
 namespace RealtimeStreaming { namespace Media {
-    typedef enum SourceStreamState SourceStreamState;
-    typedef enum SinkStreamState SinkStreamState;
-    typedef enum SinkStreamOperation SinkStreamOperation;
-
-    typedef Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformation*> IDeviceEnumerationOperation;
-    typedef Windows.Foundation.AsyncOperationCompletedHandler<Windows.Devices.Enumeration.DeviceInformation*> IDeviceEnumerationCompletedHandler;
-
-    delegate FormatChangedEventHandler;
-    interface IFormatChangedEventArgs;
-    runtimeclass FormatChangedEventArgs;
-
-    delegate SampleUpdatedEventHandler;
-    interface ISampleUpdatedEventArgs;
-    runtimeclass SampleUpdatedEventArgs;
-
+    
     interface IMrvcSchemeHandler;
     runtimeclass MrvcSchemeHandler;
-
-    interface INetworkMediaSink;
-    interface INetworkMediaSinkInternal;
-    runtimeclass NetworkMediaSink;
-
-    interface IRealtimeServer;
-    interface IRealtimeServerStatics;
-    runtimeclass RealtimeServer;
 } }
 
 // interface defines
@@ -216,23 +125,6 @@ namespace RealtimeStreaming {
     };
 
     [version(1.0)]
-    struct MF_FLOAT2
-    {
-        FLOAT   x;
-        FLOAT   y;
-    };
-
-    [version(1.0)]
-    struct MFCameraIntrinsic_DistortionModel
-    {
-        FLOAT Radial_k1;
-        FLOAT Radial_k2;
-        FLOAT Radial_k3;
-        FLOAT Tangential_p1;
-        FLOAT Tangential_p2;
-    };
-
-    [version(1.0)]
     struct MediaSampleHeader
     {
         DWORD dwStreamId;
@@ -241,17 +133,6 @@ namespace RealtimeStreaming {
         DWORD dwFlags;
         DWORD dwFlagMasks;
         DWORD cbCameraDataSize;
-        Windows.Foundation.Numerics.Matrix4x4 worldToCameraMatrix;
-        Windows.Foundation.Numerics.Matrix4x4 cameraProjectionTransform;
-        Windows.Foundation.Numerics.Matrix4x4 cameraViewTransform;
-    };
-
-    [version(1.0)]
-    struct MediaSampleTransforms
-    {
-        Windows.Foundation.Numerics.Matrix4x4 worldToCameraMatrix;
-        Windows.Foundation.Numerics.Matrix4x4 cameraProjectionTransform;
-        Windows.Foundation.Numerics.Matrix4x4 cameraViewTransform;
     };
 
     [version(1.0)]
@@ -261,470 +142,10 @@ namespace RealtimeStreaming {
         LONGLONG hnsTimestamp;
         UINT32 cbAttributesSize;
     };
-
 }
 
-namespace RealtimeStreaming { namespace Plugin {
-
-    [version(1.0)]
-    enum DeviceType
-    {
-        Null = 0,
-        DX11 = 1,
-        Warp = 2
-    };
-
-    [version(1.0)]
-    enum PluginEventType
-    {
-        Update = 1,
-        Render = 2,
-        Flush = 3
-    };
-
-    // delegates
-    [uuid(742c3239-1cf3-40bb-98c8-73270e0e337f)]
-    [version(1.0)]
-    delegate HRESULT ClosedEventHandler(
-        [in] IInspectable* sender);
-
-    // IModule
-    [uuid(2edeb3fb-8008-4a13-b8d3-7081fd11443f)]
-    [version(1.0)]
-    interface IModule : IInspectable requires
-        Windows.Foundation.IClosable
-    {
-        [propget] HRESULT IsInitialized([out, retval] boolean* isInitialized);
-        HRESULT Uninitialize();
-    };
-
-    // ModuleManager
-    [exclusiveto(ModuleManager)]
-    [uuid(ee26ebc8-2eba-4476-be2a-4bf9389590bc)]
-    [version(1.0)]
-    interface IModuleManager : IInspectable
-    {
-        HRESULT AddModule(
-            [in] RealtimeStreaming.Plugin.IModule* pluginModule,
-            [out, retval] RealtimeStreaming.ModuleHandle* moduleHandle);
-        HRESULT GetModule(
-            [in] RealtimeStreaming.ModuleHandle moduleHandle,
-            [out, retval] RealtimeStreaming.Plugin.IModule** pluginModule);
-        HRESULT ReleaseModule(
-            [in] RealtimeStreaming.ModuleHandle moduleHandle);
-        HRESULT Uninitialize();
-    };
-
-    [exclusiveto(ModuleManager)]
-    [uuid(5feb052c-d722-4f2a-8bf5-7d03ba808794)]
-    [version(1.0)]
-    interface IModuleManagerStatics : IInspectable
-    {
-        [propget] HRESULT InvalidModuleHandle(
-            [out, retval] RealtimeStreaming.ModuleHandle* moduleHandle);
-    };
-
-    [activatable(1.0)]
-    [static(RealtimeStreaming.Plugin.IModuleManagerStatics, 1.0)]
-    [version(1.0)]
-    runtimeclass ModuleManager
-    {
-        [default] interface RealtimeStreaming.Plugin.IModuleManager;
-    };
-
-    // PluginManager
-    [exclusiveto(PluginManager)]
-    [uuid(c9630182-dd7a-4fe8-b797-14aa4daf297a)]
-    [version(1.0)]
-    interface IPluginManager : IInspectable
-    {
-        [propget] HRESULT ModuleManager(
-            [out][retval] RealtimeStreaming.Plugin.ModuleManager** moduleManager);
-        [propget] HRESULT DirectXManager(
-            [out][retval] RealtimeStreaming.Plugin.IDirectXManager** dxManager);
-    };
-
-    [exclusiveto(PluginManager)]
-    [uuid(172d17ad-464c-4da4-ad26-34d2a70d4f07)]
-    [version(1.0)]
-    interface IPluginManagerStatics : IInspectable
-    {
-        [propget] HRESULT Instance([out][retval] RealtimeStreaming.Plugin.PluginManager** pluginManager);
-    };
-
-    [static(RealtimeStreaming.Plugin.IPluginManagerStatics, 1.0)]
-    [version(1.0)]
-    runtimeclass PluginManager
-    {
-        [default] interface RealtimeStreaming.Plugin.IPluginManager;
-    };
-
-    // IDirectXManager
-    [uuid(712c3f26-ea19-44a2-b947-0313c7d41a2b)]
-    [version(1.0)]
-    interface IDirectXManager : IInspectable
-    {
-    };
-
-} }
-
-namespace RealtimeStreaming{ namespace Network {
-
-    declare
-    {
-        interface Windows.Foundation.Collections.IVector<RealtimeStreaming.Network.DataBuffer*>;
-        interface Windows.Foundation.Collections.IIterable<RealtimeStreaming.Network.DataBuffer*>;
-        interface Windows.Foundation.IAsyncOperation<RealtimeStreaming.Network.Connection*>;
-    }
-
-    // delegates
-    [uuid(7f6533cb-58a5-4634-a0ca-1af12e82f508)]
-    [version(1.0)]
-    delegate HRESULT DisconnectedEventHandler(
-        [in] RealtimeStreaming.Network.Connection* sender);
-
-    [uuid(351aade9-5b42-4ae8-9d72-dd5b765d3420)]
-    [version(1.0)]
-    delegate HRESULT BundleReceivedEventHandler(
-        [in] RealtimeStreaming.Network.Connection* sender,
-        [in] RealtimeStreaming.Network.BundleReceivedArgs* args);
-
-    [uuid(6f17b4ae-f506-4d6e-a666-893638581b19)]
-    [version(1.0)]
-    delegate HRESULT ConnectedEventHandler(
-        [in] RealtimeStreaming.Network.Connection* connection);
-
-    // DataPacket
-    [uuid(3fcabce1-d85d-4990-93cc-64b26b8b9505)]
-    [version(1.0)]
-    interface IDataPacket : IInspectable
-        requires Windows.Storage.Streams.IBuffer
-    {
-    };
-
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass DataPacket
-    {
-        [default] interface RealtimeStreaming.Network.IDataPacket;
-    };
-
-    // DataBuffer
-    [uuid(2fffa1dc-aa9b-4f0f-a67c-414da47613b8)]
-    [version(1.0)]
-    interface IDataBuffer : IInspectable
-    {
-        [propget] HRESULT Offset(
-            [out][retval] DWORD* offset);
-        [propput] HRESULT Offset(
-            [in] DWORD offset);
-
-        [propget] HRESULT CurrentLength(
-            [out][retval] DWORD* currentLength);
-        [propput] HRESULT CurrentLength(
-            [in] DWORD currentLength);
-
-        HRESULT TrimLeft(
-            [in] ULONG cbSize);
-        HRESULT TrimRight(
-            [in] ULONG cbSize,
-            [out] RealtimeStreaming.Network.DataBuffer** dataBuffer);
-
-        HRESULT Reset();
-    };
-
-    [uuid(eb453df3-e098-4fcb-b76c-ef3838583033)]
-    [version(1.0)]
-    interface IDataBufferStatics : IInspectable
-    {
-        [overload("Create")] HRESULT Create(
-            [in] ULONG size);
-    };
-
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass DataBuffer
-    {
-        [default] interface RealtimeStreaming.Network.IDataBuffer;
-    };
-
-    // DataBufferLock
-    [uuid(4375ee9d-0302-416b-af1a-2b8ff632a06f)]
-    [version(1.0)]
-    interface IDataBufferLock : IInspectable
-    {
-    };
-
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass DataBufferLock
-    {
-        [default] interface RealtimeStreaming.Network.IDataBufferLock;
-    };
-
-    // DataBundle
-    [uuid(049cd02e-12ec-45dc-8f58-931c342087ed)]
-    [version(1.0)]
-    interface IDataBundle : IInspectable 
-    {
-        [propget] HRESULT BufferCount(
-            [out][retval] UINT32* count);
-        [propget] HRESULT TotalSize(
-            [out][retval] ULONG* size);
-
-        HRESULT AddBuffer(
-            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
-        HRESULT InsertBuffer(
-            [in] UINT32 index,
-            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
-        HRESULT RemoveBuffer(
-            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
-        HRESULT RemoveBufferByIndex(
-            [in] UINT32 index,
-            [out][retval] RealtimeStreaming.Network.DataBuffer** dataBuffer);
-        HRESULT Reset(void);
-    };
-
-    [uuid(bac3c09b-76ca-44d9-ad40-080f3101884a)]
-    [version(1.0)]
-    interface IDataBundleStatics :IInspectable
-    {
-        [overload("Create")] HRESULT Create(
-            [in] RealtimeStreaming.Network.DataBuffer* dataBuffer);
-    };
-
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass DataBundle
-    {
-        [default] interface RealtimeStreaming.Network.IDataBundle;
-    };
-
-    // BundleReceivedArgs
-    [uuid(c0d9ad8e-f586-4314-af4d-69b80513b470)]
-    [version(1.0)]
-    interface IBundleReceivedArgs : IInspectable
-    {
-        [propget] HRESULT PayloadType(
-            [out][retval] RealtimeStreaming.PayloadType* payloadType);
-
-        [propget] HRESULT Connection(
-            [out][retval] RealtimeStreaming.Network.Connection** connection);
-
-        [propget] HRESULT DataBundle(
-            [out][retval] RealtimeStreaming.Network.DataBundle** dataBundle);
-
-        [propget] HRESULT RemoteUri(
-            [out][retval] Windows.Foundation.Uri** uri);
-    };
-
-    [exclusiveto(RealtimeStreaming.Network.BundleReceivedArgs)]
-    [uuid(3fa67b47-6b91-42ad-912c-ddd97ce02d50)]
-    [version(1.0)]
-    interface IBundleReceivedArgsStatics : IInspectable
-    {
-        [overload("Create")] HRESULT Create(
-            [in] RealtimeStreaming.PayloadType type,
-            [in] RealtimeStreaming.Network.Connection* connection,
-            [in] RealtimeStreaming.Network.DataBundle* dataBundle,
-            [in] Windows.Foundation.Uri* uri,
-            [out][retval] RealtimeStreaming.Network.BundleReceivedArgs** args);
-    };
-
-    [activatable(RealtimeStreaming.Network.IBundleReceivedArgsStatics, 1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass BundleReceivedArgs
-    {
-        [default] interface RealtimeStreaming.Network.IBundleReceivedArgs;
-    };
-
-    // Connection
-    [exclusiveto(RealtimeStreaming.Network.Connection)]
-    [uuid(027d0a6d-3ffb-480e-9e68-255cba264d40)]
-    [version(1.0)]
-    interface IConnection : IInspectable requires
-        RealtimeStreaming.Network.IConnectionInternal,
-        RealtimeStreaming.Plugin.IModule,
-        Windows.Foundation.IClosable
-    {
-        [propget] HRESULT IsConnected(
-            [out][retval] boolean* connected);
-
-        [eventadd] HRESULT Disconnected(
-            [in] RealtimeStreaming.Network.DisconnectedEventHandler* eventHandler,
-            [out, retval] EventRegistrationToken* token);
-        [eventremove] HRESULT Disconnected(
-            [in] EventRegistrationToken token);
-
-        [eventadd] HRESULT Received(
-            [in] RealtimeStreaming.Network.BundleReceivedEventHandler* eventHandler,
-            [out, retval] EventRegistrationToken* token);
-        [eventremove] HRESULT Received(
-            [in] EventRegistrationToken token);
-
-        HRESULT SendPayloadType(
-            [in] RealtimeStreaming.PayloadType type);
-        HRESULT SendBundle(
-            [in] RealtimeStreaming.Network.DataBundle* dataBundle);
-        HRESULT SendBundleAsync(
-            [in] RealtimeStreaming.Network.DataBundle* dataBundle,
-            [out, retval] Windows.Foundation.IAsyncAction** asyncAction);
-    };
-
-    [exclusiveto(RealtimeStreaming.Network.Connection)]
-    [uuid(7e41360e-7307-4ee3-8f5d-b644e7e5c55a)]
-    [version(1.0)]
-    interface IConnectionInternal : IInspectable
-    {
-        HRESULT CheckClosed();
-        HRESULT WaitForHeader();
-        HRESULT WaitForPayload();
-        HRESULT ResetBundle();
-    };
-
-    [exclusiveto(RealtimeStreaming.Network.Connection)]
-    [uuid(b3c719f9-b1c6-425a-9b21-8a36eaac7be4)]
-    [version(1.0)]
-    interface IConnectionStatics : IInspectable
-    {
-        HRESULT Create(
-            [in] Windows.Networking.Sockets.StreamSocket* streamSocket,
-            [out][retval] RealtimeStreaming.Network.Connection** connection);
-    };
-
-    [activatable(RealtimeStreaming.Network.IConnectionStatics, 1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass Connection
-    {
-        [default] interface RealtimeStreaming.Network.IConnection;
-        interface RealtimeStreaming.Network.IConnectionInternal;
-        interface RealtimeStreaming.Plugin.IModule;
-        interface Windows.Foundation.IClosable;
-    };
-
-    // Listener
-    [exclusiveto(RealtimeStreaming.Network.Listener)]
-    [uuid(887397c7-ce0f-4ced-86f1-54f4ee079d0b)]
-    [version(1.0)]
-    interface IListener : IInspectable requires
-        Windows.Foundation.IClosable,
-        RealtimeStreaming.Plugin.IModule
-    {
-        [eventadd] HRESULT Closed(
-            [in] RealtimeStreaming.Plugin.ClosedEventHandler* eventHandler,
-            [out][retval] EventRegistrationToken* token);
-        [eventremove] HRESULT Closed([in] EventRegistrationToken token);
-
-        HRESULT ListenAsync(
-            [out][retval] Windows.Foundation.IAsyncOperation<Connection*>** operation);
-    };
-
-    [uuid(0cfcc430-07f5-49c1-b86a-123da17030b5)]
-    [version(1.0)]
-    interface IListenerStatics : IInspectable
-    {
-        [overload("Create")] HRESULT Create(
-            [in] UINT16 port,
-            [out][retval] RealtimeStreaming.Network.Listener** listener);
-    };
-
-    [activatable(RealtimeStreaming.Network.IListenerStatics, 1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass Listener
-    {
-        [default] interface RealtimeStreaming.Network.IListener;
-        interface RealtimeStreaming.Plugin.IModule;
-        interface Windows.Foundation.IClosable;
-    };
-
-    // Connector
-    [exclusiveto(RealtimeStreaming.Network.Connector)]
-    [uuid(4d3288f4-b509-4ffe-848d-200218029096)]
-    [version(1.0)]
-    interface IConnector : IInspectable requires
-        Windows.Foundation.IClosable,
-        RealtimeStreaming.Plugin.IModule
-    {
-        [eventadd] HRESULT Closed(
-            [in] RealtimeStreaming.Plugin.ClosedEventHandler* eventHandler,
-            [out][retval] EventRegistrationToken* token);
-        [eventremove] HRESULT Closed(
-            [in] EventRegistrationToken token);
-
-        HRESULT ConnectAsync(
-            [out][retval] Windows.Foundation.IAsyncOperation<Connection*>** operation);
-    };
-
-    [exclusiveto(RealtimeStreaming.Network.Connector)]
-    [uuid(5af2e9f2-5052-46f5-a118-85d281b11314)]
-    [version(1.0)]
-    interface IConnectorStatics : IInspectable
-    {
-        HRESULT Create(
-            [in] HSTRING hostAddress,
-            [in] UINT16 port,
-            [out][retval] RealtimeStreaming.Network.Connector** connector);
-    };
-
-    [activatable(RealtimeStreaming.Network.IConnectorStatics, 1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass Connector
-    {
-        [default] interface RealtimeStreaming.Network.IConnector;
-        interface RealtimeStreaming.Plugin.IModule;
-        interface Windows.Foundation.IClosable;
-    };
-} }
-
+/*
 namespace RealtimeStreaming{ namespace Media {
-
-    [version(1.0)]
-    enum SourceStreamState
-    {
-        Invalid,
-        Opening,
-        Starting,
-        Started,
-        Stopped,
-        Shutdown,
-        Count
-    };
-
-    [version(1.0)]
-    enum SinkStreamState
-    {
-        NotSet = 0,
-        Ready,
-        Started,
-        Stopped,
-        Paused,
-        Count
-    };
-
-    [version(1.0)]
-    enum SinkStreamOperation
-    {
-        SetMediaType = 0,
-        Start,
-        Restart,
-        Pause,
-        Stop,
-        ProcessSample,
-        PlaceMarker,
-        Count   // Number of operations
-    };
 
     [version(1.0)]
     enum AudioMixerMode
@@ -756,93 +177,5 @@ namespace RealtimeStreaming{ namespace Media {
         [default] interface Windows.Media.IMediaExtension;
         interface IMrvcSchemeHandler;
     };
-
-    // NetworkMediaSink
-    [exclusiveto(RealtimeStreaming.Media.NetworkMediaSink)]
-    [uuid(c9fff32c-31f3-452f-b126-3c5c6da57206)]
-    [version(1.0)]
-    interface INetworkMediaSink : IInspectable requires
-        Windows.Media.IMediaExtension
-    {
-        [eventadd] HRESULT Closed(
-            [in] RealtimeStreaming.Plugin.ClosedEventHandler* eventHandler,
-            [out][retval] EventRegistrationToken* token);
-        [eventremove] HRESULT Closed(
-            [in] EventRegistrationToken token);
-
-		  /*
-        [eventadd] HRESULT FormatChanged(
-            [in] RealtimeStreaming.Media.FormatChangedEventHandler* eventHandler,
-            [out][retval] EventRegistrationToken* token);
-				[eventremove] HRESULT FormatChanged(
-            [in] EventRegistrationToken token);
-
-        [eventadd] HRESULT SampleUpdated(
-            [in] RealtimeStreaming.Media.SampleUpdatedEventHandler* eventhandler,
-            [out][retval] EventRegistrationToken* token);
-        [eventremove] HRESULT SampleUpdated(
-            [in] EventRegistrationToken token);
-		  */
-        HRESULT OnEndOfStream(
-            [in] DWORD streamId);
-
-        HRESULT HandleError(
-            [in] HRESULT hr);
-
-        HRESULT CheckShutdown(void);
-
-        HRESULT SendDescription(void);
-
-        HRESULT SetMediaStreamProperties(
-            [in] Windows.Media.Capture.MediaStreamType MediaStreamType,
-            [in] Windows.Media.MediaProperties.IMediaEncodingProperties *mediaEncodingProperties);
-
-    };
-
-    [activatable(1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass NetworkMediaSink
-    {
-        [default] interface Windows.Media.IMediaExtension;
-        interface INetworkMediaSink;
-    };
-
-    // RealtimeServer
-    [exclusiveto(RealtimeStreaming.Media.RealtimeServer)]
-    [uuid(5e9858a9-5ef5-4b84-9645-eb3c11610a17)]
-    [version(1.0)]
-    interface IRealtimeServer : IInspectable requires
-        RealtimeStreaming.Plugin.IModule
-    {
-        HRESULT Shutdown();
-        HRESULT WriteFrame([in] UINT32 bufferSize, [in, size_is(bufferSize)] byte* buffer);
-		HRESULT GetCurrentResolution([out] UINT32* pWidth, [out] UINT32* pHeight);
-    };
-
-    [exclusiveto(RealtimeStreaming.Media.RealtimeServer)]
-    [uuid(da706722-7bf4-4527-ad4c-2222cb81a7ab)]
-    [version(1.0)]
-    interface IRealtimeServerStatics : IInspectable
-    {
-        HRESULT Create(
-            [in] RealtimeStreaming.Network.Connection* connection,
-            [in] GUID inputMediaType,
-            [in] Windows.Media.MediaProperties.MediaEncodingProfile *mediaEncodingProfile,
-            [out][retval] RealtimeStreaming.Media.RealtimeServer** RealtimeServer);
-    };
-
-    //[activatable(RealtimeStreaming.Media.IRealtimeServerStatics, 1.0)]
-    //[activatable(1.0)]
-    [static(RealtimeStreaming.Media.IRealtimeServerStatics, 1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass RealtimeServer
-    {
-        [default] interface RealtimeStreaming.Media.IRealtimeServer;
-        interface RealtimeStreaming.Plugin.IModule;
-    };
-
 } }
+*/

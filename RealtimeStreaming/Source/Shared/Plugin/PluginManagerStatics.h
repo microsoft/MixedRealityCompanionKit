@@ -28,8 +28,8 @@ namespace RealtimeStreaming
                 _COM_Outptr_opt_result_maybenull_ IPluginManager** ppPluginManager);
 
             // PluginManagerImpl publics
-            static STDMETHODIMP_(ComPtr<PluginManagerImpl>) GetInstance();
-            static STDMETHODIMP_(ComPtr<IThreadPoolStatics>) GetThreadPool();
+            static STDMETHODIMP_(com_ptr<PluginManager>) GetInstance();
+            static STDMETHODIMP_(com_ptr<IThreadPoolStatics>) GetThreadPool();
             static STDMETHODIMP_(BOOL) IsInitialized();
             static STDMETHODIMP Uninitialize();
 
@@ -53,7 +53,7 @@ namespace RealtimeStreaming
         private:
             static INIT_ONCE                    s_initOnce;
             static DWORD                        s_threadId;
-            static ComPtr<PluginManagerImpl>    s_spInstance;
+            static com_ptr<PluginManager>    s_spInstance;
             static BOOL                         s_isInitialized;
         };
 

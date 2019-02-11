@@ -3,52 +3,39 @@
 
 #pragma once
 
-namespace RealtimeStreaming 
+#include "RealtimeServer.g.h"
+
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mferror.h>
+
+namespace winrt::RealtimeStreaming::Media::implementation
 {
-    namespace Media 
+    struct RealtimeServer : RealtimeServerT<RealtimeServer, Module>
     {
-        class RealtimeServerImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , ABI::RealtimeStreaming::Plugin::IModule
-            , ABI::RealtimeStreaming::Media::IRealtimeServer
-            , FtmBase >
-        {
-            InspectableClass(RuntimeClass_RealtimeStreaming_Media_RealtimeServer, BaseTrust)
-
         public:
-            RealtimeServerImpl();
-            ~RealtimeServerImpl();
-
-            HRESULT RuntimeClassInitialize(
-                _In_ IConnection* pConnection,
+            RealtimeServer(_In_ Connection connection,
                 _In_ GUID inputMediaType,
-                _In_ IMediaEncodingProfile* pMediaEncodingProperties);
+                _In_ MediaEncodingProfile mediaEncodingProperties);
+
+            virtual ~RealtimeServer();
 
             // IModule
-            IFACEMETHOD(get_IsInitialized)(
-                _Out_ boolean* pIsInitialzed);
-            IFACEMETHOD(Uninitialize)(void);
-
-            // IRealtimeServer
-            IFACEMETHOD(Shutdown)();
+            void Shutdown();
             
-            IFACEMETHOD(WriteFrame)(
+            void WriteFrame(
                 _In_ UINT32 bufferSize,
                 __in_ecount(bufferSize) BYTE* pBuffer);
 
-			IFACEMETHOD(GetCurrentResolution)(
-				_Out_ UINT32* pWidth,
-				_Out_ UINT32* pHeight);
+            Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
 
         private:
             Wrappers::CriticalSection _lock;
 
-            boolean _isInitialized;
+            MediaEncodingProfile m_spMediaEncodingProfile;
+            NetworkMediaSink m_spNetworkMediaSink{ nullptr };
 
-            ComPtr<IMediaEncodingProfile> _spMediaEncodingProfile;
-            ComPtr<NetworkMediaSinkImpl> _spNetworkMediaSink;
-            ComPtr<IMFSinkWriter> _spSinkWriter;
+            winrt::com_ptr<IMFSinkWriter> m_spSinkWriter;
             DWORD m_sinkWriterStream;
 
             GUID m_mediaInputFormat;
@@ -57,33 +44,5 @@ namespace RealtimeStreaming
 
             const UINT32 VIDEO_FPS = 30;
             const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
-        };
-
-        class RealtimeServerStaticsImpl
-	        : public ActivationFactory
-	        < ABI::RealtimeStreaming::Media::IRealtimeServerStatics
-	        , FtmBase >
-        {
-            InspectableClassStatic(RuntimeClass_RealtimeStreaming_Media_RealtimeServer, BaseTrust);
-
-        public:
-            // IRealtimeServerStatics
-            STDMETHODIMP Create(
-                _In_ ABI::RealtimeStreaming::Network::IConnection* pConnection,
-                _In_ GUID inputMediaType,
-                _In_ ABI::Windows::Media::MediaProperties::IMediaEncodingProfile *pMediaEncodingProfile,
-                _COM_Outptr_result_maybenull_ ABI::RealtimeStreaming::Media::IRealtimeServer** ppRealtimeServer) override
-            {
-                ComPtr<RealtimeServerImpl> spRealtimeServer;
-                IFR(Microsoft::WRL::MakeAndInitialize<RealtimeServerImpl>(&spRealtimeServer, 
-                    pConnection,
-                    inputMediaType,
-                    pMediaEncodingProfile));
-
-                NULL_CHK_HR(spRealtimeServer, E_OUTOFMEMORY);
-
-                return spRealtimeServer.CopyTo(ppRealtimeServer);
-            }
-		};
-    }
+    };
 }

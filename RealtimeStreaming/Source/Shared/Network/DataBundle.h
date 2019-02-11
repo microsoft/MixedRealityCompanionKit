@@ -16,8 +16,8 @@ namespace RealtimeStreaming
             InspectableClass(RuntimeClass_RealtimeStreaming_Network_DataBundle, BaseTrust);
 
         public:
-            typedef std::list<ComPtr<IDataBuffer> > Container;
-            typedef std::list<ComPtr<IDataBuffer> >::iterator Iterator;
+            typedef std::list<com_ptr<IDataBuffer> > Container;
+            typedef std::list<com_ptr<IDataBuffer> >::iterator Iterator;
 
             ~DataBundleImpl();
 

@@ -31,8 +31,8 @@ HRESULT ConnectorImpl::RuntimeClassInitialize(
 {
     Log(Log_Level_Info, L"ConnectorImpl::RuntimeClassInitialize(IHostName)\n");
 
-    ComPtr<ABI::Windows::Networking::IHostName> spHostName(hostName);
-    IFR(spHostName.As(&_hostName));
+    com_ptr<ABI::Windows::Networking::IHostName> spHostName(hostName);
+    check_hresult(spHostName.As(&_hostName));
 
     _port = port;
 
@@ -84,9 +84,9 @@ HRESULT ConnectorImpl::ConnectAsync(
 
     NULL_CHK(operation);
 
-    ComPtr<IAsyncOperation<Connection*>> spThis(this);
+    com_ptr<IAsyncOperation<Connection*>> spThis(this);
 
-    IFR(spThis.CopyTo(operation));
+    check_hresult(spThis.CopyTo(operation));
 
     return Start();
 }
@@ -142,14 +142,14 @@ HRESULT ConnectorImpl::GetResults(
 {
     auto lock = _lock.Lock();
 
-    IFR(AsyncBase::CheckValidStateForResultsCall());
+    check_hresult(AsyncBase::CheckValidStateForResultsCall());
 
-    ComPtr<ConnectionImpl> spConnection;
-    IFR(Microsoft::WRL::MakeAndInitialize<ConnectionImpl>(&spConnection, _streamSocketResult.Detach()));
+    com_ptr<ConnectionImpl> spConnection;
+    check_hresult(MakeAndInitialize<ConnectionImpl>(&spConnection, _streamSocketResult.detach()));
 
     NULL_CHK_HR(spConnection, E_NOT_SET);
 
-    IFR(spConnection.CopyTo(ppConnection));
+    check_hresult(spConnection.CopyTo(ppConnection));
 
     return Close();
 }
@@ -161,29 +161,29 @@ HRESULT ConnectorImpl::OnStart(void)
     std::wstring wsPort = to_wstring(_port);
 
     // activate a stream socket
-    ComPtr<IStreamSocket> streamSocket;
-    IFR(Windows::Foundation::ActivateInstance(
-        Wrappers::HStringReference(RuntimeClass_Windows_Networking_Sockets_StreamSocket).Get(),
+    com_ptr<IStreamSocket> streamSocket;
+    check_hresult(Windows::Foundation::ActivateInstance(
+        Wrappers::HStringReference(RuntimeClass_Windows_Networking_Sockets_StreamSocket).get(),
         &streamSocket));
 
     // get the control and set properties
-    ComPtr<IStreamSocketControl> streamControl;
-    IFR(streamSocket->get_Control(&streamControl));
-    IFR(streamControl->put_KeepAlive(true));
-    IFR(streamControl->put_NoDelay(true));
-    IFR(streamControl->put_QualityOfService(SocketQualityOfService::SocketQualityOfService_LowLatency));
+    com_ptr<IStreamSocketControl> streamControl;
+    check_hresult(streamSocket->get_Control(&streamControl));
+    check_hresult(streamControl->put_KeepAlive(true));
+    check_hresult(streamControl->put_NoDelay(true));
+    check_hresult(streamControl->put_QualityOfService(SocketQualityOfService::SocketQualityOfService_LowLatency));
 
     // setup connection Action
-    ComPtr<IAsyncAction> connectAsync;
-    IFR(streamSocket->ConnectAsync(
-        _hostName.Get(), 
-        Wrappers::HStringReference(wsPort.data()).Get(), 
+    com_ptr<IAsyncAction> connectAsync;
+    check_hresult(streamSocket->ConnectAsync(
+        _hostName.get(), 
+        Wrappers::HStringReference(wsPort.data()).get(), 
         &connectAsync));
 
     // set callback and handle result
-    ComPtr<ConnectorImpl> spThis(this);
+    com_ptr<ConnectorImpl> spThis(this);
     return StartAsyncThen(
-        connectAsync.Get(),
+        connectAsync.get(),
         [this, spThis, streamSocket](_In_ HRESULT hr, _In_ IAsyncAction* pAsyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         auto lock = _lock.Lock();
@@ -219,7 +219,7 @@ void ConnectorImpl::CloseInternal(void)
 {
     Log(Log_Level_Info, L"ConnectorImpl::CloseInternal()\n");
 
-    ComPtr<ABI::Windows::Foundation::IClosable> closeable;
+    com_ptr<ABI::Windows::Foundation::IClosable> closeable;
     if (nullptr != _streamSocketResult)
     {
         if SUCCEEDED(_streamSocketResult.As(&closeable))
@@ -227,8 +227,8 @@ void ConnectorImpl::CloseInternal(void)
             LOG_RESULT(closeable->Close());
         }
 
-        ComPtr<IConnector> spThis(this);
-        LOG_RESULT(_evtClosed.InvokeAll(spThis.Get()));
+        com_ptr<IConnector> spThis(this);
+        LOG_RESULT(_evtClosed.InvokeAll(spThis.get()));
     }
     _streamSocketResult.Reset();
     _streamSocketResult = nullptr;

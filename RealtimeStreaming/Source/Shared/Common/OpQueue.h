@@ -99,7 +99,7 @@ ILockable
     : public IUnknown
 {
 public:
-    virtual Microsoft::WRL::Wrappers::CriticalSection::SyncLock Lock() = 0;
+    virtual Wrappers::CriticalSection::SyncLock Lock() = 0;
 };
 
 extern const __declspec(selectany) IID & IID_ILockable = __uuidof(ILockable);
@@ -134,7 +134,7 @@ protected:
 
 protected:
     OpList m_OpQueue;   // Queue of operations.
-    ComPtr<ILockable> m_parent;
+    com_ptr<ILockable> m_parent;
     AsyncCallback<T> m_OnProcessQueue;  // ProcessQueueAsync callback.
 };
 

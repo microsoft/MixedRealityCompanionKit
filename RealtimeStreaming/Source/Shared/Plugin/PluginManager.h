@@ -3,82 +3,58 @@
 
 #pragma once
 
-namespace RealtimeStreaming
+#include "PluginManager.g.h"
+
+namespace winrt::RealtimeStreaming::Plugin::implementation
 {
-    namespace Plugin
+    extern "C" typedef void(UNITY_INTERFACE_API *PluginCallback)(
+        _In_ ModuleHandle handle,
+        _In_ void* pCallbackObject,
+        _In_ HRESULT result);
+    //_In_ LPCWSTR pszMessage); // TODO: issue with instantiating data in c++ and marshalling back to C#
+
+    extern "C" typedef void(UNITY_INTERFACE_API *PlayerCreatedCallback)(
+        _In_ void* pCallbackObject,
+        _In_ HRESULT result,
+        _In_ UINT32 width,
+        _In_ UINT32 height);
+
+    extern "C" typedef void(UNITY_INTERFACE_API *DataReceivedHandler)(
+        _In_ ModuleHandle handle,
+        _In_ void* pCallbackObject,
+        _In_ UINT16 opertion,
+        _In_ UINT32 bufferSize,
+        _In_ const byte* buffer);
+
+    extern "C" struct MediaSampleArgs
     {
-        using namespace ABI::RealtimeStreaming;
-        using namespace ABI::RealtimeStreaming::Media;
-        using namespace ABI::RealtimeStreaming::Plugin;
+        IUnknown* videoTexture;
+        UINT32 width;
+        UINT32 height;
+        UINT64 timestamp;
+    };
 
-        using namespace ABI::Windows::Foundation;
-        using namespace ABI::Windows::System::Threading;
+    typedef std::function<void(_In_ float deltaTime, _In_ float relativeTime)> UpdateAction;
+    typedef std::function<void()> RenderAction;
 
-        extern "C" typedef void(UNITY_INTERFACE_API *PluginCallback)(
-            _In_ ModuleHandle handle,
-            _In_ void* pCallbackObject,
-            _In_ HRESULT result);
-        //_In_ LPCWSTR pszMessage); // TODO: issue with instantiating data in c++ and marshalling back to C#
-
-        extern "C" typedef void(UNITY_INTERFACE_API *PlayerCreatedCallback)(
-            _In_ void* pCallbackObject,
-            _In_ HRESULT result,
-            _In_ UINT32 width,
-            _In_ UINT32 height);
-
-        extern "C" typedef void(UNITY_INTERFACE_API *DataReceivedHandler)(
-            _In_ ModuleHandle handle,
-            _In_ void* pCallbackObject,
-            _In_ UINT16 opertion,
-            _In_ UINT32 bufferSize,
-            _In_ const byte* buffer);
-
-        extern "C" struct MediaSampleArgs
-        {
-            IUnknown* videoTexture;
-            UINT32 width;
-            UINT32 height;
-            UINT64 timestamp;
-            Matrix4x4 cameraViewTransform;
-            Matrix4x4 cameraProjection;
-            Matrix4x4 cameraCoordinate;
-            Matrix4x4 cameraAffine;
-        };
-
-        typedef std::function<void(_In_ float deltaTime, _In_ float relativeTime)> UpdateAction;
-        typedef std::function<void()> RenderAction;
-
-        class PluginManagerImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , IPluginManager
-            , FtmBase >
-        {
+    struct PluginManager : PluginManagerT<PluginManager>
+    {
         public:
-            ~PluginManagerImpl();
+            PluginManager();
+            ~PluginManager();
 
-            // RuntimeClass
-            STDMETHODIMP RuntimeClassInitialize();
+            RealtimeStreaming.Plugin.ModuleManager ModuleManager();
 
-            // IPluginManager
-            IFACEMETHOD(get_ModuleManager)(
-                _COM_Outptr_opt_result_maybenull_ IModuleManager** moduleManager);
+            RealtimeStreaming.Plugin.DirectXManager DirectXManager();
+
             IFACEMETHOD(get_ThreadPool)(
                 _COM_Outptr_opt_result_maybenull_ IThreadPoolStatics** threadPool);
-            IFACEMETHOD(get_DirectXManager)(
-                _COM_Outptr_opt_result_maybenull_ IDirectXManager** dxManager);
 
-            // PluginManagerImpl
-            STDMETHODIMP_(void) Load(
+            void Load(
                 _In_ IUnityInterfaces* unityInterfaces,
                 _In_ IUnityGraphicsDeviceEventCallback callback);
-            STDMETHODIMP_(void) UnLoad();
-            STDMETHODIMP_(void) OnDeviceEvent(
-                _In_ UnityGfxDeviceEventType eventType);
-            STDMETHODIMP_(void) SetTime(
-                _In_ float t);
-            STDMETHODIMP_(void) OnPlugInEvent(
-                _In_ Plugin::PluginEventType eventType);
+            void UnLoad();
+            void OnDeviceEvent(_In_ UnityGfxDeviceEventType eventType);
 
             // Plugin
             STDMETHODIMP ListenerCreateAndStart(
@@ -157,13 +133,9 @@ namespace RealtimeStreaming
                 _In_ ModuleHandle handle,
                 _In_ HRESULT hr);
 
-            STDMETHODIMP GetConnection(
-                _In_ ModuleHandle handle,
-                _Out_ IConnection** ppPlaybackEngine);
+            Connection GetConnection(_In_ ModuleHandle handle);
 
-            STDMETHODIMP GetRealtimeServer(
-                _In_ ModuleHandle handle,
-                _Out_ IRealtimeServer** ppPlaybackEngine);
+            RealtimeServer GetRealtimeServer(_In_ ModuleHandle handle);
 
             STDMETHODIMP_(void) StoreToken(
                 _In_ ModuleHandle handle,
@@ -176,24 +148,18 @@ namespace RealtimeStreaming
         private:
             Wrappers::CriticalSection _lock;
 
-            ComPtr<IThreadPoolStatics>          _threadPoolStatics;
-            ComPtr<IModuleManager>              _moduleManager;
+            com_ptr<IThreadPoolStatics>          m_threadPoolStatics;
+            ModuleManager              m_moduleManager;
 
-            ComPtr<DirectXManagerImpl>          _dxManager;
+            DirectXManager          m_dxManager;
 
-            IUnityInterfaces*                   _unityInterfaces;
-            IUnityGraphics*                     _unityGraphics;
-            IUnityGraphicsDeviceEventCallback   _unityCallback;
+            IUnityInterfaces*                   m_unityInterfaces;
+            IUnityGraphics*                     m_unityGraphics;
+            IUnityGraphicsDeviceEventCallback   m_unityCallback;
 
-            std::wstring    _streamingAssetsPath;
+            std::wstring    m_streamingAssetsPath;
 
-            float   _timeElasped;
-            float   _deltaTime;
-
-            concurrency::concurrent_queue<UpdateAction>     _updateQueue;
-            concurrency::concurrent_queue<RenderAction>     _renderQueue;
-
-            std::map<ModuleHandle, std::vector<EventRegistrationToken>> _eventTokens;
+            std::map<ModuleHandle, std::vector<EventRegistrationToken>> m_eventTokens;
 
             std::vector<byte> _bundleData;
         };

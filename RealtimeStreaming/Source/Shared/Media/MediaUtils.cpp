@@ -132,15 +132,15 @@ HRESULT FilterOutputMediaType(
     GUID guidMajorType;
     GUID guidSubtype;
 
-    IFR(pSourceMediaType->GetMajorType(&guidMajorType));
+    check_hresult(pSourceMediaType->GetMajorType(&guidMajorType));
 
-    IFR(pSourceMediaType->GetGUID(MF_MT_SUBTYPE, &guidSubtype));
+    check_hresult(pSourceMediaType->GetGUID(MF_MT_SUBTYPE, &guidSubtype));
 
     MediaTypeValidationDescriptor typeDescriptor;
-    IFR(FindMediaTypeDescriptor(guidMajorType, guidSubtype, &typeDescriptor));
+    check_hresult(FindMediaTypeDescriptor(guidMajorType, guidSubtype, &typeDescriptor));
 
     UINT32 cAttributes = 0;
-    IFR(pSourceMediaType->GetCount(&cAttributes));
+    check_hresult(pSourceMediaType->GetCount(&cAttributes));
 
     // Remove optional and not necessary attributes.
     for (UINT32 nIndex = 0; nIndex < cAttributes; ++nIndex)
@@ -161,7 +161,7 @@ HRESULT FilterOutputMediaType(
         PropVariantClear(&val);
         if (MF_E_INVALIDMEDIATYPE == hr)
         {
-            IFR(hr);
+            check_hresult(hr);
         }
     }
 
@@ -177,10 +177,10 @@ HRESULT ValidateInputMediaType(
     NULL_CHK(pMediaType);
 
     MediaTypeValidationDescriptor typeDescriptor;
-    IFR(FindMediaTypeDescriptor(guidMajorType, guidSubtype, &typeDescriptor));
+    check_hresult(FindMediaTypeDescriptor(guidMajorType, guidSubtype, &typeDescriptor));
 
     UINT32 cAttributes = 0;
-    IFR(pMediaType->GetCount(&cAttributes));
+    check_hresult(pMediaType->GetCount(&cAttributes));
 
     HRESULT hr = S_OK;
     GUID guidKey;
@@ -201,7 +201,7 @@ HRESULT ValidateInputMediaType(
         PropVariantClear(&val);
         if (FAILED(hr))
         {
-            IFR(hr);
+            check_hresult(hr);
         }
     }
 
@@ -218,34 +218,14 @@ HRESULT GetVideoResolution(
 	 NULL_CHK(width);
 	 NULL_CHK(height);
 
-	 ComPtr<IVideoEncodingProperties> spVideoEncodingProperties;
-	 IFR(mediaEncodingProfile->get_Video(&spVideoEncodingProperties));
+	 com_ptr<IVideoEncodingProperties> spVideoEncodingProperties;
+	 check_hresult(mediaEncodingProfile->get_Video(&spVideoEncodingProperties));
 
-	 IFR(spVideoEncodingProperties->get_Height(height));
-	 IFR(spVideoEncodingProperties->get_Width(width));
-
-	 return S_OK;
-}
-
-_Use_decl_annotations_
-HRESULT CreateMediaPlaybackItem(
-	 IMediaSource2* pMediaSource,
-	 IMediaPlaybackItem** ppMediaPlaybackItem)
-{
-	 // create playbackitem from source
-	 ComPtr<IMediaPlaybackItemFactory> spItemFactory;
-	 IFR(ABI::Windows::Foundation::GetActivationFactory(
-		  Wrappers::HStringReference(RuntimeClass_Windows_Media_Playback_MediaPlaybackItem).Get(),
-		  &spItemFactory));
-
-	 ComPtr<IMediaPlaybackItem> spItem;
-	 IFR(spItemFactory->Create(pMediaSource, &spItem));
-
-	 *ppMediaPlaybackItem = spItem.Detach();
+	 check_hresult(spVideoEncodingProperties->get_Height(height));
+	 check_hresult(spVideoEncodingProperties->get_Width(width));
 
 	 return S_OK;
 }
-
 
 #if defined(_DEBUG)
 // Check for SDK Layer support.
@@ -278,18 +258,18 @@ HRESULT GetSurfaceFromTexture(
 
 	 *ppSurface = nullptr;
 
-	 ComPtr<ID3D11Texture2D> spTexture(pTexture);
+	 com_ptr<ID3D11Texture2D> spTexture(pTexture);
 
-	 ComPtr<IDXGISurface> dxgiSurface;
-	 IFR(spTexture.As(&dxgiSurface));
+	 com_ptr<IDXGISurface> dxgiSurface;
+	 check_hresult(spTexture.As(&dxgiSurface));
 
-	 ComPtr<IInspectable> inspectableSurface;
-	 IFR(CreateDirect3D11SurfaceFromDXGISurface(dxgiSurface.Get(), &inspectableSurface));
+	 com_ptr<IInspectable> inspectableSurface;
+	 check_hresult(CreateDirect3D11SurfaceFromDXGISurface(dxgiSurface.get(), &inspectableSurface));
 
-	 ComPtr<IDirect3DSurface> spSurface;
-	 IFR(inspectableSurface.As(&spSurface));
+	 com_ptr<IDirect3DSurface> spSurface;
+	 check_hresult(inspectableSurface.As(&spSurface));
 
-	 *ppSurface = spSurface.Detach();
+	 *ppSurface = spSurface.detach();
 
 	 return S_OK;
 }
@@ -323,8 +303,8 @@ HRESULT CreateMediaDevice(
 		 D3D_FEATURE_LEVEL_10_0,
 	 };
 
-	 ComPtr<ID3D11Device> spDevice;
-	 ComPtr<ID3D11DeviceContext> spContext;
+	 com_ptr<ID3D11Device> spDevice;
+	 com_ptr<ID3D11DeviceContext> spContext;
 
 	 D3D_DRIVER_TYPE driverType = (nullptr != pDXGIAdapter) ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE;
 
@@ -363,23 +343,23 @@ HRESULT CreateMediaDevice(
 					 &spContext);
 		  }
 
-		  IFR(hr);
+		  check_hresult(hr);
 	 }
 	 else
 	 {
 		  // workaround for nvidia GPU's, cast to ID3D11VideoDevice
-		  Microsoft::WRL::ComPtr<ID3D11VideoDevice> videoDevice;
+		  com_ptr<ID3D11VideoDevice> videoDevice;
 		  spDevice.As(&videoDevice);
 	 }
 
 	 // Turn multithreading on 
-	 ComPtr<ID3D10Multithread> spMultithread;
+	 com_ptr<ID3D10Multithread> spMultithread;
 	 if (SUCCEEDED(spContext.As(&spMultithread)))
 	 {
 		  spMultithread->SetMultithreadProtected(TRUE);
 	 }
 
-	 *ppDevice = spDevice.Detach();
+	 *ppDevice = spDevice.detach();
 
 	 return S_OK;
 }
@@ -392,7 +372,7 @@ HRESULT CreateIMFMediaBuffer(
     BYTE* pBuffer,
     IMFMediaBuffer** ppIMFBuffer)
 {
-    ComPtr<IMFMediaBuffer> spBuffer;
+    com_ptr<IMFMediaBuffer> spBuffer;
 
     const LONG cbWidth = sizeof(DWORD) * width;
     const DWORD cbBuffer = cbWidth * height;
@@ -404,12 +384,12 @@ HRESULT CreateIMFMediaBuffer(
 
     // Create a new memory buffer.
     BYTE *pMFdata = NULL;
-    IFR(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
+    check_hresult(MFCreateMemoryBuffer(cbBuffer, &spBuffer));
 
     // Lock the buffer and copy the video frame to the buffer.
-    IFR(spBuffer->Lock(&pMFdata, NULL, NULL));
+    check_hresult(spBuffer->Lock(&pMFdata, NULL, NULL));
 
-    IFR(MFCopyImage(
+    check_hresult(MFCopyImage(
         pMFdata,                    // Destination buffer.
         cbWidth,                    // Destination stride.
         pBuffer,						    // First row in source image.
@@ -424,7 +404,7 @@ HRESULT CreateIMFMediaBuffer(
     }
 
     // Set the data length of the buffer.
-    IFR(spBuffer->SetCurrentLength(cbBuffer));
+    check_hresult(spBuffer->SetCurrentLength(cbBuffer));
 
     spBuffer.CopyTo(ppIMFBuffer);
 

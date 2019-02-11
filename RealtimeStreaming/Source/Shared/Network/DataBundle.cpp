@@ -32,21 +32,21 @@ HRESULT DataBundleImpl::RuntimeClassInitialize(
     _buffers.clear();
 
     DWORD bufferCount = 0;
-    IFR(mediaSample->GetBufferCount(&bufferCount));
+    check_hresult(mediaSample->GetBufferCount(&bufferCount));
 
     // for every buffer, create a DataBuffer
     for (DWORD index = 0; index < bufferCount; ++index)
     {
         // get the media buffer
-        ComPtr<IMFMediaBuffer> spMediaBuffer;
-        IFR(mediaSample->GetBufferByIndex(index, &spMediaBuffer));
+        com_ptr<IMFMediaBuffer> spMediaBuffer;
+        check_hresult(mediaSample->GetBufferByIndex(index, &spMediaBuffer));
 
         // create the dataBuffer
-        ComPtr<IDataBuffer> spDataBuffer;
-        IFR(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, spMediaBuffer.Get()));
+        com_ptr<IDataBuffer> spDataBuffer;
+        check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, spMediaBuffer.get()));
 
         // add the buffer to bundle
-        IFR(AddBuffer(spDataBuffer.Get()));
+        check_hresult(AddBuffer(spDataBuffer.get()));
     }
 
     return S_OK;
@@ -76,7 +76,7 @@ HRESULT DataBundleImpl::get_TotalSize(
     for (; it != itEnd; ++it)
     {
         DWORD cbLen;
-        IFR((*it)->get_CurrentLength(&cbLen));
+        check_hresult((*it)->get_CurrentLength(&cbLen));
 
         cbSize += cbLen;
     }
@@ -88,7 +88,7 @@ HRESULT DataBundleImpl::get_TotalSize(
 
 _Use_decl_annotations_
 HRESULT DataBundleImpl::AddBuffer(
-    IDataBuffer *dataBuffer)
+    DataBuffer const& dataBuffer)
 {
     NULL_CHK(dataBuffer);
 
@@ -106,7 +106,7 @@ HRESULT DataBundleImpl::InsertBuffer(
 
     if (_buffers.size() < index)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     Iterator it = _buffers.begin();
@@ -127,13 +127,13 @@ HRESULT DataBundleImpl::RemoveBuffer(
 
     if (_buffers.size() == 0)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     Iterator it = _buffers.begin();
     Iterator itEnd = _buffers.end();
 
-    for (; ((*it).Get() != dataBuffer) && it != itEnd; ++it);
+    for (; ((*it).get() != dataBuffer) && it != itEnd; ++it);
 
     _buffers.erase(it);
 
@@ -148,7 +148,7 @@ HRESULT DataBundleImpl::RemoveBufferByIndex(
     NULL_CHK(ppDataBuffer);
     if (_buffers.size() < index)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     Iterator it = _buffers.begin();
@@ -158,7 +158,7 @@ HRESULT DataBundleImpl::RemoveBufferByIndex(
 
     NULL_CHK_HR(*it, E_NOT_SET);
 
-    IFR((*it).CopyTo(ppDataBuffer));
+    check_hresult((*it).CopyTo(ppDataBuffer));
 
     _buffers.erase(it);
 
@@ -204,7 +204,7 @@ HRESULT DataBundleImpl::CopyTo(
         DWORD cbLen;
         DWORD nStart = 0;
         DWORD cbCopy = 0;
-        IFR((*it)->get_CurrentLength(&cbLen));
+        check_hresult((*it)->get_CurrentLength(&cbLen));
 
         if (cbSkipped + cbLen <= nOffset)
         {
@@ -222,12 +222,12 @@ HRESULT DataBundleImpl::CopyTo(
         }
 
         // cast to IBufferByteAccess
-        ComPtr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
-        IFR((*it).As(&spByteAccess));
+        com_ptr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
+        check_hresult((*it).As(&spByteAccess));
 
         // get the raw byte pointer
         BYTE *buffer = nullptr;
-        IFR(spByteAccess->Buffer(&buffer));
+        check_hresult(spByteAccess->Buffer(&buffer));
         NULL_CHK(buffer);
 
         CopyMemory(pDest, buffer + nStart, cbCopy);
@@ -239,17 +239,17 @@ HRESULT DataBundleImpl::CopyTo(
     for (; it != itEnd && cbCopied < cbSize; ++it)
     {
         DWORD cbLen;
-        IFR((*it)->get_CurrentLength(&cbLen));
+        check_hresult((*it)->get_CurrentLength(&cbLen));
 
         DWORD cbCopy = min(cbLen, cbSize - cbCopied);
 
         // cast to IBufferByteAccess
-        ComPtr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
-        IFR((*it).As(&spByteAccess));
+        com_ptr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
+        check_hresult((*it).As(&spByteAccess));
 
         // get the raw byte pointer
         BYTE *buffer = nullptr;
-        IFR(spByteAccess->Buffer(&buffer));
+        check_hresult(spByteAccess->Buffer(&buffer));
         NULL_CHK(buffer);
 
         CopyMemory(static_cast<BYTE *>(pDest) + cbCopied, buffer, cbCopy);
@@ -268,11 +268,11 @@ HRESULT DataBundleImpl::MoveLeft(
     void* pDest)
 {
     ULONG cbCopied = 0;
-    IFR(DataBundleImpl::CopyTo(0, cbSize, pDest, &cbCopied));
+    check_hresult(DataBundleImpl::CopyTo(0, cbSize, pDest, &cbCopied));
 
     if (cbCopied != cbSize)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     return TrimLeft(cbSize);
@@ -283,11 +283,11 @@ HRESULT DataBundleImpl::TrimLeft(
     DWORD cbSize)
 {
     DWORD cbTotalLength = 0;
-    IFR(get_TotalSize(&cbTotalLength));
+    check_hresult(get_TotalSize(&cbTotalLength));
 
     if (cbSize > cbTotalLength)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     Iterator it = _buffers.begin();
@@ -299,7 +299,7 @@ HRESULT DataBundleImpl::TrimLeft(
         ULONG cbLen;
         ULONG nStart = 0;
         ULONG cbCopy = 0;
-        IFR((*it)->get_CurrentLength(&cbLen));
+        check_hresult((*it)->get_CurrentLength(&cbLen));
 
         if (cbSkipped + cbLen <= cbSize)
         {
@@ -309,7 +309,7 @@ HRESULT DataBundleImpl::TrimLeft(
         else
         {
             // skip the rest
-            IFR((*it)->TrimLeft(cbSize - cbSkipped));
+            check_hresult((*it)->TrimLeft(cbSize - cbSkipped));
             break;
         }
     }
@@ -321,7 +321,7 @@ _Use_decl_annotations_
 HRESULT DataBundleImpl::ToMFSample(
     IMFSample** ppSample)
 {
-    ComPtr<IMFSample> spSample;
+    com_ptr<IMFSample> spSample;
 
     HRESULT hr = MFCreateSample(&spSample);
 
@@ -332,8 +332,8 @@ HRESULT DataBundleImpl::ToMFSample(
 
         for (; it != endIt; ++it)
         {
-            DataBufferImpl* pBuffer = static_cast<DataBufferImpl*>((*it).Get());
-            ComPtr<IMFMediaBuffer> spMediaBuffer;
+            DataBufferImpl* pBuffer = static_cast<DataBufferImpl*>((*it).get());
+            com_ptr<IMFMediaBuffer> spMediaBuffer;
 
             DWORD offset;
             hr = pBuffer->get_Offset(&offset);
@@ -359,7 +359,7 @@ HRESULT DataBundleImpl::ToMFSample(
             }
 
             // Add media buffer to the sample
-            hr = spSample->AddBuffer(spMediaBuffer.Get());
+            hr = spSample->AddBuffer(spMediaBuffer.get());
             if (FAILED(hr))
             {
                 break;
@@ -369,7 +369,7 @@ HRESULT DataBundleImpl::ToMFSample(
 
     if (SUCCEEDED(hr))
     {
-       * ppSample = spSample.Detach();
+       * ppSample = spSample.detach();
     }
 
     return hr;

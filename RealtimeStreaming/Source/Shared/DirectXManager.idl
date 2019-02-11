@@ -1,0 +1,21 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+import "d3d11.idl";
+
+namespace RealtimeStreaming.Plugin
+{
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    runtimeclass DirectXManager : Module
+    {
+        DirectXManager(ID3D11Device* pD3D11Device);
+
+        void Lost();
+        void Reset();
+    };
+}

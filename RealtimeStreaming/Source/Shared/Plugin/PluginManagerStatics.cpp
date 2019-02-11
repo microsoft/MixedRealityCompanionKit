@@ -6,7 +6,7 @@
 
 ActivatableStaticOnlyFactory(PluginManagerStaticsImpl);
 
-ComPtr<PluginManagerImpl>   PluginManagerStaticsImpl::s_spInstance = nullptr;
+com_ptr<PluginManagerImpl>   PluginManagerStaticsImpl::s_spInstance = nullptr;
 INIT_ONCE                   PluginManagerStaticsImpl::s_initOnce = INIT_ONCE_STATIC_INIT;
 DWORD                       PluginManagerStaticsImpl::s_threadId = 0;
 BOOL                        PluginManagerStaticsImpl::s_isInitialized = FALSE;
@@ -24,7 +24,7 @@ HRESULT PluginManagerStaticsImpl::get_Instance(
 }
 
 _Use_decl_annotations_
-ComPtr<PluginManagerImpl> PluginManagerStaticsImpl::GetInstance()
+com_ptr<PluginManagerImpl> PluginManagerStaticsImpl::GetInstance()
 {
     HRESULT hr = CheckThread();
     //if (FAILED(hr))
@@ -37,11 +37,11 @@ ComPtr<PluginManagerImpl> PluginManagerStaticsImpl::GetInstance()
 }
 
 _Use_decl_annotations_
-ComPtr<IThreadPoolStatics> PluginManagerStaticsImpl::GetThreadPool()
+com_ptr<IThreadPoolStatics> PluginManagerStaticsImpl::GetThreadPool()
 {
     HRESULT hr = CheckThread();
 
-    ComPtr<IThreadPoolStatics> spThreadPool;
+    com_ptr<IThreadPoolStatics> spThreadPool;
     if (FAILED(hr))
     {
         goto done;
@@ -66,11 +66,11 @@ BOOL PluginManagerStaticsImpl::IsInitialized()
 _Use_decl_annotations_
 HRESULT PluginManagerStaticsImpl::Uninitialize()
 {
-    IFR(InitOnceExecuteOnce(&s_initOnce, OneTimeInitializerProc, nullptr, nullptr) ? S_OK : HRESULT_FROM_WIN32(GetLastError()));
+    check_hresult(InitOnceExecuteOnce(&s_initOnce, OneTimeInitializerProc, nullptr, nullptr) ? S_OK : HRESULT_FROM_WIN32(GetLastError()));
 
     if (!IsOnThread())
     {
-        IFR(RPC_E_WRONG_THREAD);
+        check_hresult(RPC_E_WRONG_THREAD);
     }
 
     s_spInstance = nullptr;
@@ -89,11 +89,11 @@ BOOL PluginManagerStaticsImpl::IsOnThread()
 _Use_decl_annotations_
 HRESULT PluginManagerStaticsImpl::CheckThread()
 {
-    IFR(InitOnceExecuteOnce(&s_initOnce, OneTimeInitializerProc, nullptr, nullptr) ? S_OK : HRESULT_FROM_WIN32(GetLastError()));
+    check_hresult(InitOnceExecuteOnce(&s_initOnce, OneTimeInitializerProc, nullptr, nullptr) ? S_OK : HRESULT_FROM_WIN32(GetLastError()));
 
     if (!IsOnThread())
     {
-        IFR(RPC_E_WRONG_THREAD);
+        check_hresult(RPC_E_WRONG_THREAD);
     }
 
     if (nullptr == s_spInstance)

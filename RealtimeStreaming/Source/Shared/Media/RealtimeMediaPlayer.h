@@ -12,185 +12,130 @@
 
 namespace RealtimeStreaming
 {
-	namespace Media
-	{
-		enum class StateType : UINT16
-		{
-			StateType_None = 0,
-			StateType_Opened,
-			StateType_StateChanged,
-			StateType_Failed,
-		};
+    namespace Media
+    {
+        enum class StateType : UINT16
+        {
+            StateType_None = 0,
+            StateType_Opened,
+            StateType_StateChanged,
+            StateType_Failed,
+        };
 
-		enum class PlaybackState : UINT16
-		{
-			PlaybackState_None = 0,
-			PlaybackState_Opening,
-			PlaybackState_Buffering,
-			PlaybackState_Playing,
-			PlaybackState_Paused,
-			PlaybackState_Ended
-		};
+        enum class PlaybackState : UINT16
+        {
+            PlaybackState_None = 0,
+            PlaybackState_Opening,
+            PlaybackState_Buffering,
+            PlaybackState_Playing,
+            PlaybackState_Paused,
+            PlaybackState_Ended
+        };
 
 #pragma pack(push, 4)
-		typedef struct _MEDIA_DESCRIPTION
-		{
-			UINT32 width;
-			UINT32 height;
-			INT64 duration;
-			byte canSeek;
-		} MEDIA_DESCRIPTION;
+        typedef struct _MEDIA_DESCRIPTION
+        {
+            UINT32 width;
+            UINT32 height;
+            INT64 duration;
+            byte canSeek;
+        } MEDIA_DESCRIPTION;
 #pragma pack(pop)
 
 #pragma pack(push, 4)
-		typedef struct _PLAYBACK_STATE
-		{
-			StateType type;
-			union {
-				PlaybackState state;
-				HRESULT hresult;
-				MEDIA_DESCRIPTION description;
-			} value;
-		} PLAYBACK_STATE;
+        typedef struct _PLAYBACK_STATE
+        {
+            StateType type;
+            union {
+                PlaybackState state;
+                HRESULT hresult;
+                MEDIA_DESCRIPTION description;
+            } value;
+        } PLAYBACK_STATE;
 #pragma pack(pop)
 
-		extern "C" typedef void(UNITY_INTERFACE_API *StateChangedCallback)(
-			_In_ PLAYBACK_STATE args);
-		
-		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Playback::MediaPlayer*, IInspectable*> IMediaPlayerEventHandler;
-		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Playback::MediaPlayer*, ABI::Windows::Media::Playback::MediaPlayerFailedEventArgs*> IFailedEventHandler;
-		typedef ABI::Windows::Foundation::ITypedEventHandler<ABI::Windows::Media::Playback::MediaPlaybackSession*, IInspectable*> IMediaPlaybackSessionEventHandler;
+        extern "C" typedef void(UNITY_INTERFACE_API *StateChangedCallback)(
+            _In_ PLAYBACK_STATE args);
 
-		DECLARE_INTERFACE_IID_(IRealtimeMediaPlayer, IUnknown, "eea215a4-53ee-4f57-8dda-10467d628180")
-		{
-            STDMETHOD(GetCurrentResolution)(_Out_ UINT32* pWidth, _Out_ UINT32* pHeight) PURE;
-			STDMETHOD(CreateStreamingTexture)(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture) PURE;
-			STDMETHOD(Play)() PURE;
-			STDMETHOD(Pause)() PURE;
-			STDMETHOD(Stop)() PURE;
-		};
+        struct RealtimeMediaPlayer
+        {
+        public:
+            RealtimeMediaPlayer(
+                _In_ UnityGfxRenderer apiType,
+                _In_ IUnityInterfaces* pUnityInterfaces);
+            ~RealtimeMediaPlayer();
 
-		class RealtimeMediaPlayerImpl
-			: public Microsoft::WRL::RuntimeClass
-			<RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-			, IRealtimeMediaPlayer
-			, ABI::Windows::Foundation::IAsyncAction
-			, AsyncBase<ABI::Windows::Foundation::IAsyncActionCompletedHandler>
-			, Microsoft::WRL::FtmBase>
-		{
-		public:
-			static HRESULT Create(
-				_In_ UnityGfxRenderer apiType,
-				_In_ IUnityInterfaces* pUnityInterfaces,
-				_In_ ABI::RealtimeStreaming::Network::IConnection *pConnection,
-				//_In_ StateChangedCallback fnCallback,
-				_COM_Outptr_ IRealtimeMediaPlayer** ppMediaPlayback);
+            IAsyncAction InitAsync(_In_ Connection connection);
 
-			RealtimeMediaPlayerImpl();
-			~RealtimeMediaPlayerImpl();
-
-			HRESULT RuntimeClassInitialize(
-				_In_ ABI::RealtimeStreaming::Network::IConnection *pConnection,
-				//_In_ StateChangedCallback fnCallback,
-				_In_ ID3D11Device* pDevice);
-
-			// IRealtimeMediaPlayer
-            IFACEMETHOD(GetCurrentResolution)(
-                _Out_ UINT32* pWidth, 
+            // IRealtimeMediaPlayer
+            HRESULT GetCurrentResolution(
+                _Out_ UINT32* pWidth,
                 _Out_ UINT32* pHeight);
 
-			IFACEMETHOD(CreateStreamingTexture)(
-				_In_ UINT32 width,
-				_In_ UINT32 height,
-				_COM_Outptr_ void** ppvTexture);
+            HRESULT CreateStreamingTexture(
+                _In_ UINT32 width,
+                _In_ UINT32 height,
+                _COM_Outptr_ void** ppvTexture);
 
-			IFACEMETHOD(Play)();
-			IFACEMETHOD(Pause)();
-			IFACEMETHOD(Stop)();
+            void Play();
+            void Pause();
+            void Stop();
 
-			// IAsyncAction
-			IFACEMETHOD(put_Completed)(
-				_In_ ABI::Windows::Foundation::IAsyncActionCompletedHandler *handler)
-			{
-				return PutOnComplete(handler);
-			}
-			IFACEMETHOD(get_Completed)(
-				_Out_ ABI::Windows::Foundation::IAsyncActionCompletedHandler** handler)
-			{
-				return GetOnComplete(handler);
-			}
-			IFACEMETHOD(GetResults)(void)
-			{
-				return S_OK;
-			}
+        protected:
+            // Callbacks - MediaPlayer
+            void OnOpened(
+                _In_ Windows::Media::Playback::MediaPlayer sender,
+                _In_ IInspectable args);
+            void OnEnded(
+                _In_ Windows::Media::Playback::MediaPlayer sender,
+                _In_ Object args);
+            void OnFailed(
+                _In_ Windows::Media::Playback::MediaPlayer sender,
+                _In_ Windows::Media::Playback::MediaPlayerFailedEventArgs args);
 
-			// AsyncBase
-			virtual HRESULT OnStart(void) { return S_OK; }
-			virtual void OnClose(void) {};
-			virtual void OnCancel(void) {};
+            void OnVideoFrameAvailable(
+                _In_ Windows::Media::Playback::MediaPlayer sender,
+                _In_ IInspectable args);
 
-		protected:
-			// Callbacks - IMediaPlayer2
-			HRESULT OnOpened(
-				_In_ ABI::Windows::Media::Playback::IMediaPlayer* sender,
-				_In_ IInspectable* args);
-			HRESULT OnEnded(
-				_In_ ABI::Windows::Media::Playback::IMediaPlayer* sender,
-				_In_ IInspectable* args);
-			HRESULT OnFailed(
-				_In_ ABI::Windows::Media::Playback::IMediaPlayer* sender,
-				_In_ ABI::Windows::Media::Playback::IMediaPlayerFailedEventArgs* args);
+            // Callbacks - IMediaPlaybackSession
+            void OnStateChanged(
+                _In_ Windows::Media::Playback::MediaPlaybackSession sender,
+                _In_ IInspectable args);
 
-			// Callbacks - IMediaPlayer5 - frameserver
-			HRESULT OnVideoFrameAvailable(
-				_In_ ABI::Windows::Media::Playback::IMediaPlayer* sender,
-				_In_ IInspectable* args);
+        private:
+            void CreateMediaPlayer();
+            void ReleaseMediaPlayer();
 
-			// Callbacks - IMediaPlaybackSession
-			HRESULT OnStateChanged(
-				_In_ ABI::Windows::Media::Playback::IMediaPlaybackSession* sender,
-				_In_ IInspectable* args);
+            HRESULT CreateTextures();
+            void ReleaseTextures();
 
-			HRESULT CompleteAsyncAction(
-				_In_ HRESULT hResult);
+            void ReleaseResources();
 
-		private:
-			HRESULT CreateMediaPlayer();
-			void ReleaseMediaPlayer();
+        private:
+            com_ptr<ID3D11Device> m_d3dDevice;
+            com_ptr<ID3D11Device> m_mediaDevice;
 
-			HRESULT CreateTextures();
-			void ReleaseTextures();
+            StateChangedCallback m_fnStateCallback;
 
-			HRESULT AddStateChanged();
-			void RemoveStateChanged();
+            Windows::Media::Playback::MediaPlayer m_mediaPlayer{ nullptr };
+            winrt::event_token m_openedEventToken;
+            winrt::event_token m_endedEventToken;
+            winrt::event_token m_failedEventToken;
+            winrt::event_token m_videoFrameAvailableToken;
 
-			void ReleaseResources();
+            RealtimeMediaSource m_RealtimeMediaSource{ nullptr };
 
-		private:
-			Microsoft::WRL::ComPtr<ID3D11Device> m_d3dDevice;
-			Microsoft::WRL::ComPtr<ID3D11Device> m_mediaDevice;
+            Windows::Media::Playback::MediaPlaybackSession m_mediaPlaybackSession;
+            winrt::event_token m_stateChangedEventToken;
 
-			StateChangedCallback m_fnStateCallback;
+            CD3D11_TEXTURE2D_DESC m_textureDesc;
+            com_ptr<ID3D11Texture2D> m_primaryTexture;
+            com_ptr<ID3D11ShaderResourceView> m_primaryTextureSRV;
 
-			Microsoft::WRL::ComPtr<ABI::Windows::Media::Playback::IMediaPlayer> m_mediaPlayer;
-			EventRegistrationToken m_openedEventToken;
-			EventRegistrationToken m_endedEventToken;
-			EventRegistrationToken m_failedEventToken;
-			EventRegistrationToken m_videoFrameAvailableToken;
+            HANDLE m_primarySharedHandle;
+            com_ptr<ID3D11Texture2D> m_primaryMediaTexture;
+            com_ptr<ABI::Windows::Graphics::DirectX::Direct3D11::IDirect3DSurface> m_primaryMediaSurface;
+        };
 
-			 Microsoft::WRL::ComPtr<IRealtimeMediaSource> m_RealtimeMediaSource;
-
-			Microsoft::WRL::ComPtr<ABI::Windows::Media::Playback::IMediaPlaybackSession> m_mediaPlaybackSession;
-			EventRegistrationToken m_stateChangedEventToken;
-
-			CD3D11_TEXTURE2D_DESC m_textureDesc;
-			Microsoft::WRL::ComPtr<ID3D11Texture2D> m_primaryTexture;
-			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_primaryTextureSRV;
-
-			HANDLE m_primarySharedHandle;
-			Microsoft::WRL::ComPtr<ID3D11Texture2D> m_primaryMediaTexture;
-			Microsoft::WRL::ComPtr<ABI::Windows::Graphics::DirectX::Direct3D11::IDirect3DSurface> m_primaryMediaSurface;
-		};
-
-	}
+    }
 }

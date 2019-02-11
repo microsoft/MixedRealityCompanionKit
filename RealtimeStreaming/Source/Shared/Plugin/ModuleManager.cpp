@@ -31,14 +31,14 @@ HRESULT ModuleManagerImpl::AddModule(
 
     auto lock = _lock.Lock();
 
-    ComPtr<IModule> spModule(module);
+    com_ptr<IModule> spModule(module);
 
     // get the last index value;
     ModuleHandle handle = _lastModuleHandleIndex;
 
     // create a pair for the insert success
-    std::pair<std::map<ModuleHandle, ComPtr<IModule>>::iterator, bool> pairReturn;
-    pairReturn = _moduleHandleMap.insert(std::make_pair(handle, spModule.Get()));
+    std::pair<std::map<ModuleHandle, com_ptr<IModule>>::iterator, bool> pairReturn;
+    pairReturn = _moduleHandleMap.insert(std::make_pair(handle, spModule.get()));
 
     // make sure pair was added
     if (pairReturn.second)
@@ -62,7 +62,7 @@ HRESULT ModuleManagerImpl::GetModule(
 
     if (moduleHandle <= MODULE_HANDLE_INVALID)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     auto lock = _lock.Lock();
@@ -70,7 +70,7 @@ HRESULT ModuleManagerImpl::GetModule(
     auto iter = _moduleHandleMap.find(moduleHandle);
     if (iter == _moduleHandleMap.end())
     {
-        IFR(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
+        check_hresult(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
     }
 
     return iter->second.CopyTo(ppModule);
@@ -82,7 +82,7 @@ HRESULT ModuleManagerImpl::ReleaseModule(
 {
     if (moduleHandle <= MODULE_HANDLE_INVALID)
     {
-        IFR(E_INVALIDARG);
+        check_hresult(E_INVALIDARG);
     }
 
     auto lock = _lock.Lock();
@@ -90,11 +90,11 @@ HRESULT ModuleManagerImpl::ReleaseModule(
     auto iter = _moduleHandleMap.find(moduleHandle);
     if (iter == _moduleHandleMap.end())
     {
-        IFR(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
+        check_hresult(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
     }
 
-    ComPtr<IModule> module;
-    IFR(iter->second.As(&module));
+    com_ptr<IModule> module;
+    check_hresult(iter->second.As(&module));
 
     LOG_RESULT(module->Uninitialize());
     LOG_RESULT(module.Reset());

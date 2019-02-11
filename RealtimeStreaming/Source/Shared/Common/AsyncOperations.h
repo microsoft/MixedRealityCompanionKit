@@ -13,8 +13,8 @@
 // T: Type of the parent object
 template<class T>
 class AsyncCallback
-    : public Microsoft::WRL::RuntimeClass
-    < Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>
+    : public RuntimeClass
+    < RuntimeClassFlags<ClassicCom>
     , IMFAsyncCallback >
 {
 public:
@@ -35,11 +35,11 @@ public:
 
     STDMETHODIMP Invoke(IMFAsyncResult* pAsyncResult)
     {
-        return (_spParent.Get()->*_pInvokeFn)(pAsyncResult);
+        return (_spParent.get()->*_pInvokeFn)(pAsyncResult);
     }
 
 private:
-    ComPtr<T> _spParent;
+    com_ptr<T> _spParent;
     InvokeFn _pInvokeFn;
 };
 
@@ -51,7 +51,7 @@ HRESULT StartAsyncThen(_In_ TOperation* pOperation, _In_ TLambda&& tFunc)
         return E_INVALIDARG;
     }
 
-    auto spCallback = Microsoft::WRL::Callback<TDelegate>(
+    auto spCallback = Callback<TDelegate>(
         [tFunc](_In_ TOperation* pOperation, _In_ AsyncStatus status) -> HRESULT
         {
             HRESULT hr = S_OK;
@@ -59,8 +59,8 @@ HRESULT StartAsyncThen(_In_ TOperation* pOperation, _In_ TLambda&& tFunc)
             // wrap the operation
             if (status != AsyncStatus::Completed)
             {
-                Microsoft::WRL::ComPtr<TOperation> spOperation(pOperation);
-                Microsoft::WRL::ComPtr<IAsyncInfo> spAsyncInfo;
+                com_ptr<TOperation> spOperation(pOperation);
+                com_ptr<IAsyncInfo> spAsyncInfo;
                 hr = spOperation.As(&spAsyncInfo);
                 if (SUCCEEDED(hr))
                 {
@@ -72,7 +72,7 @@ HRESULT StartAsyncThen(_In_ TOperation* pOperation, _In_ TLambda&& tFunc)
         });
 
     // start
-    return (nullptr != spCallback) ? pOperation->put_Completed(spCallback.Get()) : E_OUTOFMEMORY;
+    return (nullptr != spCallback) ? pOperation->put_Completed(spCallback.get()) : E_OUTOFMEMORY;
 }
 template <typename TLambda>
 HRESULT StartAsyncThen(_In_ ABI::Windows::Foundation::IAsyncAction* pOperation, _In_ TLambda&& tFunc)
@@ -100,19 +100,19 @@ HRESULT StartAsyncThen(_In_ ABI::Windows::Foundation::IAsyncOperationWithProgres
 // eg. THandler     = IAsyncOperationWithProgressCompletedHandler<UINT, UINT>
 template<typename TOperation, typename THandler>
 class AsyncEventDelegate
-    : public Microsoft::WRL::RuntimeClass
-    < Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::RuntimeClassType::Delegate>
+    : public RuntimeClass
+    < RuntimeClassFlags<RuntimeClassType::Delegate>
     , THandler
-    , Microsoft::WRL::FtmBase >
+    , FtmBase >
 {
 public:
     AsyncEventDelegate()
         : _completedEvent(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS))
     {
-        ComPtr<AsyncEventDelegate> spThis(this);
+        com_ptr<AsyncEventDelegate> spThis(this);
         auto lambda = ([this, spThis](_In_ HRESULT hr, _In_ TOperation* pOperation)
         {
-            SetEvent(_completedEvent.Get());
+            SetEvent(_completedEvent.get());
         });
         _func = std::move(lambda);
     }
@@ -126,8 +126,8 @@ public:
         // if we completed successfully, then there is no need for getting hresult
         if (status != AsyncStatus::Completed)
         {
-            Microsoft::WRL::ComPtr<TOperation> spOperation(pOperation);
-            Microsoft::WRL::ComPtr<IAsyncInfo> spAsyncInfo;
+            com_ptr<TOperation> spOperation(pOperation);
+            com_ptr<IAsyncInfo> spAsyncInfo;
             if (SUCCEEDED(spOperation.As(&spAsyncInfo)))
             {
                 spAsyncInfo->get_ErrorCode(&hr);
@@ -147,7 +147,7 @@ public:
             return hr;
         }
 
-        DWORD dwWait = WaitForSingleObjectEx(_completedEvent.Get(), dwMilliseconds, TRUE);
+        DWORD dwWait = WaitForSingleObjectEx(_completedEvent.get(), dwMilliseconds, TRUE);
         if (WAIT_IO_COMPLETION == dwWait || WAIT_OBJECT_0 == dwWait)
             return S_OK;
         
@@ -156,12 +156,12 @@ public:
 
 private:
     std::function<void(HRESULT, TOperation*)> _func;
-    Microsoft::WRL::Wrappers::Event _completedEvent;
+    Wrappers::Event _completedEvent;
 };
 template <typename TOperation, typename THandler>
 HRESULT SyncWait(_In_ TOperation* pOperation, _In_ DWORD dwMilliseconds)
 {
-    auto spCallback = Microsoft::WRL::Make<AsyncEventDelegate<TOperation, THandler>>();
+    auto spCallback = Make<AsyncEventDelegate<TOperation, THandler>>();
 
     return spCallback->SyncWait(pOperation, dwMilliseconds);
 }

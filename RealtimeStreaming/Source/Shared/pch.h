@@ -21,6 +21,9 @@
 #include <random>
 
 // Windows
+#include <winrt/base.h>
+#include <winrt/windows.foundation.h>
+
 #include <initguid.h>
 #include <wrl.h>
 #include <wrl\async.h>
@@ -91,10 +94,10 @@ template <typename T>
 inline T GetDataType(_In_ ABI::Windows::Storage::Streams::IBuffer* pBuffer)
 {
     // take a reference to the passed in buffer
-    ComPtr<ABI::Windows::Storage::Streams::IBuffer> spBuffer(pBuffer);
+    com_ptr<ABI::Windows::Storage::Streams::IBuffer> spBuffer(pBuffer);
 
     // QI for BufferByteAccess
-    Microsoft::WRL::ComPtr<Windows::Storage::Streams::IBufferByteAccess> spBufferByteAccess;
+    com_ptr<Windows::Storage::Streams::IBufferByteAccess> spBufferByteAccess;
     if (SUCCEEDED(spBuffer.As(&spBufferByteAccess)))
     {
         byte* pBytes = nullptr;
@@ -118,7 +121,7 @@ inline std::wstring to_wstring(unsigned int d)
 
 
 using namespace Microsoft::WRL;
-using namespace Microsoft::WRL::Wrappers;
+using namespace Wrappers;
 
 using namespace Windows::Foundation;
 

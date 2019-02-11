@@ -12,42 +12,42 @@ inline HRESULT PrepareRemoteUrl(
     NULL_CHK(pInfo);
     NULL_CHK(ppUri);
 
-    ComPtr<IStreamSocketInformation> spInfo(pInfo);
+    com_ptr<IStreamSocketInformation> spInfo(pInfo);
     
-    ComPtr<IHostName> spHostName;
-    IFR(spInfo->get_RemoteHostName(&spHostName));
+    com_ptr<IHostName> spHostName;
+    check_hresult(spInfo->get_RemoteHostName(&spHostName));
 
     HostNameType spHostNameType;
-    IFR(spHostName->get_Type(&spHostNameType));
+    check_hresult(spHostName->get_Type(&spHostNameType));
 
     HString rawName;
-    IFR(spHostName->get_RawName(rawName.GetAddressOf()));
+    check_hresult(spHostName->get_RawName(rawName.GetAddressOf()));
 
     UINT32 length = 0;
     WCHAR pszUri[MAX_PATH];
     if (spHostNameType == HostNameType::HostNameType_Ipv4 || spHostNameType == HostNameType::HostNameType_DomainName)
     {
-        IFR(StringCchPrintf(pszUri, _countof(pszUri), L"%s://%s", c_szNetworkScheme, rawName.GetRawBuffer(&length)));
+        check_hresult(StringCchPrintf(pszUri, _countof(pszUri), L"%s://%s", c_szNetworkScheme, rawName.GetRawBuffer(&length)));
     }
     else if (spHostNameType == HostNameType::HostNameType_Ipv6)
     {
-        IFR(StringCchPrintf(pszUri, _countof(pszUri), L"%s://[%s]", c_szNetworkScheme, rawName.GetRawBuffer(&length)));
+        check_hresult(StringCchPrintf(pszUri, _countof(pszUri), L"%s://[%s]", c_szNetworkScheme, rawName.GetRawBuffer(&length)));
     }
 
     length = std::wcslen(pszUri);
 
-    Microsoft::WRL::Wrappers::HString uriHString;
-    IFR(WindowsCreateString(pszUri, length, uriHString.GetAddressOf()));
+    Wrappers::HString uriHString;
+    check_hresult(WindowsCreateString(pszUri, length, uriHString.GetAddressOf()));
 
-    ComPtr<IUriRuntimeClassFactory> uriFactory;
-    IFR(
+    com_ptr<IUriRuntimeClassFactory> uriFactory;
+    check_hresult(
         Windows::Foundation::GetActivationFactory(
-            Wrappers::HStringReference(RuntimeClass_Windows_Foundation_Uri).Get(), 
+            Wrappers::HStringReference(RuntimeClass_Windows_Foundation_Uri).get(), 
             uriFactory.GetAddressOf())
     );
 
-    ComPtr<IUriRuntimeClass> spUri;
-    IFR(uriFactory->CreateUri(uriHString.Get(), &spUri));
+    com_ptr<IUriRuntimeClass> spUri;
+    check_hresult(uriFactory->CreateUri(uriHString.get(), &spUri));
 
     NULL_CHK_HR(spUri, E_NOT_SET);
 
@@ -87,19 +87,19 @@ HRESULT ConnectionImpl::RuntimeClassInitialize(
     _isInitialized = true;
 
     // store the socket
-    ComPtr<IStreamSocket> spSocket(socket);
-    IFR(spSocket.As(&_streamSocket));
+    com_ptr<IStreamSocket> spSocket(socket);
+    check_hresult(spSocket.As(&_streamSocket));
 
     ZeroMemory(&_receivedHeader, sizeof(PayloadHeader));
     _receivedHeader.ePayloadType = PayloadType_Unknown;
 
     // create a thread to send data
-    ComPtr<IThreadPoolStatics> threadPoolStatics;
-    IFR(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_System_Threading_ThreadPool).Get(),
+    com_ptr<IThreadPoolStatics> threadPoolStatics;
+    check_hresult(Windows::Foundation::GetActivationFactory(
+        Wrappers::HStringReference(RuntimeClass_Windows_System_Threading_ThreadPool).get(),
         &threadPoolStatics));
 
-    IFR(threadPoolStatics.As(&_threadPoolStatics));
+    check_hresult(threadPoolStatics.As(&m_threadPoolStatics));
 
     return WaitForHeader();
 }
@@ -151,7 +151,7 @@ HRESULT ConnectionImpl::Close(void)
     LOG_RESULT(ResetBundle());
 
     // cleanup socket
-    ComPtr<ABI::Windows::Foundation::IClosable> closeable;
+    com_ptr<ABI::Windows::Foundation::IClosable> closeable;
     if SUCCEEDED(_streamSocket.As(&closeable))
     {
         LOG_RESULT(closeable->Close());
@@ -160,8 +160,8 @@ HRESULT ConnectionImpl::Close(void)
     _streamSocket.Reset();
     _streamSocket = nullptr;
 
-    ComPtr<IConnection> spThis(this);
-    return _evtDisconnected.InvokeAll(spThis.Get());
+    com_ptr<IConnection> spThis(this);
+    return _evtDisconnected.InvokeAll(spThis.get());
 }
 
 
@@ -257,19 +257,19 @@ HRESULT ConnectionImpl::SendPayloadType(
     Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
 
     // send an PayloadType header, contains no payload.
-    ComPtr<IDataBuffer> dataBuffer;
-    IFR(MakeAndInitialize<DataBufferImpl>(&dataBuffer, sizeof(PayloadHeader)));
+    com_ptr<IDataBuffer> dataBuffer;
+    check_hresult(MakeAndInitialize<DataBufferImpl>(&dataBuffer, sizeof(PayloadHeader)));
 
-    ComPtr<IDataBundle> dataBundle;
-    IFR(MakeAndInitialize<DataBundleImpl>(&dataBundle));
+    com_ptr<IDataBundle> dataBundle;
+    check_hresult(MakeAndInitialize<DataBundleImpl>(&dataBundle));
 
     // cast to IBufferByteAccess
-    ComPtr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
-    IFR(dataBuffer.As(&spByteAccess));
+    com_ptr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
+    check_hresult(dataBuffer.As(&spByteAccess));
 
     // get the raw byte pointer
     BYTE* buffer = nullptr;
-    IFR(spByteAccess->Buffer(&buffer));
+    check_hresult(spByteAccess->Buffer(&buffer));
     NULL_CHK(buffer);
 
     // cast to the dataPtr
@@ -279,11 +279,11 @@ HRESULT ConnectionImpl::SendPayloadType(
     pOpHeader->cbPayloadSize = 0;
     pOpHeader->ePayloadType = payloadType;
 
-    IFR(dataBuffer->put_CurrentLength(sizeof(PayloadHeader)));
+    check_hresult(dataBuffer->put_CurrentLength(sizeof(PayloadHeader)));
 
-    IFR(dataBundle->AddBuffer(dataBuffer.Get()));
+    check_hresult(dataBundle->AddBuffer(dataBuffer.get()));
 
-    return SendBundle(dataBundle.Get());
+    return SendBundle(dataBundle.get());
 }
 
 _Use_decl_annotations_
@@ -295,20 +295,20 @@ HRESULT ConnectionImpl::SendBundle(
     NULL_CHK(dataBundle);
 
     // get the output stream for socket
-    ComPtr<IOutputStream> spOutputStream;
+    com_ptr<IOutputStream> spOutputStream;
     {
         auto lock = _lock.Lock();
 
-        IFR(CheckClosed());
+        check_hresult(CheckClosed());
 
-        IFR(_streamSocket->get_OutputStream(&spOutputStream));
+        check_hresult(_streamSocket->get_OutputStream(&spOutputStream));
     }
 
     DataBundleImpl* bundleImpl = static_cast<DataBundleImpl*>(dataBundle);
     NULL_CHK_HR(bundleImpl, E_INVALIDARG);
 
     DataBundleImpl::Container buffers;
-    IFR(bundleImpl->get_Buffers(&buffers));
+    check_hresult(bundleImpl->get_Buffers(&buffers));
 
 
     UINT32 totalLength = 0;
@@ -317,18 +317,18 @@ HRESULT ConnectionImpl::SendBundle(
     DataBundleImpl::Iterator iter = buffers.begin();
     for (; iter != buffers.end(); ++iter)
     {
-        ComPtr<IBuffer> rawBuffer;
-        IFR((*iter).As(&rawBuffer));
+        com_ptr<IBuffer> rawBuffer;
+        check_hresult((*iter).As(&rawBuffer));
 
         UINT32 bufferLen;
-        IFR(rawBuffer->get_Length(&bufferLen));
+        check_hresult(rawBuffer->get_Length(&bufferLen));
         totalLength += bufferLen;
 
-        ComPtr<IStreamWriteOperation> writeOperation;
-        IFR(spOutputStream->WriteAsync(rawBuffer.Get(), &writeOperation));
+        com_ptr<IStreamWriteOperation> writeOperation;
+        check_hresult(spOutputStream->WriteAsync(rawBuffer.get(), &writeOperation));
 
-        HRESULT hr = SyncWait<UINT32, UINT32>(writeOperation.Get(), 1);
-        IFR(hr);
+        HRESULT hr = SyncWait<UINT32, UINT32>(writeOperation.get(), 1);
+        check_hresult(hr);
 
         bufferCount++;
     }
@@ -351,23 +351,23 @@ HRESULT ConnectionImpl::SendBundleAsync(
     {
         auto lock = _lock.Lock();
 
-        IFR(CheckClosed());
+        check_hresult(CheckClosed());
     }
 
     UINT32 bufferCount = 0;
-    IFR(dataBundle->get_BufferCount(&bufferCount));
+    check_hresult(dataBundle->get_BufferCount(&bufferCount));
 
-    ComPtr<WriteCompleteImpl> spWriteAction;
-    IFR(MakeAndInitialize<WriteCompleteImpl>(&spWriteAction, bufferCount));
+    com_ptr<WriteCompleteImpl> spWriteAction;
+    check_hresult(MakeAndInitialize<WriteCompleteImpl>(&spWriteAction, bufferCount));
 
     // define workitem
-    ComPtr<IDataBundle> spDataBundle(dataBundle);
-    ComPtr<ConnectionImpl> spThis(this);
+    com_ptr<IDataBundle> spDataBundle(dataBundle);
+    com_ptr<ConnectionImpl> spThis(this);
     auto workItem =
-        Microsoft::WRL::Callback<ABI::Windows::System::Threading::IWorkItemHandler>(
+        Callback<ABI::Windows::System::Threading::IWorkItemHandler>(
             [this, spThis, spDataBundle, spWriteAction](IAsyncAction* asyncAction) -> HRESULT
     {
-        ComPtr<IOutputStream> spOutputStream;
+        com_ptr<IOutputStream> spOutputStream;
         DataBundleImpl::Container buffers;
         DataBundleImpl::Iterator iter;
 
@@ -389,7 +389,7 @@ HRESULT ConnectionImpl::SendBundleAsync(
             }
         }
 
-        DataBundleImpl* bundleImpl = static_cast<DataBundleImpl*>(spDataBundle.Get());
+        DataBundleImpl* bundleImpl = static_cast<DataBundleImpl*>(spDataBundle.get());
         if (nullptr == bundleImpl)
         {
             IFC(E_INVALIDARG);
@@ -404,21 +404,21 @@ HRESULT ConnectionImpl::SendBundleAsync(
 
         for (; iter != buffers.end(); ++iter)
         {
-            ComPtr<IStreamWriteOperation> spWriteOperation;
-            ComPtr<IBuffer> rawBuffer;
+            com_ptr<IStreamWriteOperation> spWriteOperation;
+            com_ptr<IBuffer> rawBuffer;
             IFC((*iter).As(&rawBuffer));
 
             UINT32 bufferLen;
-            IFR(rawBuffer->get_Length(&bufferLen));
+            check_hresult(rawBuffer->get_Length(&bufferLen));
             totalLength += bufferLen;
 
             bufferCount++;
 
-            IFC(spOutputStream->WriteAsync(rawBuffer.Get(), &spWriteOperation));
+            IFC(spOutputStream->WriteAsync(rawBuffer.get(), &spWriteOperation));
 
             // start async write operation
             IFC(StartAsyncThen(
-                spWriteOperation.Get(),
+                spWriteOperation.get(),
                 [this, spThis, spWriteAction](_In_ HRESULT hr, _In_ IStreamWriteOperation *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
             {
                 LOG_RESULT(hr);
@@ -440,11 +440,11 @@ HRESULT ConnectionImpl::SendBundleAsync(
         return S_OK;
     });
 
-    ComPtr<IAsyncAction> workerAsync;
-    IFR(_threadPoolStatics->RunAsync(workItem.Get(), &workerAsync));
+    com_ptr<IAsyncAction> workerAsync;
+    check_hresult(m_threadPoolStatics->RunAsync(workItem.get(), &workerAsync));
 
-    IFR(StartAsyncThen(
-        workerAsync.Get(),
+    check_hresult(StartAsyncThen(
+        workerAsync.get(),
         [this, spThis, spWriteAction](_In_ HRESULT hr, _In_ IAsyncAction *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         if (FAILED(hr))
@@ -466,7 +466,7 @@ HRESULT ConnectionImpl::WaitForHeader()
     //Log(Log_Level_Info, L"ConnectionImpl::WaitForHeader()\n");
     Log(Log_Level_All, L"ConnectionImpl::WaitForHeader - Tid: %d \n", GetCurrentThreadId());
 
-    IFR(CheckClosed());
+    check_hresult(CheckClosed());
 
     if (PayloadType_Unknown != _receivedHeader.ePayloadType
         ||
@@ -477,32 +477,32 @@ HRESULT ConnectionImpl::WaitForHeader()
 
     if (nullptr == _spHeaderBuffer)
     {
-        IFR(MakeAndInitialize<DataBufferImpl>(&_spHeaderBuffer, sizeof(PayloadHeader)));
+        check_hresult(MakeAndInitialize<DataBufferImpl>(&_spHeaderBuffer, sizeof(PayloadHeader)));
     }
 
-    ComPtr<IMFMediaBuffer> spMediaBuffer;
-    IFR(_spHeaderBuffer->get_MediaBuffer(&spMediaBuffer));
+    com_ptr<IMFMediaBuffer> spMediaBuffer;
+    check_hresult(_spHeaderBuffer->get_MediaBuffer(&spMediaBuffer));
 
     DWORD bufferLen = 0;
-    IFR(spMediaBuffer->GetMaxLength(&bufferLen)); 
+    check_hresult(spMediaBuffer->GetMaxLength(&bufferLen)); 
 
     // should be the same as sizeof(PayloadHeader)
     if (bufferLen != sizeof(PayloadHeader))
     {
-       IFR(_spHeaderBuffer->put_CurrentLength(sizeof(PayloadHeader)))
+       check_hresult(_spHeaderBuffer->put_CurrentLength(sizeof(PayloadHeader)))
     }
 
     // get the socket input stream reader
-    ComPtr<IInputStream> spInputStream;
-    IFR(_streamSocket->get_InputStream(&spInputStream));
+    com_ptr<IInputStream> spInputStream;
+    check_hresult(_streamSocket->get_InputStream(&spInputStream));
 
     // set the read operation and wait for data
-    ComPtr<IStreamReadOperation> readAsyncOperation;
-    IFR(spInputStream->ReadAsync(_spHeaderBuffer.Get(), bufferLen, InputStreamOptions::InputStreamOptions_Partial, &readAsyncOperation));
+    com_ptr<IStreamReadOperation> readAsyncOperation;
+    check_hresult(spInputStream->ReadAsync(_spHeaderBuffer.get(), bufferLen, InputStreamOptions::InputStreamOptions_Partial, &readAsyncOperation));
 
-    ComPtr<ConnectionImpl> spThis(this);
+    com_ptr<ConnectionImpl> spThis(this);
     return StartAsyncThen(
-        readAsyncOperation.Get(),
+        readAsyncOperation.get(),
         [this, spThis](_In_ HRESULT hr, _In_ IStreamReadOperation *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         auto lock = _lock.Lock();
@@ -534,36 +534,36 @@ HRESULT ConnectionImpl::WaitForPayload()
         ||
         0 == _receivedHeader.cbPayloadSize)
     {
-        IFR(HRESULT_FROM_WIN32(ERROR_INVALID_STATE));
+        check_hresult(HRESULT_FROM_WIN32(ERROR_INVALID_STATE));
     }
 
-    ComPtr<DataBufferImpl> payloadBuffer;
-    IFR(MakeAndInitialize<DataBufferImpl>(&payloadBuffer, _receivedHeader.cbPayloadSize));
+    com_ptr<DataBufferImpl> payloadBuffer;
+    check_hresult(MakeAndInitialize<DataBufferImpl>(&payloadBuffer, _receivedHeader.cbPayloadSize));
 
     // get the underlying buffer and makes sure it the right size
-    ComPtr<IMFMediaBuffer> spMediaBuffer;
-    IFR(payloadBuffer->get_MediaBuffer(&spMediaBuffer));
+    com_ptr<IMFMediaBuffer> spMediaBuffer;
+    check_hresult(payloadBuffer->get_MediaBuffer(&spMediaBuffer));
 
     DWORD bufferLen = 0;
-    IFR(spMediaBuffer->GetMaxLength(&bufferLen));
+    check_hresult(spMediaBuffer->GetMaxLength(&bufferLen));
 
     // should be the same as sizeof(PayloadHeader)
     if (bufferLen != _receivedHeader.cbPayloadSize)
     {
-        IFR(spMediaBuffer->SetCurrentLength(_receivedHeader.cbPayloadSize))
+        check_hresult(spMediaBuffer->SetCurrentLength(_receivedHeader.cbPayloadSize))
     }
 
     // get the socket input stream reader
-    ComPtr<IInputStream> spInputStream;
-    IFR(_streamSocket->get_InputStream(&spInputStream));
+    com_ptr<IInputStream> spInputStream;
+    check_hresult(_streamSocket->get_InputStream(&spInputStream));
 
     // set the read operation and wait for data
-    ComPtr<IStreamReadOperation> readOperation;
-    IFR(spInputStream->ReadAsync(payloadBuffer.Get(), _receivedHeader.cbPayloadSize, InputStreamOptions::InputStreamOptions_None, &readOperation));
+    com_ptr<IStreamReadOperation> readOperation;
+    check_hresult(spInputStream->ReadAsync(payloadBuffer.get(), _receivedHeader.cbPayloadSize, InputStreamOptions::InputStreamOptions_None, &readOperation));
 
-    ComPtr<ConnectionImpl> spThis(this);
+    com_ptr<ConnectionImpl> spThis(this);
     return StartAsyncThen(
-        readOperation.Get(),
+        readOperation.get(),
         [this, spThis](_In_ HRESULT hr, _In_ IStreamReadOperation *asyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
     {
         auto lock = _lock.Lock();
@@ -603,13 +603,13 @@ HRESULT ConnectionImpl::ProcessHeaderBuffer(
     NULL_CHK(header);
     NULL_CHK(dataBuffer);
 
-    ComPtr<IDataBundle> dataBundle;
-    IFR(MakeAndInitialize<DataBundleImpl>(&dataBundle));
+    com_ptr<IDataBundle> dataBundle;
+    check_hresult(MakeAndInitialize<DataBundleImpl>(&dataBundle));
 
     // add buffer
-    IFR(dataBundle->AddBuffer(dataBuffer));
+    check_hresult(dataBundle->AddBuffer(dataBuffer));
 
-    LOG_RESULT(NotifyBundleComplete(header->ePayloadType, dataBundle.Get()));
+    LOG_RESULT(NotifyBundleComplete(header->ePayloadType, dataBundle.get()));
 
     // reset anything we created
     return dataBundle.Reset();
@@ -633,16 +633,16 @@ HRESULT ConnectionImpl::NotifyBundleComplete(
         }
     }
 
-    ComPtr<IStreamSocketInformation> spInfo;
-    IFR(_streamSocket->get_Information(&spInfo));
+    com_ptr<IStreamSocketInformation> spInfo;
+    check_hresult(_streamSocket->get_Information(&spInfo));
 
-    ComPtr<IUriRuntimeClass> spUri;
-    IFR(PrepareRemoteUrl(spInfo.Get(), &spUri));
+    com_ptr<IUriRuntimeClass> spUri;
+    check_hresult(PrepareRemoteUrl(spInfo.get(), &spUri));
 
-    ComPtr<IBundleReceivedArgs> args;
-    IFR(MakeAndInitialize<DataBundleArgsImpl>(&args, payloadType, this, dataBundle, spUri.Get()));
+    com_ptr<IBundleReceivedArgs> args;
+    check_hresult(MakeAndInitialize<DataBundleArgsImpl>(&args, payloadType, this, dataBundle, spUri.get()));
 
-    return _evtBundleReceived.InvokeAll(this, args.Get());
+    return _evtBundleReceived.InvokeAll(this, args.get());
 }
 
 // Callbacks
@@ -655,13 +655,13 @@ HRESULT ConnectionImpl::OnHeaderReceived(
 
     NULL_CHK(asyncResult);
 
-    ComPtr<IAsyncOperationWithProgress<IBuffer*, UINT32>> spAsynResult(asyncResult);
+    com_ptr<IAsyncOperationWithProgress<IBuffer*, UINT32>> spAsynResult(asyncResult);
 
     // get any error codes
     HRESULT hr = S_OK;
 
-    ComPtr<IBuffer> spBuffer;
-    ComPtr<IDataBuffer> dataBuffer;
+    com_ptr<IBuffer> spBuffer;
+    com_ptr<IDataBuffer> dataBuffer;
 
     IFC(asyncResult->GetResults(&spBuffer));
 
@@ -692,7 +692,7 @@ HRESULT ConnectionImpl::OnHeaderReceived(
     }
 
     // cast buffer to PayloadHeader*
-    PayloadHeader* header = GetDataType<PayloadHeader*>(spBuffer.Get());
+    PayloadHeader* header = GetDataType<PayloadHeader*>(spBuffer.get());
     IFC(nullptr != header ? S_OK : E_UNEXPECTED);
 
     // is header type in a range we understand
@@ -727,7 +727,7 @@ HRESULT ConnectionImpl::OnHeaderReceived(
 
     _concurrentFailedBuffers = 0;
 
-    IFC(ProcessHeaderBuffer(header, dataBuffer.Get()));
+    IFC(ProcessHeaderBuffer(header, dataBuffer.get()));
 
 done:
     if (_concurrentFailedBuffers > c_cbMaxBufferFailures)
@@ -749,17 +749,17 @@ HRESULT ConnectionImpl::OnPayloadReceived(
 {
     Log(Log_Level_All, L"ConnectionImpl::OnPayloadReceived\n");
 
-    ComPtr<IBuffer> buffer;
-    IFR(asyncResult->GetResults(&buffer));
+    com_ptr<IBuffer> buffer;
+    check_hresult(asyncResult->GetResults(&buffer));
 
     UINT32 bytesRead = -1;
-    IFR(buffer->get_Length(&bytesRead));
+    check_hresult(buffer->get_Length(&bytesRead));
 
-    ComPtr<IDataBuffer> dataBuffer;
-    IFR(buffer.As(&dataBuffer));
+    com_ptr<IDataBuffer> dataBuffer;
+    check_hresult(buffer.As(&dataBuffer));
 
     DWORD bufferSize = -1;
-    IFR(dataBuffer->get_CurrentLength(&bufferSize));
+    check_hresult(dataBuffer->get_CurrentLength(&bufferSize));
 
     // makes sure this is the expected size
     if (c_cbMaxBundleSize < _receivedHeader.cbPayloadSize
@@ -788,26 +788,26 @@ HRESULT ConnectionImpl::OnPayloadReceived(
     // create bundle to hold all buffers
     if (nullptr == _receivedBundle)
     {
-        IFR(MakeAndInitialize<DataBundleImpl>(&_receivedBundle));
+        check_hresult(MakeAndInitialize<DataBundleImpl>(&_receivedBundle));
     }
 
     ULONG bundleSize = 0;
-    IFR(_receivedBundle->get_TotalSize(&bundleSize));
+    check_hresult(_receivedBundle->get_TotalSize(&bundleSize));
 
     // before adding the new buffer, make sure that doesn't exceed the payload size
     ULONG expectedSize = _receivedHeader.cbPayloadSize - bundleSize;
     if (bufferSize > expectedSize)
     {
-        ComPtr<IDataBuffer> spTrimmed;
-        IFR(dataBuffer->TrimRight(expectedSize, &spTrimmed))
+        com_ptr<IDataBuffer> spTrimmed;
+        check_hresult(dataBuffer->TrimRight(expectedSize, &spTrimmed))
     };
 
     // add the buffer to the bundle
-    _receivedBundle->AddBuffer(dataBuffer.Get());
+    _receivedBundle->AddBuffer(dataBuffer.get());
 
     // recalculate the bundle size
     bundleSize = 0;
-    IFR(_receivedBundle->get_TotalSize(&bundleSize));
+    check_hresult(_receivedBundle->get_TotalSize(&bundleSize));
 
     // do we have a complete bundle?
     if (bundleSize < _receivedHeader.cbPayloadSize)
@@ -817,7 +817,7 @@ HRESULT ConnectionImpl::OnPayloadReceived(
 
     // store the bundle data to be used for notification
     PayloadType payloadType = _receivedHeader.ePayloadType;
-    LOG_RESULT(NotifyBundleComplete(payloadType, _receivedBundle.Get()));
+    LOG_RESULT(NotifyBundleComplete(payloadType, _receivedBundle.get()));
 
 done:
     ResetBundle();
