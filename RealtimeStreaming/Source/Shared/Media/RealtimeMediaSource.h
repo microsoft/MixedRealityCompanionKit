@@ -140,6 +140,8 @@ namespace RealtimeStreaming
 
             ComPtr<IMFSample> m_latestSample;
 
+            LONGLONG m_lastTimeStamp;
+
             ComPtr<IVideoEncodingProperties> m_spVideoEncoding;
 
             ComPtr<IConnection> _spConnection; // Network sender

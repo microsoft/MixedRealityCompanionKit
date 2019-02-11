@@ -64,7 +64,7 @@ RealtimeMediaSourceImpl::~RealtimeMediaSourceImpl()
         m_mediaStreamSource.Reset();
         m_mediaStreamSource = nullptr;
     }
-    
+
     LOG_RESULT(_spConnection->remove_Received(_evtReceivedToken));
     _spConnection.Reset();
     _spConnection = nullptr;
@@ -101,6 +101,7 @@ HRESULT RealtimeMediaSourceImpl::RuntimeClassInitialize(
 
     // client is connected we need to send the Describe request
     _eSourceState = SourceStreamState_Opening;
+    m_lastTimeStamp = 0;
 
     IFR(SendDescribeRequest());
 
@@ -130,12 +131,17 @@ HRESULT RealtimeMediaSourceImpl::CreateMediaSource(
     // TODO: Convert IMFStreamDescriptor to IMediaStreamDescriptor???
     ComPtr<IMediaStreamDescriptor> spDescriptor;
     spVideoStreamDescriptor.As(&spDescriptor);
-
+    
     // Create internal MediaStreamSource
     IFR(spMSSFactory->CreateFromDescriptor(spDescriptor.Get(), &m_mediaStreamSource));
 
     // Set buffer time to 0 for realtime streaming to reduce latency
     m_mediaStreamSource->put_BufferTime({ 0 });
+
+    // Indicate to MediaStreamSource that this is a live video feed
+    ComPtr<IMediaStreamSource4> spMediaStreamSource4;
+    IFR(m_mediaStreamSource.As(&spMediaStreamSource4));
+    IFR(spMediaStreamSource4->put_IsLive(true));
 
     // setup callbacks
     auto startingCallback =
@@ -149,7 +155,7 @@ HRESULT RealtimeMediaSourceImpl::CreateMediaSource(
     IFR(m_mediaStreamSource->add_SampleRequested(sampleResquestedCallback.Get(), &m_sampleRequestedToken));
     IFR(m_mediaStreamSource->add_Closed(closedCallback.Get(), &m_closeRequestedToken))
 
-    return S_OK;
+        return S_OK;
 }
 
 _Use_decl_annotations_
@@ -219,7 +225,7 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
 
     if (m_latestSample == nullptr)
     {
-		Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested() - No latest sample, taking deferral \n");
+        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested() - No latest sample, taking deferral \n");
 
         if (m_deferral != nullptr) {
             Log(Log_Level_Error, L"RealtimeMediaSourceImpl::OnSampleRequested() - Got deferral when another has not completed\n");
@@ -234,8 +240,8 @@ HRESULT RealtimeMediaSourceImpl::OnSampleRequested(IMediaStreamSource* sender, I
 
         IFR(spIMFRequest->SetSample(m_latestSample.Get()));
 
-		  m_latestSample = nullptr;
-		  m_spRequest = nullptr;
+        m_latestSample = nullptr;
+        m_spRequest = nullptr;
     }
 
     return S_OK;
@@ -348,7 +354,7 @@ HRESULT RealtimeMediaSourceImpl::OnDataReceived(
         IFC(ProcessMediaFormatChange(spDataBundle.Get()));
         break;
     case PayloadType_SendMediaStreamTick:
-		Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived() - PayloadType_SendMediaStreamTick\n");
+        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived() - PayloadType_SendMediaStreamTick\n");
         // TODO: Troy how to turn on without IMFMediaSource
         //IFC(ProcessMediaTick(spDataBundle.Get()));
         break;
@@ -573,7 +579,7 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample()\n");
 
-	ComPtr<IMFSample> spSample;
+    ComPtr<IMFSample> spSample;
     ComPtr<IDataBundle> spBundle(pBundle);
     DataBundleImpl* pBundleImpl = static_cast<DataBundleImpl*>(pBundle);
     NULL_CHK(pBundleImpl);
@@ -606,22 +612,37 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
         IFC(pBundleImpl->MoveLeft(sampleHead.cbCameraDataSize, &sampleTransforms));
     }
 
-	// Convert bundle data into IMFSample
-	IFC(pBundleImpl->ToMFSample(&spSample));
+    {
+        auto lock = _lock.Lock();
 
-	// Set appropriate attributes of sample from header data
-	IFC(SetSampleAttributes(&sampleHead, spSample.Get()));
+        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample() - CurrentTS: %d - Last TS:%d \n", sampleHead.hnsTimestamp, m_lastTimeStamp);
+
+        // Drop sample if it's timestamp is in the past of what we have processed
+        if (m_lastTimeStamp > sampleHead.hnsTimestamp)
+        {
+            // TODO: Complete defferal????
+            return S_OK;
+        }
+
+        m_lastTimeStamp = sampleHead.hnsTimestamp;
+    }
+
+    // Convert bundle data into IMFSample
+    IFC(pBundleImpl->ToMFSample(&spSample));
+
+    // Set appropriate attributes of sample from header data
+    IFC(SetSampleAttributes(&sampleHead, spSample.Get()));
 
     {
         // Save the recorded sample off the network to be given to OnSampleRequested called by the internal MediaStreamSource
         // Obtain lock since the OnSampleRequested could be reading this on another thread
         //auto lock = m_lock.LockExclusive();
-		auto lock = _lock.Lock();
+        auto lock = _lock.Lock();
 
-		m_latestSample = spSample;
+        m_latestSample = spSample;
 
-        if (m_deferral != nullptr) 
-		{
+        if (m_deferral != nullptr)
+        {
             Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample - Fire Deferral()\n");
 
             ComPtr<IMFMediaStreamSourceSampleRequest> spIMFRequest;
@@ -633,7 +654,7 @@ HRESULT RealtimeMediaSourceImpl::ProcessMediaSample(
 
             m_deferral = nullptr;
             m_spRequest = nullptr;
-			m_latestSample = nullptr;
+            m_latestSample = nullptr;
         }
     }
 
@@ -648,21 +669,23 @@ done:
 
 _Use_decl_annotations_
 HRESULT RealtimeMediaSourceImpl::SetSampleAttributes(
-	MediaSampleHeader* pSampleHeader,
-	IMFSample* pSample)
+    MediaSampleHeader* pSampleHeader,
+    IMFSample* pSample)
 {
-	IFR_MSG(pSample->SetSampleTime(pSampleHeader->hnsTimestamp), L"setting sample time");
-	IFR_MSG(pSample->SetSampleDuration(pSampleHeader->hnsDuration), L"setting sample duration");
+    // TODO: Confirm setsampletime 0 is good for live streaming with MediaStreamSource
+    //IFR_MSG(pSample->SetSampleTime(pSampleHeader->hnsTimestamp), L"setting sample time");
+    IFR_MSG(pSample->SetSampleTime(0), L"setting sample time");
+    IFR_MSG(pSample->SetSampleDuration(pSampleHeader->hnsDuration), L"setting sample duration");
 
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, BottomFieldFirst);
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, CleanPoint);
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, DerivedFromTopField);
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, Discontinuity);
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, Interlaced);
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, RepeatFirstField);
-	SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, SingleField);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, BottomFieldFirst);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, CleanPoint);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, DerivedFromTopField);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, Discontinuity);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, Interlaced);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, RepeatFirstField);
+    SET_SAMPLE_ATTRIBUTE(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, SingleField);
 
-	return S_OK;
+    return S_OK;
 }
 
 _Use_decl_annotations_

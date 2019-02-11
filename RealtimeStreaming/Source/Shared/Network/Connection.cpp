@@ -310,6 +310,9 @@ HRESULT ConnectionImpl::SendBundle(
     DataBundleImpl::Container buffers;
     IFR(bundleImpl->get_Buffers(&buffers));
 
+
+    UINT32 totalLength = 0;
+    UINT32 bufferCount = 0;
     // send one buffer at a time syncronously
     DataBundleImpl::Iterator iter = buffers.begin();
     for (; iter != buffers.end(); ++iter)
@@ -317,12 +320,20 @@ HRESULT ConnectionImpl::SendBundle(
         ComPtr<IBuffer> rawBuffer;
         IFR((*iter).As(&rawBuffer));
 
+        UINT32 bufferLen;
+        IFR(rawBuffer->get_Length(&bufferLen));
+        totalLength += bufferLen;
+
         ComPtr<IStreamWriteOperation> writeOperation;
         IFR(spOutputStream->WriteAsync(rawBuffer.Get(), &writeOperation));
 
         HRESULT hr = SyncWait<UINT32, UINT32>(writeOperation.Get(), 1);
         IFR(hr);
+
+        bufferCount++;
     }
+
+    Log(Log_Level_Info, L"ConnectionImpl::SendBundle() - Buffers: %d - TotalLength: %d\n", bufferCount, totalLength);
 
     return S_OK;
 }
@@ -332,7 +343,6 @@ HRESULT ConnectionImpl::SendBundleAsync(
     IDataBundle *dataBundle,
     IAsyncAction **sendAction)
 {
-    //Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync\n");
     Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync - Tid: %d \n", GetCurrentThreadId());
 
     NULL_CHK(dataBundle);
@@ -388,11 +398,21 @@ HRESULT ConnectionImpl::SendBundleAsync(
         // send one buffer at a time syncronously
         IFC(bundleImpl->get_Buffers(&buffers));
         iter = buffers.begin();
+
+        UINT32 totalLength = 0;
+        UINT32 bufferCount = 0;
+
         for (; iter != buffers.end(); ++iter)
         {
             ComPtr<IStreamWriteOperation> spWriteOperation;
             ComPtr<IBuffer> rawBuffer;
             IFC((*iter).As(&rawBuffer));
+
+            UINT32 bufferLen;
+            IFR(rawBuffer->get_Length(&bufferLen));
+            totalLength += bufferLen;
+
+            bufferCount++;
 
             IFC(spOutputStream->WriteAsync(rawBuffer.Get(), &spWriteOperation));
 
@@ -408,6 +428,8 @@ HRESULT ConnectionImpl::SendBundleAsync(
                 return S_OK;
             }));
         }
+
+        Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync() - Buffers: %d - TotalLength: %d\n", bufferCount, totalLength);
 
     done:
         if (FAILED(hr))

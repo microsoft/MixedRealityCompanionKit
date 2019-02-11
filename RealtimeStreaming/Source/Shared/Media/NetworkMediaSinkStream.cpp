@@ -262,10 +262,10 @@ HRESULT NetworkMediaSinkStreamImpl::ProcessSample(
         // we do not have a connected player yet
         Log(Log_Level_Info, L"Waiting for a connected player, ignoring sample...\n");
 
-        //if (nullptr != _spConnection)
-        //{
-        //    IFR(_spConnection->SendPayloadType(PayloadType_State_CaptureReady));
-        //}
+        if (nullptr != _spConnection)
+        {
+            IFR(_spConnection->SendPayloadType(PayloadType_State_CaptureReady));
+        }
 
         IFC(QueueEvent(MEStreamSinkRequestSample, GUID_NULL, hr, nullptr));
     }
