@@ -30,9 +30,9 @@ namespace RealtimeStreaming.Media
     {
         RealtimeMediaSource();
 
-        Windows.Foundation.IAsyncAction InitAsync(RealtimeStreaming::Network::Connection connection);
+        Windows.Foundation.IAsyncAction InitAsync(RealtimeStreaming.Network.Connection connection);
 
-        Windows::Media::Core::MediaStreamSource MediaStreamSource{ get; };
+        Windows.Media.Core.MediaStreamSource MediaStreamSource{ get; };
 
         Windows.Media.MediaProperties.VideoEncodingProperties VideoProperties{ get; };
     };

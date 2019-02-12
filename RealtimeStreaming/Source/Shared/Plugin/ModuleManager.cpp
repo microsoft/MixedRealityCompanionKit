@@ -4,16 +4,11 @@
 #include "pch.h"
 #include "ModuleManager.h"
 
-ActivatableStaticOnlyFactory(ModuleManagerStaticsImpl);
+using winrt;
+using RealtimeStreaming::Plugin::implementation;
 
 _Use_decl_annotations_
-ModuleManagerImpl::~ModuleManagerImpl() 
-{
-    Uninitialize();
-}
-
-_Use_decl_annotations_
-HRESULT ModuleManagerImpl::RuntimeClassInitialize()
+ModuleManager::ModuleManager()
 {
     _lastModuleHandleIndex = MODULE_HANDLE_START;
     _moduleHandleMap.clear();
@@ -22,41 +17,43 @@ HRESULT ModuleManagerImpl::RuntimeClassInitialize()
 }
 
 _Use_decl_annotations_
-HRESULT ModuleManagerImpl::AddModule(
-    IModule *module, 
-    ModuleHandle *moduleHandle)
+ModuleManager::~ModuleManager() 
 {
-    NULL_CHK(module);
-    NULL_CHK(moduleHandle);
-
     auto lock = _lock.Lock();
 
-    com_ptr<IModule> spModule(module);
+    _moduleHandleMap.clear();
+
+    _lastModuleHandleIndex = MODULE_HANDLE_INVALID;
+}
+
+_Use_decl_annotations_
+ModuleHandle ModuleManager::AddModule(Module newModule)
+{
+    auto lock = _lock.Lock();
 
     // get the last index value;
     ModuleHandle handle = _lastModuleHandleIndex;
+    ModuleHandle returnHandle = MODULE_HANDLE_INVALID;
 
     // create a pair for the insert success
-    std::pair<std::map<ModuleHandle, com_ptr<IModule>>::iterator, bool> pairReturn;
-    pairReturn = _moduleHandleMap.insert(std::make_pair(handle, spModule.get()));
+    std::pair<std::map<ModuleHandle, IModule>>::iterator, bool> pairReturn;
+    pairReturn = _moduleHandleMap.insert(std::make_pair(handle, newModule));
 
     // make sure pair was added
     if (pairReturn.second)
     {
         // assign and increment the value
-        *moduleHandle = handle++;
+        returnHandle = handle++;
 
         // assign the new value
         _lastModuleHandleIndex = handle;
     }
 
-    return (pairReturn.second ? S_OK : E_UNEXPECTED);
+    return returnHandle;
 }
 
 _Use_decl_annotations_
-HRESULT ModuleManagerImpl::GetModule(
-    ModuleHandle moduleHandle, 
-    IModule** ppModule)
+Module ModuleManager::GetModule(ModuleHandle moduleHandle)
 {
     NULL_CHK(ppModule);
 
@@ -73,11 +70,11 @@ HRESULT ModuleManagerImpl::GetModule(
         check_hresult(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
     }
 
-    return iter->second.CopyTo(ppModule);
+    return iter->second;
 }
 
 _Use_decl_annotations_
-HRESULT ModuleManagerImpl::ReleaseModule(
+void ModuleManager::ReleaseModule(
     ModuleHandle moduleHandle)
 {
     if (moduleHandle <= MODULE_HANDLE_INVALID)
@@ -93,36 +90,5 @@ HRESULT ModuleManagerImpl::ReleaseModule(
         check_hresult(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
     }
 
-    com_ptr<IModule> module;
-    check_hresult(iter->second.As(&module));
-
-    LOG_RESULT(module->Uninitialize());
-    LOG_RESULT(module.Reset());
-    module = nullptr;
-
-    LOG_RESULT(iter->second.Reset());
-    iter->second = nullptr;
-
     _moduleHandleMap.erase(iter);
-
-    return S_OK;
-}
-
-_Use_decl_annotations_
-IFACEMETHODIMP 
-ModuleManagerImpl::Uninitialize(void)
-{
-    auto lock = _lock.Lock();
-
-    for each (auto map in _moduleHandleMap)
-    {
-        LOG_RESULT(map.second->Uninitialize());
-        LOG_RESULT(map.second.Reset());
-        map.second = nullptr;
-    }
-    _moduleHandleMap.clear();
-
-    _lastModuleHandleIndex = MODULE_HANDLE_INVALID;
-
-    return S_OK;
 }

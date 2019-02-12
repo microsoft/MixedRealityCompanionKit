@@ -34,9 +34,7 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
@@ -58,7 +56,6 @@
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Common\AsyncOperations.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\BaseAttributes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\ErrorHandling.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\LinkList.h" />
@@ -80,9 +77,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h" />

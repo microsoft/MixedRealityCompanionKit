@@ -8,21 +8,20 @@ import "Media.Capture.idl";
 
 namespace RealtimeStreaming.Media
 {
-
     [activatable(1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
     runtimeclass NetworkMediaSink : Windows.Media.IMediaExtension
     {
-        event Windows.Foundation.EventHandler Closed;
+        event Windows.Foundation.EventHandler<Boolean> Closed;
 
-        HRESULT OnEndOfStream(DWORD streamId);
+        HRESULT OnEndOfStream(UInt32 streamId);
 
         HRESULT HandleError(HRESULT hr);
 
-        HRESULT CheckShutdown(void);
+        HRESULT CheckShutdown();
 
-        HRESULT SendDescription(void);
+        HRESULT SendDescription();
     };
 }

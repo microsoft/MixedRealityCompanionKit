@@ -3,162 +3,43 @@
 
 #pragma once
 
-namespace RealtimeStreaming
+namespace winrt::RealtimeStreaming::Network::implementation
 {
-    namespace Network
-    {
-        typedef IAsyncOperation<Connection*> IConnectionCreatedOperation;
-        typedef IAsyncOperationCompletedHandler<Connection*> IConnectionCreatedCompletedEventHandler;
+    
+        typedef IAsyncOperation<Connection> IConnectionCreatedOperation;
+        typedef IAsyncOperationCompletedHandler<Connection> IConnectionCreatedCompletedEventHandler;
 
-        typedef IAsyncOperationWithProgress<IBuffer*, UINT32> IStreamReadOperation;
-        typedef IAsyncOperationWithProgressCompletedHandler<IBuffer*, UINT32> IStreamReadCompletedEventHandler;
+        typedef IAsyncOperationWithProgress<IBuffer, UINT32> IStreamReadOperation;
+        typedef IAsyncOperationWithProgressCompletedHandler<IBuffer, UINT32> IStreamReadCompletedEventHandler;
 
         typedef IAsyncOperationWithProgress<UINT32, UINT32> IStreamWriteOperation;
         typedef IAsyncOperationWithProgressCompletedHandler<UINT32, UINT32> IStreamWriteCompletedEventHandler;
 
-        MIDL_INTERFACE("edb95f27-f221-4c5e-b869-516e15cc6c2c")
-            IWriteCompleted : IUnknown
+        struct Connection : ConnectionT<Connection, Module>
         {
-            IFACEMETHOD_(void, SignalCompleted)(HRESULT hr) = 0;
-        };
-
-        class WriteCompleteImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<WinRtClassicComMix>
-            , CloakedIid<IWriteCompleted>
-            , IAsyncAction
-            , AsyncBase<IAsyncActionCompletedHandler>
-            , FtmBase >
-        {
-            InspectableClass(L"Windows.Foundation.IAsyncAction", BaseTrust);
 
         public:
-            WriteCompleteImpl()
-                : _bufferCount(0)
-                , _completed(0)
-            {
-            }
-
-            ~WriteCompleteImpl()
-            {
-                if (_completed < _bufferCount)
-                {
-                    SignalCompleted(E_UNEXPECTED);
-                }
-            }
-
-            HRESULT RuntimeClassInitialize(UINT32 bufferCount)
-            {
-                _completed = 0;
-                _bufferCount = bufferCount;
-
-                return AsyncBase::Start();
-            }
-
-            // IAsyncAction
-            IFACEMETHOD(put_Completed)(
-                _In_ ABI::Windows::Foundation::IAsyncActionCompletedHandler *handler) override
-            {
-                return PutOnComplete(handler);
-            }
-
-            IFACEMETHOD(get_Completed)(
-                _Out_ ABI::Windows::Foundation::IAsyncActionCompletedHandler** handler) override
-            {
-                return GetOnComplete(handler);
-            }
-
-            IFACEMETHOD(GetResults)(void) override
-            {
-                return AsyncBase::CheckValidStateForResultsCall();
-            }
-
-            // AsyncBase
-            virtual HRESULT OnStart(void) { return S_OK; }
-            virtual void OnClose(void) {};
-            virtual void OnCancel(void) {};
-
-            // WriteCompleteImpl
-            IFACEMETHOD_(void, SignalCompleted)(HRESULT hr) override
-            {
-                Log(Log_Level_Info, L"WriteCompleteImpl::SignalCompleted()\n");
-
-                if (SUCCEEDED(hr))
-                {
-                    _completed++;
-                }
-
-                if (_completed < _bufferCount && hr == S_OK)
-                {
-                    return;
-                }
-
-                if (FAILED(hr))
-                {
-                    AsyncBase::TryTransitionToError(hr);
-                }
-
-                AsyncBase::FireCompletion();
-            }
-
-        private:
-            UINT32 _bufferCount;
-            UINT32 _completed;
-        };
-
-        class ConnectionImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , ABI::RealtimeStreaming::Network::IConnection
-            , ABI::RealtimeStreaming::Network::IConnectionInternal
-            , Plugin::IModule
-            , ABI::Windows::Foundation::IClosable
-            , FtmBase >
-        {
-            InspectableClass(RuntimeClass_RealtimeStreaming_Network_Connection, BaseTrust);
-
-        public:
-            ConnectionImpl();
-            ~ConnectionImpl();
-
-            // RuntimeClass
-            STDMETHODIMP RuntimeClassInitialize(
-                _In_ ABI::Windows::Networking::Sockets::IStreamSocket *socket);
-
-            // IModule
-            IFACEMETHOD(get_IsInitialized)(
-                _Out_ boolean* pIsInitialzed);
-            IFACEMETHOD(Uninitialize)(void);
+            Connection(_In_ Windows::Networking::Sockets::IStreamSocket socket);
+            ~Connection();
 
             // IClosable
-            IFACEMETHOD(Close)(void);
+            void Close();
+
+            //IConnection
+            bool IsConnected();
 
             // IConnection
-            IFACEMETHOD(get_IsConnected)(
-                _Out_ boolean *connected);
-            IFACEMETHOD(add_Disconnected)(
-                _In_ ABI::RealtimeStreaming::Network::IDisconnectedEventHandler *eventHandler,
-                _Out_ EventRegistrationToken *token);
-            IFACEMETHOD(remove_Disconnected)(
-                _In_ EventRegistrationToken token);
-            IFACEMETHOD(add_Received)(
-                _In_ ABI::RealtimeStreaming::Network::IBundleReceivedEventHandler *eventHandler,
-                _Out_ EventRegistrationToken *token);
-            IFACEMETHOD(remove_Received)(
-                _In_ EventRegistrationToken token);
             IFACEMETHOD(SendPayloadType)(
                 _In_ PayloadType payloadType);
-            IFACEMETHOD(SendBundle)(
-                _In_ ABI::RealtimeStreaming::Network::IDataBundle *dataBundle);
-            IFACEMETHOD(SendBundleAsync)(
-                _In_ ABI::RealtimeStreaming::Network::IDataBundle *dataBundle,
-                _Out_ ABI::Windows::Foundation::IAsyncAction **sendAction);
+
+            Windows::Foundation::IAsyncAction SendBundleAsync(
+                _In_ RealtimeStreaming::Network::DataBundle dataBundle);
 
         protected:
             // IConnectionInternal
             inline IFACEMETHOD(CheckClosed)()
             {
-                return (nullptr != _streamSocket) ? S_OK : MF_E_SHUTDOWN;
+                return (nullptr != m_streamSocket) ? S_OK : MF_E_SHUTDOWN;
             }
             IFACEMETHOD(WaitForHeader)();
             IFACEMETHOD(WaitForPayload)();
@@ -184,19 +65,20 @@ namespace RealtimeStreaming
             Wrappers::CriticalSection _lock;
 
             boolean     _isInitialized;
-            UINT16      _concurrentFailedBuffers;
+            UINT16      m_concurrentFailedBuffers;
             UINT16      _concurrentFailedBundles;
 
-            com_ptr<IThreadPoolStatics> m_threadPoolStatics;
-            com_ptr<ABI::Windows::Networking::Sockets::IStreamSocket>    _streamSocket;
+            Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
 
-            com_ptr<RealtimeStreaming::Network::DataBufferImpl>  _spHeaderBuffer;
+            RealtimeStreaming::Network::DataBufferImpl  m_spHeaderBuffer{ nullptr };
 
             // currently bundle that is incoming
-            PayloadHeader _receivedHeader;
-            com_ptr<ABI::RealtimeStreaming::Network::IDataBundle>    _receivedBundle;
-            EventSource<ABI::RealtimeStreaming::Network::IDisconnectedEventHandler>    _evtDisconnected;
-            EventSource<ABI::RealtimeStreaming::Network::IBundleReceivedEventHandler>    _evtBundleReceived;
+            PayloadHeader m_receivedHeader;
+            RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
+            
+            winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
+            winrt::event<Windows::Foundation::EventHandler<BundleReceivedArgs>> m_evtBundleReceived;
+
         };
     }
 }

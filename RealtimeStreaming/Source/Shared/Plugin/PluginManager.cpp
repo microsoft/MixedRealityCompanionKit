@@ -15,7 +15,7 @@ static com_ptr<IRealtimeMediaPlayer> s_spStreamingPlayer;
 _Use_decl_annotations_
 PluginManager::PluginManager()
 {
-    ENSURE_HR(MakeAndInitialize<ModuleManagerImpl>(&m_moduleManager));
+    ENSURE_HR(MakeAndInitialize<ModuleManager>(&m_moduleManager));
 
     com_ptr<IThreadPoolStatics> threadPoolStatics;
     check_hresult(Windows::Foundation::GetActivationFactory(
@@ -64,6 +64,18 @@ void PluginManager::Uninitialize()
 }
 
 _Use_decl_annotations_
+static PluginManager PluginManager::Instance()
+{
+    if (s_instance == nullptr)
+    {
+        s_instance = PluginManager();
+        s_threadId = GetCurrentThreadId();
+    }
+
+    return s_instance;
+}
+
+_Use_decl_annotations_
 ModuleManager PluginManager::ModuleManager()
 {
     NULL_CHK_HR(m_moduleManager, E_NOT_SET);
@@ -79,13 +91,11 @@ DirectXManager PluginManager::DirectXManager()
     return m_dxManager;
 }
 
-_Use_decl_annotations_
-HRESULT PluginManager::get_ThreadPool(
-    IThreadPoolStatics** ppThreadPoolStatics)
-{
-    NULL_CHK_HR(m_threadPoolStatics, E_NOT_SET);
 
-    return m_threadPoolStatics.CopyTo(ppThreadPoolStatics);
+_Use_decl_annotations_
+BOOL PluginManager::IsOnThread()
+{
+    return (s_threadId == GetCurrentThreadId());
 }
 
 

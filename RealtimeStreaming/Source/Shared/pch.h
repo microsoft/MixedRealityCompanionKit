@@ -13,7 +13,7 @@
 
 // Standard C++ first
 #include <assert.h>
-#include <list>
+#include <vector>
 #include <map>
 #include <unordered_set>
 #include <memory>
@@ -21,32 +21,26 @@
 #include <random>
 
 // Windows
+#include <unknwn.h>
 #include <winrt/base.h>
 #include <winrt/windows.foundation.h>
+//#include <initguid.h>
+#include <winrt/windows.foundation.collections.h>
+#include <winrt/windows.foundation.numerics.h>
+#include <winrt/windows.media.h>
+#include <winrt/windows.media.capture.h>
+#include <winrt/windows.media.effects.h>
+#include <winrt/windows.media.mediaproperties.h>
+#include <winrt/windows.networking.sockets.h>
+#include <winrt/windows.perception.h>
+#include <winrt/windows.perception.spatial.h>
+#include <winrt/windows.storage.h>
+#include <winrt/windows.storage.streams.h>
+#include <winrt/windows.system.threading.h>
+//#include <robuffer.h>
+//#pragma comment(lib, "runtimeobject")
 
-#include <initguid.h>
-#include <wrl.h>
-#include <wrl\async.h>
-#include <wrl\wrappers\corewrappers.h>
-#include <strsafe.h>
-#include <windows.foundation.h>
-#include <windows.foundation.collections.h>
-#include <windows.foundation.numerics.h>
-#include <windows.media.h>
-#include <windows.media.capture.h>
-#include <windows.media.effects.h>
-#include <windows.media.mediaproperties.h>
-#include <windows.networking.sockets.h>
-#include <windows.perception.h>
-#include <windows.perception.spatial.h>
-#include <windows.storage.h>
-#include <windows.storage.streams.h>
-#include <windows.system.threading.h>
-#include <robuffer.h>
-#pragma comment(lib, "runtimeobject")
-
-#include <ppltasks.h>
-#include <concurrent_queue.h>
+//#include <ppltasks.h>
 
 // DirectX
 #include <directxmath.h>
@@ -80,22 +74,17 @@
 #endif // REALTIMESTREAMING_EXPORTS
 #endif
 
-// mf guids for pulling sample data
-// TODO: Troy disabling to fix build and no longer needed?
-//EXTERN_GUID(MFSampleExtension_PinholeCameraIntrinsics, 0x4ee3b6c5, 0x6a15, 0x4e72, 0x97, 0x61, 0x70, 0xc1, 0xdb, 0x8b, 0x9f, 0xe3);
-#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-EXTERN_GUID(MFSampleExtension_Spatial_CameraCoordinateSystem, 0x9d13c82f, 0x2199, 0x4e67, 0x91, 0xcd, 0xd1, 0xa4, 0x18, 0x1f, 0x25, 0x34);
-EXTERN_GUID(MFSampleExtension_Spatial_CameraViewTransform, 0x4e251fa4, 0x830f, 0x4770, 0x85, 0x9a, 0x4b, 0x8d, 0x99, 0xaa, 0x80, 0x9b);
-EXTERN_GUID(MFSampleExtension_Spatial_CameraProjectionTransform, 0x47f9fcb5, 0x2a02, 0x4f26, 0xa4, 0x77, 0x79, 0x2f, 0xdf, 0x95, 0x88, 0x6a);
-#endif
-EXTERN_GUID(Spatial_CameraTransform, 0x49d793d7, 0x5378, 0x43dd, 0xb2, 0xb3, 0xfe, 0x17, 0x18, 0xaa, 0xcb, 0x1d);
+/* TODO: TROY look at data buffer
+IUnknown* pUnk = reinterpret_cast<IUnknown*>(buff);
+IBufferByteAccess* pBufferByteAccess = nullptr;
+HRESULT hr = pUnk->QueryInterface(IID_PPV_ARGS(pBufferByteAccess);
+byte *pbytes = nullptr;
+hr = pBufferByteAccess->Buffer(&pbytes);
+*/
 
 template <typename T>
-inline T GetDataType(_In_ ABI::Windows::Storage::Streams::IBuffer* pBuffer)
+inline T GetDataType(_In_ Windows::Storage::Streams::IBuffer pBuffer)
 {
-    // take a reference to the passed in buffer
-    com_ptr<ABI::Windows::Storage::Streams::IBuffer> spBuffer(pBuffer);
-
     // QI for BufferByteAccess
     com_ptr<Windows::Storage::Streams::IBufferByteAccess> spBufferByteAccess;
     if (SUCCEEDED(spBuffer.As(&spBufferByteAccess)))
@@ -119,8 +108,6 @@ inline std::wstring to_wstring(unsigned int d)
     return std::wstring(buffer);
 }
 
-
-using namespace Microsoft::WRL;
 using namespace Wrappers;
 
 using namespace Windows::Foundation;
@@ -139,7 +126,6 @@ using namespace ABI::Windows::Storage::Streams;
 using namespace ABI::Windows::System::Threading;
 
 #include "ErrorHandling.h"
-#include "AsyncOperations.h"
 #include "LinkList.h"
 #include "MediaUtils.h"
 
@@ -168,7 +154,6 @@ using namespace ABI::RealtimeStreaming::Media;
 #include "RealtimeServer.h"
 #include "PluginManager.h"
 #include "PluginManagerStatics.h"
-
 
 using namespace RealtimeStreaming::Plugin;
 using namespace RealtimeStreaming::Network;

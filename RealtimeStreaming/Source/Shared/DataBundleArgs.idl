@@ -10,16 +10,15 @@ import "DataBundle.idl";
 
 namespace RealtimeStreaming.Network
 {
-    
+    interface IConnection;
     runtimeclass BundleReceivedArgs;
 
     [version(1.0), exclusiveto(BundleReceivedArgs), uuid(26a177fe-2e53-11e9-b210-d663bd873d93)]
     interface IBundleReceivedArgs : IInspectable
     {
         RealtimeStreaming.PayloadType PayloadType{ get; };
-        RealtimeStreaming.Network.Connection Connection{ get; };
-        RealtimeStreaming.Network.DataBundle DataBundle{ get; };
-        Windows.Foundation.Uri RemoteUri{ get; };
+        RealtimeStreaming.Network.Connection DataConnection{ get; };
+        RealtimeStreaming.Network.DataBundle Bundle{ get; };
     };
 
     [version(1.0), exclusiveto(BundleReceivedArgs), uuid(9a172738-2e53-11e9-b210-d663bd873d93)]

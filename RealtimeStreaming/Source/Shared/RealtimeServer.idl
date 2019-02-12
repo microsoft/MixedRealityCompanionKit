@@ -16,10 +16,10 @@ namespace RealtimeStreaming.Media
     runtimeclass RealtimeServer : RealtimeStreaming.Plugin.Module
     {
         RealtimeServer(RealtimeStreaming.Network.Connection connection,
-                GUID inputMediaType,
+                Guid inputMediaType,
                 Windows.Media.MediaProperties.MediaEncodingProfile mediaEncodingProperties);
 
-        void WriteFrame(uint bufferSize, byte* pBuffer);
+        void WriteFrame(UInt32 bufferSize, UInt8[] pBuffer);
 
         Windows.Media.MediaProperties.VideoEncodingProperties VideoProperties{ get; };
     };

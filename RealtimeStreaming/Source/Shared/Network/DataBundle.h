@@ -18,6 +18,7 @@ namespace RealtimeStreaming
         public:
             typedef std::list<com_ptr<IDataBuffer> > Container;
             typedef std::list<com_ptr<IDataBuffer> >::iterator Iterator;
+            //std::vector< IDataBuffer > packetsToSend{};
 
             ~DataBundleImpl();
 

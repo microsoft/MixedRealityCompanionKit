@@ -4,11 +4,13 @@
 import "oaidl.idl";
 import "ocidl.idl";
 
+import "Windows.Foundation.idl";
 import "RealtimeStreaming.idl";
 
 namespace RealtimeStreaming.Plugin
 {
     runtimeclass Module;
+    runtimeclass ModuleManager;
 
     [version(1.0), exclusiveto(Module), uuid(2edeb3fb-8008-4a13-b8d3-7081fd11443f)]
     interface IModule : IInspectable
@@ -31,15 +33,22 @@ namespace RealtimeStreaming.Plugin
         [default] interface IModule;
     };
 
-    [version(1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    runtimeclass ModuleManager
+
+    [version(1.0), exclusiveto(ModuleManager), uuid(ed7ca192-2e9d-11e9-b210-d663bd873d93)]
+    interface IModuleManager : IInspectable
     {
         UInt32 AddModule(Module pluginModule);
 
         Module GetModule(UInt32 moduleHandle);
 
         void ReleaseModule(UInt32 moduleHandle);
+    };
+
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    runtimeclass ModuleManager
+    {
+        [default] interface IModuleManager;
     };
 }

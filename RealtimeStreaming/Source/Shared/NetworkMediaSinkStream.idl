@@ -39,7 +39,7 @@ namespace RealtimeStreaming.Media
     [version(1.0)]
     runtimeclass NetworkMediaSinkStream : Windows.Media.IMediaExtension
     {
-        NetworkMediaSinkStream(DWORD id,
+        NetworkMediaSinkStream(UInt32 id,
                 RealtimeStreaming::Network::Connection connection,
                 RealtimeStreaming::Media::NetworkMediaSink parentMediaSink);
 

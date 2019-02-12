@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Mon Jan 18 19:14:07 2038
  */
-/* Compiler settings for C:\Users\TROYFE~1\AppData\Local\Temp\DataBundle.idl-e5db0f93:
+/* Compiler settings for C:\Users\TROYFE~1\AppData\Local\Temp\DataBundle.idl-f9e0c826:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -41,15 +41,6 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
 #endif
-
-#if defined(__cplusplus)
-#if defined(__MIDL_USE_C_ENUM)
-#define MIDL_ENUM enum
-#else
-#define MIDL_ENUM enum class
-#endif
-#endif
-
 
 /* Forward Declarations */ 
 

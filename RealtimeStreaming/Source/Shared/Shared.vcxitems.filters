@@ -18,9 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Common\AsyncOperations.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\BaseAttributes.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -57,13 +54,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.h">
       <Filter>Plugin</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.h">
-      <Filter>Plugin</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.h">
-      <Filter>Plugin</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.h">
       <Filter>Plugin</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
@@ -117,13 +108,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />

@@ -162,8 +162,8 @@ HRESULT ListenerImpl::GetResults(
 
     check_hresult(AsyncBase::CheckValidStateForResultsCall());
 
-    com_ptr<ConnectionImpl> spConnection;
-    check_hresult(MakeAndInitialize<ConnectionImpl>(&spConnection, _streamSocketResult.detach()));
+    com_ptr<Connection> spConnection;
+    check_hresult(MakeAndInitialize<Connection>(&spConnection, _streamSocketResult.detach()));
 
     NULL_CHK_HR(spConnection, E_OUTOFMEMORY);
 

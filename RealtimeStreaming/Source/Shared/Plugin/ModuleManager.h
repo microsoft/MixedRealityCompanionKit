@@ -3,48 +3,29 @@
 
 #pragma once
 
-namespace RealtimeStreaming
+namespace winrt::RealtimeStreaming::Plugin::implementation
 {
-    namespace Plugin
+    typedef UINT32 ModuleHandle;
+
+    struct ModuleManager : ModuleManagerT<ModuleManager>
     {
-        using namespace ABI::RealtimeStreaming;
-        using namespace ABI::RealtimeStreaming::Plugin;
 
-        class ModuleManagerImpl
-            : public RuntimeClass
-            < RuntimeClassFlags<RuntimeClassType::WinRtClassicComMix>
-            , IModuleManager
-            , FtmBase>
-        {
-            InspectableClass(RuntimeClass_RealtimeStreaming_Plugin_ModuleManager, BaseTrust);
+    public:
+        ModuleManager();
+        ~ModuleManager();
 
-        public:
-            ~ModuleManagerImpl();
+        // IModuleManager
+        UInt32 AddModule(_In_ Module newModule);
 
-            // RuntimeClass
-            STDMETHODIMP RuntimeClassInitialize();
+        Module GetModule(_In_ ModuleHandle moduleHandle);
 
-            // IModuleManager
-            IFACEMETHOD(AddModule)(
-                _In_ IModule *module,
-                _Out_ ModuleHandle* moduleHandle);
+        void ReleaseModule(_In_ ModuleHandle moduleHandle);
 
-            IFACEMETHOD(GetModule)(
-                _In_ ModuleHandle moduleHandle,
-                _COM_Outptr_result_maybenull_ IModule** module);
+    private:
+        Wrappers::CriticalSection _lock;
 
-            IFACEMETHOD(ReleaseModule)(
-                _In_ ModuleHandle moduleHandle);
+        ModuleHandle _lastModuleHandleIndex;
 
-            IFACEMETHOD(Uninitialize)();
-
-        private:
-            Wrappers::CriticalSection _lock;
-
-            ModuleHandle _lastModuleHandleIndex;
-
-            std::map<ModuleHandle, com_ptr<IModule>> _moduleHandleMap;
-        };
-
-    }
+        std::map<ModuleHandle, IModule> _moduleHandleMap;
+    };
 }

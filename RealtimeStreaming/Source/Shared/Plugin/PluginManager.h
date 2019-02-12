@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "PluginManager.g.h"
-
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {
     extern "C" typedef void(UNITY_INTERFACE_API *PluginCallback)(
@@ -43,18 +41,18 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             PluginManager();
             ~PluginManager();
 
-            RealtimeStreaming.Plugin.ModuleManager ModuleManager();
+            static RealtimeStreaming::Plugin::PluginManager Instance();
 
-            RealtimeStreaming.Plugin.DirectXManager DirectXManager();
+            RealtimeStreaming::Plugin::ModuleManager ModuleManager();
 
-            IFACEMETHOD(get_ThreadPool)(
-                _COM_Outptr_opt_result_maybenull_ IThreadPoolStatics** threadPool);
+            RealtimeStreaming::Plugin::DirectXManager DirectXManager();
 
             void Load(
                 _In_ IUnityInterfaces* unityInterfaces,
                 _In_ IUnityGraphicsDeviceEventCallback callback);
             void UnLoad();
             void OnDeviceEvent(_In_ UnityGfxDeviceEventType eventType);
+            BOOL IsOnThread();
 
             // Plugin
             STDMETHODIMP ListenerCreateAndStart(
@@ -146,6 +144,9 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
                 _Out_ EventRegistrationToken* token);
 
         private:
+            static PluginManager s_instance;
+            static DWORD                        s_threadId;
+
             Wrappers::CriticalSection _lock;
 
             com_ptr<IThreadPoolStatics>          m_threadPoolStatics;

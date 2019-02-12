@@ -15,9 +15,9 @@ namespace RealtimeStreaming.Network
     [version(1.0)]
     runtimeclass Connector : Module
     {
-        Connector(UINT16 port);
+        Connector(UInt16 port);
 
-        IAsyncAction<Connection> ListenAsync();
+        Windows.Foundation.IAsyncAction<Connection> ListenAsync();
 
         event Windows.Foundation.EventHandler Closed;
     };

@@ -9,6 +9,20 @@ import "ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
 {
+    [version(1.0), exclusiveto(Connector), uuid(6229e89c-2e85-11e9-b210-d663bd873d93)]
+    interface IConnector : IInspectable
+    {
+        Windows.Foundation.IAsyncOperation<Connection> ConnectAsync();
+
+        event Windows.Foundation.EventHandler<Boolean> Closed;
+    };
+
+    /*
+    [version(1.0), exclusiveto(Connector), uuid(6229eb26-2e85-11e9-b210-d663bd873d93)]
+    interface IConnectorFactory : IInspectable
+    {
+
+    }*/
 
     [activatable(1.0)]
     [marshaling_behavior(agile)]
@@ -16,10 +30,7 @@ namespace RealtimeStreaming.Network
     [version(1.0)]
     runtimeclass Connector : RealtimeStreaming.Plugin.Module
     {
-        Connector(hstring hostAddress, UINT16 port);
-
-        IAsyncAction<Connection> ConnectAsync();
-
-        event Windows.Foundation.EventHandler Closed;
+        [default] interface IConnector;
+        //Connector(HSTRING hostAddress, UInt16 port);
     };
 }

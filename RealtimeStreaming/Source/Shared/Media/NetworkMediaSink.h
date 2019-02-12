@@ -64,11 +64,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 _In_ float flRate);
 
             // NetworkMediaSink
-            IFACEMETHOD(add_Closed)(
-                _In_ Plugin::IClosedEventHandler *eventHandler,
-                _In_ EventRegistrationToken *token);
-            IFACEMETHOD(remove_Closed)(
-                _In_ EventRegistrationToken token);
 
         private:
             HRESULT SendCaptureReady();
