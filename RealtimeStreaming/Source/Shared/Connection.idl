@@ -9,7 +9,7 @@ import "Windows.Networking.Sockets.idl";
 
 import "RealtimeStreaming.idl";
 import "DataBundle.idl";
-import "DataBundleArgs.idl";
+//import "DataBundleArgs.idl";
 import "ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
@@ -20,15 +20,16 @@ namespace RealtimeStreaming.Network
     [version(1.0)]
     runtimeclass Connection : RealtimeStreaming.Plugin.Module
     {
-        Connection(Windows.Networking.Sockets.StreamSocket streamSocket);
+        Connection();
+        //Connection(Windows.Networking.Sockets.StreamSocket streamSocket);
 
         HRESULT SendPayloadType(RealtimeStreaming.PayloadType type);
-        HRESULT SendBundle(RealtimeStreaming.Network.DataBundle dataBundle);
-        Windows.Foundation.IAsyncAction SendBundleAsync(DataBundle dataBundle);
+        HRESULT SendBundle(IDataBundle dataBundle);
+        Windows.Foundation.IAsyncAction SendBundleAsync(IDataBundle dataBundle);
 
         boolean IsConnected{ get; };
 
         event Windows.Foundation.EventHandler<IInspectable> Disconnected;
-        event Windows.Foundation.EventHandler<BundleReceivedArgs> Received;
+        //event Windows.Foundation.EventHandler<BundleReceivedArgs> Received;
     };
 }

@@ -19,12 +19,16 @@
 extern "C"   {
 #endif
 
+EXTERN_PROXY_FILE( DataBuffer )
+EXTERN_PROXY_FILE( DataBundle )
 EXTERN_PROXY_FILE( MixedRemoteViewCompositor )
 EXTERN_PROXY_FILE( RealtimeStreaming )
 
 
 PROXYFILE_LIST_START
 /* Start of list */
+  REFERENCE_PROXY_FILE( DataBuffer ),
+  REFERENCE_PROXY_FILE( DataBundle ),
   REFERENCE_PROXY_FILE( MixedRemoteViewCompositor ),
   REFERENCE_PROXY_FILE( RealtimeStreaming ),
 /* End of list */

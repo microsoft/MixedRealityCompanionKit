@@ -8,27 +8,39 @@ import "DataBuffer.idl";
 
 namespace RealtimeStreaming.Network
 {
-    [activatable(1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    runtimeclass DataBundle
-    {
-        DataBundle(RealtimeStreaming.Network.DataBuffer dataBuffer);
+    runtimeclass DataBundle;
 
-        UINT32 BufferCount{ get; };
-        ULONG TotalSize{ get; };
+    [version(1.0), exclusiveto(DataBundle), uuid(01458ce6-2e5f-11e9-b210-d663bd873d93)]
+    interface IDataBundle : IInspectable
+    {
+        UInt32 BufferCount{ get; };
+        UInt64 TotalSize{ get; };
 
         HRESULT AddBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
-        
+
         HRESULT InsertBuffer(
-            UINT32 index,
+            UInt32 index,
             RealtimeStreaming.Network.DataBuffer dataBuffer);
-        
+
         HRESULT RemoveBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
-        
-        RealtimeStreaming.Network.DataBuffer RemoveBufferByIndex(UINT32 index);
+
+        RealtimeStreaming.Network.DataBuffer RemoveBufferByIndex(UInt32 index);
 
         HRESULT Reset();
+    };
+
+    [version(1.0), exclusiveto(DataBundle), uuid(042b0fbc-2e5f-11e9-b210-d663bd873d93)]
+    interface IDataBundleFactory : IInspectable
+    {
+    }
+
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [composable(IDataBundleFactory, protected, 1.0)]
+    runtimeclass DataBundle
+    {
+        [default] interface IDataBundle;
+        //DataBundle(RealtimeStreaming.Network.DataBuffer dataBuffer);
     };
 }

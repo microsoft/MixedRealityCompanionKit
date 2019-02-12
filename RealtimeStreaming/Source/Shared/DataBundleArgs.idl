@@ -10,12 +10,34 @@ import "DataBundle.idl";
 
 namespace RealtimeStreaming.Network
 {
-    [activatable(1.0)]
+    
+    runtimeclass BundleReceivedArgs;
+
+    [version(1.0), exclusiveto(BundleReceivedArgs), uuid(26a177fe-2e53-11e9-b210-d663bd873d93)]
+    interface IBundleReceivedArgs : IInspectable
+    {
+        RealtimeStreaming.PayloadType PayloadType{ get; };
+        RealtimeStreaming.Network.Connection Connection{ get; };
+        RealtimeStreaming.Network.DataBundle DataBundle{ get; };
+        Windows.Foundation.Uri RemoteUri{ get; };
+    };
+
+    [version(1.0), exclusiveto(BundleReceivedArgs), uuid(9a172738-2e53-11e9-b210-d663bd873d93)]
+    interface IBundleReceivedArgsFactory : IInspectable
+    {
+
+    }
+    
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
+    [composable(IBundleReceivedArgsFactory, protected, 1.0)]
+    
     runtimeclass BundleReceivedArgs
     {
+        [default] interface IBundleReceivedArgs;
+    //BundleReceivedArgs();
+    /*
         BundleReceivedArgs(
             RealtimeStreaming.PayloadType type,
             RealtimeStreaming.Network.Connection connection,
@@ -26,5 +48,6 @@ namespace RealtimeStreaming.Network
     RealtimeStreaming.Network.Connection Connection{ get; };
     RealtimeStreaming.Network.DataBundle DataBundle{ get; };
     Windows.Foundation.Uri RemoteUri{ get; };
+    */
     };
 }
