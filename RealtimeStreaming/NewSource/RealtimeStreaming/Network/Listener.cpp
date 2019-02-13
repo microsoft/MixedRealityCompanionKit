@@ -3,257 +3,102 @@
 
 #include "pch.h"
 #include "Listener.h"
-#include "AsyncOperations.h"
+#include "Connection.h"
 
-ActivatableStaticOnlyFactory(ListenerStaticsImpl);
+using namespace winrt;
+using namespace RealtimeStreaming::Network::implementation;
+using namespace Windows::Foundation;
+using namespace Windows::Networking::Sockets;
 
-ListenerImpl::ListenerImpl()
-    : _isInitialized(false)
-    , m_port(-1)
-    , _socketListener(nullptr)
+Listener::Listener(UINT16 port)
+    : m_port(port)
+    , m_socketListener(nullptr)
     , m_streamSocketResult(nullptr)
 {
-    Log(Log_Level_Info, L"ListenerImpl::ListenerImpl()\n");
+    Log(Log_Level_Info, L"Listener::ListenerImpl()\n");
 }
 
-ListenerImpl::~ListenerImpl()
+Listener::~Listener()
 {
-    Log(Log_Level_Info, L"ListenerImpl::~ListenerImpl()\n");
+    Log(Log_Level_Info, L"Listener::~ListenerImpl()\n");
 
-    Uninitialize();
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::RuntimeClassInitialize(UINT16 port)
-{
-    Log(Log_Level_Info, L"ListenerImpl::RuntimeClassInitialize()\n");
-
-    auto lock = _lock.Lock();
-
-    _isInitialized = true;
-
-    m_port = port;
-
-    return S_OK;
-}
-
-// ModuleBaseImpl
-_Use_decl_annotations_
-HRESULT ListenerImpl::get_IsInitialized(
-    _Out_ boolean *initialized)
-{
-    Log(Log_Level_Info, L"ListenerImpl::get_IsInitialized()\n");
-
-    NULL_CHK(initialized);
-
-    auto lock = _lock.Lock();
-
-    *initialized = _isInitialized;
-
-    return S_OK;
-};
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::Uninitialize()
-{
-    Log(Log_Level_Info, L"ListenerImpl::Uninitialize()\n");
-
-    auto lock = _lock.Lock();
-
-    if (!_isInitialized)
-    {
-        return S_OK;
-    }
-
-    _isInitialized = false;
-
-    Close();
-
-    return S_OK;
+    // Close();
 }
 
 // IListener
 _Use_decl_annotations_
-HRESULT ListenerImpl::ListenAsync(
-    IAsyncOperation<Connection*>** operation)
+IAsyncOperation<Connection> Listener::ListenAsync()
 {
-    NULL_CHK(operation);
-
-    com_ptr<IAsyncOperation<Connection*>> spThis(this);
-    NULL_CHK_HR(spThis.get(), E_POINTER);
-
-    IFT(spThis.CopyTo(operation));
-
-    return Start();
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::add_Closed(
-    IClosedEventHandler *eventHandler,
-    EventRegistrationToken *token)
-{
-    Log(Log_Level_Info, L"ListenerImpl::add_Closed()\n");
-
-    NULL_CHK(eventHandler);
-    NULL_CHK(token);
-
-    auto lock = _lock.Lock();
-
-    return _evtClosed.Add(eventHandler, token);
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::remove_Closed(EventRegistrationToken token)
-{
-    Log(Log_Level_Info, L"ListenerImpl::remove_Closed()\n");
-
-    auto lock = _lock.Lock();
-
-    return _evtClosed.Remove(token);
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::OnConnectionReceived(
-    IStreamSocketListener *sender,
-    IStreamSocketListenerConnectionReceivedEventArgs *args)
-{
-    UNREFERENCED_PARAMETER(sender);
-
-    NULL_CHK(args);
-
-    Log(Log_Level_Info, L"ListenerImpl::OnConnectionReceived()\n");
-
-    auto lock = _lock.Lock();
-
-    HRESULT hr = S_OK;
-
-    IFC(args->get_Socket(&m_streamSocketResult));
-
-done:
-    if (FAILED(hr))
-    {
-        TryTransitionToError(hr);
-    }
-
-    return FireCompletion();
-};
-
-
-// IAsyncOperation
-_Use_decl_annotations_
-HRESULT ListenerImpl::put_Completed(
-    ABI::Windows::Foundation::IAsyncOperationCompletedHandler<Connection*> *handler)
-{
-    return PutOnComplete(handler);
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::get_Completed(
-    ABI::Windows::Foundation::IAsyncOperationCompletedHandler<Connection*>** handler)
-{
-    return GetOnComplete(handler);
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::GetResults(
-    IConnection** ppConnection)
-{
-    auto lock = _lock.Lock();
-
-    IFT(AsyncBase::CheckValidStateForResultsCall());
-
-    com_ptr<Connection> spConnection;
-    IFT(MakeAndInitialize<Connection>(&spConnection, m_streamSocketResult.detach()));
-
-    NULL_CHK_HR(spConnection, E_OUTOFMEMORY);
-
-    spConnection.CopyTo(ppConnection);
-
-    return Close();
-}
-
-_Use_decl_annotations_
-HRESULT ListenerImpl::OnStart(void)
-{
-    Log(Log_Level_Info, L"ListenerImpl::OnStart()\n");
-
-    // convert port to string
-    std::wstring wsPort = to_wstring(m_port);
+    Log(Log_Level_Info, L"ListenerImpl::ListenAsync()\n");
 
     // create a listener
-    com_ptr<ABI::Windows::Networking::Sockets::IStreamSocketListener> socketListener;
-    IFT(Windows::Foundation::ActivateInstance(
-        Wrappers::HStringReference(RuntimeClass_Windows_Networking_Sockets_StreamSocketListener).get(), 
-        &socketListener));
+    m_connectionReceivedEventToken = m_socketListener.ConnectionReceived({ this, &Listener::OnConnectionReceived });
+    
+    // Convert our port to a string
+    std::string port = std::to_string(m_port);
 
-    // define callback for any connections
-    auto receivedFn = std::bind(&ListenerImpl::OnConnectionReceived, this, std::placeholders::_1, std::placeholders::_2);
+    co_await m_socketListener.BindServiceNameAsync(winrt::to_hstring(port));
+}
 
-    auto connectionReceivedCallback = Callback<IConnectionReceivedEventHandler>(receivedFn);
+/* Event Handlers */
+_Use_decl_annotations_
+event_token Listener::Closed(Windows::Foundation::EventHandler<bool> const& handler)
+{
+    Log(Log_Level_All, L"Listener::add_Closed() - Tid: %d \n", GetCurrentThreadId());
 
-    // register for callbacks
-    IFT(socketListener->add_ConnectionReceived(connectionReceivedCallback.get(), &_connectionReceivedEventToken));
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
-    // setup bindAsync
-    com_ptr<IAsyncAction> bindOperation;
-    IFT(socketListener->BindServiceNameAsync(
-        Wrappers::HStringReference(wsPort.data()).get(),
-        &bindOperation));
-
-    // setup callback and start
-    com_ptr<ListenerImpl> spThis(this);
-    return StartAsyncThen(
-        bindOperation.get(),
-        [this, spThis, socketListener](_In_ HRESULT hr, _In_ IAsyncAction* pAsyncResult, _In_ AsyncStatus asyncStatus) -> HRESULT
-    {
-        auto lock = _lock.Lock();
-
-        IFC(hr);
-
-        // getting ready to begin, store the socket
-        IFC(socketListener.As(&_socketListener));
-
-    done:
-        if (FAILED(hr))
-        {
-            TryTransitionToError(hr);
-            return FireCompletion();
-        }
-
-        return hr;
-    });
+    return m_evtClosed.add(handler);
 }
 
 _Use_decl_annotations_
-void ListenerImpl::OnClose(void)
+void Listener::Closed(winrt::event_token const& token)
 {
-    CloseInternal();
+    Log(Log_Level_Info, L"Listener::remove_Closed()\n");
+
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
+
+    m_evtClosed.remove(token);
 }
 
 _Use_decl_annotations_
-void ListenerImpl::OnCancel(void)
+IAsyncAction Listener::OnConnectionReceived(StreamSocketListener /* sender */, 
+    StreamSocketListenerConnectionReceivedEventArgs args)
 {
-    CloseInternal();
-}
+    Log(Log_Level_Info, L"ListenerImpl::OnConnectionReceived()\n");
+
+    //slim_lock_guard guard(m_lock);
+
+    auto c = winrt::make<Connection>();
+
+    co_return winrt::make<Connection>(args.Socket);
+
+    // Signal completion*** for ConnectAsync?
+};
 
 _Use_decl_annotations_
-void ListenerImpl::CloseInternal()
+void Listener::Close()
 {
-    com_ptr<ABI::Windows::Foundation::IClosable> closeable;
-    if (nullptr != _socketListener)
+    // TODO: Revisit by Troy...seemed to be running in old version
+    /*
+    com_ptr<Windows::Foundation::IClosable> closeable;
+    if (nullptr != m_socketListener)
     {
         // cleanup socket
-        LOG_RESULT(_socketListener->remove_ConnectionReceived(_connectionReceivedEventToken));
-        if SUCCEEDED(_socketListener.As(&closeable))
+        LOG_RESULT(m_socketListener->remove_ConnectionReceived(_connectionReceivedEventToken));
+        if SUCCEEDED(m_socketListener.As(&closeable))
         {
             LOG_RESULT(closeable->Close());
         }
 
         com_ptr<IListener> spThis(this);
         LOG_RESULT(_evtClosed.InvokeAll(spThis.get()));
+        // m_evtClosed(*this, ture);
     }
-    _socketListener.Reset();
-    _socketListener = nullptr;
+    
+    m_socketListener = nullptr;
 
     if (nullptr != m_streamSocketResult)
     {
@@ -262,6 +107,7 @@ void ListenerImpl::CloseInternal()
             LOG_RESULT(closeable->Close());
         }
     }
-    m_streamSocketResult.Reset();
+    */
+    m_socketListener = nullptr;
     m_streamSocketResult = nullptr;
 }

@@ -5,10 +5,11 @@
 
 #include "Generated Files/Network/Connector.g.h"
 #include "Connection.h"
+#include "Plugin\Module.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct Connector : ConnectorT<Connector, RealtimeStreaming::Plugin::Module>
+    struct Connector : ConnectorT<Connector, winrt::RealtimeStreaming::Plugin::implementation::Module>
     {
         public:
             Connector(_In_ Windows::Networking::HostName hostName,

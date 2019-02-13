@@ -4,6 +4,9 @@
 #include "pch.h"
 #include "DataBuffer.h"
 
+using namespace winrt;
+using namespace RealtimeStreaming::Network::implementation;
+
 _Use_decl_annotations_
 DataBuffer::DataBuffer(
     DWORD maxLength)
@@ -11,7 +14,7 @@ DataBuffer::DataBuffer(
     Log(Log_Level_All, L"DataBufferImpl::DataBuffer(DWORD)\n");
 
     com_ptr<IMFMediaBuffer> spMediaBuffer;
-    IFT(MFCreateMemoryBuffer(maxLength, &spMediaBuffer));
+    IFT(MFCreateMemoryBuffer(maxLength, spMediaBuffer.put()));
 
     DataBuffer(spMediaBuffer.get());
 }
@@ -19,16 +22,16 @@ DataBuffer::DataBuffer(
 _Use_decl_annotations_
 DataBuffer::DataBuffer(
     IMFMediaBuffer* pMediaBuffer)
-    , _bufferOffset(0)
+    : _bufferOffset(0)
 {
     Log(Log_Level_All, L"DataBufferImpl::DataBuffer(IMFMediaBuffer)\n");
 
-    NULL_CHK(pMediaBuffer);
+    NULL_THROW(pMediaBuffer);
 
-    com_ptr<IMFMediaBuffer> spMediaBuffer(pMediaBuffer);
-    HRESULT hr = spMediaBuffer.As(&_mf2DBuffer);
+    _mfMediaBuffer.attach(pMediaBuffer);
+    _mf2DBuffer = _mfMediaBuffer.as<IMF2DBuffer>();
 
-    if (SUCCEEDED(hr))
+    if (_mf2DBuffer != nullptr)
     {
         LONG lPitch;
         IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
@@ -37,10 +40,8 @@ DataBuffer::DataBuffer(
     {
         DWORD cbMaxLength;
         DWORD cbCurrentLength;
-        IFT(spMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
+        IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
     }
-
-    IFT(spMediaBuffer.As(&_mfMediaBuffer));
 }
 
 DataBuffer::~DataBuffer()
@@ -52,19 +53,16 @@ DataBuffer::~DataBuffer()
         if (nullptr != _mf2DBuffer)
         {
             _mf2DBuffer->Unlock2D();
-            _mf2DBuffer.Reset();
             _mf2DBuffer = nullptr;
         }
         else
         {
             _mfMediaBuffer->Unlock();
         }
-        _mfMediaBuffer.Reset();
+
         _mfMediaBuffer = nullptr;
     }
 }
-
-
 
 // IBuffer
 UINT32 DataBuffer::Capacity()
@@ -94,12 +92,12 @@ HRESULT DataBuffer::Buffer(
 }
 
 // IDataBuffer
-ULONG Offset()
+ULONG DataBuffer::Offset()
 {
     return _bufferOffset;
 }
 
-void Offset(ULONG value)
+void DataBuffer::Offset(ULONG value)
 {
     // validate the offset is within bounds
     DWORD cbCurrentLength;
@@ -112,7 +110,7 @@ void Offset(ULONG value)
     _bufferOffset = value;
 }
 
-ULONG CurrentLength()
+ULONG DataBuffer::CurrentLength()
 {
     ULONG cbCurrentLength;
     IFT(_mfMediaBuffer->GetCurrentLength(&cbCurrentLength));
@@ -129,7 +127,7 @@ ULONG CurrentLength()
     return cbCurrentLength;
 }
 
-void CurrentLength(ULONG len)
+void DataBuffer::CurrentLength(ULONG len)
 {
     DWORD cbMaxLen = 0;
     IFT(_mfMediaBuffer->GetMaxLength(&cbMaxLen));
@@ -163,7 +161,7 @@ DataBuffer DataBuffer::TrimRight(ULONG cbSize)
     IFT(MFCreateMediaBufferWrapper(GetMediaBuffer(), 
         GetOffset() + cbCurrentLen - cbSize, 
         cbSize, 
-        &spMediaBuffer));
+        spMediaBuffer.put()));
 
     DataBuffer dataBuffer = DataBuffer(spMediaBuffer.get());
 
@@ -199,12 +197,12 @@ void DataBuffer::Reset()
 // DataBufferImpl methods
 
 _Use_decl_annotations_
-HRESULT DataBuffer::get_MediaBuffer(
+HRESULT DataBuffer::GetMediaBuffer(
     IMFMediaBuffer** ppMediaBuffer)
 {
     NULL_CHK_HR(_mfMediaBuffer, E_NOT_SET);
 
-    return _mfMediaBuffer.CopyTo(ppMediaBuffer);
+    _mfMediaBuffer.copy_to(ppMediaBuffer);
 }
 
 _Use_decl_annotations_
@@ -218,8 +216,7 @@ HRESULT DataBuffer::get_Texture(
     ID3D11Texture2D** ppTexture,
     UINT *subIndex)
 {
-    com_ptr<IMFDXGIBuffer> spDXGIBuffer;
-    IFT(_mfMediaBuffer.As(&spDXGIBuffer));
+    com_ptr<IMFDXGIBuffer> spDXGIBuffer = _mfMediaBuffer.as<IMFDXGIBuffer>();
 
     // get resourceView
     IFT(spDXGIBuffer->GetResource(__uuidof(ID3D11Texture2D), 
@@ -228,7 +225,7 @@ HRESULT DataBuffer::get_Texture(
     // if requested
     if (nullptr != subIndex)
     {
-        IFT(pDXGIBuffer->GetSubresourceIndex(subIndex));
+        IFT(spDXGIBuffer->GetSubresourceIndex(subIndex));
     }
 
     return S_OK;

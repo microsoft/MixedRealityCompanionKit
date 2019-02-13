@@ -23,7 +23,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         throw hresult_not_implemented();
     }
 
-    void DataBundle::RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer)
+    bool DataBundle::RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer)
     {
         throw hresult_not_implemented();
     }

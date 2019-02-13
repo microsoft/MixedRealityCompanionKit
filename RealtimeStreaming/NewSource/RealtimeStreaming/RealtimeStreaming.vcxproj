@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Common\BaseAttributes.h" />
+    <ClInclude Include="Common\D3D11DeviceResources.h" />
     <ClInclude Include="Common\ErrorHandling.h" />
     <ClInclude Include="Common\LinkList.h" />
     <ClInclude Include="Common\OpQueue.h" />
@@ -106,9 +107,11 @@
     <ClInclude Include="Media\NetworkMediaSink.h" />
     <ClInclude Include="Media\NetworkMediaSinkStream.h" />
     <ClInclude Include="Media\RealtimeMediaPlayer.h" />
+    <ClInclude Include="Media\RealtimeMediaPlayer_old.h" />
     <ClInclude Include="Media\RealtimeMediaSource.h" />
     <ClInclude Include="Media\RealtimeServer.h" />
     <ClInclude Include="Media\SchemeHandler.h" />
+    <ClInclude Include="Module.h" />
     <ClInclude Include="Network\Connection.h" />
     <ClInclude Include="Network\Connector.h" />
     <ClInclude Include="Network\DataBuffer.h" />
@@ -130,15 +133,18 @@
     <ClInclude Include="Unity\RenderingPlugin.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Common\D3D11DeviceResources.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Media\Marker.cpp" />
     <ClCompile Include="Media\MediaUtils.cpp" />
     <ClCompile Include="Media\NetworkMediaSink.cpp" />
     <ClCompile Include="Media\NetworkMediaSinkStream.cpp" />
     <ClCompile Include="Media\RealtimeMediaPlayer.cpp" />
+    <ClCompile Include="Media\RealtimeMediaPlayer_old.cpp" />
     <ClCompile Include="Media\RealtimeMediaSource.cpp" />
     <ClCompile Include="Media\RealtimeServer.cpp" />
     <ClCompile Include="Media\SchemeHandler.cpp" />
+    <ClCompile Include="Module.cpp" />
     <ClCompile Include="Network\Connection.cpp" />
     <ClCompile Include="Network\Connector.cpp" />
     <ClCompile Include="Network\DataBuffer.cpp" />
@@ -160,18 +166,19 @@
     <Midl Include="Class.idl" />
     <Midl Include="Media\NetworkMediaSink.idl" />
     <Midl Include="Media\NetworkMediaSinkStream.idl" />
+    <Midl Include="Media\RealtimeMediaPlayer.idl" />
     <Midl Include="Media\RealtimeMediaSource.idl" />
     <Midl Include="Media\RealtimeServer.idl" />
     <Midl Include="Network\Connection.idl" />
     <Midl Include="Network\Connector.idl" />
     <Midl Include="Network\DataBuffer.idl" />
     <Midl Include="Network\DataBundle.idl" />
-    <Midl Include="Network\DataBundleArgs.idl" />
     <Midl Include="Network\Listener.idl" />
     <Midl Include="Plugin\DirectXManager.idl" />
     <Midl Include="Plugin\ModuleManager.idl" />
     <Midl Include="Plugin\PluginManager.idl" />
     <Midl Include="RealtimeStreaming.idl" />
+    <Midl Include="SchemeHandler.idl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

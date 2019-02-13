@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include "Generated Files\Network\DataBuffer.g.h"
+
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mferror.h>
 
-using namespace winrt;
-namespace RealtimeStreaming::Network::implementation
+namespace winrt::RealtimeStreaming::Network::implementation
 {
     struct DataBuffer : DataBufferT<DataBuffer, Windows::Storage::Streams::IBuffer, Windows::Storage::Streams::IBufferByteAccess>
     {
@@ -18,25 +19,28 @@ namespace RealtimeStreaming::Network::implementation
             ~DataBuffer();
 
             // IBuffer
-            /*
             UINT32 Capacity();
             UINT32 Length();
             void Length(UINT32);
-            */
 
             // IBufferByteAccess
             IFACEMETHOD(Buffer)(
                 _Outptr_ BYTE** ppBuffer);
 
             // IDataBuffer
-            void TrimLeft(_In_ ULONG cbSize);
+            ULONG Offset();
+            void Offset(ULONG value);
 
+            ULONG CurrentLength();
+            void CurrentLength(ULONG len);
+
+            void TrimLeft(_In_ ULONG cbSize);
             DataBuffer TrimRight(_In_ ULONG cbSize);
 
             void Reset();
 
             // DataBufferImpl
-            STDMETHODIMP get_MediaBuffer(
+            STDMETHODIMP GetMediaBuffer(
                 _COM_Outptr_ IMFMediaBuffer** mfBuffer);
 
             BYTE* GetBufferPointer();
@@ -54,7 +58,7 @@ namespace RealtimeStreaming::Network::implementation
         private:
             com_ptr<IMFMediaBuffer>  _mfMediaBuffer;
             com_ptr<IMF2DBuffer>     _mf2DBuffer;
-            com_ptr<IMFDXGIBuffer>   _mfDXGIBuffer;
+            //com_ptr<IMFDXGIBuffer>   _mfDXGIBuffer;
 
             BYTE* _byteBuffer;
             DWORD _bufferOffset;

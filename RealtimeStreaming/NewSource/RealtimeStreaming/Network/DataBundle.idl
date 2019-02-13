@@ -19,7 +19,7 @@ namespace RealtimeStreaming.Network
             UInt32 index,
             RealtimeStreaming.Network.DataBuffer dataBuffer);
 
-        void RemoveBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
+        Boolean RemoveBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
 
         void Reset();
     };

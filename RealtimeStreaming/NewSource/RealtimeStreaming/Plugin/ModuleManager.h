@@ -5,6 +5,8 @@
 
 #include "Generated Files/Plugin/ModuleManager.g.h"
 
+#include "Module.h"
+
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {
     typedef UINT32 ModuleHandle;
@@ -25,6 +27,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
 
     private:
         //Wrappers::CriticalSection _lock;
+        slim_mutex m_lock;
 
         ModuleHandle _lastModuleHandleIndex;
 

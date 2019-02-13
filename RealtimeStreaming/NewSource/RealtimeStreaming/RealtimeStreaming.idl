@@ -20,7 +20,7 @@ namespace RealtimeStreaming
 */
 
 // Forward Declare
-namespace RealtimeStreaming
+namespace RealtimeStreaming.Common
 {
     typedef enum PayloadType PayloadType;
     typedef enum SampleFlags SampleFlags;
@@ -32,9 +32,8 @@ namespace RealtimeStreaming
 }
 
 // interface defines
-namespace RealtimeStreaming
+namespace RealtimeStreaming.Common
 {
-
     // enums
     [version(1.0)]
     enum PayloadType

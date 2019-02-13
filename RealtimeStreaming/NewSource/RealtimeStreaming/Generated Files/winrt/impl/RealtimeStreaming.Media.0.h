@@ -64,11 +64,15 @@ enum class SourceStreamState : int32_t
 
 struct INetworkMediaSink;
 struct INetworkMediaSinkStream;
+struct IRTSchemeHandler;
+struct IRealtimeMediaPlayer;
 struct IRealtimeMediaSource;
 struct IRealtimeServer;
 struct IRealtimeServerFactory;
 struct NetworkMediaSink;
 struct NetworkMediaSinkStream;
+struct RTSchemeHandler;
+struct RealtimeMediaPlayer;
 struct RealtimeMediaSource;
 struct RealtimeServer;
 
@@ -78,11 +82,15 @@ namespace winrt::impl {
 
 template <> struct category<RealtimeStreaming::Media::INetworkMediaSink>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::INetworkMediaSinkStream>{ using type = interface_category; };
+template <> struct category<RealtimeStreaming::Media::IRTSchemeHandler>{ using type = interface_category; };
+template <> struct category<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::IRealtimeMediaSource>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::IRealtimeServer>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::IRealtimeServerFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::NetworkMediaSink>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Media::NetworkMediaSinkStream>{ using type = class_category; };
+template <> struct category<RealtimeStreaming::Media::RTSchemeHandler>{ using type = class_category; };
+template <> struct category<RealtimeStreaming::Media::RealtimeMediaPlayer>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Media::RealtimeMediaSource>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Media::RealtimeServer>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Media::SinkStreamOperation>{ using type = enum_category; };
@@ -90,11 +98,15 @@ template <> struct category<RealtimeStreaming::Media::SinkStreamState>{ using ty
 template <> struct category<RealtimeStreaming::Media::SourceStreamState>{ using type = enum_category; };
 template <> struct name<RealtimeStreaming::Media::INetworkMediaSink>{ static constexpr auto & value{ L"RealtimeStreaming.Media.INetworkMediaSink" }; };
 template <> struct name<RealtimeStreaming::Media::INetworkMediaSinkStream>{ static constexpr auto & value{ L"RealtimeStreaming.Media.INetworkMediaSinkStream" }; };
+template <> struct name<RealtimeStreaming::Media::IRTSchemeHandler>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRTSchemeHandler" }; };
+template <> struct name<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRealtimeMediaPlayer" }; };
 template <> struct name<RealtimeStreaming::Media::IRealtimeMediaSource>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRealtimeMediaSource" }; };
 template <> struct name<RealtimeStreaming::Media::IRealtimeServer>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRealtimeServer" }; };
 template <> struct name<RealtimeStreaming::Media::IRealtimeServerFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRealtimeServerFactory" }; };
 template <> struct name<RealtimeStreaming::Media::NetworkMediaSink>{ static constexpr auto & value{ L"RealtimeStreaming.Media.NetworkMediaSink" }; };
 template <> struct name<RealtimeStreaming::Media::NetworkMediaSinkStream>{ static constexpr auto & value{ L"RealtimeStreaming.Media.NetworkMediaSinkStream" }; };
+template <> struct name<RealtimeStreaming::Media::RTSchemeHandler>{ static constexpr auto & value{ L"RealtimeStreaming.Media.RTSchemeHandler" }; };
+template <> struct name<RealtimeStreaming::Media::RealtimeMediaPlayer>{ static constexpr auto & value{ L"RealtimeStreaming.Media.RealtimeMediaPlayer" }; };
 template <> struct name<RealtimeStreaming::Media::RealtimeMediaSource>{ static constexpr auto & value{ L"RealtimeStreaming.Media.RealtimeMediaSource" }; };
 template <> struct name<RealtimeStreaming::Media::RealtimeServer>{ static constexpr auto & value{ L"RealtimeStreaming.Media.RealtimeServer" }; };
 template <> struct name<RealtimeStreaming::Media::SinkStreamOperation>{ static constexpr auto & value{ L"RealtimeStreaming.Media.SinkStreamOperation" }; };
@@ -102,11 +114,15 @@ template <> struct name<RealtimeStreaming::Media::SinkStreamState>{ static const
 template <> struct name<RealtimeStreaming::Media::SourceStreamState>{ static constexpr auto & value{ L"RealtimeStreaming.Media.SourceStreamState" }; };
 template <> struct guid<RealtimeStreaming::Media::INetworkMediaSink>{ static constexpr GUID value{ 0x35D3F60F,0xFA0D,0x53BC,{ 0x8D,0x53,0x7F,0x96,0xB7,0xE9,0x23,0x49 } }; };
 template <> struct guid<RealtimeStreaming::Media::INetworkMediaSinkStream>{ static constexpr GUID value{ 0x98D2B666,0xDBD9,0x5DEF,{ 0x8C,0x8A,0x75,0x2C,0x47,0x68,0x3A,0x7A } }; };
+template <> struct guid<RealtimeStreaming::Media::IRTSchemeHandler>{ static constexpr GUID value{ 0xA5596274,0xA51A,0x5F7A,{ 0x83,0xF6,0x55,0xCA,0x2D,0x33,0x4D,0x89 } }; };
+template <> struct guid<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ static constexpr GUID value{ 0x27D5374C,0x326B,0x544D,{ 0xB2,0xC7,0x6A,0xDA,0x45,0x8F,0xA5,0xEB } }; };
 template <> struct guid<RealtimeStreaming::Media::IRealtimeMediaSource>{ static constexpr GUID value{ 0x03F7C586,0x1504,0x5810,{ 0xAB,0x3A,0x7A,0x74,0xC9,0x9B,0x19,0x8D } }; };
 template <> struct guid<RealtimeStreaming::Media::IRealtimeServer>{ static constexpr GUID value{ 0xBDF2A077,0x3916,0x5DE4,{ 0xB9,0xEA,0x74,0xF0,0x26,0xB0,0x59,0xD5 } }; };
 template <> struct guid<RealtimeStreaming::Media::IRealtimeServerFactory>{ static constexpr GUID value{ 0x5346B092,0x8689,0x54DD,{ 0xAC,0x7A,0xED,0x45,0x75,0xCB,0x1B,0x98 } }; };
 template <> struct default_interface<RealtimeStreaming::Media::NetworkMediaSink>{ using type = RealtimeStreaming::Media::INetworkMediaSink; };
 template <> struct default_interface<RealtimeStreaming::Media::NetworkMediaSinkStream>{ using type = RealtimeStreaming::Media::INetworkMediaSinkStream; };
+template <> struct default_interface<RealtimeStreaming::Media::RTSchemeHandler>{ using type = RealtimeStreaming::Media::IRTSchemeHandler; };
+template <> struct default_interface<RealtimeStreaming::Media::RealtimeMediaPlayer>{ using type = RealtimeStreaming::Media::IRealtimeMediaPlayer; };
 template <> struct default_interface<RealtimeStreaming::Media::RealtimeMediaSource>{ using type = RealtimeStreaming::Media::IRealtimeMediaSource; };
 template <> struct default_interface<RealtimeStreaming::Media::RealtimeServer>{ using type = RealtimeStreaming::Media::IRealtimeServer; };
 
@@ -134,6 +150,24 @@ struct consume_RealtimeStreaming_Media_INetworkMediaSinkStream
     HRESULT Shutdown() const;
 };
 template <> struct consume<RealtimeStreaming::Media::INetworkMediaSinkStream> { template <typename D> using type = consume_RealtimeStreaming_Media_INetworkMediaSinkStream<D>; };
+
+template <typename D>
+struct consume_RealtimeStreaming_Media_IRTSchemeHandler
+{
+    RealtimeStreaming::Network::Connection DataConnection() const;
+    void DataConnection(RealtimeStreaming::Network::Connection const& value) const;
+};
+template <> struct consume<RealtimeStreaming::Media::IRTSchemeHandler> { template <typename D> using type = consume_RealtimeStreaming_Media_IRTSchemeHandler<D>; };
+
+template <typename D>
+struct consume_RealtimeStreaming_Media_IRealtimeMediaPlayer
+{
+    event_token Closed(Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler) const;
+    using Closed_revoker = event_revoker<RealtimeStreaming::Media::IRealtimeMediaPlayer>;
+    Closed_revoker Closed(auto_revoke_t, Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler) const;
+    void Closed(event_token const& token) const;
+};
+template <> struct consume<RealtimeStreaming::Media::IRealtimeMediaPlayer> { template <typename D> using type = consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>; };
 
 template <typename D>
 struct consume_RealtimeStreaming_Media_IRealtimeMediaSource
@@ -176,6 +210,18 @@ template <> struct abi<RealtimeStreaming::Media::INetworkMediaSinkStream>{ struc
     virtual HRESULT __stdcall Stop(HRESULT* result) noexcept = 0;
     virtual HRESULT __stdcall Pause(HRESULT* result) noexcept = 0;
     virtual HRESULT __stdcall Shutdown(HRESULT* result) noexcept = 0;
+};};
+
+template <> struct abi<RealtimeStreaming::Media::IRTSchemeHandler>{ struct type : IInspectable
+{
+    virtual HRESULT __stdcall get_DataConnection(void** result) noexcept = 0;
+    virtual HRESULT __stdcall put_DataConnection(void* value) noexcept = 0;
+};};
+
+template <> struct abi<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ struct type : IInspectable
+{
+    virtual HRESULT __stdcall add_Closed(void* handler, event_token* token) noexcept = 0;
+    virtual HRESULT __stdcall remove_Closed(event_token token) noexcept = 0;
 };};
 
 template <> struct abi<RealtimeStreaming::Media::IRealtimeMediaSource>{ struct type : IInspectable

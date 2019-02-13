@@ -1,161 +1,91 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-
-#include "pch.h"
+﻿#include "pch.h"
 #include "RealtimeMediaPlayer.h"
-#include "IUnityGraphicsD3D11.h"
+
+#include <winrt/Windows.Media.Core.h>
+#include <winrt/Windows.Graphics.DirectX.Direct3D11.h>
+#include <Windows.Graphics.DirectX.Direct3D11.h>
 
 using namespace winrt;
-using namespace Windows::Graphics::DirectX::Direct3D11;
-using namespace Windows::Media;
-using namespace Windows::Media::Core;
-using namespace Windows::Media::Playback;
-using namespace Windows::Foundation;
+using namespace RealtimeStreaming::Media::implementation;
+using namespace winrt::Windows::Foundation;
 
-_Use_decl_annotations_
-RealtimeMediaPlayer::RealtimeMediaPlayer(
-    UnityGfxRenderer apiType,
-    IUnityInterfaces* pUnityInterfaces)
-    //StateChangedCallback fnCallback,
+using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
+
+RealtimeStreaming::Plugin::IModule RealtimeMediaPlayer::Create(
+    _In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice)
+    //_In_ StateChangedCallback fnCallback)
+{
+    auto player = make<RealtimeMediaPlayer>();
+
+    if (SUCCEEDED(player.as<IModulePriv>()->Initialize(unityDevice, fnCallback)))
+    {
+        return player;
+    }
+
+    return nullptr;
+}
+
+RealtimeMediaPlayer::RealtimeMediaPlayer()
     : m_d3dDevice(nullptr)
-    , m_mediaDevice(nullptr)
-    , m_fnStateCallback(nullptr)
     , m_mediaPlayer(nullptr)
     , m_mediaPlaybackSession(nullptr)
-    , m_primaryTexture(nullptr)
-    , m_primaryTextureSRV(nullptr)
-    , m_primarySharedHandle(INVALID_HANDLE_VALUE)
-    , m_primaryMediaTexture(nullptr)
-    , m_primaryMediaSurface(nullptr)
+    , m_primaryBuffer(std::make_shared<SharedTextureBuffer>())
 {
-    Log(Log_Level_Info, L"RealtimeMediaPlayer::RealtimeMediaPlayer()\n");
-
-    NULL_CHK(pUnityInterfaces);
-    //NULL_CHK(fnCallback);
-
-    com_ptr<ID3D11Device> spDevice;
-
-    if (apiType == kUnityGfxRendererD3D11)
-    {
-        IUnityGraphicsD3D11* d3d = pUnityInterfaces->Get<IUnityGraphicsD3D11>();
-        
-        NULL_CHK_HR(d3d, E_INVALIDARG);
-
-        spDevice.attach(d3d->GetDevice());
-    }
-    else
-    {
-        IFT(E_INVALIDARG);
-    }
-
-    // make sure creation of the device is on the same adapter
-    com_ptr<IDXGIDevice> spDXGIDevice;
-    IFT(spDevice.as(spDXGIDevice.put()));
-
-    com_ptr<IDXGIAdapter> spAdapter;
-    IFT(spDXGIDevice->GetAdapter(spAdapter.put()));
-
-    // create dx device for media pipeline
-    com_ptr<ID3D11Device> spMediaDevice;
-    IFT(CreateMediaDevice(spAdapter.get(), spMediaDevice.put()));
-
-    // lock the shared dxgi device manager
-    // will keep lock open for the life of object
-    //     call MFUnlockDXGIDeviceManager when unloading
-    UINT uiResetToken;
-    com_ptr<IMFDXGIDeviceManager> spDeviceManager;
-    IFT(MFLockDXGIDeviceManager(&uiResetToken, spDeviceManager.put()));
-
-    // associtate the device with the manager
-    IFT(spDeviceManager->ResetDevice(spMediaDevice.get(), uiResetToken));
-
-    // create media player object
-    CreateMediaPlayer();
-
-    // TODO: Need to hook-back up callback?
-    //m_fnStateCallback = fnCallback;
-    m_d3dDevice.attach(spDevice.detach());
-    m_mediaDevice.attach(spMediaDevice.detach());
 }
 
-IAsyncAction RealtimeMediaPlayer::InitAsync(
-    Connection connection)
+void RealtimeMediaPlayer::Shutdown()
 {
-    m_RealtimeMediaSource = RealtimeMediaSource(connection);
-
-    co_await m_RealtimeMediaSource.connectasync();
-
-    MediaStreamSource mediaStreamSource = m_RealtimeMediaSource.GetMediaStreamSource();
-
-    MediaSource source = MediaSource.CreateFromMediaStreamSource(mediaStreamSource);
-
-    MediaPlaybackItem item = MediaPlaybackItem(source);
-
-    m_mediaPlayer.Source(item);
-}
-
-_Use_decl_annotations_
-RealtimeMediaPlayer::~RealtimeMediaPlayer()
-{
-    ReleaseTextures();
+    m_primaryBuffer.reset();
 
     ReleaseMediaPlayer();
 
-    MFUnlockDXGIDeviceManager();
-
     ReleaseResources();
+
+    //Module::Shutdown();
 }
 
-
-HRESULT RealtimeMediaPlayer::GetCurrentResolution(
-    UINT32* pWidth,
-    UINT32* pHeight)
+event_token RealtimeMediaPlayer::Closed(Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
 {
-    NULL_CHK(pWidth);
-    NULL_CHK(pHeight);
+    return m_closedEvent.add(handler);
+}
 
-    if (m_RealtimeMediaSource == nullptr)
-    {
-        return E_FAIL;
-    }
-
-    return m_RealtimeMediaSource->get_StreamResolution(pWidth, pHeight);
+void RealtimeMediaPlayer::Closed(event_token const& token)
+{
+    m_closedEvent.remove(token);
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
+HRESULT RealtimeMediaPlayer::CreatePlaybackTexture(
     UINT32 width,
     UINT32 height,
     void** ppvTexture)
 {
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::CreateStreamingTexture()\n");
-
-    NULL_CHK(ppvTexture);
+    NULL_CHK_HR(ppvTexture, E_INVALIDARG);
 
     if (width < 1 || height < 1)
-        IFT(E_INVALIDARG);
+    {
+        IFR(E_INVALIDARG);
+    }
 
     *ppvTexture = nullptr;
 
-    // create the video texture description based on texture format
-    m_textureDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, width, height);
-    m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-    m_textureDesc.MipLevels = 1;
-    m_textureDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
-    m_textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    m_primaryBuffer->Reset();
 
-    IFT(CreateTextures());
+    // TODO: Look at incorporating to have all modules be like
+    // https://github.com/carmines/UnityPluginCollection/blob/master/VideoPlayer/VideoPlayer/Source/Shared/Plugin.Module.h
+    auto resources = m_deviceResources.lock();
+    NULL_CHK_HR(resources, E_POINTER);
 
-    com_ptr<ID3D11ShaderResourceView> spSRV;
-    IFT(m_primaryTextureSRV.CopyTo(&spSRV));
+    com_ptr<ID3D11DeviceResource> spD3D11Resources = nullptr;
+    IFR(resources->QueryInterface(__uuidof(ID3D11DeviceResource), spD3D11Resources.put_void()));
+
+    // make sure we have created our own d3d device
+    IFR(CreateResources(spD3D11Resources->GetDevice()));
+
+    IFR(SharedTextureBuffer::Create(spD3D11Resources->GetDevice().get(), m_dxgiDeviceManager.get(), width, height, m_primaryBuffer));
+
+    com_ptr<ID3D11ShaderResourceView> spSRV = nullptr;
+    m_primaryBuffer->frameTextureSRV.copy_to(spSRV.put());
 
     *ppvTexture = spSRV.detach();
 
@@ -163,268 +93,278 @@ HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayer::Play()
+HRESULT RealtimeMediaPlayer::LoadContent(
+    hstring const& contentLocation)
 {
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Play()\n");
-
-    if (nullptr != m_mediaPlayer)
+    if (contentLocation.empty())
     {
-        //LOG_RESULT(m_mediaPlayer.PlaybackSession().State);
-
-        m_mediaPlayer.Play();
-    }
-}
-
-_Use_decl_annotations_
-void RealtimeMediaPlayer::Pause()
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Pause()\n");
-
-    if (nullptr != m_mediaPlayer)
-    {
-        m_mediaPlayer.Pause();
-    }
-}
-
-_Use_decl_annotations_
-void RealtimeMediaPlayer::Stop()
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::Stop()\n");
-
-    if (nullptr != m_mediaPlayer)
-    {
-        Pause();
-        m_mediaPlayer.Source = nullptr;
-    }
-}
-
-_Use_decl_annotations_
-void RealtimeMediaPlayer::CreateMediaPlayer()
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::CreateMediaPlayer()\n");
-
-    // setup callbacks
-    m_mediaPlayer = MediaPlayer();
-    m_mediaPlayer.IsVideoFrameServerEnabled = true;
-
-    // Subscribe to events
-    m_openedEventToken = m_mediaPlayer.MediaOpened({ this, &RealtimeMediaPlayer::OnOpened });
-    m_endedEventToken = m_mediaPlayer.MediaEnded({ this, &RealtimeMediaPlayer::OnEnded });
-    m_failedEventToken = m_mediaPlayer.MediaFailed({ this, &RealtimeMediaPlayer::OnFailed });
-    m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable({ this, &RealtimeMediaPlayer::OnVideoFrameAvailable });
-
-    m_mediaPlaybackSession = m_mediaPlayer.PlaybackSession;
-    m_stateChangedEventToken = m_mediaPlaybackSession.PlaybackStateChanged({ this, &RealtimeMediaPlayer::OnStateChanged });)
-}
-
-_Use_decl_annotations_
-void RealtimeMediaPlayer::ReleaseMediaPlayer()
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::ReleaseMediaPlayer()\n");
-
-    // stop playback
-    Stop();
-
-    // Unsubscribe from event handlers
-    if (nullptr != m_mediaPlaybackSession)
-    {
-        m_mediaPlaybackSession.PlaybackStateChanged(m_stateChangedEventToken);
+        IFR(E_INVALIDARG);
     }
 
-    if (nullptr != m_mediaPlayer)
+    if (m_mediaPlayer == nullptr)
     {
-        m_mediaPlayer.MediaOpened(m_openedEventToken);
-        m_mediaPlayer.MediaEnded(m_endedEventToken);
-        m_mediaPlayer.MediaFailed(m_failedEventToken);
-        m_mediaPlayer.VideoFrameAvailable(m_videoFrameAvailableToken);
-    }
-}
-
-_Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::CreateTextures()
-{
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::CreateTextures()\n");
-
-    if (nullptr != m_primaryTexture || nullptr != m_primaryTextureSRV)
-    {
-        ReleaseTextures();
+        IFR(CreateMediaPlayer());
     }
 
-    // create staging texture on unity device
-    com_ptr<ID3D11Texture2D> spTexture;
-    IFT(m_d3dDevice->CreateTexture2D(&m_textureDesc, nullptr, &spTexture));
+    HRESULT hr = S_OK;
 
-    auto srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.get(), D3D11_SRV_DIMENSION_TEXTURE2D);
-    com_ptr<ID3D11ShaderResourceView> spSRV;
-    IFT(m_d3dDevice->CreateShaderResourceView(spTexture.get(), &srvDesc, &spSRV));
-
-    // create shared texture from the unity texture
-    com_ptr<IDXGIResource1> spDXGIResource;
-    IFT(spTexture.As(&spDXGIResource));
-
-    HANDLE sharedHandle = INVALID_HANDLE_VALUE;
-    com_ptr<ID3D11Texture2D> spMediaTexture;
-    com_ptr<IDirect3DSurface> spMediaSurface;
-    HRESULT hr = spDXGIResource->CreateSharedHandle(
-        nullptr,
-        DXGI_SHARED_RESOURCE_READ | DXGI_SHARED_RESOURCE_WRITE,
-        L"SharedTextureHandle",
-        &sharedHandle);
-
-    if (SUCCEEDED(hr))
+    try
     {
-        com_ptr<ID3D11Device1> spMediaDevice;
-        hr = m_mediaDevice.As(&spMediaDevice);
-        if (SUCCEEDED(hr))
-        {
-            hr = spMediaDevice->OpenSharedResource1(sharedHandle, IID_PPV_ARGS(&spMediaTexture));
-            if (SUCCEEDED(hr))
-            {
-                hr = GetSurfaceFromTexture(spMediaTexture.get(), &spMediaSurface);
-            }
-        }
-    }
+        auto uri = Windows::Foundation::Uri(contentLocation);
 
-    // if anything failed, clean up and return
-    if (FAILED(hr))
+        auto mediaSource = Windows::Media::Core::MediaSource::CreateFromUri(uri);
+
+        m_mediaPlayer.Source(mediaSource);
+    }
+    catch (hresult_error const & e)
     {
-        if (sharedHandle != INVALID_HANDLE_VALUE)
-            CloseHandle(sharedHandle);
-
-        IFT(hr);
+        hr = e.code();
     }
-
-    m_primaryTexture.attach(spTexture.detach());
-    m_primaryTextureSRV.attach(spSRV.detach());
-
-    m_primarySharedHandle = sharedHandle;
-    m_primaryMediaTexture.attach(spMediaTexture.detach());
-    m_primaryMediaSurface.attach(spMediaSurface.detach());
 
     return hr;
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayer::ReleaseTextures()
+HRESULT RealtimeMediaPlayer::Play()
 {
-    Log(Log_Level_Info, L"RealtimeMediaPlayerImpl::ReleaseTextures()");
+    NULL_CHK_HR(m_mediaPlayer, MF_E_NOT_INITIALIZED);
 
-    // primary texture
-    if (m_primarySharedHandle != INVALID_HANDLE_VALUE)
+    HRESULT hr = S_OK;
+
+    try
     {
-        CloseHandle(m_primarySharedHandle);
-        m_primarySharedHandle = INVALID_HANDLE_VALUE;
+        m_mediaPlayer.Play();
+    }
+    catch (hresult_error const & e)
+    {
+        hr = e.code();
     }
 
-    m_primaryMediaSurface = nullptr;
-    m_primaryMediaTexture = nullptr;
-    m_primaryTextureSRV = nullptr;
-    m_primaryTexture = nullptr;
-
-    ZeroMemory(&m_textureDesc, sizeof(m_textureDesc));
+    return hr;
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayer::ReleaseResources()
+HRESULT RealtimeMediaPlayer::Pause()
 {
-    m_fnStateCallback = nullptr;
+    NULL_CHK_HR(m_mediaPlayer, MF_E_NOT_INITIALIZED);
 
-    // release dx devices
-    m_mediaDevice = nullptr;
-    m_d3dDevice = nullptr;
+    HRESULT hr = S_OK;
 
-    m_RealtimeMediaSource = nullptr;
+    try
+    {
+        m_mediaPlayer.Pause();
+    }
+    catch (hresult_error const & e)
+    {
+        hr = e.code();
+    }
+
+    return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::OnVideoFrameAvailable(IMediaPlayer* sender, IInspectable* arg)
+HRESULT RealtimeMediaPlayer::Stop()
 {
-    com_ptr<IMediaPlayer> spMediaPlayer(sender);
+    NULL_CHK_HR(m_mediaPlayer, MF_E_NOT_INITIALIZED);
 
-    com_ptr<IMediaPlayer5> spMediaPlayer5;
-    IFT(spMediaPlayer.As(&spMediaPlayer5));
+    HRESULT hr = S_OK;
 
-    if (nullptr != m_primaryMediaSurface)
+    try
     {
-        IFT(spMediaPlayer5->CopyFrameToVideoSurface(m_primaryMediaSurface.get()));
+        m_mediaPlayer.Source(nullptr);
     }
+    catch (hresult_error const & e)
+    {
+        hr = e.code();
+    }
+
+    return hr;
+}
+
+_Use_decl_annotations_
+HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
+{
+    if (m_mediaPlayer != nullptr)
+    {
+        ReleaseMediaPlayer();
+    }
+
+    m_mediaPlayer = Windows::Media::Playback::MediaPlayer();
+
+    m_endedToken = m_mediaPlayer.MediaEnded([=](Windows::Media::Playback::MediaPlayer const& sender, Windows::Foundation::IInspectable const& args)
+    {
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
+        CALLBACK_STATE state{};
+        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+
+        state.type = CallbackType::VideoPlayer;
+
+        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
+        state.value.playbackState.state = MediaPlayerState::Ended;
+
+        Callback(state);
+    });
+
+    m_failedToken = m_mediaPlayer.MediaFailed([=](Windows::Media::Playback::MediaPlayer const& sender, Windows::Media::Playback::MediaPlayerFailedEventArgs const& args)
+    {
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
+        CALLBACK_STATE state{};
+        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+
+        state.type = CallbackType::Failed;
+
+        ZeroMemory(&state.value.failedState, sizeof(FAILED_STATE));
+
+        state.value.failedState.hresult = args.ExtendedErrorCode();
+
+        Callback(state);
+    });
+
+    m_openedToken = m_mediaPlayer.MediaOpened([=](Windows::Media::Playback::MediaPlayer const& sender, Windows::Foundation::IInspectable const& args)
+    {
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
+        if (nullptr == m_mediaPlaybackSession)
+        {
+            return;
+        }
+
+        CALLBACK_STATE state{};
+        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+
+        state.type = CallbackType::VideoPlayer;
+
+        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
+        state.value.playbackState.state = MediaPlayerState::Opened;
+        state.value.playbackState.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
+        state.value.playbackState.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
+        state.value.playbackState.canSeek = static_cast<boolean>(m_mediaPlaybackSession.CanSeek());
+        state.value.playbackState.duration = m_mediaPlaybackSession.NaturalDuration().count();
+
+        Callback(state);
+    });
+
+    // set frameserver mode for video
+    m_mediaPlayer.IsVideoFrameServerEnabled(true);
+    m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, Windows::Foundation::IInspectable const& args)
+    {
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
+        if (nullptr != m_primaryBuffer->mediaSurface)
+        {
+            m_mediaPlayer.CopyFrameToVideoSurface(m_primaryBuffer->mediaSurface);
+        }
+    });
+
+    m_mediaPlaybackSession = m_mediaPlayer.PlaybackSession();
+    m_stateChangedEventToken = m_mediaPlaybackSession.PlaybackStateChanged([=](Windows::Media::Playback::MediaPlaybackSession const& sender, Windows::Foundation::IInspectable const& args)
+    {
+        UNREFERENCED_PARAMETER(sender);
+        UNREFERENCED_PARAMETER(args);
+
+        if (nullptr == m_mediaPlaybackSession)
+        {
+            return;
+        }
+
+        CALLBACK_STATE state{};
+        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+
+        state.type = CallbackType::VideoPlayer;
+
+        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
+        state.value.playbackState.state = static_cast<MediaPlayerState>(m_mediaPlaybackSession.PlaybackState());
+
+        Callback(state);
+    });
 
     return S_OK;
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayer::OnOpened(
-    MediaPlayer sender,
-    IInspectable args)
+void RealtimeMediaPlayer::ReleaseMediaPlayer()
 {
-    PLAYBACK_STATE playbackState;
-    ZeroMemory(&playbackState, sizeof(playbackState));
-    playbackState.type = StateType::StateType_Opened;
-    playbackState.value.description.width = playbackSession.NaturalVideoWidth;
-    playbackState.value.description.height = playbackSession.NaturalVideoHeight;
-    playbackState.value.description.canSeek = playbackSession.CanSeek;
-    playbackState.value.description.duration = playbackSession.NaturalDuration.Duration;
-
-    if (m_fnStateCallback != nullptr)
+    if (m_mediaPlaybackSession != nullptr)
     {
-        m_fnStateCallback(playbackState);
+        m_mediaPlaybackSession.PlaybackStateChanged(m_stateChangedEventToken);
+
+        m_mediaPlaybackSession = nullptr;
+    }
+
+    if (m_mediaPlayer != nullptr)
+    {
+        m_mediaPlayer.MediaEnded(m_endedToken);
+        m_mediaPlayer.MediaFailed(m_failedToken);
+        m_mediaPlayer.MediaOpened(m_openedToken);
+        m_mediaPlayer.VideoFrameAvailable(m_videoFrameAvailableToken);
+
+        m_mediaPlayer = nullptr;
     }
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayer::OnEnded(
-    IMediaPlayer sender,
-    IInspectable args)
+HRESULT RealtimeMediaPlayer::CreateResources(com_ptr<ID3D11Device> const& unityDevice)
 {
-    PLAYBACK_STATE playbackState;
-    ZeroMemory(&playbackState, sizeof(playbackState));
-    playbackState.type = StateType::StateType_StateChanged;
-    playbackState.value.state = PlaybackState::PlaybackState_Ended;
-
-    if (m_fnStateCallback != nullptr)
+    if (m_d3dDevice != nullptr)
     {
-        m_fnStateCallback(playbackState);
+        return S_OK;
     }
 
+    NULL_CHK_HR(unityDevice, E_INVALIDARG);
+
+    auto sdxgiDevice = unityDevice.as<IDXGIDevice>();
+    NULL_CHK_HR(sdxgiDevice, E_POINTER);
+
+    com_ptr<IDXGIAdapter> dxgiAdapter = nullptr;
+    IFR(sdxgiDevice->GetAdapter(dxgiAdapter.put()));
+
+    // create dx device for media pipeline
+    com_ptr<ID3D11Device> d3dDevice = nullptr;
+    IFR(CreateMediaDevice(dxgiAdapter.get(), d3dDevice.put()));
+
+    // lock the shared dxgi device manager
+    // will keep lock open for the life of object
+    //     call MFUnlockDXGIDeviceManager when unloading
+    uint32_t resetToken;
+    com_ptr<IMFDXGIDeviceManager> dxgiDeviceManager;
+    IFR(MFLockDXGIDeviceManager(&resetToken, dxgiDeviceManager.put()));
+
+    // associtate the device with the manager
+    IFR(dxgiDeviceManager->ResetDevice(d3dDevice.get(), resetToken));
+    
+    m_d3dDevice.attach(d3dDevice.detach());
+    m_resetToken = resetToken;
+    m_dxgiDeviceManager = dxgiDeviceManager;
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
-void RealtimeMediaPlayer::OnFailed(
-    MediaPlayer sender,
-    MediaPlayerFailedEventArgs args)
+void RealtimeMediaPlayer::ReleaseResources()
 {
-    /*
-    // TODO: Troy fix to get back logging
-    com_ptr<HSTRING> errorMessage;
-    IFT(args->get_ErrorMessage(errorMessage.get()));
-
-    //LOG_RESULT_MSG(hr, WindowsGetStringRawBuffer(*errorMessage, nullptr));
-        //errorMessage->c_str());
-    */
-
-    PLAYBACK_STATE playbackState;
-    ZeroMemory(&playbackState, sizeof(playbackState));
-    playbackState.type = StateType::StateType_Failed;
-    playbackState.value.hresult = args.ExtendedErrorCode;
-
-    if (m_fnStateCallback != nullptr)
+    if (m_dxgiDeviceManager != nullptr)
     {
-        m_fnStateCallback(playbackState);
+        m_dxgiDeviceManager->ResetDevice(m_d3dDevice.get(), m_resetToken);
+
+        // release the default media foundation dxgi manager
+        MFUnlockDXGIDeviceManager();
+
+        m_dxgiDeviceManager = nullptr;
     }
-}
 
-_Use_decl_annotations_
-void RealtimeMediaPlayer::OnStateChanged(
-    MediaPlaybackSession sender,
-    IInspectable args)
-{
-    PLAYBACK_STATE playbackState;
-    ZeroMemory(&playbackState, sizeof(playbackState));
-    playbackState.type = StateType::StateType_StateChanged;
-    playbackState.value.state = static_cast<PlaybackState>(sender.PlaybackState);
-
-    if (m_fnStateCallback != nullptr)
+    if (m_d3dDevice != nullptr)
     {
-        m_fnStateCallback(playbackState);
+        m_d3dDevice = nullptr;
+    }
+
+    if (m_closedEvent)
+    {
+        m_closedEvent(nullptr, *this);
     }
 }

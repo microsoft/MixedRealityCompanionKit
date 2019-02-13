@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "RealtimeServer.g.h"
+#include "Generated Files\Media\RealtimeServer.g.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -11,10 +11,10 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    struct RealtimeServer : RealtimeServerT<RealtimeServer, Module>
+    struct RealtimeServer : RealtimeServerT<RealtimeServer, Plugin::Module>
     {
         public:
-            RealtimeServer(_In_ Connection connection,
+            RealtimeServer(_In_ Network::Connection connection,
                 _In_ GUID inputMediaType,
                 _In_ MediaEncodingProfile mediaEncodingProperties);
 
@@ -30,7 +30,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
 
         private:
-            Wrappers::CriticalSection _lock;
+            //Wrappers::CriticalSection _lock;
+            slim_mutex m_lock;
 
             MediaEncodingProfile m_spMediaEncodingProfile;
             NetworkMediaSink m_spNetworkMediaSink{ nullptr };

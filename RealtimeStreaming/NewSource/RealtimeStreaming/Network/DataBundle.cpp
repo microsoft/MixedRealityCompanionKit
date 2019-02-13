@@ -4,12 +4,10 @@
 #include "pch.h"
 #include "DataBundle.h"
 
-DataBundle::~DataBundle()
-{
-    Log(Log_Level_All, L"DataBundleImpl::~DataBundleImpl()\n");
-
-    Reset();
-}
+using namespace winrt;
+using namespace winrt::RealtimeStreaming::Network::implementation;
+using namespace Windows::Foundation;
+using namespace Windows::Networking::Sockets;
 
 _Use_decl_annotations_
 DataBundle::DataBundle()
@@ -47,6 +45,13 @@ DataBundle::DataBundle(
     }
 }
 
+DataBundle::~DataBundle()
+{
+    Log(Log_Level_All, L"DataBundleImpl::~DataBundleImpl()\n");
+
+    Reset();
+}
+
 // IDataBundle
 _Use_decl_annotations_
 UINT32 DataBundle::BufferCount()
@@ -73,9 +78,8 @@ void DataBundle::AddBuffer(
 }
 
 _Use_decl_annotations_
-bool DataBundle::InsertBuffer(
-    UINT32 index, 
-    DataBuffer dataBuffer)
+bool DataBundle::InsertBuffer(uint32_t index,
+    RealtimeStreaming::Network::DataBuffer const& dataBuffer)
 {
     if (m_buffers.size() < index)
     {
@@ -89,15 +93,15 @@ bool DataBundle::InsertBuffer(
 
 _Use_decl_annotations_
 bool DataBundle::RemoveBuffer(
-    DataBuffer dataBuffer)
+    RealtimeStreaming::Network::DataBuffer const& dataBuffer)
 {
     if (m_buffers.size() == 0)
     {
         return false;
     }
 
-    Iterator it = m_buffers.begin();
-    Iterator itEnd = m_buffers.end();
+    auto it = m_buffers.begin();
+    auto itEnd = m_buffers.end();
 
     for (; ((*it) != dataBuffer) && it != itEnd; ++it);
 
@@ -237,10 +241,10 @@ HRESULT DataBundle::ToMFSample(
 {
     com_ptr<IMFSample> spSample;
 
-    IFR(MFCreateSample(&spSample));
+    IFR(MFCreateSample(spSample.put()));
 
-    Container::iterator it = m_buffers.begin();
-    Container::iterator endIt = m_buffers.end();
+    auto it = m_buffers.begin();
+    auto endIt = m_buffers.end();
 
     for (; it != endIt; ++it)
     {
@@ -271,4 +275,9 @@ HRESULT DataBundle::ToMFSample(
     *ppSample = spSample.detach();
 
     return S_OK;
+}
+
+std::vector<winrt::RealtimeStreaming::Network::DataBuffer> DataBundle::GetBuffers()
+{
+    return m_buffers;
 }

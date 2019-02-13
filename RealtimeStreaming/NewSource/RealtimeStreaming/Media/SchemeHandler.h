@@ -3,34 +3,18 @@
 
 #pragma once
 
-namespace RealtimeStreaming
+#include "Generated Files\Media\SchemeHandler.g.h"
+#include "Network\Connection.h"
+
+namespace winrt::RealtimeStreaming::Media::implementation
 {
-    namespace Media
+    struct RTSchemeHandler : RTSchemeHandlerT<RTSchemeHandler, IMFSchemeHandler>
     {
-        class MrvcSchemeHandlerImpl
-            : public RuntimeClass<RuntimeClassFlags<WinRtClassicComMix>
-            , ABI::Windows::Media::IMediaExtension
-            , IMFSchemeHandler
-            , IMrvcSchemeHandler>
-        {
-            InspectableClass(RuntimeClass_RealtimeStreaming_Media_MrvcSchemeHandler, BaseTrust)
-
         public:
-            MrvcSchemeHandlerImpl();
-            ~MrvcSchemeHandlerImpl();
-
-            HRESULT RuntimeClassInitialize();
+            RTSchemeHandler();
 
             // IMediaExtension
-            IFACEMETHOD(SetProperties) (
-                _In_opt_ ABI::Windows::Foundation::Collections::IPropertySet* pConfiguration);
-
-            // IMrvcSchemeHandler
-            IFACEMETHOD(get_Connection)(
-                _Out_ ABI::RealtimeStreaming::Network::IConnection** connection);
-
-            IFACEMETHOD(put_Connection)(
-                _In_ ABI::RealtimeStreaming::Network::IConnection *connection);
+            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
 
             // IMFSchemeHandler
             IFACEMETHOD(BeginCreateObject) (
@@ -50,7 +34,6 @@ namespace RealtimeStreaming
                 _In_ IUnknown* pIUnknownCancelCookie);
 
         private:
-            com_ptr<ABI::RealtimeStreaming::Network::IConnection> m_connection;
+            RealtimeStreaming::Network::Connection m_connection{ nullptr };
         };
-    }
 }

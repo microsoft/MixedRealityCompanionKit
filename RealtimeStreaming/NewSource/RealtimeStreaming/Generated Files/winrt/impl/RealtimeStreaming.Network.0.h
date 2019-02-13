@@ -2,7 +2,7 @@
 
 #pragma once
 
-WINRT_EXPORT namespace winrt::RealtimeStreaming {
+WINRT_EXPORT namespace winrt::RealtimeStreaming::Common {
 
 enum class PayloadType;
 
@@ -17,7 +17,6 @@ struct StreamSocketInformation;
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Network {
 
 struct IBundleReceivedArgs;
-struct IBundleReceivedArgsFactory;
 struct IConnection;
 struct IConnector;
 struct IDataBuffer;
@@ -39,7 +38,6 @@ struct DisconnectedDelegate;
 namespace winrt::impl {
 
 template <> struct category<RealtimeStreaming::Network::IBundleReceivedArgs>{ using type = interface_category; };
-template <> struct category<RealtimeStreaming::Network::IBundleReceivedArgsFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IConnection>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IConnector>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IDataBuffer>{ using type = interface_category; };
@@ -56,7 +54,6 @@ template <> struct category<RealtimeStreaming::Network::DataBundle>{ using type 
 template <> struct category<RealtimeStreaming::Network::Listener>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Network::DisconnectedDelegate>{ using type = delegate_category; };
 template <> struct name<RealtimeStreaming::Network::IBundleReceivedArgs>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IBundleReceivedArgs" }; };
-template <> struct name<RealtimeStreaming::Network::IBundleReceivedArgsFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IBundleReceivedArgsFactory" }; };
 template <> struct name<RealtimeStreaming::Network::IConnection>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IConnection" }; };
 template <> struct name<RealtimeStreaming::Network::IConnector>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IConnector" }; };
 template <> struct name<RealtimeStreaming::Network::IDataBuffer>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBuffer" }; };
@@ -73,8 +70,7 @@ template <> struct name<RealtimeStreaming::Network::DataBundle>{ static constexp
 template <> struct name<RealtimeStreaming::Network::Listener>{ static constexpr auto & value{ L"RealtimeStreaming.Network.Listener" }; };
 template <> struct name<RealtimeStreaming::Network::DisconnectedDelegate>{ static constexpr auto & value{ L"RealtimeStreaming.Network.DisconnectedDelegate" }; };
 template <> struct guid<RealtimeStreaming::Network::IBundleReceivedArgs>{ static constexpr GUID value{ 0x26A177FE,0x2E53,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
-template <> struct guid<RealtimeStreaming::Network::IBundleReceivedArgsFactory>{ static constexpr GUID value{ 0x9A172738,0x2E53,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
-template <> struct guid<RealtimeStreaming::Network::IConnection>{ static constexpr GUID value{ 0x3E399F68,0x2629,0x5D15,{ 0xBC,0xB6,0x12,0xD0,0xC2,0xF7,0xF5,0xE3 } }; };
+template <> struct guid<RealtimeStreaming::Network::IConnection>{ static constexpr GUID value{ 0xC3D6AC27,0xE622,0x5C29,{ 0x99,0xE6,0xD9,0xE6,0x46,0xA4,0x93,0x7C } }; };
 template <> struct guid<RealtimeStreaming::Network::IConnector>{ static constexpr GUID value{ 0xED572D29,0x652C,0x582E,{ 0x9E,0x69,0x13,0x4C,0xE9,0x03,0x3D,0xF7 } }; };
 template <> struct guid<RealtimeStreaming::Network::IDataBuffer>{ static constexpr GUID value{ 0x9C3E8BDB,0x28C3,0x5A16,{ 0x86,0x88,0x85,0xEA,0x99,0x44,0x38,0x47 } }; };
 template <> struct guid<RealtimeStreaming::Network::IDataBufferFactory>{ static constexpr GUID value{ 0x6AC59985,0xEC6A,0x5753,{ 0xAA,0x3F,0x9E,0x45,0x71,0x7B,0xDA,0x8B } }; };
@@ -93,22 +89,16 @@ template <> struct default_interface<RealtimeStreaming::Network::Listener>{ usin
 template <typename D>
 struct consume_RealtimeStreaming_Network_IBundleReceivedArgs
 {
-    RealtimeStreaming::PayloadType PayloadType() const;
+    RealtimeStreaming::Common::PayloadType PayloadType() const;
     RealtimeStreaming::Network::Connection DataConnection() const;
     RealtimeStreaming::Network::DataBundle Bundle() const;
 };
 template <> struct consume<RealtimeStreaming::Network::IBundleReceivedArgs> { template <typename D> using type = consume_RealtimeStreaming_Network_IBundleReceivedArgs<D>; };
 
 template <typename D>
-struct consume_RealtimeStreaming_Network_IBundleReceivedArgsFactory
-{
-};
-template <> struct consume<RealtimeStreaming::Network::IBundleReceivedArgsFactory> { template <typename D> using type = consume_RealtimeStreaming_Network_IBundleReceivedArgsFactory<D>; };
-
-template <typename D>
 struct consume_RealtimeStreaming_Network_IConnection
 {
-    Windows::Foundation::IAsyncAction SendPayloadTypeAsync(RealtimeStreaming::PayloadType const& type) const;
+    Windows::Foundation::IAsyncAction SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType const& type) const;
     Windows::Foundation::IAsyncAction SendBundleAsync(RealtimeStreaming::Network::DataBundle const& dataBundle) const;
     bool IsConnected() const;
     Windows::Networking::Sockets::StreamSocketInformation ConnectionInfo() const;
@@ -116,6 +106,10 @@ struct consume_RealtimeStreaming_Network_IConnection
     using Disconnected_revoker = event_revoker<RealtimeStreaming::Network::IConnection>;
     Disconnected_revoker Disconnected(auto_revoke_t, RealtimeStreaming::Network::DisconnectedDelegate const& handler) const;
     void Disconnected(event_token const& token) const;
+    event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler) const;
+    using Received_revoker = event_revoker<RealtimeStreaming::Network::IConnection>;
+    Received_revoker Received(auto_revoke_t, Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler) const;
+    void Received(event_token const& token) const;
 };
 template <> struct consume<RealtimeStreaming::Network::IConnection> { template <typename D> using type = consume_RealtimeStreaming_Network_IConnection<D>; };
 
@@ -157,7 +151,7 @@ struct consume_RealtimeStreaming_Network_IDataBundle
     uint64_t TotalSize() const;
     void AddBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer) const;
     bool InsertBuffer(uint32_t index, RealtimeStreaming::Network::DataBuffer const& dataBuffer) const;
-    void RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer) const;
+    bool RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer) const;
     void Reset() const;
 };
 template <> struct consume<RealtimeStreaming::Network::IDataBundle> { template <typename D> using type = consume_RealtimeStreaming_Network_IDataBundle<D>; };
@@ -188,23 +182,21 @@ template <> struct consume<RealtimeStreaming::Network::IListenerFactory> { templ
 
 template <> struct abi<RealtimeStreaming::Network::IBundleReceivedArgs>{ struct type : IInspectable
 {
-    virtual HRESULT __stdcall get_PayloadType(RealtimeStreaming::PayloadType* result) noexcept = 0;
+    virtual HRESULT __stdcall get_PayloadType(RealtimeStreaming::Common::PayloadType* result) noexcept = 0;
     virtual HRESULT __stdcall get_DataConnection(void** result) noexcept = 0;
     virtual HRESULT __stdcall get_Bundle(void** result) noexcept = 0;
 };};
 
-template <> struct abi<RealtimeStreaming::Network::IBundleReceivedArgsFactory>{ struct type : IInspectable
-{
-};};
-
 template <> struct abi<RealtimeStreaming::Network::IConnection>{ struct type : IInspectable
 {
-    virtual HRESULT __stdcall SendPayloadTypeAsync(RealtimeStreaming::PayloadType type, void** operation) noexcept = 0;
+    virtual HRESULT __stdcall SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType type, void** operation) noexcept = 0;
     virtual HRESULT __stdcall SendBundleAsync(void* dataBundle, void** operation) noexcept = 0;
     virtual HRESULT __stdcall get_IsConnected(bool* result) noexcept = 0;
     virtual HRESULT __stdcall get_ConnectionInfo(void** result) noexcept = 0;
     virtual HRESULT __stdcall add_Disconnected(void* handler, event_token* token) noexcept = 0;
     virtual HRESULT __stdcall remove_Disconnected(event_token token) noexcept = 0;
+    virtual HRESULT __stdcall add_Received(void* handler, event_token* token) noexcept = 0;
+    virtual HRESULT __stdcall remove_Received(event_token token) noexcept = 0;
 };};
 
 template <> struct abi<RealtimeStreaming::Network::IConnector>{ struct type : IInspectable
@@ -236,7 +228,7 @@ template <> struct abi<RealtimeStreaming::Network::IDataBundle>{ struct type : I
     virtual HRESULT __stdcall get_TotalSize(uint64_t* result) noexcept = 0;
     virtual HRESULT __stdcall AddBuffer(void* dataBuffer) noexcept = 0;
     virtual HRESULT __stdcall InsertBuffer(uint32_t index, void* dataBuffer, bool* result) noexcept = 0;
-    virtual HRESULT __stdcall RemoveBuffer(void* dataBuffer) noexcept = 0;
+    virtual HRESULT __stdcall RemoveBuffer(void* dataBuffer, bool* result) noexcept = 0;
     virtual HRESULT __stdcall Reset() noexcept = 0;
 };};
 

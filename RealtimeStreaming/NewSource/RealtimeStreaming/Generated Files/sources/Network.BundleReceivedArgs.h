@@ -8,7 +8,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
         BundleReceivedArgs() = delete;
 
-        RealtimeStreaming::PayloadType PayloadType();
+        RealtimeStreaming::Common::PayloadType PayloadType();
         RealtimeStreaming::Network::Connection DataConnection();
         RealtimeStreaming::Network::DataBundle Bundle();
     };

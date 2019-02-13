@@ -4,6 +4,7 @@
 #pragma once
 
 #include "pch.h"
+#include "strsafe.h"
 
 #ifndef FAST_FAIL_ON_ERRORS
 #define FAST_FAIL_ON_ERRORS 0
@@ -206,6 +207,7 @@ inline void __stdcall LogResult(
 #define LOG_RESULT(hrToCheck) LOG_RESULT_MSG(hrToCheck, L"");
 #endif
 
+
 #ifndef IFT
 #define IFT(result) { HRESULT hrTest = result; if (FAILED(hrTest)) { winrt::throw_hresult(hrTest); } }
 #endif
@@ -215,9 +217,13 @@ inline void __stdcall LogResult(
 #define IFC(hrToCheck) IFC_MSG(hrToCheck, L"CHECK_")
 #endif
 
+#ifndef IFG
+#define IFG(result, marker) { HRESULT hrTest = result; if (FAILED(hrTest)) { hr = hrTest; goto marker; } }
+#endif
+
 #ifndef IFR
 #define IFR_MSG(hrToCheck, message) if (FAILED(hrToCheck)) { LOG_RESULT_MSG(hrToCheck, message); return hrToCheck; }
-#define IFT(hrToCheck) IFR_MSG(hrToCheck, L"RETURN_")
+#define IFR(hrToCheck) IFR_MSG(hrToCheck, L"RETURN_")
 #endif
 
 #ifndef IFRV
@@ -228,6 +234,10 @@ inline void __stdcall LogResult(
 #ifndef IFRN 
 #define IFRN_MSG(hrToCheck, message) { if (FAILED(hrToCheck)) LOG_RESULT_MSG(hrToCheck, message); return nullptr; } }
 #define IFRN(hrToCheck) { IFRN_MSG(hrToCheck, L"IFRN_"); }
+#endif
+
+#ifndef NULL_THROW
+#define NULL_THROW(pointer) if(nullptr == pointer) { winrt::throw_hresult(E_INVALIDARG); }
 #endif
 
 #ifndef NULL_CHK

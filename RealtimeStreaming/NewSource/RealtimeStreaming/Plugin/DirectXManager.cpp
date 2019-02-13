@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 #include "pch.h"
-#include "RealtimeStreaming.h"
+
 #include "DirectXManager.h"
 
 // Check for SDK Layer support.

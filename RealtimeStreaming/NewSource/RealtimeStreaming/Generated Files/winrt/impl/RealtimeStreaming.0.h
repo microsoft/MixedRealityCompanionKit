@@ -4,47 +4,8 @@
 
 WINRT_EXPORT namespace winrt::RealtimeStreaming {
 
-enum class PayloadType : int32_t
-{
-    Unknown = 0,
-    State_Scene = 1,
-    State_Input = 2,
-    State_CaptureReady = 3,
-    State_CaptureStarted = 4,
-    State_CaptureStopped = 5,
-    RequestMediaDescription = 6,
-    RequestMediaStart = 7,
-    RequestMediaStop = 8,
-    RequestMediaCaptureStart = 9,
-    RequestMediaCaptureRecord = 10,
-    RequestMediaCaptureStop = 11,
-    RequestMediaEncodeStart = 12,
-    RequestMediaEncodeStop = 13,
-    SendMediaDescription = 14,
-    SendMediaSample = 15,
-    SendMediaStreamTick = 16,
-    SendFormatChange = 17,
-    ENDOFLIST = 18,
-};
-
-enum class SampleFlags : int32_t
-{
-    SampleFlag_BottomFieldFirst = 0,
-    SampleFlag_CleanPoint = 1,
-    SampleFlag_DerivedFromTopField = 2,
-    SampleFlag_Discontinuity = 3,
-    SampleFlag_Interlaced = 4,
-    SampleFlag_RepeatFirstField = 5,
-    SampleFlag_SingleField = 6,
-};
-
 struct IClass;
 struct Class;
-struct MediaDescription;
-struct MediaSampleHeader;
-struct MediaStreamTick;
-struct MediaTypeDescription;
-struct PayloadHeader;
 
 }
 
@@ -52,22 +13,8 @@ namespace winrt::impl {
 
 template <> struct category<RealtimeStreaming::IClass>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Class>{ using type = class_category; };
-template <> struct category<RealtimeStreaming::PayloadType>{ using type = enum_category; };
-template <> struct category<RealtimeStreaming::SampleFlags>{ using type = enum_category; };
-template <> struct category<RealtimeStreaming::MediaDescription>{ using type = struct_category<uint32_t,uint32_t>; };
-template <> struct category<RealtimeStreaming::MediaSampleHeader>{ using type = struct_category<uint32_t,uint64_t,uint64_t,uint32_t,uint32_t,uint32_t>; };
-template <> struct category<RealtimeStreaming::MediaStreamTick>{ using type = struct_category<uint32_t,uint64_t,uint32_t>; };
-template <> struct category<RealtimeStreaming::MediaTypeDescription>{ using type = struct_category<GUID,GUID,uint32_t,uint32_t>; };
-template <> struct category<RealtimeStreaming::PayloadHeader>{ using type = struct_category<RealtimeStreaming::PayloadType,uint32_t>; };
 template <> struct name<RealtimeStreaming::IClass>{ static constexpr auto & value{ L"RealtimeStreaming.IClass" }; };
 template <> struct name<RealtimeStreaming::Class>{ static constexpr auto & value{ L"RealtimeStreaming.Class" }; };
-template <> struct name<RealtimeStreaming::PayloadType>{ static constexpr auto & value{ L"RealtimeStreaming.PayloadType" }; };
-template <> struct name<RealtimeStreaming::SampleFlags>{ static constexpr auto & value{ L"RealtimeStreaming.SampleFlags" }; };
-template <> struct name<RealtimeStreaming::MediaDescription>{ static constexpr auto & value{ L"RealtimeStreaming.MediaDescription" }; };
-template <> struct name<RealtimeStreaming::MediaSampleHeader>{ static constexpr auto & value{ L"RealtimeStreaming.MediaSampleHeader" }; };
-template <> struct name<RealtimeStreaming::MediaStreamTick>{ static constexpr auto & value{ L"RealtimeStreaming.MediaStreamTick" }; };
-template <> struct name<RealtimeStreaming::MediaTypeDescription>{ static constexpr auto & value{ L"RealtimeStreaming.MediaTypeDescription" }; };
-template <> struct name<RealtimeStreaming::PayloadHeader>{ static constexpr auto & value{ L"RealtimeStreaming.PayloadHeader" }; };
 template <> struct guid<RealtimeStreaming::IClass>{ static constexpr GUID value{ 0xE410B57A,0x2197,0x5FF4,{ 0xA4,0x2D,0xFB,0x26,0x73,0xBA,0x22,0xE4 } }; };
 template <> struct default_interface<RealtimeStreaming::Class>{ using type = RealtimeStreaming::IClass; };
 
@@ -78,53 +25,6 @@ struct consume_RealtimeStreaming_IClass
     void MyProperty(int32_t value) const;
 };
 template <> struct consume<RealtimeStreaming::IClass> { template <typename D> using type = consume_RealtimeStreaming_IClass<D>; };
-
-struct struct_RealtimeStreaming_MediaDescription
-{
-    uint32_t StreamCount;
-    uint32_t StreamTypeHeaderSize;
-};
-template <> struct abi<RealtimeStreaming::MediaDescription>{ using type = struct_RealtimeStreaming_MediaDescription; };
-
-
-struct struct_RealtimeStreaming_MediaSampleHeader
-{
-    uint32_t dwStreamId;
-    uint64_t hnsTimestamp;
-    uint64_t hnsDuration;
-    uint32_t dwFlags;
-    uint32_t dwFlagMasks;
-    uint32_t cbCameraDataSize;
-};
-template <> struct abi<RealtimeStreaming::MediaSampleHeader>{ using type = struct_RealtimeStreaming_MediaSampleHeader; };
-
-
-struct struct_RealtimeStreaming_MediaStreamTick
-{
-    uint32_t dwStreamId;
-    uint64_t hnsTimestamp;
-    uint32_t cbAttributesSize;
-};
-template <> struct abi<RealtimeStreaming::MediaStreamTick>{ using type = struct_RealtimeStreaming_MediaStreamTick; };
-
-
-struct struct_RealtimeStreaming_MediaTypeDescription
-{
-    GUID guiMajorType;
-    GUID guiSubType;
-    uint32_t dwStreamId;
-    uint32_t AttributesBlobSize;
-};
-template <> struct abi<RealtimeStreaming::MediaTypeDescription>{ using type = struct_RealtimeStreaming_MediaTypeDescription; };
-
-
-struct struct_RealtimeStreaming_PayloadHeader
-{
-    RealtimeStreaming::PayloadType ePayloadType;
-    uint32_t cbPayloadSize;
-};
-template <> struct abi<RealtimeStreaming::PayloadHeader>{ using type = struct_RealtimeStreaming_PayloadHeader; };
-
 
 template <> struct abi<RealtimeStreaming::IClass>{ struct type : IInspectable
 {

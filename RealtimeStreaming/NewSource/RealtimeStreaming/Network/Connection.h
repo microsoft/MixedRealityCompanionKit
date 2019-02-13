@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Generated Files/Network/Connection.g.h"
-#include "Plugin/Module.g.h"
+#include "Plugin/Module.h"
 
 using namespace winrt::RealtimeStreaming::Plugin::implementation;
 
@@ -20,8 +20,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
     typedef IAsyncOperationWithProgress<UINT32, UINT32> IStreamWriteOperation;
     typedef IAsyncOperationWithProgressCompletedHandler<UINT32, UINT32> IStreamWriteCompletedEventHandler;
     */
-
-    struct Connection : ConnectionT<Connection, Module>
+    
+    struct Connection : ConnectionT<Connection, Plugin::Module>
     {
 
     public:
@@ -33,14 +33,19 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
         //IConnection
         bool IsConnected();
-        Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo();
+        Windows::Networking::Sockets::StreamSocketInformation ConnectionInfo();
 
         Windows::Foundation::IAsyncAction SendPayloadTypeAsync(
-            _In_ RealtimeStreaming::PayloadType payloadType);
+            _In_ RealtimeStreaming::Common::PayloadType payloadType);
 
         Windows::Foundation::IAsyncAction SendBundleAsync(
             _In_ RealtimeStreaming::Network::DataBundle dataBundle);
 
+        event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
+        void Disconnected(event_token const& token);
+
+        event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler);
+        void Received(event_token const& token);
     protected:
         // IConnectionInternal
         inline IFACEMETHOD(CheckClosed)()
@@ -51,7 +56,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Windows::Foundation::IAsyncAction WaitForHeader();
         Windows::Foundation::IAsyncAction WaitForPayload();
         Windows::Foundation::IAsyncAction OnHeaderReceived(); // TODO: save header locally versus passing by parameter?
-        Windows::Foundation::IAsyncAction OnPayloadReceived(_In_ Windows::Storage::IBuffer payloadBuffer);
+        Windows::Foundation::IAsyncAction OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer payloadBuffer);
 
         STDMETHODIMP NotifyBundleComplete(
             _In_ RealtimeStreaming::PayloadType operation,
@@ -66,6 +71,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
     private:
         //Wrappers::CriticalSection _lock;
+        slim_mutex m_lock;
 
         UINT16      m_concurrentFailedBuffers;
         UINT16      m_concurrentFailedBundles;

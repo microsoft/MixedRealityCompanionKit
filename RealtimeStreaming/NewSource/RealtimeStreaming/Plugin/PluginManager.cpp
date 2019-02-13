@@ -229,8 +229,8 @@ HRESULT PluginManager::ListenerCreateAndStart(
     NULL_CHK(listenerHandle);
     NULL_CHK(callback);
 
-    com_ptr<ListenerImpl> listener;
-    IFT(MakeAndInitialize<ListenerImpl>(&listener, port));
+    com_ptr<Listener> listener;
+    IFT(MakeAndInitialize<Listener>(&listener, port));
 
     com_ptr<IConnectionCreatedOperation> connectedOp;
     IFT(listener->ListenAsync(&connectedOp));
@@ -317,12 +317,12 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     std::wstring wsUri = address;
 
     // Get Factories
-    com_ptr<ABI::Windows::Foundation::IUriRuntimeClassFactory> uriFactory;
+    com_ptr<Windows::Foundation::IUriRuntimeClassFactory> uriFactory;
     IFT(Windows::Foundation::GetActivationFactory(
         Wrappers::HStringReference(RuntimeClass_Windows_Foundation_Uri).get(),
         uriFactory.GetAddressOf()));
 
-    com_ptr<ABI::Windows::Networking::IHostNameFactory> hostNameFactory;
+    com_ptr<Windows::Networking::IHostNameFactory> hostNameFactory;
     IFT(Windows::Foundation::GetActivationFactory(
         Wrappers::HStringReference(RuntimeClass_Windows_Networking_HostName).get(),
         &hostNameFactory));
@@ -331,7 +331,7 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     Wrappers::HString uriHString;
     IFT(WindowsCreateString(wsUri.c_str(), wsUri.size(), uriHString.GetAddressOf()));
 
-    com_ptr<ABI::Windows::Foundation::IUriRuntimeClass> uri;
+    com_ptr<Windows::Foundation::IUriRuntimeClass> uri;
     IFT(uriFactory->CreateUri(uriHString.get(), &uri));
 
     // generate hostname
@@ -341,7 +341,7 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     INT32 uriPort = 0;
     IFT(uri->get_Port(&uriPort));
 
-    com_ptr<ABI::Windows::Networking::IHostName> hostName;
+    com_ptr<Windows::Networking::IHostName> hostName;
     IFT(hostNameFactory->CreateHostName(uriHostname.get(), &hostName));
 
     com_ptr<Connector> connector;
@@ -715,7 +715,7 @@ HRESULT PluginManager::RTServerCreate(
 
     com_ptr<IMediaEncodingProfile> spMediaEncodingProfile;
     IFT(spEncodingProfileStatics->CreateHevc(
-        ABI::Windows::Media::MediaProperties::VideoEncodingQuality_HD720p,
+        Windows::Media::MediaProperties::VideoEncodingQuality_HD720p,
         &spMediaEncodingProfile));
 
     com_ptr<RealtimeServer> spRTServer;

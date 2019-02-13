@@ -8,7 +8,7 @@ WINRT_WARNING_PUSH
 static_assert(winrt::check_version(CPPWINRT_VERSION, "1.0.180227.3"), "Mismatched component and base headers.");
 #include "winrt/Windows.Foundation.h"
 #include "winrt/Windows.Foundation.Collections.h"
-#include "winrt/impl/RealtimeStreaming.2.h"
+#include "winrt/impl/RealtimeStreaming.Common.2.h"
 #include "winrt/impl/Windows.Networking.Sockets.2.h"
 #include "winrt/impl/RealtimeStreaming.Plugin.2.h"
 #include "winrt/impl/Windows.Storage.Streams.2.h"
@@ -17,9 +17,9 @@ static_assert(winrt::check_version(CPPWINRT_VERSION, "1.0.180227.3"), "Mismatche
 
 namespace winrt::impl {
 
-template <typename D> RealtimeStreaming::PayloadType consume_RealtimeStreaming_Network_IBundleReceivedArgs<D>::PayloadType() const
+template <typename D> RealtimeStreaming::Common::PayloadType consume_RealtimeStreaming_Network_IBundleReceivedArgs<D>::PayloadType() const
 {
-    RealtimeStreaming::PayloadType result{};
+    RealtimeStreaming::Common::PayloadType result{};
     check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IBundleReceivedArgs)->get_PayloadType(put_abi(result)));
     return result;
 }
@@ -38,7 +38,7 @@ template <typename D> RealtimeStreaming::Network::DataBundle consume_RealtimeStr
     return result;
 }
 
-template <typename D> Windows::Foundation::IAsyncAction consume_RealtimeStreaming_Network_IConnection<D>::SendPayloadTypeAsync(RealtimeStreaming::PayloadType const& type) const
+template <typename D> Windows::Foundation::IAsyncAction consume_RealtimeStreaming_Network_IConnection<D>::SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType const& type) const
 {
     Windows::Foundation::IAsyncAction operation{ nullptr };
     check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IConnection)->SendPayloadTypeAsync(get_abi(type), put_abi(operation)));
@@ -81,6 +81,23 @@ template <typename D> event_revoker<RealtimeStreaming::Network::IConnection> con
 template <typename D> void consume_RealtimeStreaming_Network_IConnection<D>::Disconnected(event_token const& token) const
 {
     check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IConnection)->remove_Disconnected(get_abi(token)));
+}
+
+template <typename D> event_token consume_RealtimeStreaming_Network_IConnection<D>::Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler) const
+{
+    event_token token{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IConnection)->add_Received(get_abi(handler), put_abi(token)));
+    return token;
+}
+
+template <typename D> event_revoker<RealtimeStreaming::Network::IConnection> consume_RealtimeStreaming_Network_IConnection<D>::Received(auto_revoke_t, Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler) const
+{
+    return impl::make_event_revoker<D, RealtimeStreaming::Network::IConnection>(this, &abi_t<RealtimeStreaming::Network::IConnection>::remove_Received, Received(handler));
+}
+
+template <typename D> void consume_RealtimeStreaming_Network_IConnection<D>::Received(event_token const& token) const
+{
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IConnection)->remove_Received(get_abi(token)));
 }
 
 template <typename D> Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> consume_RealtimeStreaming_Network_IConnector<D>::ConnectAsync() const
@@ -185,9 +202,11 @@ template <typename D> bool consume_RealtimeStreaming_Network_IDataBundle<D>::Ins
     return result;
 }
 
-template <typename D> void consume_RealtimeStreaming_Network_IDataBundle<D>::RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer) const
+template <typename D> bool consume_RealtimeStreaming_Network_IDataBundle<D>::RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer) const
 {
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBundle)->RemoveBuffer(get_abi(dataBuffer)));
+    bool result{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBundle)->RemoveBuffer(get_abi(dataBuffer), &result));
+    return result;
 }
 
 template <typename D> void consume_RealtimeStreaming_Network_IDataBundle<D>::Reset() const
@@ -251,12 +270,12 @@ template <> struct delegate<RealtimeStreaming::Network::DisconnectedDelegate>
 template <typename D>
 struct produce<D, RealtimeStreaming::Network::IBundleReceivedArgs> : produce_base<D, RealtimeStreaming::Network::IBundleReceivedArgs>
 {
-    HRESULT __stdcall get_PayloadType(RealtimeStreaming::PayloadType* result) noexcept final
+    HRESULT __stdcall get_PayloadType(RealtimeStreaming::Common::PayloadType* result) noexcept final
     {
         try
         {
             typename D::abi_guard guard(this->shim());
-            *result = detach_from<RealtimeStreaming::PayloadType>(this->shim().PayloadType());
+            *result = detach_from<RealtimeStreaming::Common::PayloadType>(this->shim().PayloadType());
             return S_OK;
         }
         catch (...)
@@ -297,19 +316,15 @@ struct produce<D, RealtimeStreaming::Network::IBundleReceivedArgs> : produce_bas
 };
 
 template <typename D>
-struct produce<D, RealtimeStreaming::Network::IBundleReceivedArgsFactory> : produce_base<D, RealtimeStreaming::Network::IBundleReceivedArgsFactory>
-{};
-
-template <typename D>
 struct produce<D, RealtimeStreaming::Network::IConnection> : produce_base<D, RealtimeStreaming::Network::IConnection>
 {
-    HRESULT __stdcall SendPayloadTypeAsync(RealtimeStreaming::PayloadType type, void** operation) noexcept final
+    HRESULT __stdcall SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType type, void** operation) noexcept final
     {
         try
         {
             *operation = nullptr;
             typename D::abi_guard guard(this->shim());
-            *operation = detach_from<Windows::Foundation::IAsyncAction>(this->shim().SendPayloadTypeAsync(*reinterpret_cast<RealtimeStreaming::PayloadType const*>(&type)));
+            *operation = detach_from<Windows::Foundation::IAsyncAction>(this->shim().SendPayloadTypeAsync(*reinterpret_cast<RealtimeStreaming::Common::PayloadType const*>(&type)));
             return S_OK;
         }
         catch (...)
@@ -382,6 +397,34 @@ struct produce<D, RealtimeStreaming::Network::IConnection> : produce_base<D, Rea
         {
             typename D::abi_guard guard(this->shim());
             this->shim().Disconnected(*reinterpret_cast<event_token const*>(&token));
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
+    HRESULT __stdcall add_Received(void* handler, event_token* token) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            *token = detach_from<event_token>(this->shim().Received(*reinterpret_cast<Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const*>(&handler)));
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
+    HRESULT __stdcall remove_Received(event_token token) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Received(*reinterpret_cast<event_token const*>(&token));
             return S_OK;
         }
         catch (...)
@@ -619,12 +662,12 @@ struct produce<D, RealtimeStreaming::Network::IDataBundle> : produce_base<D, Rea
         }
     }
 
-    HRESULT __stdcall RemoveBuffer(void* dataBuffer) noexcept final
+    HRESULT __stdcall RemoveBuffer(void* dataBuffer, bool* result) noexcept final
     {
         try
         {
             typename D::abi_guard guard(this->shim());
-            this->shim().RemoveBuffer(*reinterpret_cast<RealtimeStreaming::Network::DataBuffer const*>(&dataBuffer));
+            *result = detach_from<bool>(this->shim().RemoveBuffer(*reinterpret_cast<RealtimeStreaming::Network::DataBuffer const*>(&dataBuffer)));
             return S_OK;
         }
         catch (...)
@@ -752,7 +795,6 @@ inline void DisconnectedDelegate::operator()() const
 WINRT_EXPORT namespace std {
 
 template<> struct hash<winrt::RealtimeStreaming::Network::IBundleReceivedArgs> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IBundleReceivedArgs> {};
-template<> struct hash<winrt::RealtimeStreaming::Network::IBundleReceivedArgsFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IBundleReceivedArgsFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IConnection> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IConnection> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IConnector> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IConnector> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBuffer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBuffer> {};

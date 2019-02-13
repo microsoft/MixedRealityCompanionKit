@@ -4,6 +4,8 @@
 #ifndef WINRT_SUPPRESS_MODULE_EXPORTS
 
 #include "Class.h"
+#include "Media.RTSchemeHandler.h"
+#include "Media.RealtimeMediaPlayer.h"
 #include "Media.RealtimeMediaSource.h"
 #include "Media.RealtimeServer.h"
 #include "Network.DataBuffer.h"
@@ -38,6 +40,18 @@ HRESULT __stdcall WINRT_GetActivationFactory(HSTRING classId, void** factory)
         if (0 == wcscmp(name, L"RealtimeStreaming.Class"))
         {
             *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::factory_implementation::Class>());
+            return S_OK;
+        }
+
+        if (0 == wcscmp(name, L"RealtimeStreaming.Media.RTSchemeHandler"))
+        {
+            *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::Media::factory_implementation::RTSchemeHandler>());
+            return S_OK;
+        }
+
+        if (0 == wcscmp(name, L"RealtimeStreaming.Media.RealtimeMediaPlayer"))
+        {
+            *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::Media::factory_implementation::RealtimeMediaPlayer>());
             return S_OK;
         }
 

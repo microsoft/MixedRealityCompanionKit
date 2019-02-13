@@ -12,7 +12,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         uint64_t TotalSize();
         void AddBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer);
         bool InsertBuffer(uint32_t index, RealtimeStreaming::Network::DataBuffer const& dataBuffer);
-        void RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer);
+        bool RemoveBuffer(RealtimeStreaming::Network::DataBuffer const& dataBuffer);
         void Reset();
     };
 }

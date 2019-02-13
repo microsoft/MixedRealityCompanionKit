@@ -4,22 +4,20 @@
 #include "pch.h"
 #include "ModuleManager.h"
 
-using winrt;
-using RealtimeStreaming::Plugin::implementation;
+using namespace winrt;
+using namespace RealtimeStreaming::Plugin::implementation;
 
 _Use_decl_annotations_
 ModuleManager::ModuleManager()
 {
     _lastModuleHandleIndex = MODULE_HANDLE_START;
     _moduleHandleMap.clear();
-
-    return S_OK;
 }
 
 _Use_decl_annotations_
 ModuleManager::~ModuleManager() 
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     _moduleHandleMap.clear();
 
@@ -29,15 +27,15 @@ ModuleManager::~ModuleManager()
 _Use_decl_annotations_
 ModuleHandle ModuleManager::AddModule(Module newModule)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     // get the last index value;
     ModuleHandle handle = _lastModuleHandleIndex;
     ModuleHandle returnHandle = MODULE_HANDLE_INVALID;
 
     // create a pair for the insert success
-    std::pair<std::map<ModuleHandle, IModule>>::iterator, bool> pairReturn;
-    pairReturn = _moduleHandleMap.insert(std::make_pair(handle, newModule));
+    //std::pair<std::map<ModuleHandle, IModule> >::iterator, bool> pairReturn;
+    auto pairReturn = _moduleHandleMap.insert(std::make_pair(handle, newModule));
 
     // make sure pair was added
     if (pairReturn.second)
@@ -55,14 +53,12 @@ ModuleHandle ModuleManager::AddModule(Module newModule)
 _Use_decl_annotations_
 Module ModuleManager::GetModule(ModuleHandle moduleHandle)
 {
-    NULL_CHK(ppModule);
-
     if (moduleHandle <= MODULE_HANDLE_INVALID)
     {
         IFT(E_INVALIDARG);
     }
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     auto iter = _moduleHandleMap.find(moduleHandle);
     if (iter == _moduleHandleMap.end())
@@ -82,7 +78,7 @@ void ModuleManager::ReleaseModule(
         IFT(E_INVALIDARG);
     }
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     auto iter = _moduleHandleMap.find(moduleHandle);
     if (iter == _moduleHandleMap.end())

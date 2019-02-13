@@ -33,6 +33,23 @@ struct WINRT_EBO NetworkMediaSinkStream :
     NetworkMediaSinkStream(std::nullptr_t) noexcept {}
 };
 
+struct WINRT_EBO RTSchemeHandler :
+    RealtimeStreaming::Media::IRTSchemeHandler,
+    impl::require<RTSchemeHandler, Windows::Media::IMediaExtension>
+{
+    RTSchemeHandler(std::nullptr_t) noexcept {}
+    RTSchemeHandler();
+};
+
+struct WINRT_EBO RealtimeMediaPlayer :
+    RealtimeStreaming::Media::IRealtimeMediaPlayer,
+    impl::base<RealtimeMediaPlayer, RealtimeStreaming::Plugin::Module>,
+    impl::require<RealtimeMediaPlayer, RealtimeStreaming::Plugin::IModule>
+{
+    RealtimeMediaPlayer(std::nullptr_t) noexcept {}
+    RealtimeMediaPlayer();
+};
+
 struct WINRT_EBO RealtimeMediaSource :
     RealtimeStreaming::Media::IRealtimeMediaSource,
     impl::require<RealtimeMediaSource, Windows::Media::IMediaExtension>

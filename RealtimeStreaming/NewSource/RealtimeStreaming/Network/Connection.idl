@@ -3,12 +3,42 @@
 #pragma once
 import "RealtimeStreaming.idl";
 import "Network/DataBundle.idl";
-import "Network/DataBundleArgs.idl";
+//import "Network/BundleReceivedArgs.idl";
 import "Plugin/ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
 {
     delegate void DisconnectedDelegate();
+
+    [version(1.0), exclusiveto(BundleReceivedArgs), uuid(26a177fe-2e53-11e9-b210-d663bd873d93)]
+    interface IBundleReceivedArgs : IInspectable
+    {
+        RealtimeStreaming.Common.PayloadType PayloadType{ get; };
+        RealtimeStreaming.Network.Connection DataConnection{ get; };
+        RealtimeStreaming.Network.DataBundle Bundle{ get; };
+    };
+
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    runtimeclass BundleReceivedArgs
+    {
+        [default] interface IBundleReceivedArgs;
+    //BundleReceivedArgs();
+    /*
+        BundleReceivedArgs(
+            RealtimeStreaming.PayloadType type,
+            RealtimeStreaming.Network.Connection connection,
+            RealtimeStreaming.Network.DataBundle dataBundle,
+            Windows.Foundation.Uri uri);
+
+    RealtimeStreaming.PayloadType PayloadType{ get; };
+    RealtimeStreaming.Network.Connection Connection{ get; };
+    RealtimeStreaming.Network.DataBundle DataBundle{ get; };
+    Windows.Foundation.Uri RemoteUri{ get; };
+    */
+    };
+
 /*
     [version(1.0), exclusiveto(Connection), uuid(05b7d68c-2e80-11e9-b210-d663bd873d93)]
     interface IConnection : IInspectable requires Windows.Foundation.IClosable
@@ -30,7 +60,6 @@ namespace RealtimeStreaming.Network
 
     }*/
 
-    
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
@@ -39,16 +68,15 @@ namespace RealtimeStreaming.Network
     runtimeclass Connection : RealtimeStreaming.Plugin.Module
     {
         //[default] interface IConnection;
-    Windows.Foundation.IAsyncAction SendPayloadTypeAsync(RealtimeStreaming.PayloadType type);
-    Windows.Foundation.IAsyncAction SendBundleAsync(DataBundle dataBundle);
+        Windows.Foundation.IAsyncAction SendPayloadTypeAsync(RealtimeStreaming.Common.PayloadType type);
+        Windows.Foundation.IAsyncAction SendBundleAsync(DataBundle dataBundle);
 
-    Boolean IsConnected{ get; };
-    Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo{ get; };
-
+        Boolean IsConnected{ get; };
+        Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo{ get; };
 
         //Connection();
         //Connection(Windows.Networking.Sockets.IStreamSocket streamSocket);
         event DisconnectedDelegate Disconnected;
-        //event Windows.Foundation.EventHandler<BundleReceivedArgs > Received;
+        event Windows.Foundation.EventHandler<BundleReceivedArgs > Received;
     };
 }

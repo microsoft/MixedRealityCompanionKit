@@ -174,7 +174,7 @@ HRESULT ConvertPropertiesToMediaType(
 }
 
 HRESULT GetStreamId(
-    _In_ ABI::Windows::Media::Capture::MediaStreamType mediaStreamType,
+    _In_ Windows::Media::Capture::MediaStreamType mediaStreamType,
     _Out_ DWORD* streamId)
 {
     NULL_CHK(streamId);
@@ -183,10 +183,10 @@ HRESULT GetStreamId(
 
     switch (mediaStreamType)
     {
-    case ABI::Windows::Media::Capture::MediaStreamType::MediaStreamType_VideoRecord:
+    case Windows::Media::Capture::MediaStreamType::MediaStreamType_VideoRecord:
         *streamId = 0;
         break;
-    case ABI::Windows::Media::Capture::MediaStreamType::MediaStreamType_Audio:
+    case Windows::Media::Capture::MediaStreamType::MediaStreamType_Audio:
         *streamId = 1;
         break;
     default:
@@ -262,7 +262,7 @@ NetworkMediaSink::~NetworkMediaSink()
 
 // IMediaExtension
 HRESULT NetworkMediaSink::SetProperties(
-    ABI::Windows::Foundation::Collections::IPropertySet* configuration)
+    Windows::Foundation::Collections::IPropertySet* configuration)
 {
     return S_OK;
 }

@@ -25,6 +25,20 @@ struct WINRT_EBO INetworkMediaSinkStream :
     INetworkMediaSinkStream(std::nullptr_t = nullptr) noexcept {}
 };
 
+struct WINRT_EBO IRTSchemeHandler :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<IRTSchemeHandler>
+{
+    IRTSchemeHandler(std::nullptr_t = nullptr) noexcept {}
+};
+
+struct WINRT_EBO IRealtimeMediaPlayer :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<IRealtimeMediaPlayer>
+{
+    IRealtimeMediaPlayer(std::nullptr_t = nullptr) noexcept {}
+};
+
 struct WINRT_EBO IRealtimeMediaSource :
     Windows::Foundation::IInspectable,
     impl::consume_t<IRealtimeMediaSource>

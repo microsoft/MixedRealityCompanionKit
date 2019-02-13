@@ -12,7 +12,28 @@
 #include <winrt/windows.storage.streams.h>
 #include <winrt/windows.system.threading.h>
 
+// DirectX
+#include <directxmath.h>
+#include <directxpackedvector.h>
+#include <d3d11.h>
+#include <d3d11_2.h>
+#pragma comment(lib, "d3d11")
+#include <dxgi.h>
+#pragma comment(lib, "dxgi")
+
+// Media Foundation
+#include <mfidl.h>
+#include <mferror.h>
+#include <mfapi.h>
+#include <mfobjects.h>
+//#include <mfmediacapture.h>
+//#include <mfmediaengine.h>
+#include <mfreadwrite.h>
+
 #include "Common/ErrorHandling.h"
+
+#include "Generated Files\winrt\RealtimeStreaming.Common.h"
+
 /*
 #include <sdkddkver.h>
 

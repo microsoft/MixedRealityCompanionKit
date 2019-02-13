@@ -3,26 +3,42 @@
 
 #include "pch.h"
 #include "Connection.h"
+#include "DataBuffer.h"
+#include "DataBundle.h"
+#include "DataBundleArgs.h"
+#include <robuffer.h> // IBufferByteAccess 
+
+using namespace winrt;
+using namespace winrt::Windows::Foundation;
+using namespace winrt::Windows::Networking::Sockets;
+using namespace winrt::Windows::Storage::Streams;
+
+using namespace RealtimeStreaming::Network::implementation;
+using namespace RealtimeStreaming::Common;
+
+using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess; //IBufferByteAccess
 
 _Use_decl_annotations_
 Connection::Connection(StreamSocket socket)
-    : _isInitialized(false)
-    , m_concurrentFailedBuffers(0)
+    : m_concurrentFailedBuffers(0)
     , m_concurrentFailedBundles(0)
     , m_streamSocket(socket)
     , m_receivedBundle(nullptr)
 {
-    auto lock = _lock.Lock();
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
-    m_receivedHeader.ePayloadType = PayloadType_Unknown;
+    m_receivedHeader.ePayloadType = PayloadType::Unknown;
 
-    return WaitForHeader();
+    WaitForHeader();
 }
 
 _Use_decl_annotations_
 Connection::~Connection()
 {
+    slim_lock_guard guard(m_lock);
+
     Log(Log_Level_Warning, L"ConnectionImpl::~ConnectionImpl()\n");
 
     Close();
@@ -38,7 +54,7 @@ void Connection::Close()
         return;
     }
 
-    LOG_RESULT(ResetBundle());
+    ResetBundle();
 
     // cleanup socket
     m_streamSocket.Close();
@@ -53,16 +69,17 @@ bool Connection::IsConnected()
 {
     Log(Log_Level_Info, L"ConnectionImpl::get_IsConnected()\n");
 
-    auto lock = _lock.Lock();
+    //auto lock = _lock.Lock();
+    slim_shared_lock_guard const guard(m_lock);
 
     return nullptr != m_streamSocket;
 }
 _Use_decl_annotations_
-IStreamSocketInformation Connection::ConnectionInfo()
+StreamSocketInformation Connection::ConnectionInfo()
 {
     Log(Log_Level_Info, L"ConnectionImpl::get_ConnectionInfo()\n");
 
-    auto lock = _lock.Lock();
+    slim_shared_lock_guard const guard(m_lock);
 
     if (m_streamSocket == nullptr)
     {
@@ -75,11 +92,13 @@ IStreamSocketInformation Connection::ConnectionInfo()
 /* Event Handlers */
 
 _Use_decl_annotations_
-winrt::event_token Connection::Disconnected(Windows::Foundation::EventHandler const& handler)
+event_token Connection::Disconnected(
+    RealtimeStreaming::Network::DisconnectedDelegate const& handler)
 {
     Log(Log_Level_All, L"ConnectionImpl::add_Disconnected() - Tid: %d \n", GetCurrentThreadId());
 
-    auto lock = _lock.Lock();
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     return m_evtDisconnected.add(handler);
 }
@@ -89,17 +108,20 @@ void Connection::Disconnected(winrt::event_token const& token)
 {
     Log(Log_Level_Info, L"ConnectionImpl::remove_Disconnected()\n");
 
-    auto lock = _lock.Lock();
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     m_evtDisconnected.remove(token);
 }
 
 _Use_decl_annotations_
-winrt::event_token Connection::Received(Windows::Foundation::EventHandler const& handler)
+event_token Connection::Received(
+    EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler)
 {
     Log(Log_Level_Info, L"ConnectionImpl::add_Received()\n");
 
-    auto lock = _lock.Lock();
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     return m_evtBundleReceived.add(handler);
 }
@@ -109,36 +131,36 @@ void Connection::Received(winrt::event_token const& token)
 {
     Log(Log_Level_Info, L"ConnectionImpl::remove_Received()\n");
 
-    auto lock = _lock.Lock();
+    //auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     m_evtBundleReceived.remove(token);
 }
 
-
 _Use_decl_annotations_
-IAsyncAction Connection::SendPayloadType(
+IAsyncAction Connection::SendPayloadTypeAsync(
     PayloadType payloadType)
 {
     Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
 
     // send an PayloadType header, contains no payload.
-    DataBuffer buffer = DataBuffer(sizeof(PayloadHeader));
+    auto dataBuffer = make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
     DataBundle dataBundle = DataBundle(); // TODO: winrt::make()?
 
     // cast to IBufferByteAccess
-    com_ptr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
-    IFT(dataBuffer.As(&spByteAccess));
+    //Windows::Storage::Streams::
+    com_ptr<IBufferByteAccess> spByteAccess = dataBuffer.as<IBufferByteAccess>();
 
     // get the raw byte pointer
     BYTE* pBuffer = nullptr;
 
-    buffer.Buffer(pBuffer);
+    dataBuffer.getbufferPointer(pBuffer);
     //IFT(spByteAccess->Buffer(&buffer));
-    NULL_CHK(buffer);
+    NULL_THROW(pBuffer);
 
     // cast to the dataPtr
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuffer);
-    NULL_CHK(pOpHeader);
+    NULL_THROW(pOpHeader);
 
     pOpHeader->cbPayloadSize = 0;
     pOpHeader->ePayloadType = payloadType;
@@ -146,7 +168,7 @@ IAsyncAction Connection::SendPayloadType(
     dataBuffer.CurrentLength(sizeof(PayloadHeader));
     dataBundle.AddBuffer(dataBuffer);
 
-    return SendBundle(dataBundle);
+    return SendBundleAsync(dataBundle);
 }
 
 _Use_decl_annotations_
@@ -156,9 +178,9 @@ IAsyncAction Connection::SendBundleAsync(
     Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync(bundle)\n");
 
     // get the output stream for socket
-    OutputStream outputStream{ nullptr };
+    IOutputStream outputStream{ nullptr };
     {
-        auto lock = _lock.Lock();
+        slim_lock_guard guard(m_lock);
 
         IFT(CheckClosed());
         outputStream = m_streamSocket.OutputStream();
@@ -169,8 +191,11 @@ IAsyncAction Connection::SendBundleAsync(
 
     std::vector< IAsyncOperationWithProgress< unsigned int, unsigned int > > pendingWrites{};
 
+    
+    winrt::RealtimeStreaming::Network::implementation::DataBundle db;
+
     // send one buffer at a time syncronously
-    for (auto const& currBuffer : dataBundle.Buffer())
+    for (auto const& currBuffer : dataBundle.GetBuffers())
     {
         totalLength += currBuffer.Length();
 

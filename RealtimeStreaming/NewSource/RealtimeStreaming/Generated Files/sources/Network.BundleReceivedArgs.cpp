@@ -3,7 +3,7 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    RealtimeStreaming::PayloadType BundleReceivedArgs::PayloadType()
+    RealtimeStreaming::Common::PayloadType BundleReceivedArgs::PayloadType()
     {
         throw hresult_not_implemented();
     }

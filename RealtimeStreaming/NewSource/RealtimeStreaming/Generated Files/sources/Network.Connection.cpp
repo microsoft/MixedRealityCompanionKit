@@ -3,7 +3,7 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    Windows::Foundation::IAsyncAction Connection::SendPayloadTypeAsync(RealtimeStreaming::PayloadType const type)
+    Windows::Foundation::IAsyncAction Connection::SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType const type)
     {
         throw hresult_not_implemented();
     }
@@ -29,6 +29,16 @@ namespace winrt::RealtimeStreaming::Network::implementation
     }
 
     void Connection::Disconnected(event_token const& token)
+    {
+        throw hresult_not_implemented();
+    }
+
+    event_token Connection::Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler)
+    {
+        throw hresult_not_implemented();
+    }
+
+    void Connection::Received(event_token const& token)
     {
         throw hresult_not_implemented();
     }

@@ -163,7 +163,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             }
 
         private:
-            Wrappers::CriticalSection _lock;
+            //Wrappers::CriticalSection _lock;
+            slim_mutex m_lock;
 
             DWORD _dwStreamId;          // streamId
             bool _fIsVideo;             // for video type streams, we have special data to send
@@ -175,8 +176,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
             LONGLONG _adjustedStartTime;    // Presentation time when the clock started.
 
-            com_ptr<ABI::RealtimeStreaming::Network::IConnection> m_connection;
-            com_ptr<ABI::RealtimeStreaming::Media::INetworkMediaSink>  _spParentMediaSink;
+            com_ptr<RealtimeStreaming::Network::IConnection> m_connection;
+            com_ptr<RealtimeStreaming::Media::INetworkMediaSink>  _spParentMediaSink;
 
             com_ptr<IMFMediaType> _currentType;
             GUID _currentSubtype;

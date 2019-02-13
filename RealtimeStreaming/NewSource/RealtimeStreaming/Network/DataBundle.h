@@ -3,47 +3,48 @@
 
 #pragma once
 
+#include "Generated Files\Network\DataBundle.g.h"
+
+//#include "DataBuffer.h"
+
 namespace winrt::RealtimeStreaming::Network::implementation
 {
     struct DataBundle : DataBundleT<DataBundle>
     {
-        public:
-            DataBundle(_In_ IDataBuffer dataBuffer);
-            DataBundle(_In_ IMFSample* pSample);
-            ~DataBundle();
+    public:
+        DataBundle();
+        //DataBundle(_In_ DataBuffer dataBuffer);
+        DataBundle(_In_ IMFSample* pSample);
+        ~DataBundle();
 
-            // IDataBundle
-            UINT32 BufferCount();
-            UINT64 TotalSize();
+        // IDataBundle
+        UINT32 BufferCount();
+        UINT64 TotalSize();
 
-            void AddBuffer(_In_DataBuffer dataBuffer);
+        void AddBuffer(_In_ RealtimeStreaming::Network::DataBuffer const& dataBuffer);
 
-            bool InsertBuffer(
-                _In_ UINT32 index,
-                _In_ DataBuffer dataBuffer);
+        bool InsertBuffer(_In_ uint32_t index, 
+            RealtimeStreaming::Network::DataBuffer const& dataBuffer);
 
-            bool RemoveBuffer(DataBuffer dataBuffer);
+        bool RemoveBuffer(_In_ RealtimeStreaming::Network::DataBuffer const& dataBuffer);
 
-            void Reset();
+        void Reset();
 
-            // DataBundleImpl
-            UINT32 CopyTo(_In_ DWORD nOffset,
-                _In_ DWORD cbSize,
-                _In_reads_bytes_(cbSize) void* pDest);
-            
-            void MoveLeft(_In_ DWORD cbSize, 
-                _Out_writes_bytes_(cbSize) void* pDest);
-            
-            void TrimLeft(_In_ DWORD cbSize);
+        // DataBundleImpl
+        UINT32 CopyTo(_In_ DWORD nOffset,
+            _In_ DWORD cbSize,
+            _In_reads_bytes_(cbSize) void* pDest);
 
-            IFACEMETHOD(ToMFSample)(_COM_Outptr_result_maybenull_ IMFSample** ppSample);
+        void MoveLeft(_In_ DWORD cbSize,
+            _Out_writes_bytes_(cbSize) void* pDest);
 
-            std::vector<IDataBuffer> Buffers() 
-            {
-                return m_buffers;
-            }
+        void TrimLeft(_In_ DWORD cbSize);
 
-        private:
-            std::vector< IDataBuffer > m_buffers;
+        STDMETHOD(ToMFSample)(_COM_Outptr_result_maybenull_ IMFSample** ppSample);
+        
+        std::vector<winrt::RealtimeStreaming::Network::DataBuffer> GetBuffers();
+
+    private:
+        std::vector<winrt::RealtimeStreaming::Network::DataBuffer> m_buffers;
     };
 }

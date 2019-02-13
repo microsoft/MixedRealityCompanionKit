@@ -1,141 +1,73 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-#pragma once
+﻿#pragma once
 
-namespace RealtimeStreaming
+#include "Generated Files\Media\RealtimeMediaPlayer.g.h"
+#include "Plugin/Module.h"
+#include "Common/D3D11DeviceResources.h"
+#include "MediaUtils.h"
+
+#include <winrt/Windows.Media.Playback.h>
+
+struct __declspec(uuid("2d67f54a-2f43-11e9-b210-d663bd873d93")) IPlaybackManagerPriv : ::IUnknown
 {
-    namespace Media
+    STDMETHOD(CreatePlaybackTexture)(_In_ uint32_t width, _In_ uint32_t height, _COM_Outptr_ void** ppvTexture) PURE;
+    STDMETHOD(LoadContent)(_In_ winrt::hstring const& contentLocatio) PURE;
+    STDMETHOD(Play)() PURE;
+    STDMETHOD(Pause)() PURE;
+    STDMETHOD(Stop)() PURE;
+};
+
+namespace winrt::RealtimeStreaming::Media::implementation
+{
+    struct RealtimeMediaPlayer : RealtimeMediaPlayerT<RealtimeMediaPlayer, RealtimeStreaming::Plugin::Module, IPlaybackManagerPriv>
     {
-        enum class StateType : UINT16
-        {
-            StateType_None = 0,
-            StateType_Opened,
-            StateType_StateChanged,
-            StateType_Failed,
-        };
+        static Plugin::IModule Create(
+            _In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
+            //_In_ StateChangedCallback fnCallback);
 
-        enum class PlaybackState : UINT16
-        {
-            PlaybackState_None = 0,
-            PlaybackState_Opening,
-            PlaybackState_Buffering,
-            PlaybackState_Playing,
-            PlaybackState_Paused,
-            PlaybackState_Ended
-        };
+        RealtimeMediaPlayer();
 
-#pragma pack(push, 4)
-        typedef struct _MEDIA_DESCRIPTION
-        {
-            UINT32 width;
-            UINT32 height;
-            INT64 duration;
-            byte canSeek;
-        } MEDIA_DESCRIPTION;
-#pragma pack(pop)
+        virtual void Shutdown();
 
-#pragma pack(push, 4)
-        typedef struct _PLAYBACK_STATE
-        {
-            StateType type;
-            union {
-                PlaybackState state;
-                HRESULT hresult;
-                MEDIA_DESCRIPTION description;
-            } value;
-        } PLAYBACK_STATE;
-#pragma pack(pop)
+        event_token Closed(Windows::Foundation::EventHandler<Media::RealtimeMediaPlayer> const& handler);
+        void Closed(event_token const& token);
 
-        extern "C" typedef void(UNITY_INTERFACE_API *StateChangedCallback)(
-            _In_ PLAYBACK_STATE args);
+        // IPlaybackManagerPriv
+        STDOVERRIDEMETHODIMP CreatePlaybackTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture);
+        STDOVERRIDEMETHODIMP LoadContent(_In_ hstring const& pszContentLocation);
+        STDOVERRIDEMETHODIMP Play();
+        STDOVERRIDEMETHODIMP Pause();
+        STDOVERRIDEMETHODIMP Stop();
 
-        struct RealtimeMediaPlayer 
-        {
-        public:
-            RealtimeMediaPlayer(
-                _In_ UnityGfxRenderer apiType,
-                _In_ IUnityInterfaces* pUnityInterfaces);
-            ~RealtimeMediaPlayer();
+    private:
+        HRESULT CreateMediaPlayer();
+        void ReleaseMediaPlayer();
 
-            IAsyncAction InitAsync(_In_ Connection connection);
+        HRESULT CreateResources(com_ptr<ID3D11Device> const& unityDevice);
+        void ReleaseResources();
 
-            // IRealtimeMediaPlayer
-            HRESULT GetCurrentResolution(
-                _Out_ UINT32* pWidth,
-                _Out_ UINT32* pHeight);
+    private:
+        com_ptr<ID3D11Device> m_d3dDevice;
+        uint32_t m_resetToken;
+        com_ptr<IMFDXGIDeviceManager> m_dxgiDeviceManager;
 
-            HRESULT CreateStreamingTexture(
-                _In_ UINT32 width,
-                _In_ UINT32 height,
-                _COM_Outptr_ void** ppvTexture);
+        Windows::Media::Playback::MediaPlayer m_mediaPlayer;
+        event_token m_endedToken;
+        event_token m_failedToken;
+        event_token m_openedToken;
+        event_token m_videoFrameAvailableToken;
 
-            void Play();
-            void Pause();
-            void Stop();
+        Windows::Media::Playback::MediaPlaybackSession m_mediaPlaybackSession;
+        event_token m_stateChangedEventToken;
 
-        protected:
-            // Callbacks - MediaPlayer
-            void OnOpened(
-                _In_ Windows::Media::Playback::MediaPlayer sender,
-                _In_ IInspectable args);
-            void OnEnded(
-                _In_ Windows::Media::Playback::MediaPlayer sender,
-                _In_ Object args);
-            void OnFailed(
-                _In_ Windows::Media::Playback::MediaPlayer sender,
-                _In_ Windows::Media::Playback::MediaPlayerFailedEventArgs args);
+        std::shared_ptr<SharedTextureBuffer> m_primaryBuffer;
 
-            void OnVideoFrameAvailable(
-                _In_ Windows::Media::Playback::MediaPlayer sender,
-                _In_ IInspectable args);
+        event<Windows::Foundation::EventHandler<Media::RealtimeMediaPlayer>> m_closedEvent;
+    };
+}
 
-            // Callbacks - IMediaPlaybackSession
-            void OnStateChanged(
-                _In_ Windows::Media::Playback::MediaPlaybackSession sender,
-                _In_ IInspectable args);
-
-        private:
-            void CreateMediaPlayer();
-            void ReleaseMediaPlayer();
-
-            HRESULT CreateTextures();
-            void ReleaseTextures();
-
-            void ReleaseResources();
-
-        private:
-            com_ptr<ID3D11Device> m_d3dDevice;
-            com_ptr<ID3D11Device> m_mediaDevice;
-
-            StateChangedCallback m_fnStateCallback;
-
-            Windows::Media::Playback::MediaPlayer m_mediaPlayer{ nullptr };
-            winrt::event_token m_openedEventToken;
-            winrt::event_token m_endedEventToken;
-            winrt::event_token m_failedEventToken;
-            winrt::event_token m_videoFrameAvailableToken;
-
-            RealtimeMediaSource m_RealtimeMediaSource{ nullptr };
-
-            Windows::Media::Playback::MediaPlaybackSession m_mediaPlaybackSession;
-            winrt::event_token m_stateChangedEventToken;
-
-            CD3D11_TEXTURE2D_DESC m_textureDesc;
-            com_ptr<ID3D11Texture2D> m_primaryTexture;
-            com_ptr<ID3D11ShaderResourceView> m_primaryTextureSRV;
-
-            HANDLE m_primarySharedHandle;
-            com_ptr<ID3D11Texture2D> m_primaryMediaTexture;
-            com_ptr<ABI::Windows::Graphics::DirectX::Direct3D11::IDirect3DSurface> m_primaryMediaSurface;
-        };
-
-    }
+namespace winrt::RealtimeStreaming::Media::factory_implementation
+{
+    struct RealtimeMediaPlayer : RealtimeMediaPlayerT<RealtimeMediaPlayer, implementation::RealtimeMediaPlayer>
+    {
+    };
 }

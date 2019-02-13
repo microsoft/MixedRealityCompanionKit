@@ -50,10 +50,9 @@ IAsyncOperation<Connection> Connector::ConnectAsync()
     co_return winrt::make<Connection>(m_streamSocketResult);
 }
 
-
 /* Event Handlers */
 _Use_decl_annotations_
-winrt::event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler)
+event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler)
 {
     Log(Log_Level_All, L"ConnectorImpl::add_Closed() - Tid: %d \n", GetCurrentThreadId());
 
@@ -80,7 +79,7 @@ void Connector::Close()
     Log(Log_Level_Info, L"ConnectorImpl::Close()\n");
 
     /*
-    com_ptr<ABI::Windows::Foundation::IClosable> closeable;
+    com_ptr<Windows::Foundation::IClosable> closeable;
     if (nullptr != m_streamSocketResult)
     {
         if SUCCEEDED(m_streamSocketResult.As(&closeable))

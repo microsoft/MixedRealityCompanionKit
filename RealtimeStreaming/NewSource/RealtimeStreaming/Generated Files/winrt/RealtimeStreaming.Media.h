@@ -99,6 +99,35 @@ template <typename D> HRESULT consume_RealtimeStreaming_Media_INetworkMediaSinkS
     return result;
 }
 
+template <typename D> RealtimeStreaming::Network::Connection consume_RealtimeStreaming_Media_IRTSchemeHandler<D>::DataConnection() const
+{
+    RealtimeStreaming::Network::Connection result{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRTSchemeHandler)->get_DataConnection(put_abi(result)));
+    return result;
+}
+
+template <typename D> void consume_RealtimeStreaming_Media_IRTSchemeHandler<D>::DataConnection(RealtimeStreaming::Network::Connection const& value) const
+{
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRTSchemeHandler)->put_DataConnection(get_abi(value)));
+}
+
+template <typename D> event_token consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Closed(Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler) const
+{
+    event_token token{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRealtimeMediaPlayer)->add_Closed(get_abi(handler), put_abi(token)));
+    return token;
+}
+
+template <typename D> event_revoker<RealtimeStreaming::Media::IRealtimeMediaPlayer> consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Closed(auto_revoke_t, Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler) const
+{
+    return impl::make_event_revoker<D, RealtimeStreaming::Media::IRealtimeMediaPlayer>(this, &abi_t<RealtimeStreaming::Media::IRealtimeMediaPlayer>::remove_Closed, Closed(handler));
+}
+
+template <typename D> void consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Closed(event_token const& token) const
+{
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRealtimeMediaPlayer)->remove_Closed(get_abi(token)));
+}
+
 template <typename D> Windows::Foundation::IAsyncAction consume_RealtimeStreaming_Media_IRealtimeMediaSource<D>::InitAsync(RealtimeStreaming::Network::Connection const& connection) const
 {
     Windows::Foundation::IAsyncAction operation{ nullptr };
@@ -302,6 +331,71 @@ struct produce<D, RealtimeStreaming::Media::INetworkMediaSinkStream> : produce_b
 };
 
 template <typename D>
+struct produce<D, RealtimeStreaming::Media::IRTSchemeHandler> : produce_base<D, RealtimeStreaming::Media::IRTSchemeHandler>
+{
+    HRESULT __stdcall get_DataConnection(void** result) noexcept final
+    {
+        try
+        {
+            *result = nullptr;
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<RealtimeStreaming::Network::Connection>(this->shim().DataConnection());
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
+    HRESULT __stdcall put_DataConnection(void* value) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().DataConnection(*reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&value));
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+};
+
+template <typename D>
+struct produce<D, RealtimeStreaming::Media::IRealtimeMediaPlayer> : produce_base<D, RealtimeStreaming::Media::IRealtimeMediaPlayer>
+{
+    HRESULT __stdcall add_Closed(void* handler, event_token* token) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            *token = detach_from<event_token>(this->shim().Closed(*reinterpret_cast<Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const*>(&handler)));
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
+    HRESULT __stdcall remove_Closed(event_token token) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Closed(*reinterpret_cast<event_token const*>(&token));
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+};
+
+template <typename D>
 struct produce<D, RealtimeStreaming::Media::IRealtimeMediaSource> : produce_base<D, RealtimeStreaming::Media::IRealtimeMediaSource>
 {
     HRESULT __stdcall InitAsync(void* connection, void** operation) noexcept final
@@ -406,6 +500,14 @@ struct produce<D, RealtimeStreaming::Media::IRealtimeServerFactory> : produce_ba
 
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Media {
 
+inline RTSchemeHandler::RTSchemeHandler() :
+    RTSchemeHandler(get_activation_factory<RTSchemeHandler>().ActivateInstance<RTSchemeHandler>())
+{}
+
+inline RealtimeMediaPlayer::RealtimeMediaPlayer() :
+    RealtimeMediaPlayer(get_activation_factory<RealtimeMediaPlayer>().ActivateInstance<RealtimeMediaPlayer>())
+{}
+
 inline RealtimeMediaSource::RealtimeMediaSource() :
     RealtimeMediaSource(get_activation_factory<RealtimeMediaSource>().ActivateInstance<RealtimeMediaSource>())
 {}
@@ -420,11 +522,15 @@ WINRT_EXPORT namespace std {
 
 template<> struct hash<winrt::RealtimeStreaming::Media::INetworkMediaSink> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::INetworkMediaSink> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::INetworkMediaSinkStream> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::INetworkMediaSinkStream> {};
+template<> struct hash<winrt::RealtimeStreaming::Media::IRTSchemeHandler> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRTSchemeHandler> {};
+template<> struct hash<winrt::RealtimeStreaming::Media::IRealtimeMediaPlayer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRealtimeMediaPlayer> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::IRealtimeMediaSource> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRealtimeMediaSource> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::IRealtimeServer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRealtimeServer> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::IRealtimeServerFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRealtimeServerFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::NetworkMediaSink> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::NetworkMediaSink> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::NetworkMediaSinkStream> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::NetworkMediaSinkStream> {};
+template<> struct hash<winrt::RealtimeStreaming::Media::RTSchemeHandler> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::RTSchemeHandler> {};
+template<> struct hash<winrt::RealtimeStreaming::Media::RealtimeMediaPlayer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::RealtimeMediaPlayer> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::RealtimeMediaSource> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::RealtimeMediaSource> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::RealtimeServer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::RealtimeServer> {};
 

@@ -9,11 +9,13 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
         Connection() = delete;
 
-        Windows::Foundation::IAsyncAction SendPayloadTypeAsync(RealtimeStreaming::PayloadType const type);
+        Windows::Foundation::IAsyncAction SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType const type);
         Windows::Foundation::IAsyncAction SendBundleAsync(RealtimeStreaming::Network::DataBundle const dataBundle);
         bool IsConnected();
         Windows::Networking::Sockets::StreamSocketInformation ConnectionInfo();
         event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
         void Disconnected(event_token const& token);
+        event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler);
+        void Received(event_token const& token);
     };
 }

@@ -38,9 +38,6 @@
     <ClCompile Include="Media\NetworkMediaSinkStream.cpp">
       <Filter>Media</Filter>
     </ClCompile>
-    <ClCompile Include="Media\RealtimeMediaPlayer.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
     <ClCompile Include="Media\RealtimeMediaSource.cpp">
       <Filter>Media</Filter>
     </ClCompile>
@@ -80,6 +77,18 @@
     <ClCompile Include="Plugin\PluginManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
+    <ClCompile Include="Module.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\RealtimeMediaPlayer_old.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\RealtimeMediaPlayer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\D3D11DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -91,9 +100,6 @@
       <Filter>Media</Filter>
     </ClInclude>
     <ClInclude Include="Media\NetworkMediaSinkStream.h">
-      <Filter>Media</Filter>
-    </ClInclude>
-    <ClInclude Include="Media\RealtimeMediaPlayer.h">
       <Filter>Media</Filter>
     </ClInclude>
     <ClInclude Include="Media\RealtimeMediaSource.h">
@@ -165,6 +171,18 @@
     <ClInclude Include="Plugin\PluginManager.h">
       <Filter>Plugin</Filter>
     </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\RealtimeMediaPlayer_old.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\RealtimeMediaPlayer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\D3D11DeviceResources.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="Class.idl" />
@@ -192,9 +210,6 @@
     <Midl Include="Network\DataBundle.idl">
       <Filter>Network</Filter>
     </Midl>
-    <Midl Include="Network\DataBundleArgs.idl">
-      <Filter>Network</Filter>
-    </Midl>
     <Midl Include="Network\Listener.idl">
       <Filter>Network</Filter>
     </Midl>
@@ -208,6 +223,12 @@
       <Filter>Plugin</Filter>
     </Midl>
     <Midl Include="RealtimeStreaming.idl" />
+    <Midl Include="Media\RealtimeMediaPlayer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="SchemeHandler.idl">
+      <Filter>Media</Filter>
+    </Midl>
   </ItemGroup>
   <ItemGroup>
     <None Include="RealtimeStreaming.def" />

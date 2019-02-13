@@ -9,7 +9,7 @@ using namespace RealtimeStreaming::Network::implementation;
 
 _Use_decl_annotations_
 DataBundleArgs::DataBundleArgs(
-    PayloadType operation,
+    RealtimeStreaming::PayloadType operation,
     Connection connection,
     DataBundle bundle)
     : m_payloadType(operation),
@@ -24,17 +24,17 @@ DataBundleArgs::~DataBundleArgs()
     Log(Log_Level_Info, L"DataBundleArgsImpl::~DataBundleArgsImpl()\n");
 }
 
-RealtimeStreaming::PayloadType PayloadType() 
+RealtimeStreaming::PayloadType DataBundleArgs::PayloadType()
 {
     return m_payloadType;
 }
 
-Connection::PayloadType DataConnection(); 
+RealtimeStreaming::Network::Connection DataBundleArgs::DataConnection()
 {
     return m_connection;
 }
 
-DataBundle::PayloadType Bundle() 
+RealtimeStreaming::Network::DataBundle DataBundleArgs::Bundle()
 {
     return m_bundle;
 }

@@ -4,77 +4,39 @@
 #include "pch.h"
 #include "SchemeHandler.h"
 
-ActivatableClass(MrvcSchemeHandlerImpl);
+using namespace winrt;
+using namespace RealtimeStreaming::Media::implementation;
+using namespace RealtimeStreaming::Media;
+using namespace Windows::Foundation;
+using namespace Windows::Foundation::Collections;
 
 _Use_decl_annotations_
-MrvcSchemeHandlerImpl::MrvcSchemeHandlerImpl()
-    : m_connection(nullptr)
+RTSchemeHandler::RTSchemeHandler()
 {
 }
-
-_Use_decl_annotations_
-MrvcSchemeHandlerImpl::~MrvcSchemeHandlerImpl()
-{
-}
-
-_Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::RuntimeClassInitialize()
-{
-    return S_OK;
-}
-
 
 // IMediaExtension methods
-_Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::SetProperties(
-    IPropertySet* propertySet)
+static std::wstring s_connectionId{ L"Connection" };
+void RTSchemeHandler::SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration)
 {
-    NULL_CHK(propertySet);
+    Log(Log_Level_Info, L"RTSchemeHandler::SetProperties()\n");
 
-    com_ptr<IPropertySet> spProperties(propertySet);
-
-    com_ptr<IMap<HSTRING, IInspectable*>> spMap;
-    IFT(spProperties.As(&spMap));
-
-    com_ptr<IConnection> spConnection;
-    IFT(spMap->Lookup(Wrappers::HStringReference(L"Connection").get(), &spConnection));
-
-    HRESULT hr = E_INVALIDARG;
-
-    if (nullptr != spConnection)
-    {
-        hr = spConnection.As(&m_connection);
-    }
-
-    return hr;
+    m_connection = configuration.Lookup(s_connectionId).as<RealtimeStreaming::Network::Connection>();
 }
 
-
-// IMrvcSchemeHandler
-_Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::get_Connection(
-    _Out_ IConnection** ppConnection)
+RealtimeStreaming::Network::Connection RTSchemeHandler::DataConnection()
 {
-    NULL_CHK_HR(m_connection, E_NOT_SET);
-
-    return m_connection.CopyTo(ppConnection);
+    return m_connection;
 }
 
-_Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::put_Connection(
-    _In_ IConnection *connection) 
+void RTSchemeHandler::DataConnection(RealtimeStreaming::Network::Connection const& connection)
 {
-    NULL_CHK(connection);
-
-    com_ptr<IConnection> spConnection(connection);
-
-    return spConnection.As(&m_connection);
+    m_connection = connection;
 }
-
 
 // IMFSchemeHandler
 _Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
+HRESULT RTSchemeHandler::BeginCreateObject(
     LPCWSTR pwszURL, 
     DWORD dwFlags,
     IPropertyStore* pProps,
@@ -82,7 +44,7 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
     IMFAsyncCallback* pCallback,
     IUnknown* punkState)
 {
-    Log(Log_Level_Info, L"MrvcSchemeHandler::BeginCreateObject()\n");
+    Log(Log_Level_Info, L"RTSchemeHandler::BeginCreateObject()\n");
     
     NULL_CHK(pwszURL);
     NULL_CHK(pCallback);
@@ -97,17 +59,16 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
        * ppCancelCookie = nullptr;
     }
 
-    com_ptr<IRealtimeMediaSource> spMediaSource;
-    IFT(MakeAndInitialize<RealtimeMediaSource>(&spMediaSource, m_connection.get()));
-
+    RealtimeMediaSource spMediaSource = make<RealtimeMediaSource>();
+    
     com_ptr<IUnknown> spSourceUnk;
     IFT(spMediaSource.As(&spSourceUnk));
 
     com_ptr<IAsyncAction> initMediaSourceOp;
-    IFT(spMediaSource.As(&initMediaSourceOp));
+    IFT(spMediaSource.as<IAsyncAction>(&initMediaSourceOp));
 
     com_ptr<IMFAsyncResult> spAsyncResult;
-    IFT(MFCreateAsyncResult(spSourceUnk.get(), pCallback, punkState, &spAsyncResult));
+    IFT(MFCreateAsyncResult(spSourceUnk.get(), pCallback, punkState, spAsyncResult.put()));
 
     // until the source gets the stream descriptions, the event will not fire
     return StartAsyncThen(
@@ -121,12 +82,12 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
 }
 
 _Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::EndCreateObject(
+HRESULT RTSchemeHandler::EndCreateObject(
     IMFAsyncResult* pResult,
     MF_OBJECT_TYPE* pObjectType,
     IUnknown** ppObject)
 {
-    Log(Log_Level_Info, L"MrvcSchemeHandler::EndCreateObject()\n");
+    Log(Log_Level_Info, L"RTSchemeHandler::EndCreateObject()\n");
 
     NULL_CHK(pResult);
     NULL_CHK(pObjectType);
@@ -146,7 +107,7 @@ HRESULT MrvcSchemeHandlerImpl::EndCreateObject(
 }
 
 _Use_decl_annotations_
-HRESULT MrvcSchemeHandlerImpl::CancelObjectCreation(
+HRESULT RTSchemeHandler::CancelObjectCreation(
     IUnknown* pIUnknownCancelCookie)
 {
     return E_NOTIMPL;
