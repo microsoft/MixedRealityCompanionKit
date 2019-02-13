@@ -4,7 +4,7 @@
 #include "pch.h"
 #include "DataBundle.h"
 
-DataBundleImpl::~DataBundleImpl()
+DataBundle::~DataBundle()
 {
     Log(Log_Level_All, L"DataBundleImpl::~DataBundleImpl()\n");
 
@@ -12,188 +12,117 @@ DataBundleImpl::~DataBundleImpl()
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::RuntimeClassInitialize()
+DataBundle::DataBundle()
 {
-    Log(Log_Level_All, L"DataBundleImpl::~RuntimeClassInitialize()\n");
+    Log(Log_Level_All, L"DataBundleImpl::DataBundle()\n");
 
-    _buffers.clear();
-
-    return S_OK;
+    m_buffers.clear();
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::RuntimeClassInitialize(
+DataBundle::DataBundle(
     IMFSample* mediaSample)
 {
-    Log(Log_Level_All, L"DataBundleImpl::~RuntimeClassInitialize(imfsample)\n");
+    Log(Log_Level_All, L"DataBundleImpl::DataBundle(imfsample)\n");
 
-    NULL_CHK(mediaSample);
+    IFT(mediaSample);
 
-    _buffers.clear();
+    m_buffers.clear();
 
     DWORD bufferCount = 0;
-    check_hresult(mediaSample->GetBufferCount(&bufferCount));
+    IFT(mediaSample->GetBufferCount(&bufferCount));
 
     // for every buffer, create a DataBuffer
     for (DWORD index = 0; index < bufferCount; ++index)
     {
         // get the media buffer
         com_ptr<IMFMediaBuffer> spMediaBuffer;
-        check_hresult(mediaSample->GetBufferByIndex(index, &spMediaBuffer));
+        IFT(mediaSample->GetBufferByIndex(index, &spMediaBuffer));
 
         // create the dataBuffer
-        com_ptr<IDataBuffer> spDataBuffer;
-        check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, spMediaBuffer.get()));
+        DataBuffer databuffer = DataBuffer(spMediaBuffer.get());
 
         // add the buffer to bundle
-        check_hresult(AddBuffer(spDataBuffer.get()));
+        AddBuffer(databuffer);
     }
-
-    return S_OK;
 }
 
 // IDataBundle
 _Use_decl_annotations_
-HRESULT DataBundleImpl::get_BufferCount(
-    UINT32 *count)
+UINT32 DataBundle::BufferCount()
 {
-    NULL_CHK(count);
-
-    *count = _buffers.size();
-
-    return S_OK;
+    return m_buffers.size();
 }
 
-_Use_decl_annotations_
-HRESULT DataBundleImpl::get_TotalSize(
-    ULONG *totalLength)
+UINT64 DataBundle::TotalSize()
 {
-    NULL_CHK(totalLength);
-
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
     DWORD cbSize = 0;
-    for (; it != itEnd; ++it)
+    for (auto const& currBuffer : m_buffers)
     {
-        DWORD cbLen;
-        check_hresult((*it)->get_CurrentLength(&cbLen));
-
-        cbSize += cbLen;
+        cbSize += currBuffer.CurrentLength();
     }
 
-    *totalLength = cbSize;
-
-    return S_OK;
+    return cbSize;
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::AddBuffer(
+void DataBundle::AddBuffer(
     DataBuffer const& dataBuffer)
 {
-    NULL_CHK(dataBuffer);
-
-    _buffers.push_back(dataBuffer);
-
-    return S_OK;
+    m_buffers.push_back(dataBuffer);
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::InsertBuffer(
+bool DataBundle::InsertBuffer(
     UINT32 index, 
-    IDataBuffer *dataBuffer)
+    DataBuffer dataBuffer)
 {
-    NULL_CHK(dataBuffer);
-
-    if (_buffers.size() < index)
+    if (m_buffers.size() < index)
     {
-        check_hresult(E_INVALIDARG);
+        return false;
     }
 
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
+    m_buffers.insert(m_buffers.begin() + i, dataBuffer);
 
-    for (DWORD nCurrent = 1; nCurrent < index && it != itEnd; ++nCurrent, ++it);
-
-    _buffers.insert(it, dataBuffer);
-
-    return S_OK;
+    return true;
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::RemoveBuffer(
-    IDataBuffer *dataBuffer)
+bool DataBundle::RemoveBuffer(
+    DataBuffer dataBuffer)
 {
-    NULL_CHK(dataBuffer);
-
-    if (_buffers.size() == 0)
+    if (m_buffers.size() == 0)
     {
-        check_hresult(E_INVALIDARG);
+        return false;
     }
 
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
+    Iterator it = m_buffers.begin();
+    Iterator itEnd = m_buffers.end();
 
-    for (; ((*it).get() != dataBuffer) && it != itEnd; ++it);
+    for (; ((*it) != dataBuffer) && it != itEnd; ++it);
 
-    _buffers.erase(it);
+    m_buffers.erase(it);
 
-    return S_OK;
+    return true;
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::RemoveBufferByIndex(
-    UINT32 index, 
-    IDataBuffer** ppDataBuffer)
+void DataBundle::Reset(void)
 {
-    NULL_CHK(ppDataBuffer);
-    if (_buffers.size() < index)
-    {
-        check_hresult(E_INVALIDARG);
-    }
-
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
-
-    for (DWORD nCurrent = 1; nCurrent < index && it != itEnd; ++nCurrent, ++it);
-
-    NULL_CHK_HR(*it, E_NOT_SET);
-
-    check_hresult((*it).CopyTo(ppDataBuffer));
-
-    _buffers.erase(it);
-
-    return S_OK;
-}
-
-_Use_decl_annotations_
-HRESULT DataBundleImpl::Reset(void)
-{
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
-
-    for (; it != itEnd; ++it)
-    {
-        (*it).Reset();
-        (*it) = nullptr;
-    }
-    _buffers.clear();
-
-    return S_OK;
+    m_buffers.clear();
 }
 
 // DataBundleImpl
 _Use_decl_annotations_
-HRESULT DataBundleImpl::CopyTo(
+UINT32 DataBundle::CopyTo(
     DWORD nOffset, 
     DWORD cbSize, 
-    void* pDest, 
-    DWORD* pcbCopied)
+    void* pDest)
 {
     NULL_CHK(pDest);
-    NULL_CHK(pcbCopied);
 
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
+    Iterator it = m_buffers.begin();
+    Iterator itEnd = m_buffers.end();
 
     DWORD cbSkipped = 0;
     DWORD cbCopied = 0;
@@ -201,10 +130,10 @@ HRESULT DataBundleImpl::CopyTo(
     // Skip to the offset
     for (; cbSkipped < nOffset && it != itEnd; ++it)
     {
-        DWORD cbLen;
+        DataBuffer buffer = *it;
+        DWORD cbLen buffer.CurrentLength();
         DWORD nStart = 0;
         DWORD cbCopy = 0;
-        check_hresult((*it)->get_CurrentLength(&cbLen));
 
         if (cbSkipped + cbLen <= nOffset)
         {
@@ -221,16 +150,12 @@ HRESULT DataBundleImpl::CopyTo(
             cbCopy = min(cbSize, cbLen - nStart);
         }
 
-        // cast to IBufferByteAccess
-        com_ptr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
-        check_hresult((*it).As(&spByteAccess));
-
         // get the raw byte pointer
-        BYTE *buffer = nullptr;
-        check_hresult(spByteAccess->Buffer(&buffer));
+        BYTE *pBuffer = nullptr;
+        buffer.Buffer(&pBuffer);
         NULL_CHK(buffer);
 
-        CopyMemory(pDest, buffer + nStart, cbCopy);
+        CopyMemory(pDest, pBuffer + nStart, cbCopy);
 
         cbCopied = cbCopy;
         cbSkipped += nStart;
@@ -238,139 +163,112 @@ HRESULT DataBundleImpl::CopyTo(
 
     for (; it != itEnd && cbCopied < cbSize; ++it)
     {
-        DWORD cbLen;
-        check_hresult((*it)->get_CurrentLength(&cbLen));
+        DataBuffer dataBuffer = *it;
 
+        DWORD cbLen = dataBuffer.CurrentLength();
         DWORD cbCopy = min(cbLen, cbSize - cbCopied);
 
-        // cast to IBufferByteAccess
-        com_ptr<Windows::Storage::Streams::IBufferByteAccess> spByteAccess;
-        check_hresult((*it).As(&spByteAccess));
-
         // get the raw byte pointer
-        BYTE *buffer = nullptr;
-        check_hresult(spByteAccess->Buffer(&buffer));
-        NULL_CHK(buffer);
+        BYTE *pBuffer = nullptr;
+        dataBuffer.Buffer(&pBuffer)
+        NULL_CHK(pBuffer);
 
-        CopyMemory(static_cast<BYTE *>(pDest) + cbCopied, buffer, cbCopy);
+        CopyMemory(static_cast<BYTE *>(pDest) + cbCopied, pBuffer, cbCopy);
 
         cbCopied += cbCopy;
     }
 
-   * pcbCopied = cbCopied;
-
-    return S_OK;
+   return cbCopied;
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::MoveLeft(
+void DataBundle::MoveLeft(
     DWORD cbSize, 
     void* pDest)
 {
-    ULONG cbCopied = 0;
-    check_hresult(DataBundleImpl::CopyTo(0, cbSize, pDest, &cbCopied));
+    ULONG cbCopied = DataBundle::CopyTo(0, cbSize, pDest, &cbCopied);
 
     if (cbCopied != cbSize)
     {
         check_hresult(E_INVALIDARG);
     }
 
-    return TrimLeft(cbSize);
+    TrimLeft(cbSize);
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::TrimLeft(
+void DataBundle::TrimLeft(
     DWORD cbSize)
 {
-    DWORD cbTotalLength = 0;
-    check_hresult(get_TotalSize(&cbTotalLength));
+    DWORD cbTotalLength = TotalSize();
 
     if (cbSize > cbTotalLength)
     {
         check_hresult(E_INVALIDARG);
     }
 
-    Iterator it = _buffers.begin();
-    Iterator itEnd = _buffers.end();
+    Iterator it = m_buffers.begin();
+    Iterator itEnd = m_buffers.end();
     ULONG cbSkipped = 0;
 
-    for (; cbSkipped < cbSize; it = _buffers.begin())
+    for (; cbSkipped < cbSize; it = m_buffers.begin())
     {
-        ULONG cbLen;
-        ULONG nStart = 0;
-        ULONG cbCopy = 0;
-        check_hresult((*it)->get_CurrentLength(&cbLen));
-
+        DataBuffer dataBuffer = (*it);
+        ULONG cbLen = dataBuffer.CurrentLength();
+        ULONG nStart = 0, cbCopy = 0;
+        
         if (cbSkipped + cbLen <= cbSize)
         {
-            _buffers.pop_front();
+            m_buffers.erase(m_buffers.begin());
             cbSkipped += cbLen;
         }
         else
         {
             // skip the rest
-            check_hresult((*it)->TrimLeft(cbSize - cbSkipped));
+            dataBuffer.Trimleft(cbSize - cbSkipped);
             break;
         }
     }
-
-    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT DataBundleImpl::ToMFSample(
+HRESULT DataBundle::ToMFSample(
     IMFSample** ppSample)
 {
     com_ptr<IMFSample> spSample;
 
-    HRESULT hr = MFCreateSample(&spSample);
+    IFR(MFCreateSample(&spSample));
 
-    if (SUCCEEDED(hr))
+    Container::iterator it = m_buffers.begin();
+    Container::iterator endIt = m_buffers.end();
+
+    for (; it != endIt; ++it)
     {
-        Container::iterator it = _buffers.begin();
-        Container::iterator endIt = _buffers.end();
+        DataBuffer dataBuffer = *it;
+        com_ptr<IMFMediaBuffer> spMediaBuffer;
 
-        for (; it != endIt; ++it)
+        DWORD offset = dataBuffer.Offset();
+        if (offset == 0)
         {
-            DataBufferImpl* pBuffer = static_cast<DataBufferImpl*>((*it).get());
-            com_ptr<IMFMediaBuffer> spMediaBuffer;
-
-            DWORD offset;
-            hr = pBuffer->get_Offset(&offset);
-            if (SUCCEEDED(hr) && offset == 0)
-            {
-                // If offset is zero we can just use embedded media buffer
-                spMediaBuffer = pBuffer->GetMediaBuffer();
-            }
-            else
-            {
-                // We have to create MF media buffer wrapper to include offset
-                DWORD cbLen;
-                hr = pBuffer->get_CurrentLength(&cbLen);
-                if (FAILED(hr))
-                {
-                    break;
-                }
-                hr = MFCreateMediaBufferWrapper(pBuffer->GetMediaBuffer(), pBuffer->GetOffset(), cbLen, &spMediaBuffer);
-                if (FAILED(hr))
-                {
-                    break;
-                }
-            }
-
-            // Add media buffer to the sample
-            hr = spSample->AddBuffer(spMediaBuffer.get());
-            if (FAILED(hr))
-            {
-                break;
-            }
+            // If offset is zero we can just use embedded media buffer
+            spMediaBuffer = dataBuffer.GetMediaBuffer();
         }
+        else
+        {
+            // We have to create MF media buffer wrapper to include offset
+            DWORD cbLen = dataBuffer.CurrentLength();
+
+            IFR(MFCreateMediaBufferWrapper(dataBuffer.GetMediaBuffer(),
+                dataBuffer.Offset(),
+                cbLen,
+                &spMediaBuffer));
+        }
+
+        // Add media buffer to the sample
+        IFR(spSample->AddBuffer(spMediaBuffer.get()));
     }
 
-    if (SUCCEEDED(hr))
-    {
-       * ppSample = spSample.detach();
-    }
+    *ppSample = spSample.detach();
 
-    return hr;
+    return S_OK;
 }

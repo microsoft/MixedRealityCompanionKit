@@ -57,7 +57,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.h">
       <Filter>Plugin</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Network\Connection.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -100,6 +99,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.h">
       <Filter>Media</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp">
@@ -112,7 +112,6 @@
       <Filter>Plugin</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\Connection.cpp">
       <Filter>Network</Filter>
     </ClCompile>
@@ -155,6 +154,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\RealtimeMediaPlayer.cpp">
       <Filter>Media</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />

@@ -17,7 +17,7 @@ namespace RealtimeStreaming.Network
     [version(1.0), exclusiveto(Connection), uuid(05b7d68c-2e80-11e9-b210-d663bd873d93)]
     interface IConnection : IInspectable requires Windows.Foundation.IClosable
     {
-        HRESULT SendPayloadType(RealtimeStreaming.PayloadType type);
+        Windows.Foundation.IAsyncAction SendPayloadTypeAsync(RealtimeStreaming.PayloadType type);
         Windows.Foundation.IAsyncAction SendBundleAsync(DataBundle dataBundle);
 
         Boolean IsConnected{ get; };

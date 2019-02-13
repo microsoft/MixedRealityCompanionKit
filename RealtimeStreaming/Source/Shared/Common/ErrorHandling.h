@@ -206,6 +206,10 @@ inline void __stdcall LogResult(
 #define LOG_RESULT(hrToCheck) LOG_RESULT_MSG(hrToCheck, L"");
 #endif
 
+#ifndef IFT
+#define IFT(result) { HRESULT hrTest = result; if (FAILED(hrTest)) { winrt::throw_hresult(hrTest); } }
+#endif
+
 #ifndef IFC 
 #define IFC_MSG(hrToCheck, message) if (FAILED(hrToCheck)) { LOG_RESULT_MSG(hrToCheck, message); hr = hrToCheck; goto done; }
 #define IFC(hrToCheck) IFC_MSG(hrToCheck, L"CHECK_")

@@ -16,17 +16,15 @@ namespace RealtimeStreaming.Network
         UInt32 BufferCount{ get; };
         UInt64 TotalSize{ get; };
 
-        HRESULT AddBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
+        void AddBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
 
-        HRESULT InsertBuffer(
+        Boolean InsertBuffer(
             UInt32 index,
             RealtimeStreaming.Network.DataBuffer dataBuffer);
 
-        HRESULT RemoveBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
+        void RemoveBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
 
-        RealtimeStreaming.Network.DataBuffer RemoveBufferByIndex(UInt32 index);
-
-        HRESULT Reset();
+        void Reset();
     };
 
     [version(1.0), exclusiveto(DataBundle), uuid(042b0fbc-2e5f-11e9-b210-d663bd873d93)]

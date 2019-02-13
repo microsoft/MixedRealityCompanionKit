@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resources">
+      <UniqueIdentifier>accd3aa8-1ba0-4223-9bbe-0c431709210b</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{926ab91d-31b4-48c3-b9a4-e681349f27f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Media">
+      <UniqueIdentifier>{6bf96928-db93-4bf3-9e26-4592a18eb890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{d77d2798-6052-4518-8b17-3fd2ec4450da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{83c91e5d-6ae3-4700-b079-6f1a3c3a58a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Unity">
+      <UniqueIdentifier>{c0082c18-c9e7-456a-8e4f-6ac608861ada}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{7249ab79-a43f-4239-a7f4-b144dc93e952}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Class.cpp" />
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Media\Marker.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\MediaUtils.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\NetworkMediaSinkStream.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\RealtimeMediaPlayer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\RealtimeMediaSource.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\RealtimeServer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\SchemeHandler.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Media\NetworkMediaSink.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Connection.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Connector.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\DataBuffer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\DataBundle.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\DataBundleArgs.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Listener.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Plugin\DirectXManager.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="Plugin\ModuleManager.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="Plugin\PluginManager.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Class.h" />
+    <ClInclude Include="Media\Marker.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\MediaUtils.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\NetworkMediaSinkStream.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\RealtimeMediaPlayer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\RealtimeMediaSource.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\RealtimeServer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\SchemeHandler.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\NetworkMediaSink.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Connection.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Connector.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\DataBuffer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\DataBundle.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\DataBundleArgs.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Listener.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\BaseAttributes.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ErrorHandling.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\LinkList.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\OpQueue.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Unity\IUnityGraphics.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="Unity\IUnityGraphicsD3D9.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="Unity\IUnityGraphicsD3D11.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="Unity\IUnityGraphicsD3D12.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="Unity\IUnityInterface.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="Unity\RenderingPlugin.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="Plugin\DirectXManager.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="Plugin\ModuleManager.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="Plugin\PluginManager.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="Class.idl" />
+    <Midl Include="Media\NetworkMediaSink.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="Media\NetworkMediaSinkStream.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="Media\RealtimeMediaSource.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="Media\RealtimeServer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="Network\Connection.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="Network\Connector.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="Network\DataBuffer.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="Network\DataBundle.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="Network\DataBundleArgs.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="Network\Listener.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="Plugin\DirectXManager.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="Plugin\ModuleManager.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="Plugin\PluginManager.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="RealtimeStreaming.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RealtimeStreaming.def" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.txt" />
+  </ItemGroup>
+</Project>

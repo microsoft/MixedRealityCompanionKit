@@ -1,0 +1,22 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+#pragma once
+
+namespace RealtimeStreaming.Network
+{
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    runtimeclass DataBuffer : Windows.Storage.Streams.IBuffer
+    { 
+        DataBuffer(UInt64 size);
+        UInt64 CurrentLength{ get; set; };
+        UInt64 Offset{ get; set; };
+        
+        HRESULT TrimLeft(UInt64 cbSize);
+        RealtimeStreaming.Network.DataBuffer TrimRight(UInt64 cbSize);
+
+        HRESULT Reset();
+    };
+}

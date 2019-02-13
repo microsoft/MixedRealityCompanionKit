@@ -517,7 +517,7 @@ HRESULT PluginManager::ConnectionAddReceived(
             com_ptr<IDataBundle> dataBundle;
             IFC(args->get_DataBundle(&dataBundle));
 
-            DataBundleImpl* rawDataBundle = static_cast<DataBundleImpl*>(dataBundle.get());
+            DataBundle* rawDataBundle = static_cast<DataBundle*>(dataBundle.get());
             IFC(rawDataBundle == nullptr ? E_INVALIDARG : S_OK);
 
             DWORD cbTotalLen = 0;
@@ -626,7 +626,7 @@ HRESULT PluginManager::ConnectionSendRawData(
 
     // Create send buffer
     com_ptr<IDataBuffer> spDataBuffer;
-    check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, c_cbBufferSize));
+    check_hresult(MakeAndInitialize<DataBuffer>(&spDataBuffer, c_cbBufferSize));
 
     com_ptr<IBuffer> spBuffer;
     check_hresult(spDataBuffer.As(&spBuffer));
@@ -646,7 +646,7 @@ HRESULT PluginManager::ConnectionSendRawData(
     check_hresult(spDataBuffer->put_CurrentLength(c_cbBufferSize));
 
     com_ptr<IDataBundle> spBundle;
-    check_hresult(MakeAndInitialize<DataBundleImpl>(&spBundle));
+    check_hresult(MakeAndInitialize<DataBundle>(&spBundle));
 
     check_hresult(spBundle->AddBuffer(spDataBuffer.get()));
 

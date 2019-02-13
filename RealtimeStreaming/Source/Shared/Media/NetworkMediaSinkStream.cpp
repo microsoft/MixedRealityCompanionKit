@@ -981,11 +981,11 @@ HRESULT NetworkMediaSinkStream::PrepareSample(
 
     // Create a bundle and initialize it with the sample
     com_ptr<IDataBundle> spBundle;
-    check_hresult(MakeAndInitialize<DataBundleImpl>(&spBundle, pSample));
+    check_hresult(MakeAndInitialize<DataBundle>(&spBundle, pSample));
 
     // create a buffer for the media sample header
     com_ptr<IDataBuffer> spDataBuffer;
-    check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, c_cbSampleHeaderSize));
+    check_hresult(MakeAndInitialize<DataBuffer>(&spDataBuffer, c_cbSampleHeaderSize));
 
     // Prepare the buffer
     com_ptr<IBuffer> spHeaderBuffer;
@@ -1064,7 +1064,7 @@ HRESULT NetworkMediaSinkStream::PrepareStreamTick(
     const DWORD c_cbHeaderSize = sizeof(PayloadHeader) + sizeof(MediaStreamTick);
 
     com_ptr<IDataBuffer> spHeader;
-    check_hresult(MakeAndInitialize<DataBufferImpl>(&spHeader, c_cbHeaderSize));
+    check_hresult(MakeAndInitialize<DataBuffer>(&spHeader, c_cbHeaderSize));
 
     // Prepare the buffer
     com_ptr<IBuffer> spBuffer;
@@ -1099,7 +1099,7 @@ HRESULT NetworkMediaSinkStream::PrepareStreamTick(
 
     // Create a buffer for attribute blob
     com_ptr<IDataBuffer> spDataBuffer;
-    check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, pSampleTick->cbAttributesSize));
+    check_hresult(MakeAndInitialize<DataBuffer>(&spDataBuffer, pSampleTick->cbAttributesSize));
 
     // Prepare the IBuffer
     com_ptr<IBuffer> spAttribBuffer;
@@ -1120,7 +1120,7 @@ HRESULT NetworkMediaSinkStream::PrepareStreamTick(
 
     // Prepare bundle to send
     com_ptr<IDataBundle> spBundle;
-    check_hresult(MakeAndInitialize<DataBundleImpl>(&spBundle));
+    check_hresult(MakeAndInitialize<DataBundle>(&spBundle));
 
     // Add fixed size header and description to the bundle
     check_hresult(spBundle->AddBuffer(spHeader.get()));
@@ -1144,7 +1144,7 @@ HRESULT NetworkMediaSinkStream::PrepareFormatChange(
     const DWORD c_cbPayloadSize = sizeof(PayloadHeader) + sizeof(MediaTypeDescription);
 
     com_ptr<IDataBuffer> spDataBuffer;
-    check_hresult(MakeAndInitialize<DataBufferImpl>(&spDataBuffer, c_cbPayloadSize));
+    check_hresult(MakeAndInitialize<DataBuffer>(&spDataBuffer, c_cbPayloadSize));
 
     // Prepare the buffer
     com_ptr<IBuffer> spBuffer;
@@ -1169,7 +1169,7 @@ HRESULT NetworkMediaSinkStream::PrepareFormatChange(
 
     // Prepare bundle to send
     com_ptr<IDataBundle> spBundle;
-    check_hresult(MakeAndInitialize<DataBundleImpl>(&spBundle));
+    check_hresult(MakeAndInitialize<DataBundle>(&spBundle));
 
     // Add fixed size header and description to the bundle
     check_hresult(spBundle->AddBuffer(spDataBuffer.get()));
@@ -1219,8 +1219,8 @@ HRESULT NetworkMediaSinkStream::FillStreamDescription(
     check_hresult(MFGetAttributesAsBlobSize(spMediaType.get(), &attributesSize));
 
     // Prepare a buffer for the filtered mediaType
-    com_ptr<DataBufferImpl> spAttributes;
-    check_hresult(MakeAndInitialize<DataBufferImpl>(&spAttributes, attributesSize));
+    com_ptr<DataBuffer> spAttributes;
+    check_hresult(MakeAndInitialize<DataBuffer>(&spAttributes, attributesSize));
 
     // Set length of the buffer
     check_hresult(spAttributes->put_CurrentLength(attributesSize));

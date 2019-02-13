@@ -288,25 +288,17 @@ namespace ABI {
                     /* [out, retval] */unsigned __int64 * value
                     ) = 0;
                 virtual HRESULT STDMETHODCALLTYPE AddBuffer(
-                    /* [in] */ABI::RealtimeStreaming::Network::IDataBuffer * dataBuffer,
-                    /* [out, retval] */HRESULT * result
+                    /* [in] */ABI::RealtimeStreaming::Network::IDataBuffer * dataBuffer
                     ) = 0;
                 virtual HRESULT STDMETHODCALLTYPE InsertBuffer(
                     /* [in] */unsigned int index,
                     /* [in] */ABI::RealtimeStreaming::Network::IDataBuffer * dataBuffer,
-                    /* [out, retval] */HRESULT * result
+                    /* [out, retval] */boolean * result
                     ) = 0;
                 virtual HRESULT STDMETHODCALLTYPE RemoveBuffer(
-                    /* [in] */ABI::RealtimeStreaming::Network::IDataBuffer * dataBuffer,
-                    /* [out, retval] */HRESULT * result
+                    /* [in] */ABI::RealtimeStreaming::Network::IDataBuffer * dataBuffer
                     ) = 0;
-                virtual HRESULT STDMETHODCALLTYPE RemoveBufferByIndex(
-                    /* [in] */unsigned int index,
-                    /* [out, retval] */ABI::RealtimeStreaming::Network::IDataBuffer * * result
-                    ) = 0;
-                virtual HRESULT STDMETHODCALLTYPE Reset(
-                    /* [out, retval] */HRESULT * result
-                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE Reset(void) = 0;
                 
             };
 
@@ -440,28 +432,20 @@ HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(
         );
     HRESULT ( STDMETHODCALLTYPE *AddBuffer )(
         __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle * This,
-        /* [in] */__x_ABI_CRealtimeStreaming_CNetwork_CIDataBuffer * dataBuffer,
-        /* [out, retval] */HRESULT * result
+        /* [in] */__x_ABI_CRealtimeStreaming_CNetwork_CIDataBuffer * dataBuffer
         );
     HRESULT ( STDMETHODCALLTYPE *InsertBuffer )(
         __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle * This,
         /* [in] */unsigned int index,
         /* [in] */__x_ABI_CRealtimeStreaming_CNetwork_CIDataBuffer * dataBuffer,
-        /* [out, retval] */HRESULT * result
+        /* [out, retval] */boolean * result
         );
     HRESULT ( STDMETHODCALLTYPE *RemoveBuffer )(
         __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle * This,
-        /* [in] */__x_ABI_CRealtimeStreaming_CNetwork_CIDataBuffer * dataBuffer,
-        /* [out, retval] */HRESULT * result
-        );
-    HRESULT ( STDMETHODCALLTYPE *RemoveBufferByIndex )(
-        __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle * This,
-        /* [in] */unsigned int index,
-        /* [out, retval] */__x_ABI_CRealtimeStreaming_CNetwork_CIDataBuffer * * result
+        /* [in] */__x_ABI_CRealtimeStreaming_CNetwork_CIDataBuffer * dataBuffer
         );
     HRESULT ( STDMETHODCALLTYPE *Reset )(
-        __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle * This,
-        /* [out, retval] */HRESULT * result
+        __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle * This
         );
     END_INTERFACE
     
@@ -497,20 +481,17 @@ interface __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle
 #define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_get_TotalSize(This,value) \
     ( (This)->lpVtbl->get_TotalSize(This,value) )
 
-#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_AddBuffer(This,dataBuffer,result) \
-    ( (This)->lpVtbl->AddBuffer(This,dataBuffer,result) )
+#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_AddBuffer(This,dataBuffer) \
+    ( (This)->lpVtbl->AddBuffer(This,dataBuffer) )
 
 #define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_InsertBuffer(This,index,dataBuffer,result) \
     ( (This)->lpVtbl->InsertBuffer(This,index,dataBuffer,result) )
 
-#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_RemoveBuffer(This,dataBuffer,result) \
-    ( (This)->lpVtbl->RemoveBuffer(This,dataBuffer,result) )
+#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_RemoveBuffer(This,dataBuffer) \
+    ( (This)->lpVtbl->RemoveBuffer(This,dataBuffer) )
 
-#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_RemoveBufferByIndex(This,index,result) \
-    ( (This)->lpVtbl->RemoveBufferByIndex(This,index,result) )
-
-#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_Reset(This,result) \
-    ( (This)->lpVtbl->Reset(This,result) )
+#define __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle_Reset(This) \
+    ( (This)->lpVtbl->Reset(This) )
 
 
 #endif /* COBJMACROS */

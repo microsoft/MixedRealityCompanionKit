@@ -5,80 +5,76 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    
-        typedef IAsyncOperation<Connection> IConnectionCreatedOperation;
-        typedef IAsyncOperationCompletedHandler<Connection> IConnectionCreatedCompletedEventHandler;
+    /*
+    typedef IAsyncOperation<Connection> IConnectionCreatedOperation;
+    typedef IAsyncOperationCompletedHandler<Connection> IConnectionCreatedCompletedEventHandler;
 
-        typedef IAsyncOperationWithProgress<IBuffer, UINT32> IStreamReadOperation;
-        typedef IAsyncOperationWithProgressCompletedHandler<IBuffer, UINT32> IStreamReadCompletedEventHandler;
+    typedef IAsyncOperationWithProgress<IBuffer, UINT32> IStreamReadOperation;
+    typedef IAsyncOperationWithProgressCompletedHandler<IBuffer, UINT32> IStreamReadCompletedEventHandler;
 
-        typedef IAsyncOperationWithProgress<UINT32, UINT32> IStreamWriteOperation;
-        typedef IAsyncOperationWithProgressCompletedHandler<UINT32, UINT32> IStreamWriteCompletedEventHandler;
+    typedef IAsyncOperationWithProgress<UINT32, UINT32> IStreamWriteOperation;
+    typedef IAsyncOperationWithProgressCompletedHandler<UINT32, UINT32> IStreamWriteCompletedEventHandler;
+    */
 
-        struct Connection : ConnectionT<Connection, Module>
+    struct Connection : ConnectionT<Connection, Module>
+    {
+
+    public:
+        Connection(_In_ Windows::Networking::Sockets::StreamSocket socket);
+        ~Connection();
+
+        // IClosable
+        void Close();
+
+        //IConnection
+        bool IsConnected();
+        Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo();
+
+        Windows::Foundation::IAsyncAction SendPayloadTypeAsync(
+            _In_ RealtimeStreaming::PayloadType payloadType);
+
+        Windows::Foundation::IAsyncAction SendBundleAsync(
+            _In_ RealtimeStreaming::Network::DataBundle dataBundle);
+
+    protected:
+        // IConnectionInternal
+        inline IFACEMETHOD(CheckClosed)()
         {
+            return (nullptr != m_streamSocket) ? S_OK : MF_E_SHUTDOWN;
+        }
 
-        public:
-            Connection(_In_ Windows::Networking::Sockets::IStreamSocket socket);
-            ~Connection();
+        Windows::Foundation::IAsyncAction WaitForHeader();
+        Windows::Foundation::IAsyncAction WaitForPayload();
+        Windows::Foundation::IAsyncAction OnHeaderReceived(); // TODO: save header locally versus passing by parameter?
+        Windows::Foundation::IAsyncAction OnPayloadReceived(_In_ Windows::Storage::IBuffer payloadBuffer);
 
-            // IClosable
-            void Close();
+        STDMETHODIMP NotifyBundleComplete(
+            _In_ RealtimeStreaming::PayloadType operation,
+            _In_ RealtimeStreaming::Network::DataBundle dataBundle);
 
-            //IConnection
-            bool IsConnected();
+        void ResetBundle();
 
-            // IConnection
-            IFACEMETHOD(SendPayloadType)(
-                _In_ PayloadType payloadType);
+    private:
+        HRESULT ProcessHeaderBuffer(
+            _In_ PayloadHeader* header,
+            _In_ RealtimeStreaming::Network::DataBuffer dataBuffer);
 
-            Windows::Foundation::IAsyncAction SendBundleAsync(
-                _In_ RealtimeStreaming::Network::DataBundle dataBundle);
+    private:
+        Wrappers::CriticalSection _lock;
 
-        protected:
-            // IConnectionInternal
-            inline IFACEMETHOD(CheckClosed)()
-            {
-                return (nullptr != m_streamSocket) ? S_OK : MF_E_SHUTDOWN;
-            }
-            IFACEMETHOD(WaitForHeader)();
-            IFACEMETHOD(WaitForPayload)();
+        UINT16      m_concurrentFailedBuffers;
+        UINT16      m_concurrentFailedBundles;
 
-            HRESULT OnHeaderReceived(
-                _In_ IAsyncOperationWithProgress<IBuffer*, UINT32> *asyncResult, 
-                _In_ AsyncStatus asyncStatus);
-            HRESULT OnPayloadReceived(
-                _In_ IAsyncOperationWithProgress<IBuffer*, UINT32> *asyncResult, 
-                _In_ AsyncStatus asyncStatus);
-            STDMETHODIMP NotifyBundleComplete(
-                _In_ PayloadType operation,
-                _In_ ABI::RealtimeStreaming::Network::IDataBundle *dataBundle);
+        Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
 
-            IFACEMETHOD(ResetBundle)();
+        RealtimeStreaming::Network::DataBuffer  m_spHeaderBuffer{ nullptr };
 
-        private:
-            HRESULT ProcessHeaderBuffer(
-                _In_ PayloadHeader* header,
-                _In_ ABI::RealtimeStreaming::Network::IDataBuffer *dataBuffer);
-
-        private:
-            Wrappers::CriticalSection _lock;
-
-            boolean     _isInitialized;
-            UINT16      m_concurrentFailedBuffers;
-            UINT16      _concurrentFailedBundles;
-
-            Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
-
-            RealtimeStreaming::Network::DataBufferImpl  m_spHeaderBuffer{ nullptr };
-
-            // currently bundle that is incoming
-            PayloadHeader m_receivedHeader;
-            RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
+        // currently bundle that is incoming
+        PayloadHeader m_receivedHeader;
+        RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
             
-            winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
-            winrt::event<Windows::Foundation::EventHandler<BundleReceivedArgs>> m_evtBundleReceived;
+        winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
+        winrt::event<Windows::Foundation::EventHandler<BundleReceivedArgs>> m_evtBundleReceived;
 
-        };
-    }
+    };
 }

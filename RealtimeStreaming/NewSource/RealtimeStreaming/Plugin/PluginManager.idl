@@ -1,0 +1,26 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+import "Plugin/ModuleManager.idl";
+import "Plugin/DirectXManager.idl";
+
+namespace RealtimeStreaming.Plugin
+{
+    [version(1.0)]
+    enum DeviceType
+    {
+        Null = 0,
+        DX11 = 1,
+        Warp = 2
+    };
+
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    runtimeclass PluginManager
+    {
+        RealtimeStreaming.Plugin.ModuleManager ModuleManager { get; };
+
+    RealtimeStreaming.Plugin.DirectXManager DirectXManager { get; };
+    };
+}

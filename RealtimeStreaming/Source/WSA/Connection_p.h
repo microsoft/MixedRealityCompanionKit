@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Mon Jan 18 19:14:07 2038
  */
-/* Compiler settings for C:\Users\TROYFE~1\AppData\Local\Temp\Connection.idl-eba3d7bc:
+/* Compiler settings for C:\Users\TroyF\AppData\Local\Temp\Connection.idl-d26b7527:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : all , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -221,9 +221,9 @@ EXTERN_C const IID IID___x_ABI_CRealtimeStreaming_CNetwork_CIConnection;
     __x_ABI_CRealtimeStreaming_CNetwork_CIConnection : public IInspectable
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE SendPayloadType( 
+        virtual HRESULT STDMETHODCALLTYPE SendPayloadTypeAsync( 
             /* [in] */ __x_ABI_CRealtimeStreaming_CPayloadType type,
-            /* [retval][out] */ HRESULT *result) = 0;
+            /* [retval][out] */ __x_ABI_CWindows_CFoundation_CIAsyncAction **operation) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE SendBundleAsync( 
             /* [in] */ __x_ABI_CRealtimeStreaming_CNetwork_CIDataBundle *dataBundle,
@@ -283,10 +283,10 @@ EXTERN_C const IID IID___x_ABI_CRealtimeStreaming_CNetwork_CIConnection;
             __x_ABI_CRealtimeStreaming_CNetwork_CIConnection * This,
             /* [out] */ TrustLevel *trustLevel);
         
-        HRESULT ( STDMETHODCALLTYPE *SendPayloadType )( 
+        HRESULT ( STDMETHODCALLTYPE *SendPayloadTypeAsync )( 
             __x_ABI_CRealtimeStreaming_CNetwork_CIConnection * This,
             /* [in] */ __x_ABI_CRealtimeStreaming_CPayloadType type,
-            /* [retval][out] */ HRESULT *result);
+            /* [retval][out] */ __x_ABI_CWindows_CFoundation_CIAsyncAction **operation);
         
         HRESULT ( STDMETHODCALLTYPE *SendBundleAsync )( 
             __x_ABI_CRealtimeStreaming_CNetwork_CIConnection * This,
@@ -352,8 +352,8 @@ EXTERN_C const IID IID___x_ABI_CRealtimeStreaming_CNetwork_CIConnection;
     ( (This)->lpVtbl -> GetTrustLevel(This,trustLevel) ) 
 
 
-#define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_SendPayloadType(This,type,result)	\
-    ( (This)->lpVtbl -> SendPayloadType(This,type,result) ) 
+#define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_SendPayloadTypeAsync(This,type,operation)	\
+    ( (This)->lpVtbl -> SendPayloadTypeAsync(This,type,operation) ) 
 
 #define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_SendBundleAsync(This,dataBundle,operation)	\
     ( (This)->lpVtbl -> SendBundleAsync(This,dataBundle,operation) ) 

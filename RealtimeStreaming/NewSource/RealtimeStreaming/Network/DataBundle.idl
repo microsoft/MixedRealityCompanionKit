@@ -1,0 +1,41 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+import "Network/DataBuffer.idl";
+
+namespace RealtimeStreaming.Network
+{
+    runtimeclass DataBundle;
+
+    [version(1.0), exclusiveto(DataBundle), uuid(01458ce6-2e5f-11e9-b210-d663bd873d93)]
+    interface IDataBundle : IInspectable
+    {
+        UInt32 BufferCount{ get; };
+        UInt64 TotalSize{ get; };
+
+        void AddBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
+
+        Boolean InsertBuffer(
+            UInt32 index,
+            RealtimeStreaming.Network.DataBuffer dataBuffer);
+
+        void RemoveBuffer(RealtimeStreaming.Network.DataBuffer dataBuffer);
+
+        void Reset();
+    };
+
+    [version(1.0), exclusiveto(DataBundle), uuid(042b0fbc-2e5f-11e9-b210-d663bd873d93)]
+    interface IDataBundleFactory : IInspectable
+    {
+    }
+
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [composable(IDataBundleFactory, protected, 1.0)]
+    runtimeclass DataBundle
+    {
+        [default] interface IDataBundle;
+        //DataBundle(RealtimeStreaming.Network.DataBuffer dataBuffer);
+    };
+}

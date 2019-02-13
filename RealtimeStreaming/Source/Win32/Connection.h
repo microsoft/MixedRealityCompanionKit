@@ -350,9 +350,9 @@ namespace ABI {
             IConnection : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE SendPayloadType(
+                virtual HRESULT STDMETHODCALLTYPE SendPayloadTypeAsync(
                     /* [in] */ABI::RealtimeStreaming::PayloadType type,
-                    /* [out, retval] */HRESULT * result
+                    /* [out, retval] */ABI::Windows::Foundation::IAsyncAction * * operation
                     ) = 0;
                 virtual HRESULT STDMETHODCALLTYPE SendBundleAsync(
                     /* [in] */ABI::RealtimeStreaming::Network::IDataBundle * dataBundle,
@@ -565,10 +565,10 @@ HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(
     __RPC__in __x_ABI_CRealtimeStreaming_CNetwork_CIConnection * This,
     /* [OUT ] */ __RPC__out TrustLevel *trustLevel
     );
-HRESULT ( STDMETHODCALLTYPE *SendPayloadType )(
+HRESULT ( STDMETHODCALLTYPE *SendPayloadTypeAsync )(
         __x_ABI_CRealtimeStreaming_CNetwork_CIConnection * This,
         /* [in] */__x_ABI_CRealtimeStreaming_CPayloadType type,
-        /* [out, retval] */HRESULT * result
+        /* [out, retval] */__x_ABI_CWindows_CFoundation_CIAsyncAction * * operation
         );
     HRESULT ( STDMETHODCALLTYPE *SendBundleAsync )(
         __x_ABI_CRealtimeStreaming_CNetwork_CIConnection * This,
@@ -629,8 +629,8 @@ interface __x_ABI_CRealtimeStreaming_CNetwork_CIConnection
 #define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_GetTrustLevel(This,trustLevel) \
         ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_SendPayloadType(This,type,result) \
-    ( (This)->lpVtbl->SendPayloadType(This,type,result) )
+#define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_SendPayloadTypeAsync(This,type,operation) \
+    ( (This)->lpVtbl->SendPayloadTypeAsync(This,type,operation) )
 
 #define __x_ABI_CRealtimeStreaming_CNetwork_CIConnection_SendBundleAsync(This,dataBundle,operation) \
     ( (This)->lpVtbl->SendBundleAsync(This,dataBundle,operation) )

@@ -29,9 +29,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\DataBundle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\DataBundleArgs.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Network\Listener.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\DirectXManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.cpp" />

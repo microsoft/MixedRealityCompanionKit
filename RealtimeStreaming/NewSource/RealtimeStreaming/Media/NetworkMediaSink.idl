@@ -1,0 +1,23 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+
+namespace RealtimeStreaming.Media
+{
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    [default_interface]
+    runtimeclass NetworkMediaSink : Windows.Media.IMediaExtension
+    {
+        event Windows.Foundation.EventHandler<Boolean> Closed;
+
+        HRESULT OnEndOfStream(UInt32 streamId);
+
+        HRESULT HandleError(HRESULT hr);
+
+        HRESULT CheckShutdown();
+
+        HRESULT SendDescription();
+    };
+}

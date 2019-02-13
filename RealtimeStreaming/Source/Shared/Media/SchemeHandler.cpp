@@ -8,7 +8,7 @@ ActivatableClass(MrvcSchemeHandlerImpl);
 
 _Use_decl_annotations_
 MrvcSchemeHandlerImpl::MrvcSchemeHandlerImpl()
-    : _connection(nullptr)
+    : m_connection(nullptr)
 {
 }
 
@@ -43,7 +43,7 @@ HRESULT MrvcSchemeHandlerImpl::SetProperties(
 
     if (nullptr != spConnection)
     {
-        hr = spConnection.As(&_connection);
+        hr = spConnection.As(&m_connection);
     }
 
     return hr;
@@ -55,9 +55,9 @@ _Use_decl_annotations_
 HRESULT MrvcSchemeHandlerImpl::get_Connection(
     _Out_ IConnection** ppConnection)
 {
-    NULL_CHK_HR(_connection, E_NOT_SET);
+    NULL_CHK_HR(m_connection, E_NOT_SET);
 
-    return _connection.CopyTo(ppConnection);
+    return m_connection.CopyTo(ppConnection);
 }
 
 _Use_decl_annotations_
@@ -68,7 +68,7 @@ HRESULT MrvcSchemeHandlerImpl::put_Connection(
 
     com_ptr<IConnection> spConnection(connection);
 
-    return spConnection.As(&_connection);
+    return spConnection.As(&m_connection);
 }
 
 
@@ -98,7 +98,7 @@ HRESULT MrvcSchemeHandlerImpl::BeginCreateObject(
     }
 
     com_ptr<IRealtimeMediaSource> spMediaSource;
-    check_hresult(MakeAndInitialize<RealtimeMediaSource>(&spMediaSource, _connection.get()));
+    check_hresult(MakeAndInitialize<RealtimeMediaSource>(&spMediaSource, m_connection.get()));
 
     com_ptr<IUnknown> spSourceUnk;
     check_hresult(spMediaSource.As(&spSourceUnk));

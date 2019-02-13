@@ -13,12 +13,13 @@ namespace RealtimeStreaming.Network
     [marshaling_behavior(agile)]
     [threading(both)]
     [version(1.0)]
-    runtimeclass Connector : Module
+    [default_interface]
+    runtimeclass Connector : RealtimeStreaming.Plugin.Module
     {
         Connector(UInt16 port);
 
-        Windows.Foundation.IAsyncAction<Connection> ListenAsync();
+        Windows.Foundation.IAsyncOperation<Connection> ListenAsync();
 
-        event Windows.Foundation.EventHandler Closed;
+        event Windows.Foundation.EventHandler<Boolean> Closed;
     };
 }

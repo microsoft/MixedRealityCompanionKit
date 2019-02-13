@@ -8,7 +8,7 @@ _Use_decl_annotations_
 Connection::Connection(StreamSocket socket)
     : _isInitialized(false)
     , m_concurrentFailedBuffers(0)
-    , _concurrentFailedBundles(0)
+    , m_concurrentFailedBundles(0)
     , m_streamSocket(socket)
     , m_receivedBundle(nullptr)
 {
@@ -72,6 +72,8 @@ IStreamSocketInformation Connection::ConnectionInfo()
     return m_streamSocket.Information();
 }
 
+/* Event Handlers */
+
 _Use_decl_annotations_
 winrt::event_token Connection::Disconnected(Windows::Foundation::EventHandler const& handler)
 {
@@ -114,7 +116,7 @@ void Connection::Received(winrt::event_token const& token)
 
 
 _Use_decl_annotations_
-HRESULT Connection::SendPayloadType(
+IAsyncAction Connection::SendPayloadType(
     PayloadType payloadType)
 {
     Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
@@ -185,7 +187,7 @@ IAsyncAction Connection::SendBundleAsync(
 
 // IConnectionInternal
 _Use_decl_annotations_
-HRESULT Connection::WaitForHeader()
+IAsyncAction Connection::WaitForHeader()
 {
     Log(Log_Level_All, L"ConnectionImpl::WaitForHeader - Tid: %d \n", GetCurrentThreadId());
 
@@ -225,7 +227,7 @@ HRESULT Connection::WaitForHeader()
 }
 
 _Use_decl_annotations_
-HRESULT Connection::WaitForPayload()
+IAsyncAction Connection::WaitForPayload()
 {
     Log(Log_Level_Info, L"ConnectionImpl::WaitForPayload()\n");
 
@@ -264,7 +266,6 @@ HRESULT Connection::WaitForPayload()
     return OnPayloadReceived(asyncInfo.GetResults());
 }
 
-
 _Use_decl_annotations_
 void Connection::ResetBundle()
 {
@@ -288,7 +289,7 @@ HRESULT Connection::ProcessHeaderBuffer(
     DataBundle dataBundle = DataBundle();
     
     // add buffer
-    check_hresult(dataBundle.AddBuffer(dataBuffer));
+    IFR(dataBundle.AddBuffer(dataBuffer));
 
     LOG_RESULT(NotifyBundleComplete(header->ePayloadType, dataBundle));
 
@@ -396,7 +397,7 @@ done:
 }
 
 _Use_decl_annotations_
-HRESULT Connection::OnPayloadReceived(IBuffer payloadBuffer)
+Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadBuffer)
 {
     Log(Log_Level_All, L"ConnectionImpl::OnPayloadReceived\n");
 
