@@ -206,26 +206,27 @@ HRESULT DataBuffer::GetMediaBuffer(
 }
 
 _Use_decl_annotations_
-BYTE* DataBuffer::GetBufferPointer()
+HRESULT DataBuffer::GetBufferPointer(BYTE** pBuffer)
 {
-    return _byteBuffer + _bufferOffset;
+    *pBuffer = _byteBuffer + _bufferOffset;
+    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT DataBuffer::get_Texture(
+HRESULT DataBuffer::GetTexture(
     ID3D11Texture2D** ppTexture,
     UINT *subIndex)
 {
     com_ptr<IMFDXGIBuffer> spDXGIBuffer = _mfMediaBuffer.as<IMFDXGIBuffer>();
 
     // get resourceView
-    IFT(spDXGIBuffer->GetResource(__uuidof(ID3D11Texture2D), 
+    IFR(spDXGIBuffer->GetResource(__uuidof(ID3D11Texture2D),
         reinterpret_cast<LPVOID*>(ppTexture)));
 
     // if requested
     if (nullptr != subIndex)
     {
-        IFT(spDXGIBuffer->GetSubresourceIndex(subIndex));
+        IFR(spDXGIBuffer->GetSubresourceIndex(subIndex));
     }
 
     return S_OK;

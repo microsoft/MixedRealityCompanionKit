@@ -3,6 +3,7 @@
 
 #include "pch.h"
 #include "DataBundle.h"
+#include "DataBuffer.h"
 
 using namespace winrt;
 using namespace winrt::RealtimeStreaming::Network::implementation;
@@ -118,15 +119,16 @@ void DataBundle::Reset(void)
 
 // DataBundleImpl
 _Use_decl_annotations_
-UINT32 DataBundle::CopyTo(
+HRESULT  DataBundle::CopyTo(
     DWORD nOffset, 
     DWORD cbSize, 
-    void* pDest)
+    void* pDest,
+    UINT32* pCBCopied)
 {
     NULL_CHK(pDest);
 
-    Iterator it = m_buffers.begin();
-    Iterator itEnd = m_buffers.end();
+    auto it = m_buffers.begin();
+    auto itEnd = m_buffers.end();
 
     DWORD cbSkipped = 0;
     DWORD cbCopied = 0;
@@ -134,8 +136,8 @@ UINT32 DataBundle::CopyTo(
     // Skip to the offset
     for (; cbSkipped < nOffset && it != itEnd; ++it)
     {
-        DataBuffer buffer = *it;
-        DWORD cbLen buffer.CurrentLength();
+        auto buffer = (*it).as<implementation::DataBuffer>();
+        DWORD cbLen = buffer->CurrentLength();
         DWORD nStart = 0;
         DWORD cbCopy = 0;
 
@@ -156,7 +158,7 @@ UINT32 DataBundle::CopyTo(
 
         // get the raw byte pointer
         BYTE *pBuffer = nullptr;
-        buffer.Buffer(&pBuffer);
+        buffer->Buffer(&pBuffer);
         NULL_CHK(buffer);
 
         CopyMemory(pDest, pBuffer + nStart, cbCopy);
@@ -167,15 +169,15 @@ UINT32 DataBundle::CopyTo(
 
     for (; it != itEnd && cbCopied < cbSize; ++it)
     {
-        DataBuffer dataBuffer = *it;
+        auto dataBuffer = (*it).as<implementation::DataBuffer>();
 
-        DWORD cbLen = dataBuffer.CurrentLength();
+        DWORD cbLen = dataBuffer->CurrentLength();
         DWORD cbCopy = min(cbLen, cbSize - cbCopied);
 
         // get the raw byte pointer
         BYTE *pBuffer = nullptr;
-        dataBuffer.Buffer(&pBuffer)
-        NULL_CHK(pBuffer);
+        dataBuffer->Buffer(&pBuffer);
+        NULL_THROW(pBuffer);
 
         CopyMemory(static_cast<BYTE *>(pDest) + cbCopied, pBuffer, cbCopy);
 
@@ -186,7 +188,7 @@ UINT32 DataBundle::CopyTo(
 }
 
 _Use_decl_annotations_
-void DataBundle::MoveLeft(
+HRESULT  DataBundle::MoveLeft(
     DWORD cbSize, 
     void* pDest)
 {
@@ -201,7 +203,7 @@ void DataBundle::MoveLeft(
 }
 
 _Use_decl_annotations_
-void DataBundle::TrimLeft(
+HRESULT  DataBundle::TrimLeft(
     DWORD cbSize)
 {
     DWORD cbTotalLength = TotalSize();
@@ -211,14 +213,14 @@ void DataBundle::TrimLeft(
         IFT(E_INVALIDARG);
     }
 
-    Iterator it = m_buffers.begin();
-    Iterator itEnd = m_buffers.end();
+    auto it = m_buffers.begin();
+    auto itEnd = m_buffers.end();
     ULONG cbSkipped = 0;
 
     for (; cbSkipped < cbSize; it = m_buffers.begin())
     {
-        DataBuffer dataBuffer = (*it);
-        ULONG cbLen = dataBuffer.CurrentLength();
+        auto dataBuffer = (*it).as<implementation::DataBuffer>();
+        ULONG cbLen = dataBuffer->CurrentLength();
         ULONG nStart = 0, cbCopy = 0;
         
         if (cbSkipped + cbLen <= cbSize)
@@ -229,7 +231,7 @@ void DataBundle::TrimLeft(
         else
         {
             // skip the rest
-            dataBuffer.Trimleft(cbSize - cbSkipped);
+            dataBuffer->TrimLeft(cbSize - cbSkipped);
             break;
         }
     }
@@ -248,24 +250,27 @@ HRESULT DataBundle::ToMFSample(
 
     for (; it != endIt; ++it)
     {
-        DataBuffer dataBuffer = *it;
+        auto dataBuffer = (*it).as<Network::implementation::DataBuffer>();
         com_ptr<IMFMediaBuffer> spMediaBuffer;
 
-        DWORD offset = dataBuffer.Offset();
+        DWORD offset = dataBuffer->Offset();
         if (offset == 0)
         {
             // If offset is zero we can just use embedded media buffer
-            spMediaBuffer = dataBuffer.GetMediaBuffer();
+            dataBuffer->GetMediaBuffer(spMediaBuffer.put());
         }
         else
         {
             // We have to create MF media buffer wrapper to include offset
-            DWORD cbLen = dataBuffer.CurrentLength();
+            DWORD cbLen = dataBuffer->CurrentLength();
 
-            IFR(MFCreateMediaBufferWrapper(dataBuffer.GetMediaBuffer(),
-                dataBuffer.Offset(),
+            com_ptr<IMFMediaBuffer> internalMediaBuffer;
+            IFR(dataBuffer->GetMediaBuffer(internalMediaBuffer.put()));
+
+            IFR(MFCreateMediaBufferWrapper(internalMediaBuffer.get(),
+                dataBuffer->Offset(),
                 cbLen,
-                &spMediaBuffer));
+                spMediaBuffer.put()));
         }
 
         // Add media buffer to the sample

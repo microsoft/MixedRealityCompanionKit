@@ -80,13 +80,13 @@
     <ClCompile Include="Module.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
-    <ClCompile Include="Media\RealtimeMediaPlayer_old.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
     <ClCompile Include="Media\RealtimeMediaPlayer.cpp">
       <Filter>Media</Filter>
     </ClCompile>
     <ClCompile Include="Common\D3D11DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\UnityDeviceResource.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -174,13 +174,13 @@
     <ClInclude Include="Module.h">
       <Filter>Plugin</Filter>
     </ClInclude>
-    <ClInclude Include="Media\RealtimeMediaPlayer_old.h">
-      <Filter>Media</Filter>
-    </ClInclude>
     <ClInclude Include="Media\RealtimeMediaPlayer.h">
       <Filter>Media</Filter>
     </ClInclude>
     <ClInclude Include="Common\D3D11DeviceResources.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="UnityDeviceResource.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

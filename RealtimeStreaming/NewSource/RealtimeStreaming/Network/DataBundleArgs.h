@@ -9,18 +9,18 @@ namespace winrt::RealtimeStreaming::Network::implementation
 {
     struct DataBundleArgs : BundleReceivedArgsT<DataBundleArgs>
     {
-        DataBundleArgs(_In_ PayloadType operation,
+        DataBundleArgs(_In_ Common::PayloadType operation,
             _In_ Connection connection,
             _In_ DataBundle bundle);
         ~DataBundleArgs();
 
         //IDataBundleArgs
-        RealtimeStreaming::PayloadType PayloadType();
+        Common::PayloadType PayloadType();
         Connection DataConnection();
         DataBundle Bundle();
 
     private:
-        RealtimeStreaming::PayloadType   m_payloadType;
+        Common::PayloadType   m_payloadType;
         RealtimeStreaming::Network::Connection    m_connection;
         RealtimeStreaming::Network::DataBundle    m_bundle;
     };

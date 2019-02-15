@@ -111,6 +111,27 @@ template <typename D> void consume_RealtimeStreaming_Media_IRTSchemeHandler<D>::
     check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRTSchemeHandler)->put_DataConnection(get_abi(value)));
 }
 
+template <typename D> HRESULT consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Play() const
+{
+    HRESULT result{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRealtimeMediaPlayer)->Play(put_abi(result)));
+    return result;
+}
+
+template <typename D> HRESULT consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Pause() const
+{
+    HRESULT result{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRealtimeMediaPlayer)->Pause(put_abi(result)));
+    return result;
+}
+
+template <typename D> HRESULT consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Stop() const
+{
+    HRESULT result{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRealtimeMediaPlayer)->Stop(put_abi(result)));
+    return result;
+}
+
 template <typename D> event_token consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Closed(Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler) const
 {
     event_token token{};
@@ -366,6 +387,48 @@ struct produce<D, RealtimeStreaming::Media::IRTSchemeHandler> : produce_base<D, 
 template <typename D>
 struct produce<D, RealtimeStreaming::Media::IRealtimeMediaPlayer> : produce_base<D, RealtimeStreaming::Media::IRealtimeMediaPlayer>
 {
+    HRESULT __stdcall Play(HRESULT* result) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<HRESULT>(this->shim().Play());
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
+    HRESULT __stdcall Pause(HRESULT* result) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<HRESULT>(this->shim().Pause());
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
+    HRESULT __stdcall Stop(HRESULT* result) noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<HRESULT>(this->shim().Stop());
+            return S_OK;
+        }
+        catch (...)
+        {
+            return to_hresult();
+        }
+    }
+
     HRESULT __stdcall add_Closed(void* handler, event_token* token) noexcept final
     {
         try

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-    /*
-namespace RealtimeStreaming
+    
+namespace RealtimeStreaming.Common
 {
         cpp_quote("#ifndef MODULE_HANDLE")
             cpp_quote("typedef UINT32 MODULE_HANDLE;")
@@ -17,7 +17,6 @@ namespace RealtimeStreaming
         cpp_quote("extern wchar_t const __declspec(selectany)c_szNetworkScheme[] = L\"mrvc\";")
         cpp_quote("extern wchar_t const __declspec(selectany)c_szNetworkSchemeWithColon[] = L\"mrvc:\";")
 }
-*/
 
 // Forward Declare
 namespace RealtimeStreaming.Common

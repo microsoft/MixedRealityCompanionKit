@@ -7,9 +7,24 @@
 
 //#include "DataBuffer.h"
 
+struct __declspec(uuid("bb9ac868-2fbd-11e9-b210-d663bd873d93")) IDataBundlePriv : ::IUnknown
+{
+    STDMETHOD(CopyTo)(_In_ DWORD nOffset,
+        _In_ DWORD cbSize,
+        _In_reads_bytes_(cbSize) void* pDest,
+        _Out_ UINT32* pCBCopied) PURE;
+
+    STDMETHOD(MoveLeft)(_In_ DWORD cbSize,
+        _Out_writes_bytes_(cbSize) void* pDest) PURE;
+
+    STDMETHOD(TrimLeft)(_In_ DWORD cbSize) PURE;
+
+    STDMETHOD(ToMFSample)(_COM_Outptr_result_maybenull_ IMFSample** ppSample) PURE;
+};
+
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct DataBundle : DataBundleT<DataBundle>
+    struct DataBundle : DataBundleT<DataBundle, IDataBundlePriv>
     {
     public:
         DataBundle();
@@ -30,17 +45,18 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
         void Reset();
 
-        // DataBundleImpl
-        UINT32 CopyTo(_In_ DWORD nOffset,
+        // IDataBundlePriv
+        STDOVERRIDEMETHODIMP CopyTo(_In_ DWORD nOffset,
             _In_ DWORD cbSize,
-            _In_reads_bytes_(cbSize) void* pDest);
+            _In_reads_bytes_(cbSize) void* pDest,
+            _Out_ UINT32* pCBCopied);
 
-        void MoveLeft(_In_ DWORD cbSize,
+        STDOVERRIDEMETHODIMP  MoveLeft(_In_ DWORD cbSize,
             _Out_writes_bytes_(cbSize) void* pDest);
 
-        void TrimLeft(_In_ DWORD cbSize);
+        STDOVERRIDEMETHODIMP  TrimLeft(_In_ DWORD cbSize);
 
-        STDMETHOD(ToMFSample)(_COM_Outptr_result_maybenull_ IMFSample** ppSample);
+        STDOVERRIDEMETHODIMP ToMFSample(_COM_Outptr_result_maybenull_ IMFSample** ppSample);
         
         std::vector<winrt::RealtimeStreaming::Network::DataBuffer> GetBuffers();
 

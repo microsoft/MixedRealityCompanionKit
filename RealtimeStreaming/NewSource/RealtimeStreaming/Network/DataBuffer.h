@@ -9,9 +9,21 @@
 #include <mfidl.h>
 #include <mferror.h>
 
+struct __declspec(uuid("297dd8ca-2fbe-11e9-b210-d663bd873d93")) IDataBufferPriv : ::IUnknown
+{
+    STDMETHOD(GetMediaBuffer)(
+        _COM_Outptr_ IMFMediaBuffer** mfBuffer);
+
+    STDMETHOD(GetBufferPointer)(_Out_ BYTE** pBuffer);
+
+    STDMETHOD(GetTexture)(
+        _Outptr_ ID3D11Texture2D** ppTexture,
+        _Out_ UINT *uiViewIndex);
+};
+
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct DataBuffer : DataBufferT<DataBuffer, Windows::Storage::Streams::IBuffer, Windows::Storage::Streams::IBufferByteAccess>
+    struct DataBuffer : DataBufferT<DataBuffer, IDataBufferPriv, Windows::Storage::Streams::IBuffer, Windows::Storage::Streams::IBufferByteAccess>
     {
         public:
             DataBuffer(_In_ DWORD dwMaxLength);
@@ -39,13 +51,13 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
             void Reset();
 
-            // DataBufferImpl
-            STDMETHODIMP GetMediaBuffer(
+            // IDataBufferPriv
+            STDOVERRIDEMETHODIMP  GetMediaBuffer(
                 _COM_Outptr_ IMFMediaBuffer** mfBuffer);
 
-            BYTE* GetBufferPointer();
+            STDOVERRIDEMETHODIMP  GetBufferPointer(_Out_ BYTE** pBuffer);
 
-            STDMETHODIMP get_Texture(
+            STDOVERRIDEMETHODIMP  GetTexture(
                 _Outptr_ ID3D11Texture2D** ppTexture,
                 _Out_ UINT *uiViewIndex);
 

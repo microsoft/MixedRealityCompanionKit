@@ -13,6 +13,10 @@ namespace RealtimeStreaming.Media
     {
         RealtimeMediaPlayer();
 
+        HRESULT Play();
+        HRESULT Pause();
+        HRESULT Stop();
+
         event Windows.Foundation.EventHandler<RealtimeMediaPlayer> Closed;
     };
 }

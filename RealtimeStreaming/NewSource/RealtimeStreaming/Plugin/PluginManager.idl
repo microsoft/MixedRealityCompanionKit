@@ -21,6 +21,6 @@ namespace RealtimeStreaming.Plugin
     {
         RealtimeStreaming.Plugin.ModuleManager ModuleManager { get; };
 
-    RealtimeStreaming.Plugin.DirectXManager DirectXManager { get; };
+        RealtimeStreaming.Plugin.DirectXManager DirectXManager { get; };
     };
 }

@@ -107,7 +107,6 @@
     <ClInclude Include="Media\NetworkMediaSink.h" />
     <ClInclude Include="Media\NetworkMediaSinkStream.h" />
     <ClInclude Include="Media\RealtimeMediaPlayer.h" />
-    <ClInclude Include="Media\RealtimeMediaPlayer_old.h" />
     <ClInclude Include="Media\RealtimeMediaSource.h" />
     <ClInclude Include="Media\RealtimeServer.h" />
     <ClInclude Include="Media\SchemeHandler.h" />
@@ -125,6 +124,7 @@
     <ClInclude Include="Plugin\DirectXManager.h" />
     <ClInclude Include="Plugin\ModuleManager.h" />
     <ClInclude Include="Plugin\PluginManager.h" />
+    <ClInclude Include="UnityDeviceResource.h" />
     <ClInclude Include="Unity\IUnityGraphics.h" />
     <ClInclude Include="Unity\IUnityGraphicsD3D11.h" />
     <ClInclude Include="Unity\IUnityGraphicsD3D12.h" />
@@ -134,13 +134,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\D3D11DeviceResources.cpp" />
+    <ClCompile Include="Common\UnityDeviceResource.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Media\Marker.cpp" />
     <ClCompile Include="Media\MediaUtils.cpp" />
     <ClCompile Include="Media\NetworkMediaSink.cpp" />
     <ClCompile Include="Media\NetworkMediaSinkStream.cpp" />
     <ClCompile Include="Media\RealtimeMediaPlayer.cpp" />
-    <ClCompile Include="Media\RealtimeMediaPlayer_old.cpp" />
     <ClCompile Include="Media\RealtimeMediaSource.cpp" />
     <ClCompile Include="Media\RealtimeServer.cpp" />
     <ClCompile Include="Media\SchemeHandler.cpp" />

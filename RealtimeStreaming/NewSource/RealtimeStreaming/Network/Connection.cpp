@@ -153,8 +153,8 @@ IAsyncAction Connection::SendPayloadTypeAsync(
 
     // get the raw byte pointer
     BYTE* pBuffer = nullptr;
+    dataBuffer.as<IDataBufferPriv>()->GetBufferPointer(&pBuffer);
 
-    dataBuffer.getbufferPointer(pBuffer);
     //IFT(spByteAccess->Buffer(&buffer));
     NULL_THROW(pBuffer);
 

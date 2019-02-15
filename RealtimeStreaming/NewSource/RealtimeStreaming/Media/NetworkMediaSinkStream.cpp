@@ -5,6 +5,10 @@
 #include "NetworkMediaSinkStream.h"
 #include "MediaUtils.h"
 
+using namespace winrt;
+using namespace winrt::Windows::Foundation;
+using namespace RealtimeStreaming::Media::implementation;
+
 #define SET_SAMPLE_FLAG(dest, destMask, pSample, flagName) \
 { \
     UINT32 unValue; \
@@ -16,7 +20,7 @@
 }
 
 // If an entry is TRUE, the operation is valid from that state.
-BOOL NetworkMediaSinkStream::ValidStateMatrix[SinkStreamState_Count][SinkStreamOperation_Count] =
+bool NetworkMediaSinkStream::ValidStateMatrix[(int)SinkStreamState::Count][(int)SinkStreamOperation::Count] =
 {
     //            Operations:
     // States:    SetType  Start    Restart Pause   Stop    Sample  Marker
@@ -83,9 +87,11 @@ HRESULT NetworkMediaSinkStream::AsyncOperation::QueryInterface(REFIID iid, void*
 }
 
 _Use_decl_annotations_
-NetworkMediaSinkStream::NetworkMediaSinkStream()
-    : _dwStreamId(-1)
-    , _state(SinkStreamState_NotSet)
+NetworkMediaSinkStream::NetworkMediaSinkStream(DWORD streamId,
+    Network::Connection connection,
+    NetworkMediaSink parentMediaSink)
+    : _dwStreamId(streamId)
+    , _state(SinkStreamState::NotSet)
     , _isShutdown(false)
     , _isPlayerConnected(false)
     , _fIsVideo(false)
@@ -95,7 +101,15 @@ NetworkMediaSinkStream::NetworkMediaSinkStream()
     , _spParentMediaSink(nullptr)
     , _workQueueId(0)
     , _workQueueCB(this, &NetworkMediaSinkStream::OnDispatchWorkItem)
+    , m_connection(connection)
+    ,_spParentMediaSink(parentMediaSink)
 {
+    NULL_THROW(pParentMediaSink);
+
+    // Create the event queue helper.
+    IFT(MFCreateEventQueue(&_eventQueue));
+    IFT(MFAllocateSerialWorkQueue(MFASYNC_CALLBACK_QUEUE_STANDARD, &_workQueueId));
+
     ZeroMemory(&_currentSubtype, sizeof(_currentSubtype));
 }
 
@@ -103,26 +117,6 @@ _Use_decl_annotations_
 NetworkMediaSinkStream::~NetworkMediaSinkStream()
 {
     assert(_isShutdown);
-}
-
-_Use_decl_annotations_
-HRESULT NetworkMediaSinkStream::RuntimeClassInitialize(
-    DWORD id, 
-    IConnection* pConnection,
-    INetworkMediaSink* pParentMediaSink)
-{
-    NULL_CHK(pConnection);
-    NULL_CHK(pParentMediaSink);
-
-    // Create the event queue helper.
-    IFT(MFCreateEventQueue(&_eventQueue));
-    IFT(MFAllocateSerialWorkQueue(MFASYNC_CALLBACK_QUEUE_STANDARD, &_workQueueId));
-
-    _dwStreamId = id;
-    m_connection = pConnection;
-    _spParentMediaSink = pParentMediaSink;
-
-    return S_OK;
 }
 
 // IMFMediaEventGenerator methods.

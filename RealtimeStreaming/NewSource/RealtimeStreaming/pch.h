@@ -12,6 +12,8 @@
 #include <winrt/windows.storage.streams.h>
 #include <winrt/windows.system.threading.h>
 
+#include <ppltasks.h>
+
 // DirectX
 #include <directxmath.h>
 #include <directxpackedvector.h>
@@ -33,6 +35,8 @@
 #include "Common/ErrorHandling.h"
 
 #include "Generated Files\winrt\RealtimeStreaming.Common.h"
+
+typedef UINT32 ModuleHandle;
 
 /*
 #include <sdkddkver.h>

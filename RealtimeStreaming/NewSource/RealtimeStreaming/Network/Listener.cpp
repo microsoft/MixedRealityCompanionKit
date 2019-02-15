@@ -22,22 +22,28 @@ Listener::~Listener()
 {
     Log(Log_Level_Info, L"Listener::~ListenerImpl()\n");
 
+    // TODO: Close like original?
     // Close();
 }
 
 // IListener
 _Use_decl_annotations_
-IAsyncOperation<Connection> Listener::ListenAsync()
+IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
 {
     Log(Log_Level_Info, L"ListenerImpl::ListenAsync()\n");
 
     // create a listener
     m_connectionReceivedEventToken = m_socketListener.ConnectionReceived({ this, &Listener::OnConnectionReceived });
-    
+    m_signal = CreateEvent(nullptr, true, false, nullptr);
+
     // Convert our port to a string
     std::string port = std::to_string(m_port);
 
     co_await m_socketListener.BindServiceNameAsync(winrt::to_hstring(port));
+
+    co_await winrt::resume_on_signal(m_signal.get());
+
+    co_return m_connection;
 }
 
 /* Event Handlers */
@@ -64,18 +70,17 @@ void Listener::Closed(winrt::event_token const& token)
 }
 
 _Use_decl_annotations_
-IAsyncAction Listener::OnConnectionReceived(StreamSocketListener /* sender */, 
+void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
     StreamSocketListenerConnectionReceivedEventArgs args)
 {
     Log(Log_Level_Info, L"ListenerImpl::OnConnectionReceived()\n");
 
     //slim_lock_guard guard(m_lock);
 
-    auto c = winrt::make<Connection>();
+    m_connection = winrt::make<implementation::Connection>(args.Socket);
 
-    co_return winrt::make<Connection>(args.Socket);
-
-    // Signal completion*** for ConnectAsync?
+    // Signal completion of ListenAsync()
+    SetEvent(m_signal.get());
 };
 
 _Use_decl_annotations_

@@ -6,7 +6,7 @@
 #include "Generated Files/Network/Connection.g.h"
 #include "Plugin/Module.h"
 
-using namespace winrt::RealtimeStreaming::Plugin::implementation;
+//using namespace winrt::RealtimeStreaming::Plugin::implementation;
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
@@ -59,14 +59,14 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Windows::Foundation::IAsyncAction OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer payloadBuffer);
 
         STDMETHODIMP NotifyBundleComplete(
-            _In_ RealtimeStreaming::PayloadType operation,
+            _In_ RealtimeStreaming::Common::PayloadType operation,
             _In_ RealtimeStreaming::Network::DataBundle dataBundle);
 
         void ResetBundle();
 
     private:
         HRESULT ProcessHeaderBuffer(
-            _In_ PayloadHeader* header,
+            _In_ Common::PayloadHeader* header,
             _In_ RealtimeStreaming::Network::DataBuffer dataBuffer);
 
     private:
@@ -81,7 +81,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         RealtimeStreaming::Network::DataBuffer  m_spHeaderBuffer{ nullptr };
 
         // currently bundle that is incoming
-        PayloadHeader m_receivedHeader;
+        Common::PayloadHeader m_receivedHeader;
         RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
             
         winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;

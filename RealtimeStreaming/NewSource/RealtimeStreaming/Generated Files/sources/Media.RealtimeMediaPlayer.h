@@ -9,6 +9,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
     {
         RealtimeMediaPlayer() = default;
 
+        HRESULT Play();
+        HRESULT Pause();
+        HRESULT Stop();
         event_token Closed(Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler);
         void Closed(event_token const& token);
     };

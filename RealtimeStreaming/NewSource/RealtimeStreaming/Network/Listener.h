@@ -15,18 +15,22 @@ namespace winrt::RealtimeStreaming::Network::implementation
             ~Listener();
 
             // IListener
-            Windows::Foundation::IAsyncOperation<Connection> ListenAsync();
+            Windows::Foundation::IAsyncOperation<Network::Connection> ListenAsync();
+
+            event_token Listener::Closed(Windows::Foundation::EventHandler<bool> const& handler);
+                void Listener::Closed(winrt::event_token const& token);
 
             void Close(); // TROY: Todo look at using?
 
         protected:
-            IAsyncAction OnConnectionReceived(
+            void OnConnectionReceived(
                 Windows::Networking::Sockets::StreamSocketListener /* sender */,
                 Windows::Networking::Sockets::StreamSocketListenerConnectionReceivedEventArgs args);
             
         private:
             //Wrappers::CriticalSection   _lock;
             slim_mutex m_lock;
+            handle m_signal{ nullptr };
 
             UINT16                      m_port;
             
@@ -35,6 +39,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             StreamSocket           m_streamSocketResult;
             StreamSocketListener   m_socketListener;
             winrt::event_token m_connectionReceivedEventToken;
+            Network::Connection m_connection{ nullptr };
             //EventRegistrationToken          _connectionReceivedEventToken;
         };
 }

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "RealtimeStreaming.g.h"
+#include "Generated Files\Media\RealtimeMediaSource.g.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -34,41 +34,42 @@ namespace winrt::RealtimeStreaming::Media::implementation
         RealtimeMediaSource();
         virtual ~RealtimeMediaSource();
 
-        IAsyncAction InitAsync(
+        Windows::Foundation::IAsyncAction InitAsync(
             _In_ RealtimeStreaming::Network::Connection connection);
 
         // IRealtimeMediaSource
-        Windows::Media::Core::MediaStreamSource GetMediaStreamSource();
-        Windows::Media::Core::IVideoEncodingProperties GetVideoProperties();
-        //IFACEMETHOD(get_StreamResolution)(_Out_ UINT32* pWidth, _Out_ UINT32* pHeight);
+        Windows::Media::Core::MediaStreamSource MediaStreamSource();
+        Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
 
     protected:
         void OnDataReceived(
-            _In_ Connection sender,
-            _In_ BundleReceivedArgs args);
+            _In_ Network::Connection const& sender,
+            _In_ Network::BundleReceivedArgs const& args);
 
     private:
-        void OnStarting(_In_ Windows::Media::Core::IMediaStreamSource const& sender,
+        void OnStarting(_In_ Windows::Media::Core::MediaStreamSource const& sender,
             _In_ Windows::Media::Core::MediaStreamSourceStartingEventArgs const& args);
+        
         void OnSampleRequested(_In_ Windows::Media::Core::MediaStreamSource const& sender,
-            _In_ Windows::Media::Core::IMediaStreamSourceSampleRequestedEventArgs const& args);
+            _In_ Windows::Media::Core::MediaStreamSourceSampleRequestedEventArgs const& args);
+
         void OnClosed(_In_ Windows::Media::Core::MediaStreamSource const& sender,
-            _In_ Windows::Media::Core::IMediaStreamSourceClosedEventArgs const& args);
+            _In_ Windows::Media::Core::MediaStreamSourceClosedEventArgs const& args);
 
         // Network calls
-        HRESULT SendDescribeRequest();
-        HRESULT SendStartRequest();
-        HRESULT SendStopRequest();
+        void SendDescribeRequest();
+        void SendStartRequest();
+        void SendStopRequest();
 
         // Network handlers
         HRESULT ProcessCaptureReady();
-        HRESULT ProcessMediaDescription(_In_ DataBundle dataBundle);
-        HRESULT ProcessMediaSample(_In_ DataBundle dataBundle);
-        HRESULT ProcessMediaFormatChange(_In_ DataBundle dataBundle);
+        HRESULT ProcessMediaDescription(_In_ Network::DataBundle const& dataBundle);
+        HRESULT ProcessMediaSample(_In_ Network::DataBundle const& dataBundle);
+        HRESULT ProcessMediaFormatChange(_In_ Network::DataBundle const& dataBundle);
 
-        Windows::Media::MediaProperties::IVideoEncodingProperties CreatePropertiesFromMediaDescription(
+        Windows::Media::MediaProperties::VideoEncodingProperties CreatePropertiesFromMediaDescription(
             _In_ MediaTypeDescription pStreamDescription,
-            _In_ DataBundle attributesBuffer);
+            _In_ Network::DataBundle attributesBuffer);
 
         HRESULT SetSampleAttributes(
             _In_ MediaSampleHeader const& pSampleHeader,
@@ -76,7 +77,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         inline HRESULT CheckShutdown() const
         {
-            if (m_eSourceState == SourceStreamState_Shutdown)
+            if (m_eSourceState == SourceStreamState::Shutdown)
             {
                 return MF_E_SHUTDOWN;
             }
@@ -87,9 +88,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
         }
 
     private:
-        //Wrappers::SRWLock m_lock;
-        Wrappers::CriticalSection _lock;
+        //Wrappers::CriticalSection _lock;
         slim_mutex m_lock;
+        handle m_signal{ nullptr };
 
         Windows::Media::Core::MediaStreamSource m_mediaStreamSource{ nullptr };
         winrt::event_token m_startingRequestedToken;
@@ -102,7 +103,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         VideoEncodingProperties m_spVideoEncoding{ nullptr };
 
-        Connection m_connection; // Network sender
+        Network::Connection m_connection; // Network sender
         winrt::event_token m_evtReceivedToken;
 
         Windows::Media::Core::MediaStreamSourceSampleRequest m_spRequest{ nullptr };

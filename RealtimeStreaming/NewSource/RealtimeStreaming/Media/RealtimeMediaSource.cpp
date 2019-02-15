@@ -19,14 +19,23 @@
 #include "pch.h"
 #include "MediaUtils.h"
 #include "RealtimeMediaSource.h"
+
+#include "Network/DataBundle.h"
+#include "Network/DataBuffer.h"
+#include "Network/DataBundleArgs.h"
+
 #include <intsafe.h>
 
+using namespace winrt;
+using namespace RealtimeStreaming::Media::implementation;
+using namespace RealtimeStreaming::Common;
+
+using namespace Windows::Foundation;
 using namespace Windows::Foundation::Collections;
 using namespace Windows::Media;
 using namespace Windows::Media::Core;
 using namespace Windows::Media::MediaProperties;
 using namespace Windows::Storage::Streams;
-using namespace Microsoft::WRL;
 
 #define SET_SAMPLE_ATTRIBUTE(flag, mask, pSample, flagName) \
 if ((static_cast<DWORD>(SampleFlags_SampleFlag_##flagName) & mask) == static_cast<DWORD>(SampleFlags_SampleFlag_##flagName)) \
@@ -76,7 +85,7 @@ RealtimeMediaSource::~RealtimeMediaSource()
 
 _Use_decl_annotations_
 IAsyncAction RealtimeMediaSource::InitAsync(
-    Connection connection)
+    Network::Connection connection)
 {
     slim_lock_guard guard(m_lock);
     //auto lock = _lock.Lock();
@@ -88,18 +97,19 @@ IAsyncAction RealtimeMediaSource::InitAsync(
     m_evtReceivedToken = m_connection.Received({ this, &RealtimeMediaSource::OnDataReceived });
 
     // client is connected we need to send the Describe request
-    m_eSourceState = SourceStreamState_Opening;
+    m_eSourceState = SourceStreamState::Opening;
     m_lastTimeStamp = 0;
+    m_signal = CreateEvent(nullptr, true, false, nullptr);
 
+    // Send request to our server to send a Media Description with properties of live stream media data
     SendDescribeRequest();
 
-    // TODO: need to wait until data received responds???
-
-    return AsyncBase::Start();
+    // Don't return initialization until we receive a describe request
+    co_await winrt::resume_on_signal(m_signal.get());
 }
 
 _Use_decl_annotations_
-MediaStreamSource RealtimeMediaSource::GetMediaStreamSource()
+MediaStreamSource RealtimeMediaSource::MediaStreamSource()
 {
     slim_shared_lock_guard const guard(m_lock);
     //auto lock = _lock.Lock();
@@ -108,7 +118,7 @@ MediaStreamSource RealtimeMediaSource::GetMediaStreamSource()
 }
 
 _Use_decl_annotations_
-IVideoEncodingProperties RealtimeMediaSource::GetVideoProperties()
+VideoEncodingProperties RealtimeMediaSource::VideoProperties()
 {
     slim_shared_lock_guard const guard(m_lock);
     //auto lock = _lock.Lock();
@@ -159,8 +169,7 @@ void RealtimeMediaSource::OnSampleRequested(MediaStreamSource const& sender,
     }
     else if (m_mediaStreamSource != nullptr) // TODO: add else for teardown?
     {
-        com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest;
-        IFT(m_spRequest.as(&spIMFRequest));
+        com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest = m_spRequest.as< IMFMediaStreamSourceSampleRequest>();
 
         IFT(spIMFRequest->SetSample(m_latestSample.get()));
 
@@ -180,20 +189,20 @@ void RealtimeMediaSource::OnClosed(MediaStreamSource const& sender, MediaStreamS
 
     switch (request.Reason)
     {
-    case MediaStreamSourceClosedReason_UnknownError:
+    case MediaStreamSourceClosedReason::UnknownError:
         LOG_RESULT(E_UNEXPECTED)
             break;
-    case MediaStreamSourceClosedReason_AppReportedError:
+    case MediaStreamSourceClosedReason::AppReportedError:
         LOG_RESULT(E_ABORT);
         break;
-    case MediaStreamSourceClosedReason_UnsupportedProtectionSystem:
-    case MediaStreamSourceClosedReason_ProtectionSystemFailure:
+    case MediaStreamSourceClosedReason::UnsupportedProtectionSystem:
+    case MediaStreamSourceClosedReason::ProtectionSystemFailure:
         LOG_RESULT(MF_E_DRM_UNSUPPORTED);
         break;
-    case MediaStreamSourceClosedReason_UnsupportedEncodingFormat:
+    case MediaStreamSourceClosedReason::UnsupportedEncodingFormat:
         LOG_RESULT(MF_E_UNSUPPORTED_FORMAT);
         break;
-    case MediaStreamSourceClosedReason_MissingSampleRequestedEventHandler:
+    case MediaStreamSourceClosedReason::MissingSampleRequestedEventHandler:
         LOG_RESULT(HRESULT_FROM_WIN32(ERROR_NO_CALLBACK_ACTIVE));
         break;
     }
@@ -205,39 +214,39 @@ void RealtimeMediaSource::OnClosed(MediaStreamSource const& sender, MediaStreamS
 
 // Sending requests to network
 _Use_decl_annotations_
-HRESULT RealtimeMediaSource::SendDescribeRequest()
+void RealtimeMediaSource::SendDescribeRequest()
 {
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendDescribeRequest()\n");
 
-    NULL_CHK_HR(m_connection, E_POINTER);
+    NULL_THROW(m_connection, E_POINTER);
 
-    return m_connection.SendPayloadType(PayloadType_RequestMediaDescription);
+    m_connection.SendPayloadTypeAsync(PayloadType::RequestMediaDescription);
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaSource::SendStartRequest()
+void RealtimeMediaSource::SendStartRequest()
 {
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendStartRequest()\n");
 
-    NULL_CHK_HR(m_connection, E_POINTER);
+    NULL_THROW(m_connection, E_POINTER);
 
-    return m_connection.SendPayloadType(PayloadType_RequestMediaStart);
+    m_connection.SendPayloadTypeAsync(PayloadType::RequestMediaStart);
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaSource::SendStopRequest()
+void RealtimeMediaSource::SendStopRequest()
 {
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendStopRequest()\n");
 
-    NULL_CHK_HR(m_connection, E_POINTER);
+    NULL_THROW(m_connection, E_POINTER);
 
-    return m_connection.SendPayloadType(PayloadType_RequestMediaStop);
+    m_connection.SendPayloadTypeAsync(PayloadType::RequestMediaStop);
 }
 
 _Use_decl_annotations_
 void RealtimeMediaSource::OnDataReceived(
-    Connection const& sender,
-    BundleReceivedArgs const& args)
+    Network::Connection const& sender,
+    Network::BundleReceivedArgs const& args)
 {
     // TODO: Troy figure out right lock
     //auto lock = m_lock.LockExclusive();
@@ -248,23 +257,23 @@ void RealtimeMediaSource::OnDataReceived(
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived(%d)\n", type);
 
-    DataBundle data = args.DataBundle;
+    Network::DataBundle data = args.Bundle;
 
     switch (type)
     {
-    case PayloadType_State_CaptureReady:
+    case PayloadType::State_CaptureReady:
         ProcessCaptureReady();
         break;
-    case PayloadType_SendMediaDescription:
-        IFT(ProcessMediaDescription(args.DataBundle));
+    case PayloadType::SendMediaDescription:
+        IFT(ProcessMediaDescription(args.Bundle));
         break;
-    case PayloadType_SendMediaSample:
-        IFT(ProcessMediaSample(args.DataBundle));
+    case PayloadType::SendMediaSample:
+        IFT(ProcessMediaSample(args.Bundle));
         break;
-    case PayloadType_SendFormatChange:
-        IFT(ProcessMediaFormatChange(args.DataBundle));
+    case PayloadType::SendFormatChange:
+        IFT(ProcessMediaFormatChange(args.Bundle));
         break;
-    case PayloadType_SendMediaStreamTick:
+    case PayloadType::SendMediaStreamTick:
         Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived() - PayloadType_SendMediaStreamTick\n");
         // TODO: Troy how to turn on without IMFMediaSource
         //IFC(ProcessMediaTick(spDataBundle.get()));
@@ -290,23 +299,22 @@ HRESULT RealtimeMediaSource::ProcessCaptureReady()
 
 _Use_decl_annotations_
 HRESULT RealtimeMediaSource::ProcessMediaDescription(
-    DataBundle const& dataBundle)
+    Network::implementation::DataBundle const& dataBundle)
 {
-    //NULL_CHK(dataBundle);
-
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaDescription()\n");
 
     slim_lock_guard guard(m_lock);
 
-    if (m_eSourceState == SourceStreamState_Started || m_eSourceState == SourceStreamState_Stopped)
+    if (m_eSourceState == SourceStreamState::Started 
+        || m_eSourceState == SourceStreamState::Stopped)
         //&& _streams.GetCount() > 0)
     {
         return;
     }
 
-    if (m_eSourceState != SourceStreamState_Opening)
+    if (m_eSourceState != SourceStreamState::Opening)
     {
-        if (m_eSourceState != SourceStreamState_Stopped)
+        if (m_eSourceState != SourceStreamState::Stopped)
         {
             // TODO: What to do here
             //Shutdown();
@@ -421,7 +429,7 @@ done:
 _Use_decl_annotations_
 IVideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescription(
     MediaTypeDescription streamDescription,
-    DataBundle attributesBuffer)
+    Network::DataBundle attributesBuffer)
 {
     VideoEncodingProperties videoProps;
 

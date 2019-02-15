@@ -13,7 +13,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 {
         struct NetworkMediaSinkStream : NetworkMediaSinkStreamT<NetworkMediaSinkStream, IMFStreamSink, IMFMediaEventGenerator, IMFMediaTypeHandler>
         {
-            /*
+            
             // AsyncOperation:
             // Used to queue asynchronous operations. When we call MFPutWorkItem, we use this
             // object for the callback state (pState). Then, when the callback is invoked,
@@ -35,10 +35,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 long    _cRef;
                 virtual ~AsyncOperation();
             };
-            */
+            
 
         public:
-            NetworkMediaSinkStream(_In_ DWORD id,
+            NetworkMediaSinkStream(_In_ DWORD streamId,
                 _In_ RealtimeStreaming::Network::Connection connection,
                 _In_ RealtimeStreaming::Media::NetworkMediaSink parentMediaSink);
             virtual ~NetworkMediaSinkStream();
@@ -183,7 +183,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
             GUID _currentSubtype;
 
             DWORD _workQueueId;     // ID of the work queue for asynchronous operations.
+            
             AsyncCallback<NetworkMediaSinkStream> _workQueueCB;     // Callback for the work queue.
+
             com_ptr<IMFMediaEventQueue>  _eventQueue;    // Event queue
             ComPtrList<IUnknown>        _sampleQueue;   // Queue to hold samples and markers.
                                                         // Applies to: ProcessSample, PlaceMarker

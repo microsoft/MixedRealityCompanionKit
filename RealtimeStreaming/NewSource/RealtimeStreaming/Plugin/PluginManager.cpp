@@ -3,32 +3,31 @@
 
 #include "pch.h"
 #include "PluginManager.h"
-#include "IUnityGraphicsD3D11.h"
+#include "Network\Listener.h"
+#include "Network\Connector.h"
+#include "Network\DataBundle.h"
+#include "Media\RealtimeServer.h"
+#include "Media\RealtimeMediaPlayer.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Plugin::implementation;
-using namespace RealtimeStreaming::Media::implementation;
-using namespace RealtimeStreaming::Network::implementation;
+using namespace RealtimeStreaming::Common;
+using namespace RealtimeStreaming::Network;
 
-static com_ptr<IRealtimeMediaPlayer> s_spStreamingPlayer;
+using namespace concurrency;
+using namespace Windows::Foundation;
+using namespace Windows::Storage::Streams;
+using namespace Windows::Networking;
+using namespace Windows::Media::MediaProperties;
 
 _Use_decl_annotations_
 PluginManager::PluginManager()
 {
-    ENSURE_HR(MakeAndInitialize<ModuleManager>(&m_moduleManager));
-
-    com_ptr<IThreadPoolStatics> threadPoolStatics;
-    IFT(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_System_Threading_ThreadPool).get(),
-        &threadPoolStatics));
-
     m_unityInterfaces = nullptr;
     m_unityGraphics = nullptr;
     m_unityCallback = nullptr;
 
     m_dxManager = nullptr;
-
-    threadPoolStatics.as(&m_threadPoolStatics);
 }
 
 PluginManager::~PluginManager()
@@ -36,17 +35,14 @@ PluginManager::~PluginManager()
     Uninitialize();
 }
 
-_Use_decl_annotations_
 void PluginManager::Uninitialize()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::Uninitialize()\n");
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     if (nullptr != m_dxManager)
     {
-        m_dxManager->Uninitialize();
-        LOG_RESULT(m_dxManager.Reset());
         m_dxManager = nullptr;
     }
 
@@ -57,14 +53,15 @@ void PluginManager::Uninitialize()
 
     if (nullptr != m_moduleManager)
     {
-        LOG_RESULT(m_moduleManager->Uninitialize());
-        LOG_RESULT(m_moduleManager.Reset());
         m_moduleManager = nullptr;
     }
 }
 
+static RealtimeStreaming::Plugin::PluginManager s_instance{ nullptr };
+
+/* static */
 _Use_decl_annotations_
-static PluginManager PluginManager::Instance()
+RealtimeStreaming::Plugin::PluginManager PluginManager::Instance()
 {
     if (s_instance == nullptr)
     {
@@ -76,21 +73,16 @@ static PluginManager PluginManager::Instance()
 }
 
 _Use_decl_annotations_
-ModuleManager PluginManager::ModuleManager()
+RealtimeStreaming::Plugin::ModuleManager PluginManager::ModuleManager()
 {
-    NULL_CHK_HR(m_moduleManager, E_NOT_SET);
-
     return m_moduleManager;
 }
 
 _Use_decl_annotations_
-DirectXManager PluginManager::DirectXManager()
+RealtimeStreaming::Plugin::DirectXManager PluginManager::DirectXManager()
 {
-    NULL_CHK_HR(m_dxManager, E_NOT_SET);
-
     return m_dxManager;
 }
-
 
 _Use_decl_annotations_
 BOOL PluginManager::IsOnThread()
@@ -104,7 +96,8 @@ void PluginManager::Load(IUnityInterfaces* unityInterfaces, IUnityGraphicsDevice
 {
     Log(Log_Level_Info, L"PluginManagerImpl::Load()\n");
 
-    auto lock = _lock.Lock();
+    //slim_lock_guard guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     // was already initialized, so need to reset
     if (nullptr != m_dxManager)
@@ -139,7 +132,8 @@ void PluginManager::UnLoad()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::UnLoad()\n");
 
-    auto lock = _lock.Lock();
+    //slim_lock_guard guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     if (nullptr == m_unityGraphics || nullptr == m_unityCallback)
     {
@@ -164,7 +158,8 @@ void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 
     HRESULT hr = S_OK;
 
-    auto lock = _lock.Lock();
+    //slim_lock_guard guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
 
@@ -197,7 +192,7 @@ void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
         Log(Log_Level_Info, L"- Lost\n");
         if (nullptr != m_dxManager)
         {
-            m_dxManager->Lost();
+            m_dxManager.Lost();
         }
         break;
 
@@ -205,7 +200,7 @@ void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
         Log(Log_Level_Info, L"- Reset\n");
         if (nullptr != m_dxManager)
         {
-            m_dxManager->Reset();
+            m_dxManager.Reset();
         }
         break;
     };
@@ -225,62 +220,33 @@ HRESULT PluginManager::ListenerCreateAndStart(
     void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::StartListener()\n");
+    
+    // Init with default
+    *listenerHandle = MODULE_HANDLE_INVALID;
 
     NULL_CHK(listenerHandle);
     NULL_CHK(callback);
 
-    com_ptr<Listener> listener;
-    IFT(MakeAndInitialize<Listener>(&listener, port));
+    // Create a new listener
+    Network::Listener listener = Listener(port);
 
-    com_ptr<IConnectionCreatedOperation> connectedOp;
-    IFT(listener->ListenAsync(&connectedOp));
-
-    ModuleHandle handle = MODULE_HANDLE_INVALID;
-    com_ptr<IModule> module;
-    IFT(listener.As(&module));
-    IFT(m_moduleManager->AddModule(module.get(), &handle));
-
-    *listenerHandle = handle;
-
-    // wait until we get a conneciton from the listner
-    com_ptr<PluginManager> spThis(this);
-    return StartAsyncThen(
-        connectedOp.get(),
-        [this, spThis, callback, pCallbackObject](_In_ HRESULT hr, _In_ IConnectionCreatedOperation *result, _In_ AsyncStatus asyncStatus) -> HRESULT
+    // Save handle of newly created listener to output
+    *listenerHandle = m_moduleManager.AddModule(listener);
+    
+    create_task(listener.ListenAsync()).then([this, callback, pCallbackObject](_In_ Connection connection)
     {
         Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
 
-        ModuleHandle handle = MODULE_HANDLE_INVALID;
+        //slim_lock_guard guard(m_lock);
 
-        com_ptr<IConnection> connection;
-        com_ptr<IModule> module;
-
-        IFC(hr);
-
-        IFC(result->GetResults(&connection));
-
-        // QI for module
-        IFC(connection.As(&module));
-
-    done:
+        if (m_moduleManager == nullptr)
         {
-            auto lock = _lock.Lock();
-
-            if (nullptr == m_moduleManager)
-            {
-                return S_OK;
-            }
-
-            if (SUCCEEDED(hr))
-            {
-                hr = m_moduleManager->AddModule(module.get(), &handle);
-                LOG_RESULT(hr);
-            }
+            // TODO: look at better HResult to pass?
+            CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
         }
 
-        CompletePluginCallback(callback, pCallbackObject, handle, hr);
-
-        return hr;
+        ModuleHandle handle = m_moduleManager.AddModule(connection);
+        CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
     });
 }
 
@@ -290,7 +256,8 @@ HRESULT PluginManager::ListenerStopAndClose(
 {
     Log(Log_Level_Info, L"PluginManagerImpl::StopListener()\n");
 
-    auto lock = _lock.Lock();
+    //slim_lock_guard guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     if (nullptr == m_moduleManager)
     {
@@ -298,8 +265,9 @@ HRESULT PluginManager::ListenerStopAndClose(
     }
 
     // release the handle
-    com_ptr<IModule> module;
-    return m_moduleManager->ReleaseModule(handle);
+    m_moduleManager.ReleaseModule(handle);
+
+    return S_OK;
 }
 
 // connector
@@ -314,90 +282,32 @@ HRESULT PluginManager::ConnectorCreateAndStart(
 
     NULL_CHK(connectorHandle);
     NULL_CHK(callback);
+
+    *connectorHandle = MODULE_HANDLE_INVALID;
+    
     std::wstring wsUri = address;
+    Uri uri{ wsUri };
+    HostName hostName = HostName(uri.Host);
 
-    // Get Factories
-    com_ptr<Windows::Foundation::IUriRuntimeClassFactory> uriFactory;
-    IFT(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_Foundation_Uri).get(),
-        uriFactory.GetAddressOf()));
+    Connector connector = Connector(hostName, uri.Port);
 
-    com_ptr<Windows::Networking::IHostNameFactory> hostNameFactory;
-    IFT(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_Networking_HostName).get(),
-        &hostNameFactory));
-
-    // convert to Uri
-    Wrappers::HString uriHString;
-    IFT(WindowsCreateString(wsUri.c_str(), wsUri.size(), uriHString.GetAddressOf()));
-
-    com_ptr<Windows::Foundation::IUriRuntimeClass> uri;
-    IFT(uriFactory->CreateUri(uriHString.get(), &uri));
-
-    // generate hostname
-    Wrappers::HString uriHostname;
-    IFT(uri->get_Host(uriHostname.GetAddressOf()));
-
-    INT32 uriPort = 0;
-    IFT(uri->get_Port(&uriPort));
-
-    com_ptr<Windows::Networking::IHostName> hostName;
-    IFT(hostNameFactory->CreateHostName(uriHostname.get(), &hostName));
-
-    com_ptr<Connector> connector;
-    IFT(MakeAndInitialize<Connector>(&connector, hostName.get(), uriPort));
-
-    com_ptr<IConnectionCreatedOperation> connectedOp;
-    IFT(connector->ConnectAsync(&connectedOp));
-
-    ModuleHandle handle = MODULE_HANDLE_INVALID;
-    com_ptr<IModule> module;
-    IFT(connector.As(&module));
-    IFT(m_moduleManager->AddModule(module.get(), &handle));
-
-    *connectorHandle = handle;
-
-    // wait until we get a conneciton from the listner
-    com_ptr<PluginManager> spThis(this);
-    return StartAsyncThen(
-        connectedOp.get(),
-        [this, spThis, callback, pCallbackObject](_In_ HRESULT hr,
-            _In_ IConnectionCreatedOperation* pResult, 
-            _In_ AsyncStatus asyncStatus) -> HRESULT
+    *connectorHandle = m_moduleManager.AddModule(connector);
+    
+    create_task(connector.ConnectAsync()).then([this, callback, pCallbackObject](_In_ Connection connection)
     {
-        //Log(Log_Level_Info, L"PluginManagerImpl::OpenConnection() - ConnectAsync()\n");
         Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() [ConnectAsync()] -Tid:%d \n", GetCurrentThreadId());
 
-        ModuleHandle handle = MODULE_HANDLE_INVALID;
+        slim_lock_guard guard(m_lock);
 
-        com_ptr<IConnection> connection;
-        com_ptr<IModule> module;
-
-        IFC(hr);
-
-        IFC(pResult->GetResults(&connection));
-
-        IFC(connection.As(&module));
-
-    done:
+        if (m_moduleManager == nullptr)
         {
-            auto lock = _lock.Lock();
-
-            if (nullptr == m_moduleManager)
-            {
-                return S_OK;
-            }
-
-            if (SUCCEEDED(hr))
-            {
-                hr = m_moduleManager->AddModule(module.get(), &handle);
-                LOG_RESULT(hr);
-            }
+            // TODO: look at better HResult to pass?
+            CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
         }
 
-        CompletePluginCallback(callback, pCallbackObject, handle, hr);
+        ModuleHandle handle = m_moduleManager.AddModule(connection);
+        CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
 
-        return hr;
     });
 }
 
@@ -407,7 +317,7 @@ HRESULT PluginManager::ConnectorStopAndClose(
 {
     Log(Log_Level_Info, L"PluginManagerImpl::CloseConnector()\n");
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     if (nullptr == m_moduleManager)
     {
@@ -415,7 +325,7 @@ HRESULT PluginManager::ConnectorStopAndClose(
     }
 
     // release the handle
-    return m_moduleManager->ReleaseModule(handle);
+    m_moduleManager.ReleaseModule(handle);
 }
 
 _Use_decl_annotations_
@@ -425,37 +335,26 @@ HRESULT PluginManager::ConnectionAddDisconnected(
     void* pCallbackObject,
     INT64* tokenValue)
 {
-    //Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddDisconnected\n");
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddDisconnected() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
-    auto disconnectedCallback = Callback<IDisconnectedEventHandler>(
-        [this, handle, callback, pCallbackObject](_In_ IConnection *sender) -> HRESULT
+    Network::Connection connection = GetModule<Network::Connection>(handle);
+    event_token disconnectedToken = connection.Disconnected([this, handle, callback, pCallbackObject](_In_ Connection sender)
     {
         NULL_CHK(sender);
 
-        callback(handle, pCallbackObject, S_OK); //L"");
-
-        return S_OK;
+        callback(handle, pCallbackObject, S_OK);
     });
 
-    // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
-
-    // register for callback
-    EventRegistrationToken newToken;
-    IFT(spConnection->add_Disconnected(disconnectedCallback.get(), &newToken));
-
     // set return
-    *tokenValue = newToken.value;
+    *tokenValue = disconnectedToken.value;
 
     // track the token
-    StoreToken(handle, newToken);
+    StoreToken(handle, disconnectedToken);
 
     return S_OK;
 }
@@ -467,18 +366,16 @@ HRESULT PluginManager::ConnectionRemoveDisconnected(
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionRemoveReceived()\n");
 
-    auto lock = _lock.Lock();
-
-    // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
+    slim_lock_guard guard(m_lock);
 
     // get the token stored in the event list
-    EventRegistrationToken removeToken;
-    RemoveToken(handle, tokenValue, &removeToken);
+    winrt::event_token removeToken = RemoveToken(handle, tokenValue);
 
     // unsubscribe from the event
-    return spConnection->remove_Disconnected(removeToken);
+    Network::Connection connection = GetModule<Network::Connection>(handle);
+    connection.Disconnected(removeToken);
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -488,86 +385,68 @@ HRESULT PluginManager::ConnectionAddReceived(
     void* pCallbackObject,
     INT64* tokenValue)
 {
-    //Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived\n");
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
-    // wrap callback
-    auto bundleReceivedCallback = Callback<IBundleReceivedEventHandler>(
-        [this, handle, callback, pCallbackObject](
-            _In_ IConnection *sender,
-            _In_ IBundleReceivedArgs *args) -> HRESULT
+    // get connection
+    Network::Connection connection = GetModule<Network::Connection>(handle);
+
+    // register for callback
+    winrt::event_token evtReceivedToken = 
+        connection.Received([this, handle, callback, pCallbackObject](
+            _In_ Network::Connection const& sender,
+            _In_ Network::BundleReceivedArgs const& args)
     {
         Log(Log_Level_Info, L"PluginManagerImpl::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
 
         HRESULT hr = S_OK;
 
-        PayloadType payloadType;
-        IFC(args->get_PayloadType(&payloadType));
+        PayloadType payloadType = args.PayloadType;
 
-        switch (payloadType)
+        switch (args.PayloadType)
         {
-        case PayloadType_State_Scene:
-        case PayloadType_State_Input:
+        case PayloadType::State_Scene:
+        case PayloadType::State_Input:
         {
-            com_ptr<IDataBundle> dataBundle;
-            IFC(args->get_DataBundle(&dataBundle));
+            Network::implementation::DataBundle dataBundle = args.Bundle;
 
-            DataBundle* rawDataBundle = static_cast<DataBundle*>(dataBundle.get());
-            IFC(rawDataBundle == nullptr ? E_INVALIDARG : S_OK);
+            DWORD cbTotalLen = dataBundle.TotalSize();
 
-            DWORD cbTotalLen = 0;
-            hr = dataBundle->get_TotalSize(&cbTotalLen);
+            // TODO: need better locking mechanism? cicular lock
+            // PluginManager -> Add_ConnectionReceived hold locks but then connection class is locked against this finishing
+            //slim_lock_guard guard(m_lock);
+
+            // Copy the data structure
+            UINT32 copiedBytes = 0;
+            if (cbTotalLen > _bundleData.size())
+            {
+                _bundleData.resize(cbTotalLen);
+            }
+
+            hr = dataBundle.CopyTo(0, cbTotalLen, &_bundleData[0], &copiedBytes);
             if (SUCCEEDED(hr))
             {
-                // TODO: need better locking mechanism? cicular lock
-                // PluginManager -> Add_ConnectionReceived hold locks but then connection class is locked against this finishing
-                //auto lock = _lock.Lock();
-
-                // Copy the data structure
-                DWORD copiedBytes = 0;
-                if (cbTotalLen > _bundleData.size())
-                {
-                    _bundleData.resize(cbTotalLen);
-                }
-
-                hr = rawDataBundle->CopyTo(0, cbTotalLen, &_bundleData[0], &copiedBytes);
-                if (SUCCEEDED(hr))
-                {
-                    callback(handle, pCallbackObject, (UINT16)payloadType, copiedBytes, _bundleData.data());
-                }
-                IFC(hr);
+                callback(handle, pCallbackObject, (UINT16)payloadType, copiedBytes, _bundleData.data());
             }
         }
         break;
 
         default:
-            //auto lock = _lock.Lock();
+            //slim_lock_guard guard(m_lock);
             callback(handle, pCallbackObject, static_cast<UINT16>(payloadType), 0, nullptr);
             break;
         };
-
-    done:
-        return S_OK;
     });
-
-    // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
-
-    // register for callback
-    EventRegistrationToken newToken;
-    IFT(spConnection->add_Received(bundleReceivedCallback.get(), &newToken));
-
+    
     // set return
-    *tokenValue = newToken.value;
+    *tokenValue = evtReceivedToken.value;
 
     // track the token
-    StoreToken(handle, newToken);
+    StoreToken(handle, evtReceivedToken);
 
     return S_OK;
 }
@@ -579,20 +458,19 @@ HRESULT PluginManager::ConnectionRemoveReceived(
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionRemoveReceived()\n");
 
-    auto lock = _lock.Lock();
-
-    // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
+    slim_lock_guard guard(m_lock);
 
     // get the token stored in the event list
-    EventRegistrationToken removeToken;
-    RemoveToken(handle, tokenValue, &removeToken);
+    winrt::event_token removeToken = RemoveToken(handle, tokenValue);
 
     // unsubscribe from the event
-    return spConnection->remove_Received(removeToken);
+    Network::Connection connection = GetModule<Network::Connection>(handle);
+    connection.Received(removeToken);
+
+    return S_OK;
 }
 
+/*
 _Use_decl_annotations_
 HRESULT PluginManager::ConnectionSendRawData(
     ModuleHandle handle,
@@ -608,28 +486,24 @@ HRESULT PluginManager::ConnectionSendRawData(
 
     PayloadType type = static_cast<PayloadType>(payloadType);
 
-    if (type != PayloadType_State_Scene
-        &&
-        type != PayloadType_State_Input)
+    if (type != PayloadType::State_Scene &&
+        type != PayloadType::State_Input)
     {
         return HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED);
     }
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
+    Network::Connection connection = GetModule<Network::Connection>(handle);
 
     const DWORD c_cbPayloadSize = static_cast<DWORD>(bufferSize);
     const DWORD c_cbBufferSize = sizeof(PayloadHeader) + c_cbPayloadSize;
 
     // Create send buffer
-    com_ptr<IDataBuffer> spDataBuffer;
-    IFT(MakeAndInitialize<DataBuffer>(&spDataBuffer, c_cbBufferSize));
-
+    DataBuffer spDataBuffer = DataBuffer(c_cbBufferSize);
     com_ptr<IBuffer> spBuffer;
-    IFT(spDataBuffer.As(&spBuffer));
+    spBuffer.attach(spDataBuffer.as<IBuffer>());
 
     // Prepare operation header
     PayloadHeader* pHeader = GetDataType<PayloadHeader*>(spBuffer.get());
@@ -643,26 +517,16 @@ HRESULT PluginManager::ConnectionSendRawData(
     memcpy_s(pBlobStart, c_cbPayloadSize, pBuffer, c_cbPayloadSize);
 
     // Set length of the packet
-    IFT(spDataBuffer->put_CurrentLength(c_cbBufferSize));
+    spDataBuffer.CurrentLength(c_cbBufferSize);
 
-    com_ptr<IDataBundle> spBundle;
-    IFT(MakeAndInitialize<DataBundle>(&spBundle));
+    DataBundle bundle = make<Network::implementation::DataBundle>(spDataBuffer);
+    //bundle.AddBuffer(spDataBuffer);
 
-    IFT(spBundle->AddBuffer(spDataBuffer.get()));
+    // TODO: co-await?
+    connection.SendBundleAsync(bundle);
 
-    com_ptr<IAsyncAction> spSendAction;
-    IFT(spConnection->SendBundleAsync(spBundle.get(), &spSendAction));
-
-    com_ptr<PluginManager> spThis(this);
-    return StartAsyncThen(
-        spSendAction.get(),
-        [this, spThis](_In_ HRESULT hr, _In_ IAsyncAction* pResult, _In_ AsyncStatus asyncStatus) -> HRESULT
-    {
-        LOG_RESULT(hr);
-
-        return S_OK;
-    });
-}
+    return S_OK;
+}*/
 
 _Use_decl_annotations_
 HRESULT PluginManager::ConnectionClose(
@@ -670,11 +534,10 @@ HRESULT PluginManager::ConnectionClose(
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectionClose()\n");
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
+    Network::Connection connection = GetModule<Network::Connection>(handle);
 
     // find any tokens register to this handle
     auto iter = m_eventTokens.find(handle);
@@ -682,8 +545,8 @@ HRESULT PluginManager::ConnectionClose(
     {
         for each (auto token in (*iter).second)
         {
-            spConnection->remove_Disconnected(token);
-            spConnection->remove_Received(token);
+            connection.Disconnected(token);
+            connection.Received(token);
         }
         (*iter).second.clear();
 
@@ -691,9 +554,8 @@ HRESULT PluginManager::ConnectionClose(
     }
 
     // unregister from the connection
-    return m_moduleManager->ReleaseModule(handle);
+    m_moduleManager.ReleaseModule(handle);
 }
-
 
 _Use_decl_annotations_
 HRESULT PluginManager::RTServerCreate(
@@ -704,40 +566,25 @@ HRESULT PluginManager::RTServerCreate(
 
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerCreate()\n");
 
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(connectionHandle, &spConnection));
+    Network::Connection connection = GetModule<Network::Connection>(*serverHandle);
 
     // Default encoding activation
-    com_ptr<IMediaEncodingProfileStatics3> spEncodingProfileStatics;
-    IFT(Windows::Foundation::GetActivationFactory(
-        Wrappers::HStringReference(RuntimeClass_Windows_Media_MediaProperties_MediaEncodingProfile).get(),
-        &spEncodingProfileStatics));
+    auto mediaProfile = MediaEncodingProfile::CreateHevc(VideoEncodingQuality::HD720p);
 
-    com_ptr<IMediaEncodingProfile> spMediaEncodingProfile;
-    IFT(spEncodingProfileStatics->CreateHevc(
-        Windows::Media::MediaProperties::VideoEncodingQuality_HD720p,
-        &spMediaEncodingProfile));
+    Media::RealtimeServer rtServer = RealtimeStreaming::Media::RealtimeServer(connection, 
+        MFVideoFormat_RGB32, 
+        mediaProfile);
 
-    com_ptr<RealtimeServer> spRTServer;
-    IFT(MakeAndInitialize<RealtimeServer>(&spRTServer,
-        spConnection.get(),
-        MFVideoFormat_RGB32,
-        spMediaEncodingProfile.get()));
-
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
-    com_ptr<IModule> module;
 
     if (nullptr == m_moduleManager)
     {
         IFT(E_NOT_SET);
     }
 
-    IFT(spRTServer.As(&module));
-
-    IFT(m_moduleManager->AddModule(module.get(), &handle));
-
+    handle = m_moduleManager.AddModule(rtServer);
     *serverHandle = handle;
 
     return S_OK;
@@ -749,35 +596,33 @@ HRESULT PluginManager::RTServerShutdown(
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerShutdown()\n");
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
-    // get capture engine
-    com_ptr<IRealtimeServer> spRTServer;
-    IFT(GetRealtimeServer(serverHandle, &spRTServer));
-
-    IFT(spRTServer->Shutdown());
+    auto rtServer = GetModule<Media::RealtimeServer>(serverHandle);
+    rtServer.Shutdown();
 
     // release the handle
-    return m_moduleManager->ReleaseModule(serverHandle);
+    m_moduleManager.ReleaseModule(serverHandle);
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT PluginManager::RTServerWriteFrame(
     ModuleHandle serverHandle,
-    BYTE* pBuffer,
+    BYTE const* pBuffer,
     UINT32 bufferSize)
 {
     NULL_CHK(pBuffer);
 
     Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
-    // get realtime server
-    com_ptr<IRealtimeServer> spRTServer;
-    IFT(GetRealtimeServer(serverHandle, &spRTServer));
+    array_view<byte const> bufferArrayView{ pBuffer, pBuffer + bufferSize };
 
-	IFT(spRTServer->WriteFrame(bufferSize, pBuffer));
+    auto rtServer = GetModule<Media::RealtimeServer>(serverHandle);
+    rtServer.WriteFrame(bufferSize, bufferArrayView);
 
     return S_OK;
 }
@@ -794,49 +639,36 @@ HRESULT PluginManager::RTPlayerCreate(
     NULL_CHK(callback);
     NULL_CHK(pCallbackObject);
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     // get connection
-    com_ptr<IConnection> spConnection;
-    IFT(GetConnection(handle, &spConnection));
-
+    auto connection = GetModule<Connection>(handle);
     UnityGfxRenderer unityGraphics = m_unityGraphics->GetRenderer();
 
-    com_ptr<IRealtimeMediaPlayer> spPlayer;
-    IFT(RealtimeMediaPlayer::Create(unityGraphics,
+    // TODO: update realtimemediaplayer with connection & realtimemediasource
+    s_spStreamingPlayer = nullptr; // make sure we unseat if previously assigned
+    //s_spStreamingPlayer = Media::implementation::RealtimeMediaPlayer::Create()
+    auto spPlayer = Media::RealtimeMediaPlayer();
+    /*
+    RealtimeMediaPlayer::Create(unityGraphics,
         m_unityInterfaces,
         spConnection.get(),
         //fnCallback,
         &spPlayer));
+    */
+    co_await spPlayer.InitAsync(connection)
 
-    // Copy out the streaming player
-    IFT(spPlayer.CopyTo(&s_spStreamingPlayer));
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
+        //slim_lock_guard guard(m_lock);
 
-    com_ptr<IAsyncAction> spInitAction;
-    IFT(s_spStreamingPlayer.As(&spInitAction));
+    //spPlayer.MediaEncodingProfile
+    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() w:%d - h:%d \n", width, height);
+    callback(pCallbackObject,
+        hr,
+        width,
+        height);
 
-    com_ptr<PluginManager> spThis(this);
-    return StartAsyncThen(
-        spInitAction.get(),
-        [this, spThis, spPlayer, callback, pCallbackObject](_In_ HRESULT hr, 
-            _In_ IAsyncAction* asyncAction, 
-            _In_ AsyncStatus asyncStatus)
-    {
-        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
-        auto lock = _lock.Lock();
-
-        UINT32 width, height;
-        IFC(spPlayer->GetCurrentResolution(&width, &height));
-
-        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() w:%d - h:%d \n", width, height);
-    done:
-        callback(pCallbackObject,
-            hr,
-            width,
-            height);
-
-        return hr;
-    });
+    return hr;
 }
 
 _Use_decl_annotations_
@@ -846,7 +678,6 @@ HRESULT PluginManager::RTPlayerRelease()
 
     if (s_spStreamingPlayer != nullptr)
     {
-        s_spStreamingPlayer.Reset();
         s_spStreamingPlayer = nullptr;
     }
 
@@ -863,7 +694,7 @@ HRESULT PluginManager::RTPlayerCreateTexture(_In_ UINT32 width,
     NULL_CHK(ppvTexture);
     NULL_CHK(s_spStreamingPlayer);
 
-    return s_spStreamingPlayer->CreateStreamingTexture(width, height, ppvTexture);
+    return s_spStreamingPlayer.CreateStreamingTexture(width, height, ppvTexture);
 }
 
 _Use_decl_annotations_
@@ -873,7 +704,8 @@ HRESULT  PluginManager::RTPlayerStart()
 
     NULL_CHK(s_spStreamingPlayer);
 
-    return s_spStreamingPlayer->Play();
+    s_spStreamingPlayer.Play();
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -883,7 +715,8 @@ HRESULT  PluginManager::RTPlayerPause()
 
     NULL_CHK(s_spStreamingPlayer);
 
-    return s_spStreamingPlayer->Pause();
+    s_spStreamingPlayer.Pause();
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -893,7 +726,8 @@ HRESULT PluginManager::RTPlayerStop()
 
     NULL_CHK(s_spStreamingPlayer);
 
-    return s_spStreamingPlayer->Stop();
+    s_spStreamingPlayer.Stop();
+    return S_OK;
 }
 
 
@@ -905,43 +739,18 @@ void PluginManager::CompletePluginCallback(
     _In_ ModuleHandle handle,
     _In_ HRESULT hr)
 {
-    LOG_RESULT(ExceptionBoundary([&]() -> HRESULT
+    LOG_RESULT(ExceptionBoundary([&]()
     {
-        if (FAILED(hr))
-        {
-            callback(handle, pCallbackObject, hr);//, ErrorMessage(hr));
-        }
-        else
-        {
-            callback(handle, pCallbackObject, S_OK);// , L"");
-        }
-
-        return S_OK;
+        callback(handle, pCallbackObject, hr);
     }));
 }
 
-// TODO: Change this into template
-_Use_decl_annotations_
-Connection PluginManager::GetConnection(
-    _In_ ModuleHandle handle)
+template <class T>
+T PluginManager::GetModule(_In_ ModuleHandle handle)
 {
     if (m_moduleManager != nullptr)
     {
-
-        return m_moduleManager.GetModule(handle);
-    }
-
-    return nullptr;
-}
-
-_Use_decl_annotations_
-RealtimeServer PluginManager::GetRealtimeServer(
-    _In_ ModuleHandle handle)
-{
-    if (m_moduleManager != nullptr)
-    {
-
-        return m_moduleManager.GetModule(handle);
+        return m_moduleManager.GetModule(handle).as<T>();
     }
 
     return nullptr;
@@ -950,52 +759,55 @@ RealtimeServer PluginManager::GetRealtimeServer(
 _Use_decl_annotations_
 void PluginManager::StoreToken(
     ModuleHandle handle,
-    EventRegistrationToken &newToken)
+    winrt::event_token const& newToken)
 {
     // get the list of tokens for connection
     auto iter = m_eventTokens.find(handle);
     if (iter == m_eventTokens.end())
     {
         // if none exist, create then list
-        m_eventTokens.insert(std::move(std::make_pair(handle, std::vector<EventRegistrationToken>())));
+        m_eventTokens.insert(std::move(std::make_pair(handle, std::vector<winrt::event_token>())));
 
         // it should be in the list now
         iter = m_eventTokens.find(handle);
     }
 
     // set eventList
-    std::vector<EventRegistrationToken> &eventList = iter->second;
+    std::vector<winrt::event_token> &eventList = iter->second;
 
     // register callback and track token
     eventList.emplace_back(std::move(newToken));
 }
 
 _Use_decl_annotations_
-void PluginManager::RemoveToken(
+winrt::event_token PluginManager::RemoveToken(
     ModuleHandle handle,
-    INT64 tokenValue,
-    EventRegistrationToken* token)
+    INT64 tokenValue)
 {
+    winrt::event_token returnToken;
+
     // get the list of tokens for connection
     auto mapIt = m_eventTokens.find(handle);
     if (mapIt != m_eventTokens.end())
     {
         // iterate tokens to match value
-        std::vector<EventRegistrationToken> &eventList = mapIt->second;
+        std::vector<winrt::event_token> &eventList = mapIt->second;
         auto vectorIt = std::find_if(
             eventList.begin(),
             eventList.end(),
-            [&tv = tokenValue](const EventRegistrationToken& t) -> bool
+            [&tv = tokenValue](const winrt::event_token& t) -> bool
         {
             return (tv == t.value);
         });
 
         if (vectorIt != eventList.end())
         {
-            *token = (*vectorIt);
-
             eventList.erase(vectorIt);
+
+            returnToken = *vectorIt;
         }
     }
+
+    return returnToken;
 }
 

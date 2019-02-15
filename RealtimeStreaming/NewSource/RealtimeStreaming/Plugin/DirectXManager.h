@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Generated Files\Plugin\DirectXManager.g.h"
+
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {
     struct DirectXManager : DirectXManagerT<DirectXManager, Module>
@@ -28,10 +30,10 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             STDMETHODIMP_(ID3D11DeviceContext2*) GetDeviceContext2() const { return _spContext2.get(); }
 
         private:
-            Wrappers::CriticalSection _lock;
-
+            //Wrappers::CriticalSection _lock;
+            slim_mutex m_lock;
             // seperate dx device for features not provided by unity device
-            Plugin::DeviceType _deviceType;
+            DeviceType _deviceType;
             D3D_FEATURE_LEVEL _featureLevel;
             com_ptr<ID3D11Device2> _spDevice;
             com_ptr<ID3D11DeviceContext2> _spContext;

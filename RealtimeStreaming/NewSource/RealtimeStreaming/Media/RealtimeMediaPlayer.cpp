@@ -5,11 +5,17 @@
 #include <winrt/Windows.Graphics.DirectX.Direct3D11.h>
 #include <Windows.Graphics.DirectX.Direct3D11.h>
 
+#include "RealtimeMediaSource.h"
+
 using namespace winrt;
 using namespace RealtimeStreaming::Media::implementation;
-using namespace winrt::Windows::Foundation;
+
+using namespace Windows::Foundation;
+using namespace Windows::Media::Core;
+using namespace Windows::Media::Playback;
 
 using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
+
 
 RealtimeStreaming::Plugin::IModule RealtimeMediaPlayer::Create(
     _In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice)
@@ -17,7 +23,7 @@ RealtimeStreaming::Plugin::IModule RealtimeMediaPlayer::Create(
 {
     auto player = make<RealtimeMediaPlayer>();
 
-    if (SUCCEEDED(player.as<IModulePriv>()->Initialize(unityDevice, fnCallback)))
+    //if (SUCCEEDED(player.as<IModulePriv>()->Initialize(unityDevice, fnCallback)))
     {
         return player;
     }
@@ -26,10 +32,12 @@ RealtimeStreaming::Plugin::IModule RealtimeMediaPlayer::Create(
 }
 
 RealtimeMediaPlayer::RealtimeMediaPlayer()
+    //_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice)
     : m_d3dDevice(nullptr)
     , m_mediaPlayer(nullptr)
     , m_mediaPlaybackSession(nullptr)
     , m_primaryBuffer(std::make_shared<SharedTextureBuffer>())
+    //, m_deviceResources(unityDevice)
 {
 }
 
@@ -41,7 +49,29 @@ void RealtimeMediaPlayer::Shutdown()
 
     ReleaseResources();
 
-    //Module::Shutdown();
+    m_RealtimeMediaSource = nullptr;
+
+    m_deviceResources.reset();
+}
+
+IAsyncAction RealtimeMediaPlayer::InitAsync(Network::Connection connection)
+{
+    if (m_mediaPlayer == nullptr)
+    {
+        IFT(CreateMediaPlayer());
+    }
+
+    m_RealtimeMediaSource = winrt::make<Media::implementation::RealtimeMediaSource>();
+
+    co_await m_RealtimeMediaSource.InitAsync(connection);
+
+    MediaStreamSource mediaStreamSource = m_RealtimeMediaSource.MediaStreamSource();
+
+    MediaSource source = MediaSource::CreateFromMediaStreamSource(mediaStreamSource);
+
+    MediaPlaybackItem item = MediaPlaybackItem(source);
+
+    m_mediaPlayer.Source(item);
 }
 
 event_token RealtimeMediaPlayer::Closed(Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
@@ -82,7 +112,11 @@ HRESULT RealtimeMediaPlayer::CreatePlaybackTexture(
     // make sure we have created our own d3d device
     IFR(CreateResources(spD3D11Resources->GetDevice()));
 
-    IFR(SharedTextureBuffer::Create(spD3D11Resources->GetDevice().get(), m_dxgiDeviceManager.get(), width, height, m_primaryBuffer));
+    IFR(SharedTextureBuffer::Create(spD3D11Resources->GetDevice().get(), 
+        m_dxgiDeviceManager.get(), 
+        width, 
+        height,
+        m_primaryBuffer));
 
     com_ptr<ID3D11ShaderResourceView> spSRV = nullptr;
     m_primaryBuffer->frameTextureSRV.copy_to(spSRV.put());
@@ -90,38 +124,6 @@ HRESULT RealtimeMediaPlayer::CreatePlaybackTexture(
     *ppvTexture = spSRV.detach();
 
     return S_OK;
-}
-
-_Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::LoadContent(
-    hstring const& contentLocation)
-{
-    if (contentLocation.empty())
-    {
-        IFR(E_INVALIDARG);
-    }
-
-    if (m_mediaPlayer == nullptr)
-    {
-        IFR(CreateMediaPlayer());
-    }
-
-    HRESULT hr = S_OK;
-
-    try
-    {
-        auto uri = Windows::Foundation::Uri(contentLocation);
-
-        auto mediaSource = Windows::Media::Core::MediaSource::CreateFromUri(uri);
-
-        m_mediaPlayer.Source(mediaSource);
-    }
-    catch (hresult_error const & e)
-    {
-        hr = e.code();
-    }
-
-    return hr;
 }
 
 _Use_decl_annotations_
@@ -190,6 +192,9 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     }
 
     m_mediaPlayer = Windows::Media::Playback::MediaPlayer();
+
+    // TODO: Check this property
+    m_mediaPlayer.IsVideoFrameServerEnabled = true;
 
     m_endedToken = m_mediaPlayer.MediaEnded([=](Windows::Media::Playback::MediaPlayer const& sender, Windows::Foundation::IInspectable const& args)
     {
@@ -290,6 +295,11 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
 _Use_decl_annotations_
 void RealtimeMediaPlayer::ReleaseMediaPlayer()
 {
+    Log(Log_Level_Info, L"RealtimeMediaPlayer::ReleaseMediaPlayer()\n");
+
+    // stop playback
+    //Stop();
+
     if (m_mediaPlaybackSession != nullptr)
     {
         m_mediaPlaybackSession.PlaybackStateChanged(m_stateChangedEventToken);
