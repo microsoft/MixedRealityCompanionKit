@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Generated Files\Plugin\PluginManager.g.h"
+#include "Plugin.PluginManager.g.h"
 
 #include "Unity\IUnityInterface.h"
 #include "Unity\IUnityGraphics.h"
@@ -34,7 +34,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
 
     extern "C" struct MediaSampleArgs
     {
-        IUnknown* videoTexture;
+        ::IUnknown* videoTexture;
         UINT32 width;
         UINT32 height;
         UINT64 timestamp;
@@ -46,15 +46,11 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             PluginManager();
             ~PluginManager();
 
-            static RealtimeStreaming::Plugin::PluginManager Instance();
+            static PluginManager Instance();
 
-            RealtimeStreaming::Plugin::ModuleManager ModuleManager();
+            winrt::RealtimeStreaming::Plugin::implementation::ModuleManager ModuleManager();
 
-            RealtimeStreaming::Plugin::DirectXManager DirectXManager();
-
-            void Load(
-                _In_ IUnityInterfaces* unityInterfaces,
-                _In_ IUnityGraphicsDeviceEventCallback callback);
+            void Load(_In_ IUnityInterfaces* unityInterfaces);
             void UnLoad();
             void OnDeviceEvent(_In_ UnityGfxDeviceEventType eventType);
             BOOL IsOnThread();
@@ -94,7 +90,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
                 _In_ INT64 token);
             STDMETHODIMP ConnectionSendRawData(
                 _In_ ModuleHandle connectionHandle,
-                _In_ Common::PayloadType payloadType,
+                _In_ winrt::RealtimeStreaming::Common::PayloadType payloadType,
                 __in_ecount(bufferSize) byte* pBuffer,
                 _In_ UINT32 bufferSize);
             STDMETHODIMP ConnectionClose(
@@ -153,11 +149,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
-            static Media::RealtimeMediaPlayer s_spStreamingPlayer{ nullptr };
-
-            Plugin::ModuleManager               m_moduleManager;
-
-            Plugin::DirectXManager              m_dxManager;
+            ModuleManager               m_moduleManager;
 
             IUnityInterfaces*                   m_unityInterfaces;
             IUnityGraphics*                     m_unityGraphics;
@@ -168,7 +160,13 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             std::map<ModuleHandle, std::vector<winrt::event_token>> m_eventTokens;
 
             std::vector<byte> _bundleData;
-        };
+    };
+}
 
-    }
+
+namespace winrt::RealtimeStreaming::Plugin::factory_implementation
+{
+    struct PluginManager : PluginManagerT<PluginManager, implementation::PluginManager>
+    {
+    };
 }

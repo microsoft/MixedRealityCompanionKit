@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Media/RealtimeMediaPlayer.g.h"
+#include "Media.RealtimeMediaPlayer.g.h"
 #include "Plugin.Module.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
@@ -9,11 +9,11 @@ namespace winrt::RealtimeStreaming::Media::implementation
     {
         RealtimeMediaPlayer() = default;
 
-        HRESULT Play();
-        HRESULT Pause();
-        HRESULT Stop();
-        event_token Closed(Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler);
-        void Closed(event_token const& token);
+        winrt::hresult Play();
+        winrt::hresult Pause();
+        winrt::hresult Stop();
+        winrt::event_token Closed(Windows::Foundation::EventHandler<RealtimeStreaming::Media::RealtimeMediaPlayer> const& handler);
+        void Closed(winrt::event_token const& token) noexcept;
     };
 }
 

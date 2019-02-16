@@ -4,6 +4,8 @@
 #include "pch.h"
 #include "Marker.h"
 
+using namespace winrt::RealtimeStreaming::Media;
+
 _Use_decl_annotations_
 MarkerImpl::MarkerImpl(MFSTREAMSINK_MARKER_TYPE eMarkerType)
     : _cRef(1)

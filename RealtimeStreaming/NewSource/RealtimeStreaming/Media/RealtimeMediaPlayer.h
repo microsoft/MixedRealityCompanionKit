@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "Generated Files\Media\RealtimeMediaPlayer.g.h"
-#include "Plugin/Module.h"
+#include "Media.RealtimeMediaPlayer.g.h"
+
+//#include "Plugin/Module.h"
 #include "Common/D3D11DeviceResources.h"
 #include "MediaUtils.h"
 #include "Unity\IUnityInterface.h"

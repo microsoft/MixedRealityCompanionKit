@@ -29,7 +29,7 @@ Connector::~Connector()
 
 // IConnector
 _Use_decl_annotations_
-IAsyncOperation<Connection> Connector::ConnectAsync()
+IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync()
 {
     Log(Log_Level_Info, L"ConnectorImpl::ConnectAsync()\n");
 

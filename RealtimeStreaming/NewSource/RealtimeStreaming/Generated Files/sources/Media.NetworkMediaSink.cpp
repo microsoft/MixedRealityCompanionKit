@@ -3,32 +3,32 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler)
+    winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler)
     {
         throw hresult_not_implemented();
     }
 
-    void NetworkMediaSink::Closed(event_token const& token)
+    void NetworkMediaSink::Closed(winrt::event_token const& token) noexcept
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSink::OnEndOfStream(uint32_t streamId)
+    winrt::hresult NetworkMediaSink::OnEndOfStream(uint32_t streamId)
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSink::HandleError(HRESULT const& hr)
+    winrt::hresult NetworkMediaSink::HandleError(winrt::hresult const& hr)
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSink::CheckShutdown()
+    winrt::hresult NetworkMediaSink::CheckShutdown()
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSink::SendDescription()
+    winrt::hresult NetworkMediaSink::SendDescription()
     {
         throw hresult_not_implemented();
     }

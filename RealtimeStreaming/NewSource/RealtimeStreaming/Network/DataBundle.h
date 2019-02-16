@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include "Generated Files\Network\DataBundle.g.h"
-
-//#include "DataBuffer.h"
+#include "Network.DataBundle.g.h"
 
 struct __declspec(uuid("bb9ac868-2fbd-11e9-b210-d663bd873d93")) IDataBundlePriv : ::IUnknown
 {

@@ -26,7 +26,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Class.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Media\Marker.cpp">
@@ -68,9 +67,6 @@
     <ClCompile Include="Network\Listener.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="Plugin\DirectXManager.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
     <ClCompile Include="Plugin\ModuleManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
@@ -92,7 +88,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Class.h" />
     <ClInclude Include="Media\Marker.h">
       <Filter>Media</Filter>
     </ClInclude>
@@ -162,9 +157,6 @@
     <ClInclude Include="Unity\RenderingPlugin.h">
       <Filter>Unity</Filter>
     </ClInclude>
-    <ClInclude Include="Plugin\DirectXManager.h">
-      <Filter>Plugin</Filter>
-    </ClInclude>
     <ClInclude Include="Plugin\ModuleManager.h">
       <Filter>Plugin</Filter>
     </ClInclude>
@@ -183,9 +175,11 @@
     <ClInclude Include="UnityDeviceResource.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Unity\PlatformBase.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="Class.idl" />
     <Midl Include="Media\NetworkMediaSink.idl">
       <Filter>Media</Filter>
     </Midl>
@@ -213,21 +207,26 @@
     <Midl Include="Network\Listener.idl">
       <Filter>Network</Filter>
     </Midl>
-    <Midl Include="Plugin\DirectXManager.idl">
-      <Filter>Plugin</Filter>
-    </Midl>
     <Midl Include="Plugin\ModuleManager.idl">
       <Filter>Plugin</Filter>
     </Midl>
     <Midl Include="Plugin\PluginManager.idl">
       <Filter>Plugin</Filter>
     </Midl>
-    <Midl Include="RealtimeStreaming.idl" />
     <Midl Include="Media\RealtimeMediaPlayer.idl">
       <Filter>Media</Filter>
     </Midl>
     <Midl Include="SchemeHandler.idl">
       <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="Network\DataBundleArgs.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="RealtimeStreaming.idl">
+      <Filter>Common</Filter>
+    </Midl>
+    <Midl Include="Module.idl">
+      <Filter>Plugin</Filter>
     </Midl>
   </ItemGroup>
   <ItemGroup>

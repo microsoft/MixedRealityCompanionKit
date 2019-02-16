@@ -7,8 +7,8 @@
 
 using namespace winrt;
 using namespace winrt::RealtimeStreaming::Network::implementation;
-using namespace Windows::Foundation;
-using namespace Windows::Networking::Sockets;
+using namespace winrt::Windows::Foundation;
+using namespace winrt::Windows::Networking::Sockets;
 
 _Use_decl_annotations_
 DataBundle::DataBundle()
@@ -24,7 +24,7 @@ DataBundle::DataBundle(
 {
     Log(Log_Level_All, L"DataBundleImpl::DataBundle(imfsample)\n");
 
-    IFT(mediaSample);
+    NULL_THROW(mediaSample);
 
     m_buffers.clear();
 
@@ -36,7 +36,7 @@ DataBundle::DataBundle(
     {
         // get the media buffer
         com_ptr<IMFMediaBuffer> spMediaBuffer;
-        IFT(mediaSample->GetBufferByIndex(index, &spMediaBuffer));
+        IFT(mediaSample->GetBufferByIndex(index, spMediaBuffer.put()));
 
         // create the dataBuffer
         DataBuffer databuffer = DataBuffer(spMediaBuffer.get());
@@ -73,7 +73,7 @@ UINT64 DataBundle::TotalSize()
 
 _Use_decl_annotations_
 void DataBundle::AddBuffer(
-    DataBuffer const& dataBuffer)
+    RealtimeStreaming::Network::DataBuffer const& dataBuffer)
 {
     m_buffers.push_back(dataBuffer);
 }
@@ -87,7 +87,7 @@ bool DataBundle::InsertBuffer(uint32_t index,
         return false;
     }
 
-    m_buffers.insert(m_buffers.begin() + i, dataBuffer);
+    m_buffers.insert(m_buffers.begin() + index, dataBuffer);
 
     return true;
 }
@@ -192,7 +192,8 @@ HRESULT  DataBundle::MoveLeft(
     DWORD cbSize, 
     void* pDest)
 {
-    ULONG cbCopied = DataBundle::CopyTo(0, cbSize, pDest, &cbCopied);
+    UINT32 cbCopied;
+    DataBundle::CopyTo(0, cbSize, pDest, &cbCopied);
 
     if (cbCopied != cbSize)
     {

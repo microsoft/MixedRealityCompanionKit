@@ -2,8 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 #include "pch.h"
-#include "UnityDeviceResource.h"
-#include "PlatformBase.h"
+#include "Unity/UnityDeviceResource.h"
+#include "Unity/PlatformBase.h"
 
 std::shared_ptr<IUnityDeviceResource> CreateDeviceResource(UnityGfxRenderer apiType)
 {

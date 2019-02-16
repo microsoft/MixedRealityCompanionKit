@@ -7,7 +7,7 @@
 #include <DirectXMath.h>
 // TODO: Look at incorporating to identify current platform and react accordingly
 //#include "PlatformBase.h"
-#include "UnityDeviceResource.h"
+#include "Unity/UnityDeviceResource.h"
 
 struct __declspec(uuid("cdaad344-9a90-4668-ba3b-8a5ddba72492")) ID3D11DeviceResource : ::IUnknown
 {

@@ -3,7 +3,7 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    RealtimeServer::RealtimeServer(RealtimeStreaming::Network::Connection const& connection, GUID const& inputMediaType, Windows::Media::MediaProperties::MediaEncodingProfile const& mediaEncodingProperties)
+    RealtimeServer::RealtimeServer(RealtimeStreaming::Network::Connection const& connection, winrt::guid const& inputMediaType, Windows::Media::MediaProperties::MediaEncodingProfile const& mediaEncodingProperties)
     {
         throw hresult_not_implemented();
     }

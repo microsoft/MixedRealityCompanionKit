@@ -9,13 +9,6 @@ namespace RealtimeStreaming.Common
             cpp_quote("#define MODULE_HANDLE_INVALID (UINT)0x0bad")
             cpp_quote("#define MODULE_HANDLE_START (UINT)0x0bae")
         cpp_quote("#endif // MODULE_HANDLE")
-
-        cpp_quote("const ULONG c_cbReceiveBufferSize = 2 * 1024;")
-        cpp_quote("const ULONG c_cbMaxBundleSize = 1024 * 1024;")
-        cpp_quote("const UINT16 c_cbMaxBufferFailures = 7;")
-        cpp_quote("const UINT16 c_cbMaxBundleFailures = 3;")
-        cpp_quote("extern wchar_t const __declspec(selectany)c_szNetworkScheme[] = L\"mrvc\";")
-        cpp_quote("extern wchar_t const __declspec(selectany)c_szNetworkSchemeWithColon[] = L\"mrvc:\";")
 }
 
 // Forward Declare

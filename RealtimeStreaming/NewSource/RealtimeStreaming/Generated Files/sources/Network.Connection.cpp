@@ -23,22 +23,22 @@ namespace winrt::RealtimeStreaming::Network::implementation
         throw hresult_not_implemented();
     }
 
-    event_token Connection::Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler)
+    winrt::event_token Connection::Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler)
     {
         throw hresult_not_implemented();
     }
 
-    void Connection::Disconnected(event_token const& token)
+    void Connection::Disconnected(winrt::event_token const& token) noexcept
     {
         throw hresult_not_implemented();
     }
 
-    event_token Connection::Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler)
+    winrt::event_token Connection::Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler)
     {
         throw hresult_not_implemented();
     }
 
-    void Connection::Received(event_token const& token)
+    void Connection::Received(winrt::event_token const& token) noexcept
     {
         throw hresult_not_implemented();
     }

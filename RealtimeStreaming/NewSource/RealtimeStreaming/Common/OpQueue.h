@@ -94,6 +94,8 @@ the queue.
 //-------------------------------------------------------------------
 #include "linklist.h"
 
+// TODO: Delete this file???
+/*
 MIDL_INTERFACE("5cff332d-d364-42b3-9c45-242a20a64330")
 ILockable
     : public IUnknown
@@ -228,3 +230,4 @@ HRESULT OpQueue<T, TOperation>::ProcessQueueAsync(IMFAsyncResult* pResult)
 }
 
 #pragma warning( pop )
+*/

@@ -5,7 +5,7 @@
 #include "DataBuffer.h"
 
 using namespace winrt;
-using namespace RealtimeStreaming::Network::implementation;
+using namespace winrt::RealtimeStreaming::Network::implementation;
 
 _Use_decl_annotations_
 DataBuffer::DataBuffer(
@@ -87,7 +87,7 @@ _Use_decl_annotations_
 HRESULT DataBuffer::Buffer(
     BYTE** ppBuffer)
 {
-    *ppBuffer = GetBufferPointer();
+    GetBufferPointer(ppBuffer);
     return S_OK;
 }
 
@@ -157,16 +157,19 @@ DataBuffer DataBuffer::TrimRight(ULONG cbSize)
     }
 
     // Create result buffer representing at the end of the current one
+    com_ptr<IMFMediaBuffer> existingMediaBuffer;
+    GetMediaBuffer(existingMediaBuffer.put());
+
     com_ptr<IMFMediaBuffer> spMediaBuffer;
-    IFT(MFCreateMediaBufferWrapper(GetMediaBuffer(), 
-        GetOffset() + cbCurrentLen - cbSize, 
+    IFT(MFCreateMediaBufferWrapper(existingMediaBuffer.get(),
+        Offset() + cbCurrentLen - cbSize, 
         cbSize, 
         spMediaBuffer.put()));
 
     DataBuffer dataBuffer = DataBuffer(spMediaBuffer.get());
 
     // Change the size of the length of the buffer
-    CurrentLength(cbCurrentLen - cbSize)
+    CurrentLength(cbCurrentLen - cbSize);
 
     return dataBuffer;
 }

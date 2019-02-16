@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include "Generated Files/Network/Connection.g.h"
-#include "Plugin/Module.h"
-
-//using namespace winrt::RealtimeStreaming::Plugin::implementation;
+#include "Network.Connection.g.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
@@ -44,7 +41,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
         void Disconnected(event_token const& token);
 
-        event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler);
+        event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler);
         void Received(event_token const& token);
     protected:
         // IConnectionInternal
@@ -67,7 +64,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
     private:
         HRESULT ProcessHeaderBuffer(
             _In_ Common::PayloadHeader* header,
-            _In_ RealtimeStreaming::Network::DataBuffer dataBuffer);
+            _In_ Network::DataBuffer dataBuffer);
 
     private:
         //Wrappers::CriticalSection _lock;
@@ -85,7 +82,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
             
         winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
-        winrt::event<Windows::Foundation::EventHandler<BundleReceivedArgs>> m_evtBundleReceived;
+        winrt::event<Windows::Foundation::EventHandler<DataBundleArgs>> m_evtBundleReceived;
 
     };
 }

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Media/NetworkMediaSinkStream.g.h"
+#include "Media.NetworkMediaSinkStream.g.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
@@ -8,11 +8,11 @@ namespace winrt::RealtimeStreaming::Media::implementation
     {
         NetworkMediaSinkStream() = delete;
 
-        HRESULT Start(int64_t start);
-        HRESULT Restart();
-        HRESULT Stop();
-        HRESULT Pause();
-        HRESULT Shutdown();
+        winrt::hresult Start(int64_t start);
+        winrt::hresult Restart();
+        winrt::hresult Stop();
+        winrt::hresult Pause();
+        winrt::hresult Shutdown();
         void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
     };
 }

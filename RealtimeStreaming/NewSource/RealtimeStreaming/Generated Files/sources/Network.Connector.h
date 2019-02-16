@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Network/Connector.g.h"
+#include "Network.Connector.g.h"
 #include "Plugin.Module.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
@@ -10,7 +10,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Connector() = delete;
 
         Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> ConnectAsync();
-        event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
-        void Closed(event_token const& token);
+        winrt::event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
+        void Closed(winrt::event_token const& token) noexcept;
     };
 }

@@ -7,9 +7,4 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     {
         throw hresult_not_implemented();
     }
-
-    RealtimeStreaming::Plugin::DirectXManager PluginManager::DirectXManager()
-    {
-        throw hresult_not_implemented();
-    }
 }

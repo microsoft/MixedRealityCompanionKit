@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "RealtimeStreaming.g.h"
+#include "Media.NetworkMediaSink.g.h"
+
+#include "Common/LinkList.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -24,7 +26,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
             virtual ~NetworkMediaSink();
 
             // IMediaExtension
-            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
+            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration) {};
 
             // IMFMediaSink methods
             IFACEMETHOD(GetCharacteristics)(
@@ -64,7 +66,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 _In_ float flRate);
 
             // NetworkMediaSink
-
+            winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler);
+            void NetworkMediaSink::Closed(winrt::event_token const& token);
         private:
             HRESULT SendCaptureReady();
             HRESULT SendDescription();
@@ -86,7 +89,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
             HRESULT OnEndOfStream(
                 _In_ DWORD dwStreamId)
             {
-                auto lock = _lock.Lock();
+                slim_lock_guard guard(m_lock);
 
                 _cStreamsEnded++;
 
@@ -94,19 +97,20 @@ namespace winrt::RealtimeStreaming::Media::implementation
             }
 
         private:
-            Wrappers::CriticalSection _lock;
+            //Wrappers::CriticalSection _lock;
+            slim_mutex m_lock;
 
-            LONGLONG _llStartTime;
-            com_ptr<IMFPresentationClock> _presentationClock;  // Presentation clock.
+            LONGLONG m_llStartTime;
+            com_ptr<IMFPresentationClock> m_presentationClock;  // Presentation clock.
 
-            StreamContainer _streams;
+            StreamContainer m_streams;
 
             long _cStreamsEnded;
 
-            RealtimeStreaming::Network::Connection m_connection;
+            RealtimeStreaming::Network::Connection m_connection{ nullptr };
             winrt::event_token m_bundleReceivedEventToken;
 
-            winrt::event<Windows::Foundation::EventHandler> m_evtClosed;
+            winrt::event<Windows::Foundation::EventHandler<bool>> m_evtClosed;
         };
 }
 

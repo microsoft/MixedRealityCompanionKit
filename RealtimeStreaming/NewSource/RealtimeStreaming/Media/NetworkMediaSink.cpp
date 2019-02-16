@@ -4,19 +4,25 @@
 #include "pch.h"
 #include "NetworkMediaSink.h"
 #include "MediaUtils.h"
+#include "NetworkMediaSinkStream.h"
+#include "Network/Connection.h"
+#include "Network/DataBuffer.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Media::implementation;
+using namespace RealtimeStreaming::Network;
+using namespace RealtimeStreaming::Common;
 
+using namespace Windows::Foundation;
 using namespace Windows::Media::MediaProperties;
+using namespace Windows::Media::Capture;
 
 class ShutdownFunc
 {
 public:
     HRESULT operator()(_In_ IMFStreamSink* pStream) const
     {
-        // TODO: cast with winrt::iunknown?
-        CHECK_HR(hr = reinterpret_cast<IInspectable*>(request)->QueryInterface(spRequest.ReleaseAndGetAddressOf()), "Failed to get MF interface for media sample request.\n");
+        IFT(reinterpret_cast<winrt::IInspectable*>(request)->QueryInterface(spRequest.ReleaseAndGetAddressOf()));
 
         return static_cast<NetworkMediaSinkStream*>(pStream)->Shutdown();
     }
@@ -27,33 +33,33 @@ class ConnectedFunc
 public:
     ConnectedFunc(bool fConnected, LONGLONG llStartTime)
         : _fConnected(fConnected)
-        , _llStartTime(llStartTime)
+        , m_llStartTime(llStartTime)
     {
     }
 
     HRESULT operator()(_In_ IMFStreamSink* pStream) const
     {
-        return static_cast<NetworkMediaSinkStream*>(pStream)->ConnectedFunc(_fConnected, _llStartTime);
+        return static_cast<NetworkMediaSinkStream*>(pStream)->ConnectedFunc(_fConnected, m_llStartTime);
     }
 
     bool _fConnected;
-    LONGLONG _llStartTime;
+    LONGLONG m_llStartTime;
 };
 
 class StartFunc
 {
 public:
     StartFunc(LONGLONG llStartTime)
-        : _llStartTime(llStartTime)
+        : m_llStartTime(llStartTime)
     {
     }
 
     HRESULT operator()(_In_ IMFStreamSink* pStream) const
     {
-        return static_cast<NetworkMediaSinkStream*>(pStream)->Start(_llStartTime);
+        return static_cast<NetworkMediaSinkStream*>(pStream)->Start(m_llStartTime);
     }
 
-    LONGLONG _llStartTime;
+    LONGLONG m_llStartTime;
 };
 
 class StopFunc
@@ -70,64 +76,53 @@ static HRESULT AddAttribute(
     _In_ IPropertyValue propValue, 
     _In_ IMFAttributes *mfAttributes)
 {
-    NULL_CHK(propValue);
     NULL_CHK(mfAttributes);
 
     // store as a smart pointer
-    com_ptr<IPropertyValue> spPropVal(propValue);
-    com_ptr<IMFAttributes> spAttrib(mfAttributes);
-    PropertyType type;
-    IFT(spPropVal->get_Type(&type));
+    com_ptr<IMFAttributes> spAttrib; 
+    spAttrib.attach(mfAttributes);
 
-    switch (type)
+    switch (propValue.Type)
     {
-    case PropertyType::PropertyType_UInt8Array:
+    case PropertyType::UInt8Array:
     {
-        UINT32 size = 0;
-        BYTE* buffer = nullptr;
-        IFT(spPropVal->GetUInt8Array(&size, &buffer));
-        IFT(spAttrib->SetBlob(guidKey, buffer, size));
+        com_array<byte> buffer;
+        propValue.GetUInt8Array(buffer);
+        
+        IFT(spAttrib->SetBlob(guidKey, buffer.data(), buffer.size()));
     }
     break;
 
-    case PropertyType::PropertyType_Double:
+    case PropertyType::Double:
     {
-        double value = 0.0;
-        IFT(spPropVal->GetDouble(&value));
-        IFT(spAttrib->SetDouble(guidKey, value));
+        IFT(spAttrib->SetDouble(guidKey, propValue.GetDouble()));
     }
     break;
 
-    case PropertyType::PropertyType_Guid:
+    case PropertyType::Guid:
     {
-        GUID value(GUID_NULL);
-        IFT(spPropVal->GetGuid(&value));
+        GUID value = propValue.GetGuid();
         IFT(spAttrib->SetGUID(guidKey, value));
     }
     break;
 
-    case PropertyType::PropertyType_String:
+    case PropertyType::String:
     {
-        Wrappers::HString value;
-        IFT(spPropVal->GetString(value.GetAddressOf()));
+        winrt::hstring value = propValue.GetString();
 
-        IFT(spAttrib->SetString(guidKey, value.GetRawBuffer(nullptr)));
+        IFT(spAttrib->SetString(guidKey, value.c_str()));
     }
     break;
 
-    case PropertyType::PropertyType_UInt32:
+    case PropertyType::UInt32:
     {
-        UINT32 value = 0;
-        IFT(spPropVal->GetUInt32(&value));
-        IFT(spAttrib->SetUINT32(guidKey, value));
+        IFT(spAttrib->SetUINT32(guidKey, propValue.GetUInt32()));
     }
     break;
 
-    case PropertyType::PropertyType_UInt64:
+    case PropertyType::UInt64:
     {
-        UINT64 value = 0;
-        IFT(spPropVal->GetUInt64(&value));
-        IFT(spAttrib->SetUINT64(guidKey, value));
+        IFT(spAttrib->SetUINT64(guidKey, propValue.GetUInt64()));
     }
     break;
 
@@ -151,17 +146,15 @@ HRESULT ConvertPropertiesToMediaType(
    MediaPropertySet propSet = mediaEncodingProp.Properties;
 
    com_ptr<IMFMediaType> spMediaType;
-   IFR(MFCreateMediaType(&spMediaType));
+   IFR(MFCreateMediaType(spMediaType.put()));
 
-   for (auto& key : propSet.Keys)
+   for (auto& keyValuePair : propSet)
    {
-       IPropertyValue propValue = spMap[key];
-
-       IFR(AddAttribute(guidKey, spPropValue, spMediaType.get()));
+       IFR(AddAttribute(keyValuePair.Key, keyValuePair.Value, spMediaType.get()));
    }
-
-    IPropertyValue propValue = spMap.Lookup(MF_MT_MAJOR_TYPE);
-    GUID guiMajorType = spPropValue.GetGuid();
+   
+    IPropertyValue propValue = propSet.Lookup(MF_MT_MAJOR_TYPE).as<IPropertyValue>();
+    GUID guiMajorType = propValue.GetGuid();
 
     if (guiMajorType != MFMediaType_Video && guiMajorType != MFMediaType_Audio)
     {
@@ -170,7 +163,9 @@ HRESULT ConvertPropertiesToMediaType(
 
     NULL_CHK_HR(spMediaType, E_NOT_SET);
 
-    return spMediaType.CopyTo(ppMediaType);
+    spMediaType.copy_to(ppMediaType);
+    
+    return S_OK;
 }
 
 HRESULT GetStreamId(
@@ -183,10 +178,10 @@ HRESULT GetStreamId(
 
     switch (mediaStreamType)
     {
-    case Windows::Media::Capture::MediaStreamType::MediaStreamType_VideoRecord:
+    case Windows::Media::Capture::MediaStreamType::VideoRecord:
         *streamId = 0;
         break;
-    case Windows::Media::Capture::MediaStreamType::MediaStreamType_Audio:
+    case Windows::Media::Capture::MediaStreamType::Audio:
         *streamId = 1;
         break;
     default:
@@ -199,26 +194,24 @@ HRESULT GetStreamId(
 NetworkMediaSink::NetworkMediaSink(IAudioEncodingProperties audioEncodingProperties,
     IVideoEncodingProperties videoEncodingProperties,
     Connection connection)
-    : m_connection(nullptr)
-    , _llStartTime(0)
+    : m_llStartTime(0)
     , _cStreamsEnded(0)
-    , _presentationClock(nullptr)
+    , m_presentationClock(nullptr)
     , m_connection(connection)
 {
 
     // Set up media streams
     if (nullptr != audioEncodingProperties)
     {
-        IFT(SetMediaStreamProperties(MediaStreamType::MediaStreamType_Audio, 
-            audioEncodingProperties));
+        IFT(SetMediaStreamProperties(MediaStreamType::Audio, audioEncodingProperties));
     }
 
-    IFT(SetMediaStreamProperties(MediaStreamType::MediaStreamType_VideoRecord, 
+    IFT(SetMediaStreamProperties(MediaStreamType::VideoRecord, 
         videoEncodingProperties));
 
     // subscribe to connection data
     // define callback
-    auto bundleReceivedCallback = [&](_In_ Connection sender, _In_ BundleReceivedArgs args) -> HRESULT
+    auto bundleReceivedCallback = [&](_In_ Connection sender, _In_ DataBundleArgs args) -> HRESULT
     {
         Log(Log_Level_Info, L"NetworkSinkImpl::OnBundleReceived");
 
@@ -226,19 +219,19 @@ NetworkMediaSink::NetworkMediaSink(IAudioEncodingProperties audioEncodingPropert
 
         switch (args.PayloadType)
         {
-        case PayloadType_RequestMediaDescription:
+        case PayloadType::RequestMediaDescription:
             IFC(SendDescription());
             break;
-        case PayloadType_RequestMediaStart:
+        case PayloadType::RequestMediaStart:
             // triggers the _connected state
-            if (nullptr != _presentationClock)
+            if (nullptr != m_presentationClock)
             {
-                LOG_RESULT_MSG(_presentationClock->GetTime(&_llStartTime), L"NetworkSinkImpl - MediaStartRequested, Not able to set start time from presentation clock");
+                LOG_RESULT_MSG(m_presentationClock->GetTime(&m_llStartTime), L"NetworkSinkImpl - MediaStartRequested, Not able to set start time from presentation clock");
             }
-            IFC(ForEach(_streams, ConnectedFunc(true, _llStartTime)));
+            IFC(ForEach(m_streams, ConnectedFunc(true, m_llStartTime)));
             break;
-        case PayloadType_RequestMediaStop:
-            IFC(ForEach(_streams, ConnectedFunc(false, _llStartTime)));
+        case PayloadType::RequestMediaStop:
+            IFC(ForEach(m_streams, ConnectedFunc(false, m_llStartTime)));
             break;
         };
 
@@ -260,13 +253,6 @@ NetworkMediaSink::~NetworkMediaSink()
     m_connection = nullptr;
 }
 
-// IMediaExtension
-HRESULT NetworkMediaSink::SetProperties(
-    Windows::Foundation::Collections::IPropertySet* configuration)
-{
-    return S_OK;
-}
-
 // IMFMediaSink
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::GetCharacteristics(
@@ -274,8 +260,7 @@ HRESULT NetworkMediaSink::GetCharacteristics(
 {
     NULL_CHK(pdwCharacteristics);
 
-    // TODO: Troy to convert all locks in this class to the slim?
-    auto lock = _lock.Lock();
+    slim_shared_lock_guard const guard(m_lock);
 
     IFT(CheckShutdown());
 
@@ -291,7 +276,7 @@ HRESULT NetworkMediaSink::AddStreamSink(
     IMFMediaType* pMediaType, 
     IMFStreamSink** ppStreamSink)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     NULL_CHK(pMediaType);
     NULL_CHK(ppStreamSink);
@@ -299,24 +284,25 @@ HRESULT NetworkMediaSink::AddStreamSink(
     IFR(CheckShutdown());
 
     com_ptr<IMFStreamSink> spMFStream;
-    if (SUCCEEDED(GetStreamSinkById(dwStreamSinkIdentifier, &spMFStream)))
+    if (SUCCEEDED(GetStreamSinkById(dwStreamSinkIdentifier, spMFStream.put())))
     {
         IFT(MF_E_STREAMSINK_EXISTS);
     }
 
-    com_ptr<NetworkMediaSinkStream> spNetSink;
-    IFR(MakeAndInitialize<NetworkMediaSinkStream>(&spNetSink, dwStreamSinkIdentifier, m_connection.get(), this));
-    IFR(spNetSink.As(&spMFStream));
+    auto networkSinkStream = winrt::make<NetworkMediaSinkStream>(dwStreamSinkIdentifier, m_connection, *this);
 
-    IFR(spNetSink->SetCurrentMediaType(pMediaType));
+    spMFStream = nullptr; //unseat just in case
+    spMFStream = networkSinkStream.as<IMFStreamSink>();
+
+    IFR(networkSinkStream.as<IMFMediaTypeHandler>()->SetCurrentMediaType(pMediaType));
 
     // Insert in proper position
-    StreamContainer::POSITION pos = _streams.FrontPosition();
-    StreamContainer::POSITION posEnd = _streams.EndPosition();
-    for (; pos != posEnd; pos = _streams.Next(pos))
+    StreamContainer::POSITION pos = m_streams.FrontPosition();
+    StreamContainer::POSITION posEnd = m_streams.EndPosition();
+    for (; pos != posEnd; pos = m_streams.Next(pos))
     {
         com_ptr<IMFStreamSink> spCurr;
-        IFR(_streams.GetItemPos(pos, &spCurr));
+        IFR(m_streams.GetItemPos(pos, spCurr.put()));
 
         DWORD dwCurrId;
         IFR(spCurr->GetIdentifier(&dwCurrId));
@@ -328,25 +314,27 @@ HRESULT NetworkMediaSink::AddStreamSink(
 
     NULL_CHK_HR(spMFStream, E_NOT_SET);
 
-    IFR(_streams.InsertPos(pos, spMFStream.get()));
+    IFR(m_streams.InsertPos(pos, spMFStream.get()));
 
-    return spMFStream.CopyTo(ppStreamSink);
+    spMFStream.copy_to(ppStreamSink);
+    
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::RemoveStreamSink(DWORD dwStreamSinkIdentifier)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
     com_ptr<IMFStreamSink> spStream;
 
-    StreamContainer::POSITION pos = _streams.FrontPosition();
-    StreamContainer::POSITION endPos = _streams.EndPosition();
-    for (; pos != endPos; pos = _streams.Next(pos))
+    StreamContainer::POSITION pos = m_streams.FrontPosition();
+    StreamContainer::POSITION endPos = m_streams.EndPosition();
+    for (; pos != endPos; pos = m_streams.Next(pos))
     {
-        IFR(_streams.GetItemPos(pos, &spStream));
+        IFR(m_streams.GetItemPos(pos, spStream.put()));
 
         DWORD dwId;
         IFR(spStream->GetIdentifier(&dwId));
@@ -361,7 +349,7 @@ HRESULT NetworkMediaSink::RemoveStreamSink(DWORD dwStreamSinkIdentifier)
         return MF_E_INVALIDSTREAMNUMBER;
     }
 
-    IFR(_streams.Remove(pos, nullptr));
+    IFR(m_streams.Remove(pos, nullptr));
 
     return static_cast<NetworkMediaSinkStream*>(spStream.get())->Shutdown();
 }
@@ -371,11 +359,11 @@ HRESULT NetworkMediaSink::GetStreamSinkCount(DWORD* pcStreamSinkCount)
 {
     NULL_CHK(pcStreamSinkCount);
 
-    auto lock = _lock.Lock();
+    slim_shared_lock_guard const guard(m_lock);
 
     IFR(CheckShutdown());
 
-   *pcStreamSinkCount = _streams.GetCount();
+   *pcStreamSinkCount = m_streams.GetCount();
 
     return S_OK;
 }
@@ -387,10 +375,10 @@ HRESULT NetworkMediaSink::GetStreamSinkByIndex(
 {
     NULL_CHK(ppStreamSink);
 
-    auto lock = _lock.Lock();
+    slim_shared_lock_guard const guard(m_lock);
     
     com_ptr<IMFStreamSink> spStream;
-    DWORD const cStreams = _streams.GetCount();
+    DWORD const cStreams = m_streams.GetCount();
     if (cStreams <= dwIndex)
     {
         IFR(MF_E_INVALIDINDEX);
@@ -399,9 +387,9 @@ HRESULT NetworkMediaSink::GetStreamSinkByIndex(
     IFR(CheckShutdown());
 
     DWORD dwCurrent = 0;
-    StreamContainer::POSITION pos = _streams.FrontPosition();
-    StreamContainer::POSITION endPos = _streams.EndPosition();
-    for (; pos != endPos && dwCurrent < dwIndex; pos = _streams.Next(pos), ++dwCurrent)
+    StreamContainer::POSITION pos = m_streams.FrontPosition();
+    StreamContainer::POSITION endPos = m_streams.EndPosition();
+    for (; pos != endPos && dwCurrent < dwIndex; pos = m_streams.Next(pos), ++dwCurrent)
     {
         // Just move to proper position
     }
@@ -411,9 +399,11 @@ HRESULT NetworkMediaSink::GetStreamSinkByIndex(
         IFR(MF_E_UNEXPECTED);
     }
 
-    IFR(_streams.GetItemPos(pos, &spStream));
+    IFR(m_streams.GetItemPos(pos, spStream.put()));
     
-    return spStream.CopyTo(ppStreamSink);
+    spStream.copy_to(ppStreamSink);
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -423,18 +413,18 @@ HRESULT NetworkMediaSink::GetStreamSinkById(
 {
     NULL_CHK(ppStreamSink);
 
-    auto lock = _lock.Lock();
+    slim_shared_lock_guard const guard(m_lock);
 
     IFR(CheckShutdown());
 
     com_ptr<IMFStreamSink> spResult;
 
-    StreamContainer::POSITION pos = _streams.FrontPosition();
-    StreamContainer::POSITION endPos = _streams.EndPosition();
-    for (; pos != endPos; pos = _streams.Next(pos))
+    StreamContainer::POSITION pos = m_streams.FrontPosition();
+    StreamContainer::POSITION endPos = m_streams.EndPosition();
+    for (; pos != endPos; pos = m_streams.Next(pos))
     {
         com_ptr<IMFStreamSink> spStream;
-        IFR(_streams.GetItemPos(pos, &spStream));
+        IFR(m_streams.GetItemPos(pos, spStream.put()));
 
         DWORD dwId;
         IFR(spStream->GetIdentifier(&dwId));
@@ -453,7 +443,9 @@ HRESULT NetworkMediaSink::GetStreamSinkById(
 
     NULL_CHK_HR(spResult, E_NOT_SET);
 
-    return spResult.CopyTo(ppStreamSink);
+    spResult.copy_to(ppStreamSink);
+    
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -461,15 +453,15 @@ HRESULT NetworkMediaSink::SetPresentationClock(IMFPresentationClock* pPresentati
 {
     NULL_CHK(pPresentationClock);
 
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
     // If we already have a clock, remove ourselves from that clock's
     // state notifications.
-    if (nullptr != _presentationClock)
+    if (nullptr != m_presentationClock)
     {
-        IFR(_presentationClock->RemoveClockStateSink(this));
+        IFR(m_presentationClock->RemoveClockStateSink(this));
     }
 
     // Register ourselves to get state notifications from the new clock.
@@ -480,7 +472,7 @@ HRESULT NetworkMediaSink::SetPresentationClock(IMFPresentationClock* pPresentati
 
     // Release the pointer to the old clock.
     // Store the pointer to the new clock.
-    _presentationClock = pPresentationClock;
+    m_presentationClock.attach(pPresentationClock);
 
     return S_OK;
 }
@@ -490,19 +482,21 @@ HRESULT NetworkMediaSink::GetPresentationClock(IMFPresentationClock** ppPresenta
 {
     NULL_CHK(ppPresentationClock)
 
-    auto lock = _lock.Lock();
+        slim_shared_lock_guard const guard(m_lock);
 
     IFR(CheckShutdown());
 
-    if (nullptr == _presentationClock)
+    if (nullptr == m_presentationClock)
     {
         IFR(MF_E_NO_CLOCK); // There is no presentation clock.
     }
 
-    NULL_CHK_HR(_presentationClock, E_NOT_SET);
+    NULL_CHK_HR(m_presentationClock, E_NOT_SET);
 
     // Return the pointer to the caller.
-    return _presentationClock.CopyTo(ppPresentationClock);
+    m_presentationClock.copy_to(ppPresentationClock);
+    
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -514,14 +508,13 @@ HRESULT NetworkMediaSink::Shutdown()
     }
 
     // clear all streams
-    ForEach(_streams, ShutdownFunc());
-    _streams.Clear();
+    ForEach(m_streams, ShutdownFunc());
+    m_streams.Clear();
 
     // notify any connections that sink is shutdown
     SendCaptureStopped();
 
-    _presentationClock.Reset();
-    _presentationClock = nullptr;
+    m_presentationClock = nullptr;
 
     _cStreamsEnded = 0;
 
@@ -532,26 +525,26 @@ HRESULT NetworkMediaSink::Shutdown()
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockStartOffset)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
     Log(Log_Level_Info, L"NetworkSinkImpl::OnClockStart: ts=%I64d\n", llClockStartOffset);
         
     // Start each stream.
-    _llStartTime = llClockStartOffset;
-    return ForEach(_streams, StartFunc(llClockStartOffset));
+    m_llStartTime = llClockStartOffset;
+    return ForEach(m_streams, StartFunc(llClockStartOffset));
 }
 
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::OnClockStop(MFTIME hnsSystemTime)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
     // Stop each stream
-    return ForEach(_streams, StopFunc());
+    return ForEach(m_streams, StopFunc());
 }
 
 _Use_decl_annotations_
@@ -573,9 +566,9 @@ HRESULT NetworkMediaSink::OnClockSetRate(MFTIME hnsSystemTime, float flRate)
 }
 
 _Use_decl_annotations_
-winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler const& handler)
+winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     return m_evtClosed.add(handler);
 }
@@ -583,7 +576,7 @@ winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler co
 _Use_decl_annotations_
 void NetworkMediaSink::Closed(winrt::event_token const& token)
 {
-    auto lock = _lock.Lock();
+    slim_lock_guard guard(m_lock);
 
     m_evtClosed.remove(token);
 }
@@ -605,7 +598,9 @@ HRESULT NetworkMediaSink::SendCaptureReady()
 {
     NULL_CHK(m_connection);
 
-    return m_connection.SendPayloadType(PayloadType_State_CaptureReady);
+    m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureReady).get();
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -614,7 +609,7 @@ HRESULT NetworkMediaSink::SendDescription(void)
     Log(Log_Level_Info, L"NetworkSinkImpl::SendDescription() begin...\n");
 
     // Size of the constant buffer header
-    const DWORD c_cStreams = _streams.GetCount();
+    const DWORD c_cStreams = m_streams.GetCount();
     const DWORD c_cbPayloadHeaderSize = sizeof(PayloadHeader);
     const DWORD c_cbMediaDescriptionSize = sizeof(MediaDescription);
     const DWORD c_cbStraemTypeDescription = sizeof(MediaTypeDescription);
@@ -624,18 +619,16 @@ HRESULT NetworkMediaSink::SendDescription(void)
     // Create send buffer
     DataBuffer dataBuffer = DataBuffer(c_cbBufferSize);
 
-    // Prepare the buffer
-    com_ptr<IBuffer> spHeaderBuffer;
-    IFT(spDataBuffer.As(&spHeaderBuffer));
-
     // get the buffer pointer
-    BYTE* pBuf = GetDataType<BYTE*>(spHeaderBuffer.get());
+    auto dataBufferImpl = dataBuffer.as<Network::implementation::DataBuffer>();
+    BYTE* pBuf;
+    dataBufferImpl->Buffer(&pBuf);
 
     // Prepare payload header 8 bytes - type and size of payload to follow
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuf);
     NULL_CHK(pOpHeader);
     ZeroMemory(pOpHeader, c_cbPayloadHeaderSize);
-    pOpHeader->ePayloadType = PayloadType_SendMediaDescription;
+    pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
     pOpHeader->cbPayloadSize = c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize; // still need to add the size of MediaAttributes for each stream
 
     // Media Description - how many streams and the total bytes for each streams attributes
@@ -653,48 +646,46 @@ HRESULT NetworkMediaSink::SendDescription(void)
     NULL_CHK(streamTypeHeaderPtr);
 
     // get each streams ppMediaType info and its attrbutes as a DataBuffer
-    StreamContainer::POSITION pos = _streams.FrontPosition();
-    StreamContainer::POSITION endPos = _streams.EndPosition();
+    StreamContainer::POSITION pos = m_streams.FrontPosition();
+    StreamContainer::POSITION endPos = m_streams.EndPosition();
     DWORD nStream = 0;
-    for (; pos != endPos; pos = _streams.Next(pos), ++nStream)
+    for (; pos != endPos; pos = m_streams.Next(pos), ++nStream)
     {
         // zero out the memory block for stream type description
         ZeroMemory(&streamTypeHeaderPtr[nStream], c_cbStraemTypeDescription);
 
         com_ptr<IMFStreamSink> spStream;
-        IFR(_streams.GetItemPos(pos, &spStream));
+        IFR(m_streams.GetItemPos(pos, spStream.put()));
 
-        com_ptr<NetworkMediaSinkStream> spMediaTypeHandler(static_cast<NetworkMediaSinkStream*>(spStream.get()));
+        com_ptr <NetworkMediaSinkStream> spMediaTypeHandler = spStream.as<NetworkMediaSinkStream>();
         NULL_CHK(spMediaTypeHandler.get());
 
         // Get the MediaType info from stream
-        IFR(spMediaTypeHandler->FillStreamDescription(
-            &streamTypeHeaderPtr[nStream],
-            &svStreamMFAttributes[nStream]));
+        svStreamMFAttributes[nStream] = spMediaTypeHandler->FillStreamDescription(&streamTypeHeaderPtr[nStream]);
 
         // Add size of ppMediaType blob to the payload size.
         pOpHeader->cbPayloadSize += streamTypeHeaderPtr[nStream].AttributesBlobSize;
     }
 
     // update total payload size
-    IFR(spDataBuffer->put_CurrentLength(c_cbBufferSize));
+    dataBuffer.CurrentLength(c_cbBufferSize);
 
     // Prepare the bundle to send
-    DataBundle dataBundle = DataBundle();
-
-    // Add fixed sized data to bundle
-    IFR(dataBundle.AddBuffer(dataBuffer));
+    DataBundle dataBundle = DataBundle(dataBuffer);
 
     // Add ppMediaType data
     for (DWORD nStream = 0; nStream < c_cStreams; ++nStream)
     {
-        IFR(dataBundle.AddBuffer(svStreamMFAttributes[nStream]));
+        dataBundle.AddBuffer(svStreamMFAttributes[nStream]);
     }
 
     // Send the data, set callback
     Log(Log_Level_Info, L"NetworkMediaSink::SendDescription()\n");
 
-    return m_connection.SendBundle(dataBundle);
+    // Block thread until async call finishes
+    m_connection.SendBundleAsync(dataBundle).get();
+    
+    return S_OK;
  }
 
 _Use_decl_annotations_
@@ -702,7 +693,7 @@ HRESULT NetworkMediaSink::SetMediaStreamProperties(
     Windows::Media::Capture::MediaStreamType mediaStreamType,
     Windows::Media::MediaProperties::IMediaEncodingProperties mediaEncodingProperties)
 {
-    if (mediaStreamType != MediaStreamType::MediaStreamType_VideoRecord && mediaStreamType != MediaStreamType::MediaStreamType_Audio)
+    if (mediaStreamType != MediaStreamType::VideoRecord && mediaStreamType != MediaStreamType::Audio)
     {
         IFR(E_INVALIDARG);
     }

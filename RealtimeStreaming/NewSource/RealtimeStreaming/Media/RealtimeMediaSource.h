@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "Generated Files\Media\RealtimeMediaSource.g.h"
+#include "Media.RealtimeMediaSource.g.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -44,7 +44,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
     protected:
         void OnDataReceived(
             _In_ Network::Connection const& sender,
-            _In_ Network::BundleReceivedArgs const& args);
+            _In_ Network::DataBundleArgs const& args);
 
     private:
         void OnStarting(_In_ Windows::Media::Core::MediaStreamSource const& sender,
@@ -68,11 +68,11 @@ namespace winrt::RealtimeStreaming::Media::implementation
         HRESULT ProcessMediaFormatChange(_In_ Network::DataBundle const& dataBundle);
 
         Windows::Media::MediaProperties::VideoEncodingProperties CreatePropertiesFromMediaDescription(
-            _In_ MediaTypeDescription pStreamDescription,
+            _In_ Common::MediaTypeDescription pStreamDescription,
             _In_ Network::DataBundle attributesBuffer);
 
         HRESULT SetSampleAttributes(
-            _In_ MediaSampleHeader const& pSampleHeader,
+            _In_ Common::MediaSampleHeader const& pSampleHeader,
             _In_ IMFSample* pSample);
 
         inline HRESULT CheckShutdown() const
@@ -101,7 +101,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         LONGLONG m_lastTimeStamp;
 
-        VideoEncodingProperties m_spVideoEncoding{ nullptr };
+        Windows::Media::MediaProperties::VideoEncodingProperties m_spVideoEncoding{ nullptr };
 
         Network::Connection m_connection; // Network sender
         winrt::event_token m_evtReceivedToken;

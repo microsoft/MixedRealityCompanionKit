@@ -4,6 +4,7 @@
 #include "pch.h"
 #include "RealtimeServer.h"
 #include "MediaUtils.h"
+#include "NetworkMediaSink.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Media::implementation;
@@ -22,7 +23,7 @@ RealtimeServer::RealtimeServer(
     m_spMediaEncodingProfile.Container = nullptr;
 
     // create the custom network sink
-    m_spNetworkMediaSink = make<NetworkMediaSink>(m_spMediaEncodingProfile.Audio(),
+    m_spNetworkMediaSink = winrt::make<NetworkMediaSink>(m_spMediaEncodingProfile.Audio(),
         m_spMediaEncodingProfile.Video(),
         connection);
 
@@ -42,7 +43,9 @@ RealtimeServer::RealtimeServer(
         winrt::get_unknown(m_spMediaEncodingProfile.Video()),
         spMediaTypeOut.put()));
 
-    IFT(spSinkWriter->AddStream(spMediaTypeOut.get(), &m_sinkWriterStream));
+    DWORD sinkWriterStream;
+    IFT(spSinkWriter->AddStream(spMediaTypeOut.get(), &sinkWriterStream));
+    m_sinkWriterStream = sinkWriterStream;
 
     // Set the input media type.
     com_ptr<IMFMediaType>  spMediaTypeIn;
@@ -100,10 +103,10 @@ void RealtimeServer::WriteFrame(
     // Create MediaBuffer
     com_ptr<IMFMediaBuffer> spBuffer;
 
-    auto videoProps = m_spMediaEncodingProfile.Video;
+    auto videoProps = m_spMediaEncodingProfile.Video();
 
-    IFT(CreateIMFMediaBuffer(videoProps.Width,
-        videoProps.Height,
+    IFT(CreateIMFMediaBuffer(videoProps.Width(),
+        videoProps.Height(),
         bufferSize,
         pBuffer,
         spBuffer.put()));

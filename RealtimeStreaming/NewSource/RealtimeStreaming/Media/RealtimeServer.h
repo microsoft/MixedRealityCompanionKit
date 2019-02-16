@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Generated Files\Media\RealtimeServer.g.h"
+#include "Media.RealtimeServer.g.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -33,17 +33,24 @@ namespace winrt::RealtimeStreaming::Media::implementation
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
-            MediaEncodingProfile m_spMediaEncodingProfile;
-            NetworkMediaSink m_spNetworkMediaSink{ nullptr };
+            Windows::Media::MediaProperties::MediaEncodingProfile m_spMediaEncodingProfile;
+            Media::NetworkMediaSink m_spNetworkMediaSink{ nullptr };
 
             winrt::com_ptr<IMFSinkWriter> m_spSinkWriter;
-            DWORD m_sinkWriterStream;
+            uint8_t m_sinkWriterStream;
 
             GUID m_mediaInputFormat;
 
             LONGLONG rtStart = 0;
 
-            const UINT32 VIDEO_FPS = 30;
-            const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
+            static const UINT32 VIDEO_FPS = 30;
+            static const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
+    };
+}
+
+namespace winrt::RealtimeStreaming::Media::factory_implementation
+{
+    struct RealtimeServer : RealtimeServerT<RealtimeServer, implementation::RealtimeServer>
+    {
     };
 }

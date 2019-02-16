@@ -3,6 +3,7 @@
 
 #include "pch.h"
 #include "PluginManager.h"
+#include "ModuleManager.h"
 #include "Network\Listener.h"
 #include "Network\Connector.h"
 #include "Network\DataBundle.h"
@@ -20,14 +21,21 @@ using namespace Windows::Storage::Streams;
 using namespace Windows::Networking;
 using namespace Windows::Media::MediaProperties;
 
+/* Static Variables */
+static INSTANCE_HANDLE s_lastPluginHandleIndex = INSTANCE_HANDLE_INVALID;
+static std::shared_ptr<IUnityDeviceResource> s_deviceResource;
+static UnityGfxRenderer s_deviceType = kUnityGfxRendererNull;
+static IUnityInterfaces* s_unityInterfaces = nullptr;
+static IUnityGraphics* s_unityGraphics = nullptr;
+
+static winrt::RealtimeStreaming::Media::RealtTimeMediaPlayer s_spStreamingPlayer{ nullptr };
+
 _Use_decl_annotations_
 PluginManager::PluginManager()
 {
     m_unityInterfaces = nullptr;
     m_unityGraphics = nullptr;
     m_unityCallback = nullptr;
-
-    m_dxManager = nullptr;
 }
 
 PluginManager::~PluginManager()
@@ -40,11 +48,6 @@ void PluginManager::Uninitialize()
     Log(Log_Level_Info, L"PluginManagerImpl::Uninitialize()\n");
 
     slim_lock_guard guard(m_lock);
-
-    if (nullptr != m_dxManager)
-    {
-        m_dxManager = nullptr;
-    }
 
     m_streamingAssetsPath.clear();
 
@@ -61,7 +64,7 @@ static RealtimeStreaming::Plugin::PluginManager s_instance{ nullptr };
 
 /* static */
 _Use_decl_annotations_
-RealtimeStreaming::Plugin::PluginManager PluginManager::Instance()
+PluginManager PluginManager::Instance()
 {
     if (s_instance == nullptr)
     {
@@ -73,15 +76,9 @@ RealtimeStreaming::Plugin::PluginManager PluginManager::Instance()
 }
 
 _Use_decl_annotations_
-RealtimeStreaming::Plugin::ModuleManager PluginManager::ModuleManager()
+winrt::RealtimeStreaming::Plugin::implementation::ModuleManager PluginManager::ModuleManager()
 {
     return m_moduleManager;
-}
-
-_Use_decl_annotations_
-RealtimeStreaming::Plugin::DirectXManager PluginManager::DirectXManager()
-{
-    return m_dxManager;
 }
 
 _Use_decl_annotations_
@@ -92,36 +89,26 @@ BOOL PluginManager::IsOnThread()
 
 
 _Use_decl_annotations_
-void PluginManager::Load(IUnityInterfaces* unityInterfaces, IUnityGraphicsDeviceEventCallback callback)
+void PluginManager::Load(IUnityInterfaces* unityInterfaces)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::Load()\n");
 
-    //slim_lock_guard guard(m_lock);
     slim_lock_guard guard(m_lock);
 
-    // was already initialized, so need to reset
-    if (nullptr != m_dxManager)
-    {
-        Uninitialize();
-    }
+    NULL_THROW(unityInterfaces);
 
-    if (nullptr == unityInterfaces || nullptr == callback)
-    {
-        return;
-    }
+    //m_unityCallback = callback;
+    //m_unityGraphics->RegisterDeviceEventCallback(m_unityCallback);
 
-    IUnityGraphics* unityGraphics = unityInterfaces->Get<IUnityGraphics>();
-    if (nullptr == unityGraphics)
-    {
-        return;
-    }
+    // Run OnGraphicsDeviceEvent(initialize) manually on plugin load
+    OnDeviceEvent(kUnityGfxDeviceEventInitialize);
 
-    m_unityInterfaces = unityInterfaces;
+    s_lastPluginHandleIndex = INSTANCE_HANDLE_START;
+    s_instances.clear();
 
-    m_unityGraphics = unityGraphics;
-
-    m_unityCallback = callback;
-    m_unityGraphics->RegisterDeviceEventCallback(m_unityCallback);
+    s_unityInterfaces = unityInterfaces;
+    s_unityGraphics = s_unityInterfaces->Get<IUnityGraphics>();
+    s_unityGraphics->RegisterDeviceEventCallback(OnDeviceEvent);
 
     // Run OnGraphicsDeviceEvent(initialize) manually on plugin load
     OnDeviceEvent(kUnityGfxDeviceEventInitialize);
@@ -156,59 +143,32 @@ void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::OnDeviceEvent ");
 
-    HRESULT hr = S_OK;
-
-    //slim_lock_guard guard(m_lock);
     slim_lock_guard guard(m_lock);
 
     UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
 
-    if (nullptr == m_unityGraphics)
+    // Create graphics API implementation upon initialization
+    if (eventType == kUnityGfxDeviceEventInitialize)
     {
-        return;
+        assert(s_deviceResource == nullptr);
+
+        s_deviceType = s_unityGraphics->GetRenderer();
+
+        s_deviceResource = CreateDeviceResource(s_deviceType);
     }
 
-    currentDeviceType = m_unityGraphics->GetRenderer();
-    switch (eventType)
+    // Let the implementation process the device related event
+    if (s_deviceResource != nullptr)
     {
-    case kUnityGfxDeviceEventInitialize:
-        Log(Log_Level_Info, L"- Initialize\n");
-#if SUPPORT_D3D11
-        if (kUnityGfxRendererD3D11 == currentDeviceType)
-        {
-            auto dx11 = _unityInterfaces->Get<IUnityGraphicsD3D11>();
+        s_deviceResource->ProcessDeviceEvent(eventType, s_unityInterfaces);
+    }
 
-            IFC(MakeAndInitialize<DirectXManagerImpl>(&_dxManager, dx11->GetDevice()));
-        }
-#endif
-        break;
-
-    case kUnityGfxDeviceEventShutdown:
-        Log(Log_Level_Info, L"- Shutdown\n");
-        Uninitialize();
-        break;
-
-    case kUnityGfxDeviceEventBeforeReset:
-        Log(Log_Level_Info, L"- Lost\n");
-        if (nullptr != m_dxManager)
-        {
-            m_dxManager.Lost();
-        }
-        break;
-
-    case kUnityGfxDeviceEventAfterReset:
-        Log(Log_Level_Info, L"- Reset\n");
-        if (nullptr != m_dxManager)
-        {
-            m_dxManager.Reset();
-        }
-        break;
-    };
-
-done:
-    if (FAILED(hr))
+    // Cleanup graphics API implementation upon shutdown
+    if (eventType == kUnityGfxDeviceEventShutdown)
     {
-        Uninitialize();
+        s_deviceResource.reset();
+        s_deviceResource = nullptr;
+        s_deviceType = kUnityGfxRendererNull;
     }
 }
 
@@ -399,7 +359,7 @@ HRESULT PluginManager::ConnectionAddReceived(
     winrt::event_token evtReceivedToken = 
         connection.Received([this, handle, callback, pCallbackObject](
             _In_ Network::Connection const& sender,
-            _In_ Network::BundleReceivedArgs const& args)
+            _In_ Network::DataBundleArgs const& args)
     {
         Log(Log_Level_Info, L"PluginManagerImpl::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
 

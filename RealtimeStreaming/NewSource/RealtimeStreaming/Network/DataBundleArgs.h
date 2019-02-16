@@ -3,25 +3,32 @@
 
 #pragma once
 
-#include "Generated Files\Network\BundleReceivedArgs.g.h"
+#include "Network.DataBundleArgs.g.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct DataBundleArgs : BundleReceivedArgsT<DataBundleArgs>
+    struct DataBundleArgs : DataBundleArgsT<DataBundleArgs>
     {
         DataBundleArgs(_In_ Common::PayloadType operation,
-            _In_ Connection connection,
-            _In_ DataBundle bundle);
+            _In_ RealtimeStreaming::Network::Connection connection,
+            _In_ RealtimeStreaming::Network::DataBundle bundle);
         ~DataBundleArgs();
 
         //IDataBundleArgs
-        Common::PayloadType PayloadType();
-        Connection DataConnection();
-        DataBundle Bundle();
+        RealtimeStreaming::Common::PayloadType PayloadType();
+        RealtimeStreaming::Network::Connection DataConnection();
+        RealtimeStreaming::Network::DataBundle Bundle();
 
     private:
         Common::PayloadType   m_payloadType;
-        RealtimeStreaming::Network::Connection    m_connection;
-        RealtimeStreaming::Network::DataBundle    m_bundle;
+        Connection    m_connection;
+        DataBundle    m_bundle;
+    };
+}
+
+namespace winrt::RealtimeStreaming::Network::factory_implementation
+{
+    struct DataBundleArgs : DataBundleArgsT<DataBundleArgs, implementation::DataBundleArgs>
+    {
     };
 }

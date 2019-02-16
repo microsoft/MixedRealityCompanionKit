@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "Media/NetworkMediaSinkStream.g.h"
+#include "Media.NetworkMediaSinkStream.g.h"
+
+#include "Common/LinkList.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -89,7 +91,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
             IFACEMETHOD(GetMajorType) (
                 _Out_ GUID* pguidMajorType);
 
-            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
+            void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration) {};
 
             HRESULT Start(_In_ MFTIME start);
             HRESULT Restart();
@@ -100,7 +102,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
             HRESULT ConnectedFunc(_In_ bool fConnected, _In_ LONGLONG llCurrentTime);
             HRESULT CheckShutdown() const
             {
-                if (_state == SinkStreamState_Stopped)
+                if (m_state == SinkStreamState::Stopped)
                 {
                     return MF_E_SHUTDOWN;
                 }
@@ -110,11 +112,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 }
             }
 
-            bool IsVideo() const { return _fIsVideo; }
+            bool IsVideo() const { return m_fIsVideo; }
 
-            HRESULT FillStreamDescription(
-                _Inout_ MediaTypeDescription* pStreamDescription,
-                _Out_ IDataBuffer** ppDataBuffer);
+            Network::DataBuffer FillStreamDescription(_Inout_ Common::MediaTypeDescription* pStreamDescription);
 
         private:
             HRESULT ValidateOperation(
@@ -138,23 +138,20 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 _Out_ boolean* fRequestNewSample);
             HRESULT ProcessFormatChange(_In_ IMFMediaType* pMediaType);
 
-            HRESULT PrepareSample(
-                _In_ IMFSample* pSample, 
-                _In_ bool fForce,
-                _Out_ IDataBundle** ppDataBundle);
-            HRESULT PrepareStreamTick(
-                _In_ IMFAttributes* pAtrributes, 
-                _Out_ IDataBundle** ppDataBundle);
-            HRESULT PrepareFormatChange(
-                _In_ IMFMediaType* pMediaType, 
-                _Out_ IDataBundle** ppDataBundle);
+            Network::DataBundle PrepareSample(
+                _In_ IMFSample* pSample,
+                _In_ bool fForce);
+            Network::DataBundle PrepareStreamTick(
+                _In_ IMFAttributes* pAtrributes);
+            Network::DataBundle PrepareFormatChange(
+                _In_ IMFMediaType* pMediaType);
             HRESULT ProcessCameraData(
                 _In_ IMFSample* pSample,
                 _Inout_ MediaSampleHeader* pSampleHeader);
 
             HRESULT HandleError(HRESULT hr)
             {
-                if (!_isShutdown && FAILED(hr))
+                if (!m_isShutdown && FAILED(hr))
                 {
                     QueueEvent(MEError, GUID_NULL, hr, nullptr);
                 }
@@ -166,33 +163,34 @@ namespace winrt::RealtimeStreaming::Media::implementation
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
-            DWORD _dwStreamId;          // streamId
-            bool _fIsVideo;             // for video type streams, we have special data to send
-            bool _fGetFirstSampleTime;  // wait for the first keyframe
+            DWORD m_dwStreamId;          // streamId
+            bool m_fIsVideo;             // for video type streams, we have special data to send
+            bool m_fGetFirstSampleTime;  // wait for the first keyframe
 
-            SinkStreamState _state;         // current state of the sink
-            bool _isShutdown;           // Flag to indicate if Shutdown() method was called.
-            bool _isPlayerConnected;    // Flag to indicate we have a connected player and should send data
+            SinkStreamState m_state;         // current state of the sink
+            bool m_isShutdown;           // Flag to indicate if Shutdown() method was called.
+            bool m_isPlayerConnected;    // Flag to indicate we have a connected player and should send data
 
-            LONGLONG _adjustedStartTime;    // Presentation time when the clock started.
+            LONGLONG m_adjustedStartTime;    // Presentation time when the clock started.
 
-            com_ptr<RealtimeStreaming::Network::IConnection> m_connection;
-            com_ptr<RealtimeStreaming::Media::INetworkMediaSink>  _spParentMediaSink;
+            RealtimeStreaming::Network::Connection m_connection{ nullptr };
+            RealtimeStreaming::Media::NetworkMediaSink  m_parentMediaSink{ nullptr };
 
-            com_ptr<IMFMediaType> _currentType;
-            GUID _currentSubtype;
+            com_ptr<IMFMediaType> m_currentType;
+            GUID m_currentSubtype;
 
-            DWORD _workQueueId;     // ID of the work queue for asynchronous operations.
+            DWORD m_workQueueId;     // ID of the work queue for asynchronous operations.
+            AsyncCallback<NetworkMediaSinkStream> m_workQueueCB;     // Callback for the work queue.
+
+            com_ptr<IMFMediaEventQueue>  m_eventQueue;    // Event queue
             
-            AsyncCallback<NetworkMediaSinkStream> _workQueueCB;     // Callback for the work queue.
-
-            com_ptr<IMFMediaEventQueue>  _eventQueue;    // Event queue
-            ComPtrList<IUnknown>        _sampleQueue;   // Queue to hold samples and markers.
+            // array<com_ptr>?
+            ComPtrList<IUnknown>        m_sampleQueue;   // Queue to hold samples and markers.
                                                         // Applies to: ProcessSample, PlaceMarker
 
             // ValidStateMatrix: Defines a look-up table that says which operations
             // are valid from which states.
-            static BOOL ValidStateMatrix[SinkStreamState_Count][SinkStreamOperation_Count];
+            static bool ValidStateMatrix[(int)SinkStreamState::Count][(int)SinkStreamOperation::Count];
         };
 }
 

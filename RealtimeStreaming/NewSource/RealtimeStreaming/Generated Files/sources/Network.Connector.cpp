@@ -8,12 +8,12 @@ namespace winrt::RealtimeStreaming::Network::implementation
         throw hresult_not_implemented();
     }
 
-    event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler)
+    winrt::event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler)
     {
         throw hresult_not_implemented();
     }
 
-    void Connector::Closed(event_token const& token)
+    void Connector::Closed(winrt::event_token const& token) noexcept
     {
         throw hresult_not_implemented();
     }

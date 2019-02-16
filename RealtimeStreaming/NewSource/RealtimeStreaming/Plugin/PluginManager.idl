@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 import "Plugin/ModuleManager.idl";
-import "Plugin/DirectXManager.idl";
 
 namespace RealtimeStreaming.Plugin
 {
@@ -19,8 +18,7 @@ namespace RealtimeStreaming.Plugin
     [threading(both)]
     runtimeclass PluginManager
     {
+        PluginManager();
         RealtimeStreaming.Plugin.ModuleManager ModuleManager { get; };
-
-        RealtimeStreaming.Plugin.DirectXManager DirectXManager { get; };
     };
 }

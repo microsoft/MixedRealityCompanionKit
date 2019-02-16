@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Network/Connection.g.h"
+#include "Network.Connection.g.h"
 #include "Plugin.Module.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
@@ -13,9 +13,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Windows::Foundation::IAsyncAction SendBundleAsync(RealtimeStreaming::Network::DataBundle const dataBundle);
         bool IsConnected();
         Windows::Networking::Sockets::StreamSocketInformation ConnectionInfo();
-        event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
-        void Disconnected(event_token const& token);
-        event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler);
-        void Received(event_token const& token);
+        winrt::event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
+        void Disconnected(winrt::event_token const& token) noexcept;
+        winrt::event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler);
+        void Received(winrt::event_token const& token) noexcept;
     };
 }

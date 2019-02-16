@@ -38,6 +38,30 @@
 
 typedef UINT32 ModuleHandle;
 
+typedef int32_t INSTANCE_HANDLE;
+
+const ULONG c_cbReceiveBufferSize = 2 * 1024;
+const ULONG c_cbMaxBundleSize = 1024 * 1024;
+const UINT16 c_cbMaxBufferFailures = 7;
+const UINT16 c_cbMaxBundleFailures = 3;
+extern wchar_t const __declspec(selectany)c_szNetworkScheme[] = L"mrvc";
+extern wchar_t const __declspec(selectany)c_szNetworkSchemeWithColon[] = L"mrvc:";
+
+#ifndef INSTANCE_HANDLE_INVALID
+#define INSTANCE_HANDLE_INVALID static_cast<INSTANCE_HANDLE>(0x0bad)
+#define INSTANCE_HANDLE_START static_cast<INSTANCE_HANDLE>(0x0bae)
+#endif // INSTANCE_HANDLE_INVALID
+
+#ifndef RTDLL
+#ifdef REALTIMESTREAMING_EXPORTS
+#define RTDLL EXTERN_C HRESULT __declspec(dllexport) STDAPICALLTYPE
+#define RTDLL_(type) EXTERN_C type __declspec(dllexport) STDAPICALLTYPE
+#else
+#define RTDLL EXTERN_C HRESULT __declspec(dllimport) STDAPICALLTYPE
+#define RTDLL_(type) EXTERN_C type __declspec(dllimport) STDAPICALLTYPE
+#endif // REALTIMESTREAMING_EXPORTS
+#endif
+
 /*
 #include <sdkddkver.h>
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Network/DataBundle.g.h"
+#include "Network.DataBundle.g.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {

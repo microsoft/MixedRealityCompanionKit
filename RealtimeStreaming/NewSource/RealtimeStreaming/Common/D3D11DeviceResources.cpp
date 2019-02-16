@@ -31,52 +31,52 @@ void D3D11DeviceResources::ProcessDeviceEvent(
 
     switch (type)
     {
-    case kUnityGfxDeviceEventInitialize:
-    {
-        IUnityGraphicsD3D11* d3d = interfaces->Get<IUnityGraphicsD3D11>();
-        if (d3d != nullptr)
-        {
-            auto device = d3d->GetDevice();
-            if (device != nullptr)
+        case kUnityGfxDeviceEventInitialize: {
+            IUnityGraphicsD3D11* d3d = interfaces->Get<IUnityGraphicsD3D11>();
+            if (d3d != nullptr)
             {
-                IFV(InitializeResources(device));
+                auto device = d3d->GetDevice();
+                if (device != nullptr)
+                {
+                    IFRV(InitializeResources(device));
+                }
             }
-        }
 
-        if (m_initializedEvent)
-        {
-            m_initializedEvent(nullptr, *this);
+            if (m_initializedEvent)
+            {
+                m_initializedEvent(nullptr, *this);
+            }
+            break;
         }
+        case kUnityGfxDeviceEventShutdown:
+        {
+            if (m_shutdownEvent)
+            {
+                m_shutdownEvent(nullptr, *this);
+            }
 
-        break;
-    }
-    case kUnityGfxDeviceEventShutdown:
-    {
-        if (m_shutdownEvent)
-        {
-            m_shutdownEvent(nullptr, *this);
-        }
+            ReleaseResources();
 
-        ReleaseResources();
-
-        break;
-    }
-    case kUnityGfxDeviceEventBeforeReset:
-    {
-        if (m_resetStartedEvent)
-        {
-            m_resetStartedEvent(nullptr, *this);
+            break;
         }
-        break;
-    }
-    case kUnityGfxDeviceEventAfterReset:
-    {
-        if (m_resetCompletedEvent)
+        case kUnityGfxDeviceEventBeforeReset:
         {
-            m_resetCompletedEvent(nullptr, *this);
+            if (m_resetStartedEvent)
+            {
+                m_resetStartedEvent(nullptr, *this);
+            }
+            break;
         }
-        break;
-    }
+        case kUnityGfxDeviceEventAfterReset:
+        {
+            if (m_resetCompletedEvent)
+            {
+                m_resetCompletedEvent(nullptr, *this);
+            }
+            break;
+        }
+        default:
+            break;
     }
 }
 

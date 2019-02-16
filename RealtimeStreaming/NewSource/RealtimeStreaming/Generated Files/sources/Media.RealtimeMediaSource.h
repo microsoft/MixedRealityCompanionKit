@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Media/RealtimeMediaSource.g.h"
+#include "Media.RealtimeMediaSource.g.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {

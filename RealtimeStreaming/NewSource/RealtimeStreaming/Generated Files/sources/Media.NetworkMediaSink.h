@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Media/NetworkMediaSink.g.h"
+#include "Media.NetworkMediaSink.g.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
@@ -8,12 +8,12 @@ namespace winrt::RealtimeStreaming::Media::implementation
     {
         NetworkMediaSink() = delete;
 
-        event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
-        void Closed(event_token const& token);
-        HRESULT OnEndOfStream(uint32_t streamId);
-        HRESULT HandleError(HRESULT const& hr);
-        HRESULT CheckShutdown();
-        HRESULT SendDescription();
+        winrt::event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
+        void Closed(winrt::event_token const& token) noexcept;
+        winrt::hresult OnEndOfStream(uint32_t streamId);
+        winrt::hresult HandleError(winrt::hresult const& hr);
+        winrt::hresult CheckShutdown();
+        winrt::hresult SendDescription();
         void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);
     };
 }

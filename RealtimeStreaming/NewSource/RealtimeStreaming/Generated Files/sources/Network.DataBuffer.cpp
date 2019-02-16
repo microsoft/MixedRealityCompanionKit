@@ -28,7 +28,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         throw hresult_not_implemented();
     }
 
-    HRESULT DataBuffer::TrimLeft(uint64_t cbSize)
+    winrt::hresult DataBuffer::TrimLeft(uint64_t cbSize)
     {
         throw hresult_not_implemented();
     }
@@ -38,7 +38,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         throw hresult_not_implemented();
     }
 
-    HRESULT DataBuffer::Reset()
+    winrt::hresult DataBuffer::Reset()
     {
         throw hresult_not_implemented();
     }

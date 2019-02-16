@@ -6,7 +6,7 @@
 #include "DataBuffer.h"
 #include "DataBundle.h"
 #include "DataBundleArgs.h"
-#include <robuffer.h> // IBufferByteAccess 
+//#include <robuffer.h> // IBufferByteAccess 
 
 using namespace winrt;
 using namespace winrt::Windows::Foundation;
@@ -16,7 +16,7 @@ using namespace winrt::Windows::Storage::Streams;
 using namespace RealtimeStreaming::Network::implementation;
 using namespace RealtimeStreaming::Common;
 
-using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess; //IBufferByteAccess
+//using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess; //IBufferByteAccess
 
 _Use_decl_annotations_
 Connection::Connection(StreamSocket socket)
@@ -116,7 +116,7 @@ void Connection::Disconnected(winrt::event_token const& token)
 
 _Use_decl_annotations_
 event_token Connection::Received(
-    EventHandler<RealtimeStreaming::Network::BundleReceivedArgs> const& handler)
+    EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler)
 {
     Log(Log_Level_Info, L"ConnectionImpl::add_Received()\n");
 
@@ -143,20 +143,15 @@ IAsyncAction Connection::SendPayloadTypeAsync(
 {
     Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
 
-    // send an PayloadType header, contains no payload.
-    auto dataBuffer = make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
-    DataBundle dataBundle = DataBundle(); // TODO: winrt::make()?
-
-    // cast to IBufferByteAccess
-    //Windows::Storage::Streams::
-    com_ptr<IBufferByteAccess> spByteAccess = dataBuffer.as<IBufferByteAccess>();
-
-    // get the raw byte pointer
-    BYTE* pBuffer = nullptr;
-    dataBuffer.as<IDataBufferPriv>()->GetBufferPointer(&pBuffer);
-
-    //IFT(spByteAccess->Buffer(&buffer));
+    // Create send buffer
+    DataBuffer dataBuffer = DataBuffer(sizeof(PayloadHeader));
+    
+    // get the buffer pointer
+    BYTE* pBuffer;
+    dataBuffer.Buffer(&pBuffer);
     NULL_THROW(pBuffer);
+
+    DataBundle dataBundle = DataBundle(dataBuffer);
 
     // cast to the dataPtr
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuffer);
@@ -173,7 +168,7 @@ IAsyncAction Connection::SendPayloadTypeAsync(
 
 _Use_decl_annotations_
 IAsyncAction Connection::SendBundleAsync(
-    DataBundle dataBundle)
+    RealtimeStreaming::Network::DataBundle dataBundle)
 {
     Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync(bundle)\n");
 
@@ -195,7 +190,8 @@ IAsyncAction Connection::SendBundleAsync(
     winrt::RealtimeStreaming::Network::implementation::DataBundle db;
 
     // send one buffer at a time syncronously
-    for (auto const& currBuffer : dataBundle.GetBuffers())
+    auto dataBundleImpl = dataBundle.as<implementation::DataBundle>();
+    for (auto const& currBuffer : dataBundleImpl->GetBuffers())
     {
         totalLength += currBuffer.Length();
 
@@ -218,23 +214,24 @@ IAsyncAction Connection::WaitForHeader()
 
     IFT(CheckClosed());
 
-    if (PayloadType_Unknown != m_receivedHeader.ePayloadType ||
+    if (PayloadType::Unknown != m_receivedHeader.ePayloadType ||
         0 != m_receivedHeader.cbPayloadSize)
     {
         ResetBundle();
     }
 
+    // TODO: Look at why using member variable???
+    // Maybe create one and then pass through to OnheaderReceived*?
     if (nullptr == m_spHeaderBuffer)
     {
         m_spHeaderBuffer = DataBuffer(sizeof(PayloadHeader));
     }
 
-    // TODO: how to return com_ptr of winrt function?
-    com_ptr<IMFMediaBuffer> spMediaBuffer = m_spHeaderBuffer.MediaBuffer();
-    //IFT(m_spHeaderBuffer->get_MediaBuffer(&spMediaBuffer));
+    auto headerBufferImpl = m_spHeaderBuffer.as<implementation::DataBuffer>();
+    com_ptr<IMFMediaBuffer> spMediaBuffer;
+    IFT(headerBufferImpl->GetMediaBuffer(spMediaBuffer.put()));
 
-    DWORD bufferLen = 0;
-    IFT(spMediaBuffer->GetMaxLength(&bufferLen)); 
+    DWORD bufferLen = headerBufferImpl->Capacity();
 
     // should be the same as sizeof(PayloadHeader)
     if (bufferLen != sizeof(PayloadHeader))
@@ -243,10 +240,12 @@ IAsyncAction Connection::WaitForHeader()
     }
 
     // get the socket input stream reader
-    InputStream spInputStream = m_streamSocket.InputStream();
+    IInputStream inputStream = m_streamSocket.InputStream();
 
-    auto asyncInfo = co_await spInputStream.ReadAsync(m_spHeaderBuffer, bufferLen, InputStreamOptions::InputStreamOptions_Partial)
-    m_spHeaderBuffer = asyncInfo.GetResults();
+    auto bufferResult = co_await inputStream.ReadAsync(m_spHeaderBuffer, bufferLen, InputStreamOptions::Partial);
+    
+    m_spHeaderBuffer = nullptr; //unseat current header buffer
+    m_spHeaderBuffer = bufferResult.as<RealtimeStreaming::Network::DataBuffer>();
 
     return OnHeaderReceived();
 }
@@ -261,8 +260,8 @@ IAsyncAction Connection::WaitForPayload()
         return S_OK;
     }
 
-    if (PayloadType_Unknown == m_receivedHeader.ePayloadType ||
-        PayloadType_ENDOFLIST <= m_receivedHeader.ePayloadType ||
+    if (PayloadType::Unknown == m_receivedHeader.ePayloadType ||
+        PayloadType::ENDOFLIST <= m_receivedHeader.ePayloadType ||
         0 == m_receivedHeader.cbPayloadSize)
     {
         IFT(HRESULT_FROM_WIN32(ERROR_INVALID_STATE));
@@ -271,7 +270,7 @@ IAsyncAction Connection::WaitForPayload()
     DataBuffer payloadBuffer = DataBuffer(m_receivedHeader.cbPayloadSize);
 
     // get the underlying buffer and makes sure it the right size
-    com_ptr<IMFMediaBuffer> spMediaBuffer = payloadBuffer.MediaBuffer();
+    com_ptr<IMFMediaBuffer> spMediaBuffer = payloadBuffer.GetMediaBuffer();
     //IFT(payloadBuffer.MediaBuffer(&spMediaBuffer));
 
     DWORD bufferLen = 0;
@@ -286,9 +285,9 @@ IAsyncAction Connection::WaitForPayload()
     // get the socket input stream reader
     auto asyncInfo = co_await m_streamSocket.InputStream().ReadAsync(payloadBuffer,
         m_receivedHeader.cbPayloadSize,
-        InputStreamOptions::InputStreamOptions_None);
+        InputStreamOptions::None);
 
-    return OnPayloadReceived(asyncInfo.GetResults());
+    return OnPayloadReceived(asyncInfo);
 }
 
 _Use_decl_annotations_
@@ -298,7 +297,7 @@ void Connection::ResetBundle()
 
     if (nullptr != m_receivedBundle)
     {
-        LOG_RESULT(m_receivedBundle.Reset());
+        m_receivedBundle.Reset();
     }
 
     ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
@@ -306,15 +305,12 @@ void Connection::ResetBundle()
 
 _Use_decl_annotations_
 HRESULT Connection::ProcessHeaderBuffer(
-    PayloadHeader* header,
-    DataBuffer dataBuffer)
+    Common::PayloadHeader* header,
+    Network::DataBuffer dataBuffer)
 {
     NULL_CHK(header);
 
-    DataBundle dataBundle = DataBundle();
-    
-    // add buffer
-    IFR(dataBundle.AddBuffer(dataBuffer));
+    DataBundle dataBundle = DataBundle(dataBuffer);
 
     LOG_RESULT(NotifyBundleComplete(header->ePayloadType, dataBundle));
 
@@ -323,13 +319,13 @@ HRESULT Connection::ProcessHeaderBuffer(
 
 _Use_decl_annotations_
 HRESULT Connection::NotifyBundleComplete(
-    PayloadType payloadType,
-    DataBundle dataBundle)
+    Common::PayloadType payloadType,
+    Network::DataBundle dataBundle)
 {
     Log(Log_Level_Info, L"ConnectionImpl::OnCompleteBundle\n");
 
     {
-        auto lock = _lock.Lock();
+        slim_shared_lock_guard const guard(m_lock);
 
         if (FAILED(CheckClosed()))
         {
@@ -337,7 +333,7 @@ HRESULT Connection::NotifyBundleComplete(
         }
     }
 
-    BundleReceivedArgs> args = DataBundleArgs(payloadType, this, dataBundle);
+    DataBundleArgs args = DataBundleArgs(payloadType, *this, dataBundle);
     m_evtBundleReceived(*this, args);
 }
 
@@ -351,7 +347,7 @@ IAsyncAction Connection::OnHeaderReceived()
 
     HRESULT hr = S_OK;
 
-    UINT32 bytesRead = m_spHeaderBuffer.Length()
+    UINT32 bytesRead = m_spHeaderBuffer.Length();
     DWORD bufferSize = m_spHeaderBuffer.CurrentLength();
     
     // makes sure this is the expected size
@@ -365,7 +361,7 @@ IAsyncAction Connection::OnHeaderReceived()
     }
 
     // ensure we are waiting for a new payload
-    if (m_receivedHeader.ePayloadType != PayloadType_Unknown)
+    if (m_receivedHeader.ePayloadType != PayloadType::Unknown)
     {
         // should not be receiving a header buffer when waiting for payload buffers
         // bad state; bail
@@ -373,13 +369,17 @@ IAsyncAction Connection::OnHeaderReceived()
     }
 
     // cast buffer to PayloadHeader*
-    PayloadHeader* header = GetDataType<PayloadHeader*>(spBuffer.get());
+    auto headerBufferImpl = m_spHeaderBuffer.as<implementation::DataBuffer>();
+    BYTE* pBuffer;
+    headerBufferImpl->Buffer(&pBuffer);
+
+    PayloadHeader* header = reinterpret_cast<PayloadHeader*>(pBuffer);
     IFC(nullptr != header ? S_OK : E_UNEXPECTED);
 
     // is header type in a range we understand
-    if (header->ePayloadType == PayloadType_Unknown
+    if (header->ePayloadType == PayloadType::Unknown
         ||
-        header->ePayloadType > PayloadType_ENDOFLIST)
+        header->ePayloadType > PayloadType::ENDOFLIST)
     {
         m_concurrentFailedBuffers++;
 
@@ -408,14 +408,14 @@ IAsyncAction Connection::OnHeaderReceived()
 
     m_concurrentFailedBuffers = 0;
 
-    IFC(ProcessHeaderBuffer(header, dataBuffer));
+    IFC(ProcessHeaderBuffer(header, m_spHeaderBuffer));
 
 done:
     if (m_concurrentFailedBuffers > c_cbMaxBufferFailures)
     {
         LOG_RESULT(hr);
-
-        return Close();
+        Close();
+        return;
     }
 
     return WaitForHeader(); // go back to waiting for header
@@ -426,8 +426,13 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
 {
     Log(Log_Level_All, L"ConnectionImpl::OnPayloadReceived\n");
 
-    UINT32 bytesRead = buffer.Length();
-    DWORD bufferSize = buffer.CurrentLength();
+    // TODO: Does this need to be interface?
+    auto dataBuffer = payloadBuffer.as<IDataBuffer>();
+
+    NULL_THROW(dataBuffer);
+
+    UINT32 bytesRead = dataBuffer->Length();
+    DWORD bufferSize = dataBuffer->CurrentLength();
 
     // makes sure this is the expected size
     if (c_cbMaxBundleSize < m_receivedHeader.cbPayloadSize ||
@@ -435,16 +440,16 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
         bytesRead == 0 ||
         bytesRead != bufferSize)
     {
-        _concurrentFailedBundles++;
+        m_concurrentFailedBundles++;
 
         goto done;
     }
 
     // still have a valid payload type
-    if (m_receivedHeader.ePayloadType == PayloadType_Unknown ||
-        m_receivedHeader.ePayloadType >= PayloadType_ENDOFLIST)
+    if (m_receivedHeader.ePayloadType == PayloadType::Unknown ||
+        m_receivedHeader.ePayloadType >= PayloadType::ENDOFLIST)
     {
-        _concurrentFailedBundles++;
+        m_concurrentFailedBundles++;
 
         goto done;
     }
@@ -467,7 +472,7 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
     };
 
     // add the buffer to the bundle
-    m_receivedBundle.AddBuffer(payloadBuffer);
+    m_receivedBundle.AddBuffer(dataBuffer);
 
     // recalculate the bundle size
     bundleSize = m_receivedBundle.TotalSize();
@@ -484,11 +489,11 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
 done:
     ResetBundle();
 
-    if (_concurrentFailedBundles > c_cbMaxBundleFailures)
+    if (m_concurrentFailedBundles > c_cbMaxBundleFailures)
     {
         LOG_RESULT(HRESULT_FROM_WIN32(ERROR_CONNECTION_UNAVAIL));
-
-        return Close();
+        Close();
+        return;
     }
 
     return WaitForHeader();

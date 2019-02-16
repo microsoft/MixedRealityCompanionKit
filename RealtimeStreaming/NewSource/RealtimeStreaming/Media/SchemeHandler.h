@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include "Generated Files\Media\SchemeHandler.g.h"
-#include "Network\Connection.h"
+#include "Media.RTSchemeHandler.g.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
@@ -12,6 +11,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
     {
         public:
             RTSchemeHandler();
+
+            //RTSchemeHandler
+            RealtimeStreaming::Network::Connection RTSchemeHandler::DataConnection();
+            void RTSchemeHandler::DataConnection(RealtimeStreaming::Network::Connection const& connection);
 
             // IMediaExtension
             void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration);

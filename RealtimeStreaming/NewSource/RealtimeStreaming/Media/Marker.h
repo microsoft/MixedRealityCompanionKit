@@ -5,14 +5,14 @@
 
 #include <mfidl.h>
 
-namespace ABI
+namespace winrt
 {
     namespace RealtimeStreaming
     {
         namespace Media
         {
             interface DECLSPEC_UUID("6f17b4ae-f506-4d6e-a666-893638581b19") DECLSPEC_NOVTABLE
-                IMarker : public IUnknown
+                IMarker : public ::IUnknown
             {
             public:
                 virtual HRESULT STDMETHODCALLTYPE GetMarkerType(
@@ -27,44 +27,46 @@ namespace ABI
         }
     }
 }
-
-namespace RealtimeStreaming
+namespace winrt
 {
-    namespace Media
+    namespace RealtimeStreaming
     {
-        class MarkerImpl
-            : public IMarker
+        namespace Media
         {
-        public:
-            static HRESULT Create(
-                MFSTREAMSINK_MARKER_TYPE eMarkerType,
-                _In_opt_ const PROPVARIANT* pvarMarkerValue,
-                _In_opt_ const PROPVARIANT* pvarContextValue,
-                _Outptr_ IMarker** ppMarker);
+            class MarkerImpl
+                : public IMarker
+            {
+            public:
+                static HRESULT Create(
+                    MFSTREAMSINK_MARKER_TYPE eMarkerType,
+                    _In_opt_ const PROPVARIANT* pvarMarkerValue,
+                    _In_opt_ const PROPVARIANT* pvarContextValue,
+                    _Outptr_ IMarker** ppMarker);
 
-            // IUnknown methods.
-            IFACEMETHOD(QueryInterface) (REFIID riid, _COM_Outptr_ void** ppv);
-            IFACEMETHOD_(ULONG, AddRef) ();
-            IFACEMETHOD_(ULONG, Release) ();
+                // IUnknown methods.
+                IFACEMETHOD(QueryInterface) (REFIID riid, _COM_Outptr_ void** ppv);
+                IFACEMETHOD_(ULONG, AddRef) ();
+                IFACEMETHOD_(ULONG, Release) ();
 
-            // Inherited via RuntimeClass
-            IFACEMETHOD(GetMarkerType)(
-                MFSTREAMSINK_MARKER_TYPE* pType);
-            IFACEMETHOD(GetMarkerValue)(
-                PROPVARIANT* pVar);
-            IFACEMETHOD(GetContext)(
-                PROPVARIANT* pVar);
+                // Inherited via RuntimeClass
+                IFACEMETHOD(GetMarkerType)(
+                    MFSTREAMSINK_MARKER_TYPE* pType);
+                IFACEMETHOD(GetMarkerValue)(
+                    PROPVARIANT* pVar);
+                IFACEMETHOD(GetContext)(
+                    PROPVARIANT* pVar);
 
-        private:
-            MarkerImpl(MFSTREAMSINK_MARKER_TYPE eMarkerType);
-            ~MarkerImpl();
+            private:
+                MarkerImpl(MFSTREAMSINK_MARKER_TYPE eMarkerType);
+                ~MarkerImpl();
 
-        private:
-            long _cRef;
+            private:
+                long _cRef;
 
-            MFSTREAMSINK_MARKER_TYPE _eMarkerType;
-            PROPVARIANT _varMarkerValue;
-            PROPVARIANT _varContextValue;
-        };
+                MFSTREAMSINK_MARKER_TYPE _eMarkerType;
+                PROPVARIANT _varMarkerValue;
+                PROPVARIANT _varContextValue;
+            };
+        }
     }
 }

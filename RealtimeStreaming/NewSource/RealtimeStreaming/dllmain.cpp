@@ -3,11 +3,11 @@
 
 #include "pch.h"
 
-#include "PluginManagerStatics.h"
+#include "Plugin/PluginManager.h"
 
 using namespace Microsoft::WRL;
-using namespace RealtimeStreaming::Plugin;
-using namespace RealtimeStreaming::Network;
+using namespace winrt::RealtimeStreaming::Plugin;
+//using namespace winrt::RealtimeStreaming::Network;
 
 STDAPI_(BOOL) DllMain(
     _In_opt_ HINSTANCE hInstance, _In_ DWORD dwReason, _In_opt_ LPVOID lpReserved)
@@ -46,7 +46,7 @@ RTDLL_(void) UnityPluginLoad(_In_ IUnityInterfaces* unityInterfaces)
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        instance->Load(unityInterfaces, PluginManagerStaticsImpl::OnGraphicsDeviceEvent);
+        instance->Load(unityInterfaces);
     }
 }
 

@@ -3,27 +3,27 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    HRESULT NetworkMediaSinkStream::Start(int64_t start)
+    winrt::hresult NetworkMediaSinkStream::Start(int64_t start)
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSinkStream::Restart()
+    winrt::hresult NetworkMediaSinkStream::Restart()
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSinkStream::Stop()
+    winrt::hresult NetworkMediaSinkStream::Stop()
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSinkStream::Pause()
+    winrt::hresult NetworkMediaSinkStream::Pause()
     {
         throw hresult_not_implemented();
     }
 
-    HRESULT NetworkMediaSinkStream::Shutdown()
+    winrt::hresult NetworkMediaSinkStream::Shutdown()
     {
         throw hresult_not_implemented();
     }

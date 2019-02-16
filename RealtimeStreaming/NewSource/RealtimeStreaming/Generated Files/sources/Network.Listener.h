@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Network/Listener.g.h"
+#include "Network.Listener.g.h"
 #include "Plugin.Module.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
@@ -11,8 +11,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Listener(uint16_t port);
 
         Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> ListenAsync();
-        event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
-        void Closed(event_token const& token);
+        winrt::event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
+        void Closed(winrt::event_token const& token) noexcept;
     };
 }
 

@@ -1,0 +1,27 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+
+namespace RealtimeStreaming.Plugin
+{
+    [version(1.0), exclusiveto(Module), uuid(2edeb3fb-8008-4a13-b8d3-7081fd11443f)]
+    interface IModule : IInspectable
+    {
+        void Shutdown();
+
+    };
+
+    [version(1.0), exclusiveto(Module), uuid(1d81174e-2dc0-11e9-b210-d663bd873d93)]
+    interface IModuleFactory : IInspectable
+    {
+    }
+
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [composable(IModuleFactory, protected, 1.0)]
+    runtimeclass Module
+    {
+        [default] interface IModule;
+    };
+}

@@ -3,10 +3,11 @@
 
 #include "pch.h"
 #include "SchemeHandler.h"
+#include "RealtimeMediaSource.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Media::implementation;
-using namespace RealtimeStreaming::Media;
+
 using namespace Windows::Foundation;
 using namespace Windows::Foundation::Collections;
 
@@ -40,9 +41,9 @@ HRESULT RTSchemeHandler::BeginCreateObject(
     LPCWSTR pwszURL, 
     DWORD dwFlags,
     IPropertyStore* pProps,
-    IUnknown** ppCancelCookie,
+    ::IUnknown** ppCancelCookie,
     IMFAsyncCallback* pCallback,
-    IUnknown* punkState)
+    ::IUnknown* punkState)
 {
     Log(Log_Level_Info, L"RTSchemeHandler::BeginCreateObject()\n");
     
@@ -59,18 +60,25 @@ HRESULT RTSchemeHandler::BeginCreateObject(
        * ppCancelCookie = nullptr;
     }
 
-    RealtimeMediaSource spMediaSource = make<RealtimeMediaSource>();
-    
-    com_ptr<IUnknown> spSourceUnk;
-    IFT(spMediaSource.As(&spSourceUnk));
+    auto spMediaSource = winrt::make<implementation::RealtimeMediaSource>();
 
-    com_ptr<IAsyncAction> initMediaSourceOp;
-    IFT(spMediaSource.as<IAsyncAction>(&initMediaSourceOp));
+    auto initMediaSourceOp = spMediaSource.as<IAsyncAction>();
 
     com_ptr<IMFAsyncResult> spAsyncResult;
-    IFT(MFCreateAsyncResult(spSourceUnk.get(), pCallback, punkState, spAsyncResult.put()));
+    IFT(MFCreateAsyncResult(winrt::get_unknown(spMediaSource), pCallback, punkState, spAsyncResult.put()));
+
+    // Block thread until async action finishes
+    //initMediaSourceOp.get();
 
     // until the source gets the stream descriptions, the event will not fire
+    concurrency::create_task(initMediaSourceOp).then([spAsyncResult](HRESULT hr) {
+        LOG_RESULT(spAsyncResult->SetStatus(hr));
+
+        return MFInvokeCallback(spAsyncResult.get());
+    });
+
+    return S_OK;
+    /*
     return StartAsyncThen(
         initMediaSourceOp.get(),
         [spAsyncResult](HRESULT hr, IAsyncAction *asyncResult, AsyncStatus asyncStatus) -> HRESULT
@@ -78,14 +86,14 @@ HRESULT RTSchemeHandler::BeginCreateObject(
         LOG_RESULT(spAsyncResult->SetStatus(hr));
 
         return MFInvokeCallback(spAsyncResult.get());
-    });
+    });*/
 }
 
 _Use_decl_annotations_
 HRESULT RTSchemeHandler::EndCreateObject(
     IMFAsyncResult* pResult,
     MF_OBJECT_TYPE* pObjectType,
-    IUnknown** ppObject)
+    ::IUnknown** ppObject)
 {
     Log(Log_Level_Info, L"RTSchemeHandler::EndCreateObject()\n");
 
@@ -98,8 +106,8 @@ HRESULT RTSchemeHandler::EndCreateObject(
 
     IFT(pResult->GetStatus());
 
-    com_ptr<IUnknown> spUnkSource;
-    IFT(pResult->GetObject(&spUnkSource));
+    com_ptr<::IUnknown> spUnkSource;
+    IFT(pResult->GetObject(spUnkSource.put()));
    * pObjectType = MF_OBJECT_MEDIASOURCE;
    * ppObject = spUnkSource.detach();
 
@@ -108,7 +116,7 @@ HRESULT RTSchemeHandler::EndCreateObject(
 
 _Use_decl_annotations_
 HRESULT RTSchemeHandler::CancelObjectCreation(
-    IUnknown* pIUnknownCancelCookie)
+    ::IUnknown* pIUnknownCancelCookie)
 {
     return E_NOTIMPL;
 }

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Media/RTSchemeHandler.g.h"
+#include "Media.RTSchemeHandler.g.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Plugin/Module.g.h"
+#include "Plugin.Module.g.h"
 
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {

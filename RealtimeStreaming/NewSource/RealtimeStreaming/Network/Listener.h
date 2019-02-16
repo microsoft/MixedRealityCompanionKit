@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "Generated Files\Network\Listener.g.h"
+#include "Network.Listener.g.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct Listener : ListenerT<Listener, winrt::RealtimeStreaming::Plugin::implementation::Module>
+    struct Listener : ListenerT<Listener, winrt::RealtimeStreaming::Plugin::Module>
     {
 
         public:

@@ -38,11 +38,11 @@ using namespace Windows::Media::MediaProperties;
 using namespace Windows::Storage::Streams;
 
 #define SET_SAMPLE_ATTRIBUTE(flag, mask, pSample, flagName) \
-if ((static_cast<DWORD>(SampleFlags_SampleFlag_##flagName) & mask) == static_cast<DWORD>(SampleFlags_SampleFlag_##flagName)) \
+if ((static_cast<DWORD>(SampleFlags::SampleFlag_##flagName) & mask) == static_cast<DWORD>(SampleFlags::SampleFlag_##flagName)) \
 { \
     IFT(pSample->SetUINT32( \
         MFSampleExtension_##flagName, \
-        (static_cast<DWORD>(SampleFlags_SampleFlag_##flagName) & flag) == static_cast<DWORD>(SampleFlags_SampleFlag_##flagName))); \
+        (static_cast<DWORD>(SampleFlags::SampleFlag_##flagName) & flag) == static_cast<DWORD>(SampleFlags::SampleFlag_##flagName))); \
 }
 
 // Initialize an FFmpegInteropObject
@@ -127,7 +127,7 @@ VideoEncodingProperties RealtimeMediaSource::VideoProperties()
 }
 
 _Use_decl_annotations_
-void RealtimeMediaSource::OnStarting(MediaStreamSource const& sender,
+void RealtimeMediaSource::OnStarting(Windows::Media::Core::MediaStreamSource const& sender,
     MediaStreamSourceStartingEventArgs const& args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnStarting()\n");
@@ -147,7 +147,7 @@ void RealtimeMediaSource::OnStarting(MediaStreamSource const& sender,
 }
 
 _Use_decl_annotations_
-void RealtimeMediaSource::OnSampleRequested(MediaStreamSource const& sender,
+void RealtimeMediaSource::OnSampleRequested(Windows::Media::Core::MediaStreamSource const& sender,
     MediaStreamSourceSampleRequestedEventArgs const& args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRequested()\n");
@@ -179,7 +179,7 @@ void RealtimeMediaSource::OnSampleRequested(MediaStreamSource const& sender,
 }
 
 _Use_decl_annotations_
-void RealtimeMediaSource::OnClosed(MediaStreamSource const& sender, MediaStreamSourceClosedEventArgs const& args)
+void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const& sender, MediaStreamSourceClosedEventArgs const& args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnClosed()\n");
 
@@ -246,7 +246,7 @@ void RealtimeMediaSource::SendStopRequest()
 _Use_decl_annotations_
 void RealtimeMediaSource::OnDataReceived(
     Network::Connection const& sender,
-    Network::BundleReceivedArgs const& args)
+    Network::DataBundleArgs const& args)
 {
     // TODO: Troy figure out right lock
     //auto lock = m_lock.LockExclusive();
@@ -274,7 +274,7 @@ void RealtimeMediaSource::OnDataReceived(
         IFT(ProcessMediaFormatChange(args.Bundle));
         break;
     case PayloadType::SendMediaStreamTick:
-        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived() - PayloadType_SendMediaStreamTick\n");
+        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived() - PayloadType::SendMediaStreamTick\n");
         // TODO: Troy how to turn on without IMFMediaSource
         //IFC(ProcessMediaTick(spDataBundle.get()));
         break;
@@ -289,17 +289,19 @@ HRESULT RealtimeMediaSource::ProcessCaptureReady()
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessCaptureReady()\n");
 
-    if (m_eSourceState == SourceStreamState_Started || m_eSourceState == SourceStreamState_Stopped)
+    if (m_eSourceState == SourceStreamState::Started || m_eSourceState == SourceStreamState::Stopped)
     {
         return;
     }
 
-    return SendDescribeRequest();
+    SendDescribeRequest();
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT RealtimeMediaSource::ProcessMediaDescription(
-    Network::implementation::DataBundle const& dataBundle)
+    Network::DataBundle const& dataBundle)
 {
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaDescription()\n");
 
@@ -331,7 +333,9 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     MediaDescription desc;
     const DWORD c_cbMediaDescriptionSize = sizeof(MediaDescription);
     const DWORD c_cbMediaTypeDescriptionSize = sizeof(MediaTypeDescription);
+    HRESULT hr = S_OK;
 
+    auto dataBundleImpl = dataBundle.as<IDataBundlePriv>();
     MediaDescription desc;
     MediaTypeDescription* pMediaTypeDesc;
     
@@ -341,12 +345,11 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     // + one mediaType description
     if (dataBundle.TotalSize < (c_cbMediaDescriptionSize + c_cbMediaTypeDescriptionSize))
     {
-        // TODO: troy to figure out correct error reporting?
-        IFT(MF_E_UNSUPPORTED_FORMAT);
+        IFC(MF_E_UNSUPPORTED_FORMAT);
     }
 
     // Copy description.
-    dataBundle.MoveLeft(c_cbMediaDescriptionSize, &desc);
+    IFC(dataBundleImpl->MoveLeft(c_cbMediaDescriptionSize, &desc));
 
     // Size of the bundle should match size described in the packet (size of Description structure
     // plus size of attribute blob)
@@ -359,7 +362,7 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
         desc.StreamCount == 0 || desc.StreamCount > 2 ||
         cbTotalLen < cbHeaderSize)
     {
-        IFT(MF_E_UNSUPPORTED_FORMAT);
+        IFC(MF_E_UNSUPPORTED_FORMAT);
     }
 
     HRESULT hr = S_OK;;
@@ -372,7 +375,7 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     }
 
     // copy the mediaType header from the bundle
-    dataBundle.MoveLeft(StreamTypeHeaderSize, pPtr);
+    IFC(dataBundleImpl->MoveLeft(StreamTypeHeaderSize, pPtr));
 
     // Data is ready
     pMediaTypeDesc = reinterpret_cast<MediaTypeDescription*>(pPtr);
@@ -401,22 +404,23 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     IMediaStreamDescriptor mediaStreamDescriptor = VideoStreamDescriptor(m_spVideoEncoding);
 
     // Create internal MediaStreamSource
-    m_mediaStreamSource = MediaStreamSource(mediaStreamDescriptor);
+    m_mediaStreamSource = Windows::Media::Core::MediaStreamSource(mediaStreamDescriptor);
 
     // Set buffer time to 0 and IsLive true for realtime streaming to reduce latency
-    m_mediaStreamSource.BufferTime({ 0 });
+    TimeSpan span{ 0 };
+    m_mediaStreamSource.BufferTime(span);
     m_mediaStreamSource.IsLive = true;
 
     m_startingRequestedToken = m_mediaStreamSource.Starting({ this, &RealtimeMediaSource::OnStarting });
     m_sampleRequestedToken = m_mediaStreamSource.SampleRequested({ this, &RealtimeMediaSource::OnSampleRequested });
     m_closeRequestedToken = m_mediaStreamSource.Closed({ this, &RealtimeMediaSource::OnClosed });
 
-    m_eSourceState = SourceStreamState_Starting;
+    m_eSourceState = SourceStreamState::Starting;
 
     // Ask the server to start sending media samples to process
     SendStartRequest();
 
-    m_eSourceState = SourceStreamState_Started;
+    m_eSourceState = SourceStreamState::Started;
 
 done:
     delete[] pPtr;
@@ -427,18 +431,19 @@ done:
 }
 
 _Use_decl_annotations_
-IVideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescription(
+VideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescription(
     MediaTypeDescription streamDescription,
     Network::DataBundle attributesBuffer)
 {
     VideoEncodingProperties videoProps;
+    auto attributesBufferImpl = attributesBuffer.as<IDataBundlePriv>();
 
     // Create Media Type from attributes blob
     com_ptr<IMFMediaType> spMediaType;
     DWORD AttributesBlobSize = attributesBuffer.TotalSize;
 
     // Create a media type object.
-    IFT(MFCreateMediaType(&spMediaType));
+    IFT(MFCreateMediaType(spMediaType.put()));
 
     if (AttributesBlobSize < streamDescription.AttributesBlobSize
         ||
@@ -450,7 +455,7 @@ IVideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescripti
 
     // Prepare buffer where we will copy attributes to
     BYTE* pAttributes = new (std::nothrow) BYTE[streamDescription.AttributesBlobSize];
-    if (pAttributes == null)
+    if (pAttributes == nullptr)
     {
         IFT(E_OUTOFMEMORY);
     }
@@ -458,7 +463,7 @@ IVideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescripti
     HRESULT hr = S_OK;
 
     // Move the memory
-    IFC(attributesBuffer.MoveLeft(streamDescription.AttributesBlobSize, pAttributes));
+    IFC(attributesBufferImpl->MoveLeft(streamDescription.AttributesBlobSize, pAttributes));
 
     // Initialize media type's attributes
     IFC(MFInitAttributesFromBlob(spMediaType.get(), pAttributes, streamDescription.AttributesBlobSize));
@@ -466,7 +471,9 @@ IVideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescripti
     IFC(spMediaType->SetGUID(MF_MT_MAJOR_TYPE, streamDescription.guiMajorType));
     IFC(spMediaType->SetGUID(MF_MT_SUBTYPE, streamDescription.guiSubType));
 
-    IFC(MFCreatePropertiesFromMediaType(spMediaType.get(), IID_PPV_ARGS(&videoProps)));
+
+    // TROY: TODO. Figure out CPP winrt for this?
+    IFC(MFCreatePropertiesFromMediaType(spMediaType.get(), IID_PPV_ARGS(&winrt::get_unknown(videoProps))));
 
     /*
     TODO: See if I can return the streamdescriptor instead of IVideoEncodingProperties
@@ -491,19 +498,18 @@ done:
 
 _Use_decl_annotations_
 HRESULT RealtimeMediaSource::ProcessMediaSample(
-    DataBundle const& dataBundle)
+    Network::DataBundle const& dataBundle)
 {
     slim_lock_guard guard(m_lock);
 
-    //auto lock = m_lock.TryLockExclusive();
-    //auto lock = _lock.Lock();
+    auto dataBundleImpl = dataBundle.as<IDataBundlePriv>();
 
     Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample()\n");
 
     com_ptr<IMFSample> spSample;
 
     // Only process samples when we are in started state
-    if (m_eSourceState != SourceStreamState_Started && m_eSourceState != SourceStreamState_Shutdown)
+    if (m_eSourceState != SourceStreamState::Started && m_eSourceState != SourceStreamState::Shutdown)
     {
         if (FAILED(ProcessCaptureReady()))
         {
@@ -516,13 +522,12 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     }
 
     MediaSampleHeader sampleHead = {};
-    MediaSampleTransforms sampleTransforms;
 
     // Copy the header object
-    IFR(dataBundle.MoveLeft(sizeof(MediaSampleHeader), &sampleHead));
+    IFR(dataBundleImpl->MoveLeft(sizeof(MediaSampleHeader), &sampleHead));
 
     {
-        auto lock = _lock.Lock();
+        //auto lock = _lock.Lock();
 
         Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample() - CurrentTS: %d - Last TS:%d \n", sampleHead.hnsTimestamp, m_lastTimeStamp);
 
@@ -537,16 +542,15 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     }
 
     // Convert bundle data into IMFSample
-    IFR(dataBundle.ToMFSample(&spSample));
+    IFR(dataBundleImpl->ToMFSample(spSample.put()));
 
     // Set appropriate attributes of sample from header data
-    IFR(SetSampleAttributes(&sampleHead, spSample.get()));
+    IFR(SetSampleAttributes(sampleHead, spSample.get()));
 
     {
         // Save the recorded sample off the network to be given to OnSampleRequested called by the internal MediaStreamSource
         // Obtain lock since the OnSampleRequested could be reading this on another thread
-        //auto lock = m_lock.LockExclusive();
-        auto lock = _lock.Lock();
+        //auto lock = _lock.Lock();
 
         m_latestSample = spSample;
 
@@ -554,8 +558,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
         {
             Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample - Fire Deferral()\n");
 
-            com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest;
-            IFR(m_spRequest.as(&spIMFRequest));
+            com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest = m_spRequest.as< IMFMediaStreamSourceSampleRequest>();
 
             IFR(spIMFRequest->SetSample(m_latestSample.get()));
 
@@ -567,7 +570,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
         }
     }
 
-    return hr;
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -593,19 +596,19 @@ HRESULT RealtimeMediaSource::SetSampleAttributes(
 
 _Use_decl_annotations_
 HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
-    DataBundle dataBundle)
+    Network::DataBundle const& dataBundle)
 {
     com_ptr<IMFMediaType> spMediaType;
-    UINT32 bufferCount = dataBundle.BufferCount;
-    HRESULT hr = S_OK;
 
-    if (bufferCount == 0)
+    auto dataBundleImpl = dataBundle.as<IDataBundlePriv>();
+
+    if (dataBundle.BufferCount == 0)
     {
         // investigate why
         return S_OK;
     }
 
-    if (m_eSourceState != SourceStreamState_Started && m_eSourceState != SourceStreamState_Shutdown)
+    if (m_eSourceState != SourceStreamState::Started && m_eSourceState != SourceStreamState::Shutdown)
     {
         if (FAILED(ProcessCaptureReady()))
         {
@@ -617,13 +620,13 @@ HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
 
     // Minimum size of the operation payload is size of Description structure
     DWORD cbTypeDescSize = sizeof(MediaTypeDescription);
-    if (cbTotalLen < sizeof(Network::MediaTypeDescription))
+    if (cbTotalLen < sizeof(MediaTypeDescription))
     {
         IFR(MF_E_UNSUPPORTED_FORMAT);
     }
 
     MediaTypeDescription streamDesc;
-    IFR(dataBundle.MoveLeft(cbTypeDescSize, &streamDesc));
+    IFR(dataBundleImpl->MoveLeft(cbTypeDescSize, &streamDesc));
 
     if (cbTotalLen != cbTypeDescSize + streamDesc.AttributesBlobSize
         ||
@@ -635,10 +638,10 @@ HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
     {
         // Prepare buffer where we will copy attributes to
         std::vector<byte> blob(streamDesc.AttributesBlobSize);
-        IFR(dataBundle.MoveLeft(streamDesc.AttributesBlobSize, blob.data()));
+        IFR(dataBundleImpl->MoveLeft(streamDesc.AttributesBlobSize, blob.data()));
 
         // Create a media type object.
-        IFR(MFCreateMediaType(&spMediaType));
+        IFR(MFCreateMediaType(spMediaType.put));
 
         // Initialize media type's attributes
         IFR(MFInitAttributesFromBlob(spMediaType.get(), blob.data(), streamDesc.AttributesBlobSize));

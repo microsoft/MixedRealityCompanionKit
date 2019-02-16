@@ -4,18 +4,16 @@
 #include "pch.h"
 #include "DataBundleArgs.h"
 #include "Connection.h"
-
-#include "Generated Files\winrt\RealtimeStreaming.Common.h"
+#include "DataBundle.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Network::implementation;
-using namespace winrt::RealtimeStreaming::Common;
 
 _Use_decl_annotations_
 DataBundleArgs::DataBundleArgs(
-    RealtimeStreaming::Common::PayloadType operation,
-    Connection connection,
-    DataBundle bundle)
+    Common::PayloadType operation,
+    RealtimeStreaming::Network::Connection connection,
+    RealtimeStreaming::Network::DataBundle bundle)
     : m_payloadType(operation),
     m_connection(connection),
     m_bundle(bundle)
@@ -28,7 +26,7 @@ DataBundleArgs::~DataBundleArgs()
     Log(Log_Level_Info, L"DataBundleArgsImpl::~DataBundleArgsImpl()\n");
 }
 
-PayloadType DataBundleArgs::PayloadType()
+RealtimeStreaming::Common::PayloadType DataBundleArgs::PayloadType()
 {
     return m_payloadType;
 }

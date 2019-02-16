@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Network/DataBuffer.g.h"
+#include "Network.DataBuffer.g.h"
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
@@ -13,9 +13,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
         void CurrentLength(uint64_t value);
         uint64_t Offset();
         void Offset(uint64_t value);
-        HRESULT TrimLeft(uint64_t cbSize);
+        winrt::hresult TrimLeft(uint64_t cbSize);
         RealtimeStreaming::Network::DataBuffer TrimRight(uint64_t cbSize);
-        HRESULT Reset();
+        winrt::hresult Reset();
         uint32_t Capacity();
         uint32_t Length();
         void Length(uint32_t value);

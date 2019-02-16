@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Plugin/ModuleManager.g.h"
+#include "Plugin.ModuleManager.g.h"
 
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {
