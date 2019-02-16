@@ -3,14 +3,17 @@
 
 #include "pch.h"
 #include "DataBundleArgs.h"
+#include "Connection.h"
+
+#include "Generated Files\winrt\RealtimeStreaming.Common.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Network::implementation;
-using namespace RealtimeStreaming::Common;
+using namespace winrt::RealtimeStreaming::Common;
 
 _Use_decl_annotations_
 DataBundleArgs::DataBundleArgs(
-    Common::PayloadType operation,
+    RealtimeStreaming::Common::PayloadType operation,
     Connection connection,
     DataBundle bundle)
     : m_payloadType(operation),

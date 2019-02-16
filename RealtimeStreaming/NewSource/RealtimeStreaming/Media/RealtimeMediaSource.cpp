@@ -191,7 +191,7 @@ void RealtimeMediaSource::OnClosed(MediaStreamSource const& sender, MediaStreamS
     {
     case MediaStreamSourceClosedReason::UnknownError:
         LOG_RESULT(E_UNEXPECTED)
-            break;
+        break;
     case MediaStreamSourceClosedReason::AppReportedError:
         LOG_RESULT(E_ABORT);
         break;
