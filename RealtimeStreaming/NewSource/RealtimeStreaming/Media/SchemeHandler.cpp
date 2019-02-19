@@ -71,8 +71,8 @@ HRESULT RTSchemeHandler::BeginCreateObject(
     //initMediaSourceOp.get();
 
     // until the source gets the stream descriptions, the event will not fire
-    concurrency::create_task(initMediaSourceOp).then([spAsyncResult](HRESULT hr) {
-        LOG_RESULT(spAsyncResult->SetStatus(hr));
+    concurrency::create_task(initMediaSourceOp).then([&]() {
+        LOG_RESULT(spAsyncResult->SetStatus(S_OK));
 
         return MFInvokeCallback(spAsyncResult.get());
     });

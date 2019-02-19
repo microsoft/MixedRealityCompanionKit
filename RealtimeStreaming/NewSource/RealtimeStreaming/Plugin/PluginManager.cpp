@@ -4,18 +4,21 @@
 #include "pch.h"
 #include "PluginManager.h"
 #include "ModuleManager.h"
+
 #include "Network\Listener.h"
 #include "Network\Connector.h"
 #include "Network\DataBundle.h"
+
 #include "Media\RealtimeServer.h"
 #include "Media\RealtimeMediaPlayer.h"
+
+#include "winrt/RealtimeStreaming.Common.h"
 
 using namespace winrt;
 using namespace RealtimeStreaming::Plugin::implementation;
 using namespace RealtimeStreaming::Common;
 using namespace RealtimeStreaming::Network;
 
-using namespace concurrency;
 using namespace Windows::Foundation;
 using namespace Windows::Storage::Streams;
 using namespace Windows::Networking;
@@ -28,8 +31,9 @@ static UnityGfxRenderer s_deviceType = kUnityGfxRendererNull;
 static IUnityInterfaces* s_unityInterfaces = nullptr;
 static IUnityGraphics* s_unityGraphics = nullptr;
 
-static winrt::RealtimeStreaming::Media::RealtTimeMediaPlayer s_spStreamingPlayer{ nullptr };
+static winrt::RealtimeStreaming::Media::RealtimeMediaPlayer s_spStreamingPlayer{ nullptr };
 
+/*
 _Use_decl_annotations_
 PluginManager::PluginManager()
 {
@@ -37,6 +41,7 @@ PluginManager::PluginManager()
     m_unityGraphics = nullptr;
     m_unityCallback = nullptr;
 }
+*/
 
 PluginManager::~PluginManager()
 {
@@ -60,23 +65,9 @@ void PluginManager::Uninitialize()
     }
 }
 
-static RealtimeStreaming::Plugin::PluginManager s_instance{ nullptr };
-
 /* static */
 _Use_decl_annotations_
-PluginManager PluginManager::Instance()
-{
-    if (s_instance == nullptr)
-    {
-        s_instance = PluginManager();
-        s_threadId = GetCurrentThreadId();
-    }
-
-    return s_instance;
-}
-
-_Use_decl_annotations_
-winrt::RealtimeStreaming::Plugin::implementation::ModuleManager PluginManager::ModuleManager()
+RealtimeStreaming::Plugin::IRTModuleManager PluginManager::ModuleManager()
 {
     return m_moduleManager;
 }
@@ -88,23 +79,18 @@ BOOL PluginManager::IsOnThread()
 }
 
 
+/* static */
 _Use_decl_annotations_
 void PluginManager::Load(IUnityInterfaces* unityInterfaces)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::Load()\n");
 
-    slim_lock_guard guard(m_lock);
+    //slim_lock_guard guard(m_lock);
 
     NULL_THROW(unityInterfaces);
 
-    //m_unityCallback = callback;
-    //m_unityGraphics->RegisterDeviceEventCallback(m_unityCallback);
-
-    // Run OnGraphicsDeviceEvent(initialize) manually on plugin load
-    OnDeviceEvent(kUnityGfxDeviceEventInitialize);
-
     s_lastPluginHandleIndex = INSTANCE_HANDLE_START;
-    s_instances.clear();
+    //s_instances.clear();
 
     s_unityInterfaces = unityInterfaces;
     s_unityGraphics = s_unityInterfaces->Get<IUnityGraphics>();
@@ -114,36 +100,33 @@ void PluginManager::Load(IUnityInterfaces* unityInterfaces)
     OnDeviceEvent(kUnityGfxDeviceEventInitialize);
 }
 
+/* static */
 _Use_decl_annotations_
 void PluginManager::UnLoad()
 {
     Log(Log_Level_Info, L"PluginManagerImpl::UnLoad()\n");
 
     //slim_lock_guard guard(m_lock);
-    slim_lock_guard guard(m_lock);
 
-    if (nullptr == m_unityGraphics || nullptr == m_unityCallback)
+    if (nullptr == s_unityGraphics)
     {
         return;
     }
 
-    Uninitialize();
+    s_unityGraphics->UnregisterDeviceEventCallback(OnDeviceEvent);
 
-    m_unityGraphics->UnregisterDeviceEventCallback(m_unityCallback);
-
-    m_unityCallback = nullptr;
-
-    m_unityInterfaces = nullptr;
-
-    m_unityGraphics = nullptr;
+    s_unityInterfaces = nullptr;
+    s_unityGraphics = nullptr;
+    //s_instance = nullptr; //unload pluginmanager instance
 }
 
+/* static */
 _Use_decl_annotations_
 void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::OnDeviceEvent ");
 
-    slim_lock_guard guard(m_lock);
+    //slim_lock_guard guard(m_lock);
 
     UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
 
@@ -175,8 +158,8 @@ void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 _Use_decl_annotations_
 HRESULT PluginManager::ListenerCreateAndStart(
     UINT16 port,
-    ModuleHandle *listenerHandle,
-    PluginCallback callback,
+    RealtimeStreaming::Plugin::ModuleHandle *listenerHandle,
+    RealtimeStreaming::Plugin::PluginCallback callback,
     void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::StartListener()\n");
@@ -193,7 +176,7 @@ HRESULT PluginManager::ListenerCreateAndStart(
     // Save handle of newly created listener to output
     *listenerHandle = m_moduleManager.AddModule(listener);
     
-    create_task(listener.ListenAsync()).then([this, callback, pCallbackObject](_In_ Connection connection)
+    concurrency::create_task(listener.ListenAsync()).then([&](_In_ Connection connection)
     {
         Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
 
@@ -234,8 +217,8 @@ HRESULT PluginManager::ListenerStopAndClose(
 _Use_decl_annotations_
 HRESULT PluginManager::ConnectorCreateAndStart(
     LPCWSTR address,
-    ModuleHandle *connectorHandle,
-    PluginCallback callback,
+    RealtimeStreaming::Plugin::ModuleHandle *connectorHandle,
+    RealtimeStreaming::Plugin::PluginCallback callback,
     void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() -Tid:%d \n", GetCurrentThreadId());
@@ -247,13 +230,13 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     
     std::wstring wsUri = address;
     Uri uri{ wsUri };
-    HostName hostName = HostName(uri.Host);
+    HostName hostName = HostName(uri.Host());
 
-    Connector connector = Connector(hostName, uri.Port);
+    Connector connector = winrt::make<Network::implementation::Connector>(hostName, uri.Port());
 
     *connectorHandle = m_moduleManager.AddModule(connector);
     
-    create_task(connector.ConnectAsync()).then([this, callback, pCallbackObject](_In_ Connection connection)
+    concurrency::create_task(connector.ConnectAsync()).then([&](_In_ Connection connection)
     {
         Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() [ConnectAsync()] -Tid:%d \n", GetCurrentThreadId());
 
@@ -291,7 +274,7 @@ HRESULT PluginManager::ConnectorStopAndClose(
 _Use_decl_annotations_
 HRESULT PluginManager::ConnectionAddDisconnected(
     ModuleHandle handle,
-    PluginCallback callback,
+    RealtimeStreaming::Plugin::PluginCallback callback,
     void* pCallbackObject,
     INT64* tokenValue)
 {
@@ -341,7 +324,7 @@ HRESULT PluginManager::ConnectionRemoveDisconnected(
 _Use_decl_annotations_
 HRESULT PluginManager::ConnectionAddReceived(
     ModuleHandle handle,
-    DataReceivedHandler callback,
+    RealtimeStreaming::Plugin::DataReceivedHandler callback,
     void* pCallbackObject,
     INT64* tokenValue)
 {
@@ -365,16 +348,18 @@ HRESULT PluginManager::ConnectionAddReceived(
 
         HRESULT hr = S_OK;
 
-        PayloadType payloadType = args.PayloadType;
+        PayloadType payloadType = args.PayloadType();
 
-        switch (args.PayloadType)
+        switch (payloadType)
         {
         case PayloadType::State_Scene:
         case PayloadType::State_Input:
         {
-            Network::implementation::DataBundle dataBundle = args.Bundle;
+            auto dataBundle = args.Bundle().as<Network::implementation::DataBundle>();
 
-            DWORD cbTotalLen = dataBundle.TotalSize();
+            NULL_CHK(dataBundle);
+
+            DWORD cbTotalLen = dataBundle->TotalSize();
 
             // TODO: need better locking mechanism? cicular lock
             // PluginManager -> Add_ConnectionReceived hold locks but then connection class is locked against this finishing
@@ -387,7 +372,7 @@ HRESULT PluginManager::ConnectionAddReceived(
                 _bundleData.resize(cbTotalLen);
             }
 
-            hr = dataBundle.CopyTo(0, cbTotalLen, &_bundleData[0], &copiedBytes);
+            hr = dataBundle->CopyTo(0, cbTotalLen, &_bundleData[0], &copiedBytes);
             if (SUCCEEDED(hr))
             {
                 callback(handle, pCallbackObject, (UINT16)payloadType, copiedBytes, _bundleData.data());
@@ -591,7 +576,7 @@ _Use_decl_annotations_
 HRESULT PluginManager::RTPlayerCreate(
     ModuleHandle handle,
     //StateChangedCallback fnCallback,
-    PlayerCreatedCallback callback,
+    RealtimeStreaming::Plugin::PlayerCreatedCallback callback,
     void* pCallbackObject)
 {
     Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
@@ -603,32 +588,29 @@ HRESULT PluginManager::RTPlayerCreate(
 
     // get connection
     auto connection = GetModule<Connection>(handle);
-    UnityGfxRenderer unityGraphics = m_unityGraphics->GetRenderer();
+    //UnityGfxRenderer unityGraphics = m_unityGraphics->GetRenderer();
 
-    // TODO: update realtimemediaplayer with connection & realtimemediasource
+    auto rtPlayer = make<Media::implementation::RealtimeMediaPlayer>(m_unityInterfaces);
+
     s_spStreamingPlayer = nullptr; // make sure we unseat if previously assigned
-    //s_spStreamingPlayer = Media::implementation::RealtimeMediaPlayer::Create()
-    auto spPlayer = Media::RealtimeMediaPlayer();
-    /*
-    RealtimeMediaPlayer::Create(unityGraphics,
-        m_unityInterfaces,
-        spConnection.get(),
-        //fnCallback,
-        &spPlayer));
-    */
-    co_await spPlayer.InitAsync(connection)
+    s_spStreamingPlayer = rtPlayer;
 
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
+    concurrency::create_task(s_spStreamingPlayer.InitAsync(connection)).then([&](_In_ VideoEncodingProperties videoProps) {
+        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
+
         //slim_lock_guard guard(m_lock);
 
-    //spPlayer.MediaEncodingProfile
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() w:%d - h:%d \n", width, height);
-    callback(pCallbackObject,
-        hr,
-        width,
-        height);
+        UINT32 width = videoProps.Width(), height = videoProps.Height();
 
-    return hr;
+        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
+        
+        callback(pCallbackObject,
+            S_OK,
+            width,
+            height);
+    });
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -654,7 +636,11 @@ HRESULT PluginManager::RTPlayerCreateTexture(_In_ UINT32 width,
     NULL_CHK(ppvTexture);
     NULL_CHK(s_spStreamingPlayer);
 
-    return s_spStreamingPlayer.CreateStreamingTexture(width, height, ppvTexture);
+    auto rtPlayerImpl = s_spStreamingPlayer.as<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
+
+    NULL_CHK(rtPlayerImpl);
+
+    return rtPlayerImpl->CreateStreamingTexture(width, height, ppvTexture);
 }
 
 _Use_decl_annotations_
@@ -694,7 +680,7 @@ HRESULT PluginManager::RTPlayerStop()
 // internal
 _Use_decl_annotations_
 void PluginManager::CompletePluginCallback(
-    _In_ PluginCallback callback,
+    _In_ RealtimeStreaming::Plugin::PluginCallback callback,
     _In_ void* pCallbackObject,
     _In_ ModuleHandle handle,
     _In_ HRESULT hr)

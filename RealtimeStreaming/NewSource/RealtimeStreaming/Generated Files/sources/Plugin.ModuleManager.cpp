@@ -3,12 +3,12 @@
 
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {
-    uint32_t ModuleManager::AddModule(RealtimeStreaming::Plugin::Module const& pluginModule)
+    uint32_t ModuleManager::AddModule(RealtimeStreaming::Plugin::IRTModule const& pluginModule)
     {
         throw hresult_not_implemented();
     }
 
-    RealtimeStreaming::Plugin::Module ModuleManager::GetModule(uint32_t moduleHandle)
+    RealtimeStreaming::Plugin::IRTModule ModuleManager::GetModule(uint32_t moduleHandle)
     {
         throw hresult_not_implemented();
     }

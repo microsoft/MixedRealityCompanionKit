@@ -4,6 +4,8 @@
 #include "pch.h"
 #include "Connector.h"
 
+#include "Connection.h"
+
 using namespace winrt;
 using namespace RealtimeStreaming::Network::implementation;
 using namespace Windows::Foundation;
@@ -33,9 +35,6 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
 {
     Log(Log_Level_Info, L"ConnectorImpl::ConnectAsync()\n");
 
-    // set port as a string
-    //std::wstring wsPort = to_wstring(m_port);
-
     // activate a stream socket
     m_streamSocketResult.Control().KeepAlive(true);
     m_streamSocketResult.Control().NoDelay(true);
@@ -45,9 +44,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
 
     co_await m_streamSocketResult.ConnectAsync(m_hostName, winrt::to_hstring(port));
 
-    auto c = winrt::make<Connection>();
-
-    co_return winrt::make<Connection>(m_streamSocketResult);
+    co_return winrt::make<Network::implementation::Connection>(m_streamSocketResult);
 }
 
 /* Event Handlers */

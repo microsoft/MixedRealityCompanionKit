@@ -3,6 +3,11 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
+    Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(RealtimeStreaming::Network::Connection const connection)
+    {
+        throw hresult_not_implemented();
+    }
+
     winrt::hresult RealtimeMediaPlayer::Play()
     {
         throw hresult_not_implemented();
@@ -24,6 +29,11 @@ namespace winrt::RealtimeStreaming::Media::implementation
     }
 
     void RealtimeMediaPlayer::Closed(winrt::event_token const& token) noexcept
+    {
+        throw hresult_not_implemented();
+    }
+
+    void RealtimeMediaPlayer::Shutdown()
     {
         throw hresult_not_implemented();
     }

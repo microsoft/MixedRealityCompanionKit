@@ -38,7 +38,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         throw hresult_not_implemented();
     }
 
-    winrt::hresult DataBuffer::Reset()
+    void DataBuffer::Reset()
     {
         throw hresult_not_implemented();
     }

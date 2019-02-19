@@ -8,8 +8,8 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     {
         ModuleManager() = delete;
 
-        uint32_t AddModule(RealtimeStreaming::Plugin::Module const& pluginModule);
-        RealtimeStreaming::Plugin::Module GetModule(uint32_t moduleHandle);
+        uint32_t AddModule(RealtimeStreaming::Plugin::IRTModule const& pluginModule);
+        RealtimeStreaming::Plugin::IRTModule GetModule(uint32_t moduleHandle);
         void ReleaseModule(uint32_t moduleHandle);
     };
 }

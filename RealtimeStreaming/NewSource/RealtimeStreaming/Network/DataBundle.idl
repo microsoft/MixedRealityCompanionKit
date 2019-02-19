@@ -37,6 +37,5 @@ namespace RealtimeStreaming.Network
     runtimeclass DataBundle
     {
         [default] interface IDataBundle;
-        //DataBundle(RealtimeStreaming.Network.DataBuffer dataBuffer);
     };
 }

@@ -78,6 +78,13 @@ template <typename D> void consume_RealtimeStreaming_Network_IConnection<D>::Rec
     WINRT_VERIFY_(0, WINRT_SHIM(RealtimeStreaming::Network::IConnection)->remove_Received(get_abi(token)));
 }
 
+template <typename D> RealtimeStreaming::Network::Connection consume_RealtimeStreaming_Network_IConnectionFactory<D>::CreateInstance(Windows::Networking::Sockets::StreamSocket const& streamSocket) const
+{
+    RealtimeStreaming::Network::Connection value{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IConnectionFactory)->CreateInstance(get_abi(streamSocket), put_abi(value)));
+    return value;
+}
+
 template <typename D> Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> consume_RealtimeStreaming_Network_IConnector<D>::ConnectAsync() const
 {
     Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> operation{ nullptr };
@@ -140,11 +147,9 @@ template <typename D> RealtimeStreaming::Network::DataBuffer consume_RealtimeStr
     return result;
 }
 
-template <typename D> winrt::hresult consume_RealtimeStreaming_Network_IDataBuffer<D>::Reset() const
+template <typename D> void consume_RealtimeStreaming_Network_IDataBuffer<D>::Reset() const
 {
-    winrt::hresult result{};
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBuffer)->Reset(put_abi(result)));
-    return result;
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBuffer)->Reset());
 }
 
 template <typename D> RealtimeStreaming::Network::DataBuffer consume_RealtimeStreaming_Network_IDataBufferFactory<D>::CreateInstance(uint64_t size) const
@@ -362,6 +367,23 @@ struct produce<D, RealtimeStreaming::Network::IConnection> : produce_base<D, Rea
 };
 
 template <typename D>
+struct produce<D, RealtimeStreaming::Network::IConnectionFactory> : produce_base<D, RealtimeStreaming::Network::IConnectionFactory>
+{
+    int32_t WINRT_CALL CreateInstance(void* streamSocket, void** value) noexcept final
+    {
+        try
+        {
+            *value = nullptr;
+            typename D::abi_guard guard(this->shim());
+            WINRT_ASSERT_DECLARATION(CreateInstance, WINRT_WRAP(RealtimeStreaming::Network::Connection), Windows::Networking::Sockets::StreamSocket const&);
+            *value = detach_from<RealtimeStreaming::Network::Connection>(this->shim().CreateInstance(*reinterpret_cast<Windows::Networking::Sockets::StreamSocket const*>(&streamSocket)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    }
+};
+
+template <typename D>
 struct produce<D, RealtimeStreaming::Network::IConnector> : produce_base<D, RealtimeStreaming::Network::IConnector>
 {
     int32_t WINRT_CALL ConnectAsync(void** operation) noexcept final
@@ -474,13 +496,13 @@ struct produce<D, RealtimeStreaming::Network::IDataBuffer> : produce_base<D, Rea
         catch (...) { return to_hresult(); }
     }
 
-    int32_t WINRT_CALL Reset(winrt::hresult* result) noexcept final
+    int32_t WINRT_CALL Reset() noexcept final
     {
         try
         {
             typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(Reset, WINRT_WRAP(winrt::hresult));
-            *result = detach_from<winrt::hresult>(this->shim().Reset());
+            WINRT_ASSERT_DECLARATION(Reset, WINRT_WRAP(void));
+            this->shim().Reset();
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -683,6 +705,14 @@ struct produce<D, RealtimeStreaming::Network::IListenerFactory> : produce_base<D
 }
 
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Network {
+
+inline Connection::Connection() :
+    Connection(impl::call_factory<Connection>([](auto&& f) { return f.template ActivateInstance<Connection>(); }))
+{}
+
+inline Connection::Connection(Windows::Networking::Sockets::StreamSocket const& streamSocket) :
+    Connection(impl::call_factory<Connection, RealtimeStreaming::Network::IConnectionFactory>([&](auto&& f) { return f.CreateInstance(streamSocket); }))
+{}
 
 inline DataBuffer::DataBuffer(uint64_t size) :
     DataBuffer(impl::call_factory<DataBuffer, RealtimeStreaming::Network::IDataBufferFactory>([&](auto&& f) { return f.CreateInstance(size); }))
@@ -1161,17 +1191,12 @@ template <> struct properties<RealtimeStreaming::Network::DataBundle> : impl::pr
 template <> struct named_property<RealtimeStreaming::Network::DataBundleArgs> : impl::property_RealtimeStreaming_Network_DataBundleArgs::named {};
 template <> struct properties<RealtimeStreaming::Network::DataBundleArgs> : impl::property_RealtimeStreaming_Network_DataBundleArgs::list {};
 
-template <>
-struct base_type<RealtimeStreaming::Network::Connection> { using type = RealtimeStreaming::Plugin::Module; };
-template <>
-struct base_type<RealtimeStreaming::Network::Connector> { using type = RealtimeStreaming::Plugin::Module; };
-template <>
-struct base_type<RealtimeStreaming::Network::Listener> { using type = RealtimeStreaming::Plugin::Module; };
 }
 
 WINRT_EXPORT namespace std {
 
 template<> struct hash<winrt::RealtimeStreaming::Network::IConnection> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IConnection> {};
+template<> struct hash<winrt::RealtimeStreaming::Network::IConnectionFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IConnectionFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IConnector> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IConnector> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBuffer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBuffer> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBufferFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBufferFactory> {};

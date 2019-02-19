@@ -10,8 +10,8 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation {
 
-template <typename D, typename B, typename... I>
-struct WINRT_EBO Connection_base : implements<D, RealtimeStreaming::Network::IConnection, B, no_module_lock, I...>
+template <typename D, typename... I>
+struct WINRT_EBO Connection_base : implements<D, RealtimeStreaming::Network::IConnection, RealtimeStreaming::Plugin::IRTModule, I...>
 {
     using base_type = Connection_base;
     using class_type = RealtimeStreaming::Network::Connection;
@@ -36,6 +36,31 @@ struct WINRT_EBO Connection_base : implements<D, RealtimeStreaming::Network::ICo
     hstring GetRuntimeClassName() const
     {
         return L"RealtimeStreaming.Network.Connection";
+    }
+};
+
+}
+
+namespace winrt::RealtimeStreaming::Network::factory_implementation {
+
+template <typename D, typename T, typename... I>
+struct WINRT_EBO ConnectionT : implements<D, Windows::Foundation::IActivationFactory, RealtimeStreaming::Network::IConnectionFactory, I...>
+{
+    using instance_type = RealtimeStreaming::Network::Connection;
+
+    hstring GetRuntimeClassName() const
+    {
+        return L"RealtimeStreaming.Network.Connection";
+    }
+
+    Windows::Foundation::IInspectable ActivateInstance() const
+    {
+        return make<T>();
+    }
+
+    RealtimeStreaming::Network::Connection CreateInstance(Windows::Networking::Sockets::StreamSocket const& streamSocket)
+    {
+        return make<T>(streamSocket);
     }
 };
 

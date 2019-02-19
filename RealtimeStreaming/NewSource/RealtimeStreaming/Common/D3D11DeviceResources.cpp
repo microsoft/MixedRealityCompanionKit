@@ -31,52 +31,54 @@ void D3D11DeviceResources::ProcessDeviceEvent(
 
     switch (type)
     {
-        case kUnityGfxDeviceEventInitialize: {
-            IUnityGraphicsD3D11* d3d = interfaces->Get<IUnityGraphicsD3D11>();
-            if (d3d != nullptr)
-            {
-                auto device = d3d->GetDevice();
-                if (device != nullptr)
-                {
-                    IFRV(InitializeResources(device));
-                }
-            }
-
-            if (m_initializedEvent)
-            {
-                m_initializedEvent(nullptr, *this);
-            }
-            break;
-        }
-        case kUnityGfxDeviceEventShutdown:
+    case kUnityGfxDeviceEventInitialize:
+    {
+        IUnityGraphicsD3D11* d3d = interfaces->Get<IUnityGraphicsD3D11>();
+        if (d3d != nullptr)
         {
-            if (m_shutdownEvent)
+            auto device = d3d->GetDevice();
+            if (device != nullptr)
             {
-                m_shutdownEvent(nullptr, *this);
+                if (FAILED(InitializeResources(device)))
+                    return;
+                //IFV(InitializeResources(device));
             }
+        }
 
-            ReleaseResources();
+        if (m_initializedEvent)
+        {
+            m_initializedEvent(nullptr, *this);
+        }
 
-            break;
-        }
-        case kUnityGfxDeviceEventBeforeReset:
+        break;
+    }
+    case kUnityGfxDeviceEventShutdown:
+    {
+        if (m_shutdownEvent)
         {
-            if (m_resetStartedEvent)
-            {
-                m_resetStartedEvent(nullptr, *this);
-            }
-            break;
+            m_shutdownEvent(nullptr, *this);
         }
-        case kUnityGfxDeviceEventAfterReset:
+
+        ReleaseResources();
+
+        break;
+    }
+    case kUnityGfxDeviceEventBeforeReset:
+    {
+        if (m_resetStartedEvent)
         {
-            if (m_resetCompletedEvent)
-            {
-                m_resetCompletedEvent(nullptr, *this);
-            }
-            break;
+            m_resetStartedEvent(nullptr, *this);
         }
-        default:
-            break;
+        break;
+    }
+    case kUnityGfxDeviceEventAfterReset:
+    {
+        if (m_resetCompletedEvent)
+        {
+            m_resetCompletedEvent(nullptr, *this);
+        }
+        break;
+    }
     }
 }
 

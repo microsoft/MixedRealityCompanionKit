@@ -15,7 +15,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         void Offset(uint64_t value);
         winrt::hresult TrimLeft(uint64_t cbSize);
         RealtimeStreaming::Network::DataBuffer TrimRight(uint64_t cbSize);
-        winrt::hresult Reset();
+        void Reset();
         uint32_t Capacity();
         uint32_t Length();
         void Length(uint32_t value);

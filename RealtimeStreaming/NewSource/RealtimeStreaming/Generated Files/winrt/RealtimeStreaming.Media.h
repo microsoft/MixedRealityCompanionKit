@@ -110,6 +110,13 @@ template <typename D> void consume_RealtimeStreaming_Media_IRTSchemeHandler<D>::
     check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRTSchemeHandler)->put_DataConnection(get_abi(value)));
 }
 
+template <typename D> Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::InitAsync(RealtimeStreaming::Network::Connection const& connection) const
+{
+    Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> operation{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::IRealtimeMediaPlayer)->InitAsync(get_abi(connection), put_abi(operation)));
+    return operation;
+}
+
 template <typename D> winrt::hresult consume_RealtimeStreaming_Media_IRealtimeMediaPlayer<D>::Play() const
 {
     winrt::hresult result{};
@@ -356,6 +363,19 @@ struct produce<D, RealtimeStreaming::Media::IRTSchemeHandler> : produce_base<D, 
 template <typename D>
 struct produce<D, RealtimeStreaming::Media::IRealtimeMediaPlayer> : produce_base<D, RealtimeStreaming::Media::IRealtimeMediaPlayer>
 {
+    int32_t WINRT_CALL InitAsync(void* connection, void** operation) noexcept final
+    {
+        try
+        {
+            *operation = nullptr;
+            typename D::abi_guard guard(this->shim());
+            WINRT_ASSERT_DECLARATION(InitAsync, WINRT_WRAP(Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties>), RealtimeStreaming::Network::Connection const);
+            *operation = detach_from<Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties>>(this->shim().InitAsync(*reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&connection)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    }
+
     int32_t WINRT_CALL Play(winrt::hresult* result) noexcept final
     {
         try
@@ -723,11 +743,7 @@ template <> struct named_property<RealtimeStreaming::Media::RealtimeMediaSource>
 template <> struct properties<RealtimeStreaming::Media::RealtimeMediaSource> : impl::property_RealtimeStreaming_Media_RealtimeMediaSource::list {};
 template <> struct named_property<RealtimeStreaming::Media::RealtimeServer> : impl::property_RealtimeStreaming_Media_RealtimeServer::named {};
 template <> struct properties<RealtimeStreaming::Media::RealtimeServer> : impl::property_RealtimeStreaming_Media_RealtimeServer::list {};
-
-template <>
-struct base_type<RealtimeStreaming::Media::RealtimeMediaPlayer> { using type = RealtimeStreaming::Plugin::Module; };
-template <>
-struct base_type<RealtimeStreaming::Media::RealtimeServer> { using type = RealtimeStreaming::Plugin::Module; };template <> struct get_enumerator_names<RealtimeStreaming::Media::SinkStreamOperation>
+template <> struct get_enumerator_names<RealtimeStreaming::Media::SinkStreamOperation>
 {
     static constexpr std::array<std::wstring_view, 8> value{{ 
         {L"SetMediaType", 12},

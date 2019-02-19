@@ -30,16 +30,16 @@ WINRT_EXPORT namespace winrt::RealtimeStreaming::Network {
 
 struct WINRT_EBO Connection :
     RealtimeStreaming::Network::IConnection,
-    impl::base<Connection, RealtimeStreaming::Plugin::Module>,
-    impl::require<Connection, RealtimeStreaming::Plugin::IModule>
+    impl::require<Connection, RealtimeStreaming::Plugin::IRTModule>
 {
     Connection(std::nullptr_t) noexcept {}
+    Connection();
+    Connection(Windows::Networking::Sockets::StreamSocket const& streamSocket);
 };
 
 struct WINRT_EBO Connector :
     RealtimeStreaming::Network::IConnector,
-    impl::base<Connector, RealtimeStreaming::Plugin::Module>,
-    impl::require<Connector, RealtimeStreaming::Plugin::IModule>
+    impl::require<Connector, RealtimeStreaming::Plugin::IRTModule>
 {
     Connector(std::nullptr_t) noexcept {}
 };
@@ -66,8 +66,7 @@ struct WINRT_EBO DataBundleArgs :
 
 struct WINRT_EBO Listener :
     RealtimeStreaming::Network::IListener,
-    impl::base<Listener, RealtimeStreaming::Plugin::Module>,
-    impl::require<Listener, RealtimeStreaming::Plugin::IModule>
+    impl::require<Listener, RealtimeStreaming::Plugin::IRTModule>
 {
     Listener(std::nullptr_t) noexcept {}
     Listener(uint16_t port);

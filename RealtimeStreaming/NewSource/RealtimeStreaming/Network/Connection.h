@@ -7,22 +7,12 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    /*
-    typedef IAsyncOperation<Connection> IConnectionCreatedOperation;
-    typedef IAsyncOperationCompletedHandler<Connection> IConnectionCreatedCompletedEventHandler;
-
-    typedef IAsyncOperationWithProgress<IBuffer, UINT32> IStreamReadOperation;
-    typedef IAsyncOperationWithProgressCompletedHandler<IBuffer, UINT32> IStreamReadCompletedEventHandler;
-
-    typedef IAsyncOperationWithProgress<UINT32, UINT32> IStreamWriteOperation;
-    typedef IAsyncOperationWithProgressCompletedHandler<UINT32, UINT32> IStreamWriteCompletedEventHandler;
-    */
-    
-    struct Connection : ConnectionT<Connection, Plugin::Module>
+    struct Connection : ConnectionT<Connection> //  ,Plugin::IRTModule
     {
 
     public:
-        Connection(_In_ Windows::Networking::Sockets::StreamSocket socket);
+        Connection() = delete;
+        Connection(_In_ Windows::Networking::Sockets::StreamSocket const& socket);
         ~Connection();
 
         // IClosable
@@ -43,6 +33,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
         event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler);
         void Received(event_token const& token);
+
+        void Shutdown() {};
     protected:
         // IConnectionInternal
         inline IFACEMETHOD(CheckClosed)()
@@ -84,5 +76,12 @@ namespace winrt::RealtimeStreaming::Network::implementation
         winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
         winrt::event<Windows::Foundation::EventHandler<DataBundleArgs>> m_evtBundleReceived;
 
+    };
+}
+
+namespace winrt::RealtimeStreaming::Network::factory_implementation
+{
+    struct Connection : ConnectionT<Connection, implementation::Connection>
+    {
     };
 }

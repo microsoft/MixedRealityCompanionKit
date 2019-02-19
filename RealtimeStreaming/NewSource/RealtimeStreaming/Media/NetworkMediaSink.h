@@ -5,16 +5,12 @@
 
 #include "Media.NetworkMediaSink.g.h"
 
-#include "Common/LinkList.h"
-
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mferror.h>
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-        typedef ComPtrList<IMFStreamSink> StreamContainer;
-
         struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, IMFStreamSink, IMFClockStateSink, IMFMediaTypeHandler>
         {
         public:
@@ -69,13 +65,19 @@ namespace winrt::RealtimeStreaming::Media::implementation
             winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void NetworkMediaSink::Closed(winrt::event_token const& token);
         private:
-            HRESULT SendCaptureReady();
+            // TOOD: Remove HRESULT?
+            HRESULT SendStreamReady();
+            HRESULT SendStreamStopped();
             HRESULT SendDescription();
             HRESULT HandleError(_In_ HRESULT hr);
 
             HRESULT SetMediaStreamProperties(
                 _In_ Windows::Media::Capture::MediaStreamType mediaStreamType,
                 _In_ Windows::Media::MediaProperties::IMediaEncodingProperties mediaEncodingProperties);
+
+            HRESULT ConvertPropertiesToMediaType(
+                _In_ Windows::Media::MediaProperties::IMediaEncodingProperties const& mediaEncodingProp,
+                _Out_ IMFMediaType** ppMediaType);
 
             HRESULT CheckShutdown()
             {
@@ -101,9 +103,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
             slim_mutex m_lock;
 
             LONGLONG m_llStartTime;
-            com_ptr<IMFPresentationClock> m_presentationClock;  // Presentation clock.
+            winrt::com_ptr<IMFPresentationClock> m_presentationClock;  // Presentation clock.
 
-            StreamContainer m_streams;
+            //StreamContainer m_streams;
+            std::vector<winrt::com_ptr<IMFStreamSink> > m_streams;
 
             long _cStreamsEnded;
 
@@ -112,11 +115,4 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
             winrt::event<Windows::Foundation::EventHandler<bool>> m_evtClosed;
         };
-}
-
-namespace winrt::RealtimeStreaming::Media::factory_implementation
-{
-    struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, implementation::NetworkMediaSink>
-    {
-    };
 }

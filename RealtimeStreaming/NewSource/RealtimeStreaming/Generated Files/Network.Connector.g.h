@@ -10,8 +10,8 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation {
 
-template <typename D, typename B, typename... I>
-struct WINRT_EBO Connector_base : implements<D, RealtimeStreaming::Network::IConnector, B, no_module_lock, I...>
+template <typename D, typename... I>
+struct WINRT_EBO Connector_base : implements<D, RealtimeStreaming::Network::IConnector, RealtimeStreaming::Plugin::IRTModule, I...>
 {
     using base_type = Connector_base;
     using class_type = RealtimeStreaming::Network::Connector;

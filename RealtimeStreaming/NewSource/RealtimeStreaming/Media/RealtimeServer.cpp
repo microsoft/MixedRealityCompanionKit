@@ -19,8 +19,8 @@ RealtimeServer::RealtimeServer(
     Log(Log_Level_Info, L"RealtimeServerImpl::RuntimeClassInitialize()\n");
 
     // TODO: Currently hardcoded to not accept audio
-    m_spMediaEncodingProfile.Audio = nullptr;
-    m_spMediaEncodingProfile.Container = nullptr;
+    m_spMediaEncodingProfile.Audio(nullptr);
+    m_spMediaEncodingProfile.Container(nullptr);
 
     // create the custom network sink
     m_spNetworkMediaSink = winrt::make<NetworkMediaSink>(m_spMediaEncodingProfile.Audio(),

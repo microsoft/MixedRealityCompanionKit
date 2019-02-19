@@ -5,32 +5,25 @@
 
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Plugin {
 
-struct WINRT_EBO IModule :
-    Windows::Foundation::IInspectable,
-    impl::consume_t<IModule>
-{
-    IModule(std::nullptr_t = nullptr) noexcept {}
-};
-
-struct WINRT_EBO IModuleFactory :
-    Windows::Foundation::IInspectable,
-    impl::consume_t<IModuleFactory>
-{
-    IModuleFactory(std::nullptr_t = nullptr) noexcept {}
-};
-
-struct WINRT_EBO IModuleManager :
-    Windows::Foundation::IInspectable,
-    impl::consume_t<IModuleManager>
-{
-    IModuleManager(std::nullptr_t = nullptr) noexcept {}
-};
-
 struct WINRT_EBO IPluginManager :
     Windows::Foundation::IInspectable,
     impl::consume_t<IPluginManager>
 {
     IPluginManager(std::nullptr_t = nullptr) noexcept {}
+};
+
+struct WINRT_EBO IRTModule :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<IRTModule>
+{
+    IRTModule(std::nullptr_t = nullptr) noexcept {}
+};
+
+struct WINRT_EBO IRTModuleManager :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<IRTModuleManager>
+{
+    IRTModuleManager(std::nullptr_t = nullptr) noexcept {}
 };
 
 }

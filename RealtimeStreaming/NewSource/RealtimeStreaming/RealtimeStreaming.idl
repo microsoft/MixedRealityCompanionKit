@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-    
+/*
 namespace RealtimeStreaming.Common
 {
         cpp_quote("#ifndef MODULE_HANDLE")
@@ -9,7 +9,7 @@ namespace RealtimeStreaming.Common
             cpp_quote("#define MODULE_HANDLE_INVALID (UINT)0x0bad")
             cpp_quote("#define MODULE_HANDLE_START (UINT)0x0bae")
         cpp_quote("#endif // MODULE_HANDLE")
-}
+}*/
 
 // Forward Declare
 namespace RealtimeStreaming.Common

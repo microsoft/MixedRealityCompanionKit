@@ -10,6 +10,7 @@ enum class PayloadType;
 
 WINRT_EXPORT namespace winrt::Windows::Networking::Sockets {
 
+struct StreamSocket;
 struct StreamSocketInformation;
 
 }
@@ -17,6 +18,7 @@ struct StreamSocketInformation;
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Network {
 
 struct IConnection;
+struct IConnectionFactory;
 struct IConnector;
 struct IDataBuffer;
 struct IDataBufferFactory;
@@ -38,6 +40,7 @@ struct DisconnectedDelegate;
 namespace winrt::impl {
 
 template <> struct category<RealtimeStreaming::Network::IConnection>{ using type = interface_category; };
+template <> struct category<RealtimeStreaming::Network::IConnectionFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IConnector>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IDataBuffer>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IDataBufferFactory>{ using type = interface_category; };
@@ -54,6 +57,7 @@ template <> struct category<RealtimeStreaming::Network::DataBundleArgs>{ using t
 template <> struct category<RealtimeStreaming::Network::Listener>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Network::DisconnectedDelegate>{ using type = delegate_category; };
 template <> struct name<RealtimeStreaming::Network::IConnection>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IConnection" }; };
+template <> struct name<RealtimeStreaming::Network::IConnectionFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IConnectionFactory" }; };
 template <> struct name<RealtimeStreaming::Network::IConnector>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IConnector" }; };
 template <> struct name<RealtimeStreaming::Network::IDataBuffer>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBuffer" }; };
 template <> struct name<RealtimeStreaming::Network::IDataBufferFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBufferFactory" }; };
@@ -70,8 +74,9 @@ template <> struct name<RealtimeStreaming::Network::DataBundleArgs>{ static cons
 template <> struct name<RealtimeStreaming::Network::Listener>{ static constexpr auto & value{ L"RealtimeStreaming.Network.Listener" }; };
 template <> struct name<RealtimeStreaming::Network::DisconnectedDelegate>{ static constexpr auto & value{ L"RealtimeStreaming.Network.DisconnectedDelegate" }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IConnection>{ static constexpr guid value{ 0x27487688,0x8BB0,0x5355,{ 0xBC,0x5F,0xB8,0x65,0xE2,0x1E,0x94,0x8A } }; };
+template <> struct guid_storage<RealtimeStreaming::Network::IConnectionFactory>{ static constexpr guid value{ 0x14F9460A,0x72AC,0x5AF7,{ 0xAC,0xA4,0xF3,0xCA,0xC9,0xB8,0x17,0x7C } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IConnector>{ static constexpr guid value{ 0xED572D29,0x652C,0x582E,{ 0x9E,0x69,0x13,0x4C,0xE9,0x03,0x3D,0xF7 } }; };
-template <> struct guid_storage<RealtimeStreaming::Network::IDataBuffer>{ static constexpr guid value{ 0x9C3E8BDB,0x28C3,0x5A16,{ 0x86,0x88,0x85,0xEA,0x99,0x44,0x38,0x47 } }; };
+template <> struct guid_storage<RealtimeStreaming::Network::IDataBuffer>{ static constexpr guid value{ 0xAF9BEB60,0xC840,0x567E,{ 0x99,0xB4,0x19,0x8E,0xE2,0x99,0x6E,0x07 } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBufferFactory>{ static constexpr guid value{ 0x6AC59985,0xEC6A,0x5753,{ 0xAA,0x3F,0x9E,0x45,0x71,0x7B,0xDA,0x8B } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBundle>{ static constexpr guid value{ 0x01458CE6,0x2E5F,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBundleArgs>{ static constexpr guid value{ 0x26A177FE,0x2E53,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
@@ -98,6 +103,11 @@ template <> struct abi<RealtimeStreaming::Network::IConnection>{ struct type : I
     virtual int32_t WINRT_CALL remove_Received(winrt::event_token token) noexcept = 0;
 };};
 
+template <> struct abi<RealtimeStreaming::Network::IConnectionFactory>{ struct type : IInspectable
+{
+    virtual int32_t WINRT_CALL CreateInstance(void* streamSocket, void** value) noexcept = 0;
+};};
+
 template <> struct abi<RealtimeStreaming::Network::IConnector>{ struct type : IInspectable
 {
     virtual int32_t WINRT_CALL ConnectAsync(void** operation) noexcept = 0;
@@ -113,7 +123,7 @@ template <> struct abi<RealtimeStreaming::Network::IDataBuffer>{ struct type : I
     virtual int32_t WINRT_CALL put_Offset(uint64_t value) noexcept = 0;
     virtual int32_t WINRT_CALL TrimLeft(uint64_t cbSize, winrt::hresult* result) noexcept = 0;
     virtual int32_t WINRT_CALL TrimRight(uint64_t cbSize, void** result) noexcept = 0;
-    virtual int32_t WINRT_CALL Reset(winrt::hresult* result) noexcept = 0;
+    virtual int32_t WINRT_CALL Reset() noexcept = 0;
 };};
 
 template <> struct abi<RealtimeStreaming::Network::IDataBufferFactory>{ struct type : IInspectable
@@ -178,6 +188,13 @@ struct consume_RealtimeStreaming_Network_IConnection
 template <> struct consume<RealtimeStreaming::Network::IConnection> { template <typename D> using type = consume_RealtimeStreaming_Network_IConnection<D>; };
 
 template <typename D>
+struct consume_RealtimeStreaming_Network_IConnectionFactory
+{
+    RealtimeStreaming::Network::Connection CreateInstance(Windows::Networking::Sockets::StreamSocket const& streamSocket) const;
+};
+template <> struct consume<RealtimeStreaming::Network::IConnectionFactory> { template <typename D> using type = consume_RealtimeStreaming_Network_IConnectionFactory<D>; };
+
+template <typename D>
 struct consume_RealtimeStreaming_Network_IConnector
 {
     Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> ConnectAsync() const;
@@ -197,7 +214,7 @@ struct consume_RealtimeStreaming_Network_IDataBuffer
     void Offset(uint64_t value) const;
     winrt::hresult TrimLeft(uint64_t cbSize) const;
     RealtimeStreaming::Network::DataBuffer TrimRight(uint64_t cbSize) const;
-    winrt::hresult Reset() const;
+    void Reset() const;
 };
 template <> struct consume<RealtimeStreaming::Network::IDataBuffer> { template <typename D> using type = consume_RealtimeStreaming_Network_IDataBuffer<D>; };
 

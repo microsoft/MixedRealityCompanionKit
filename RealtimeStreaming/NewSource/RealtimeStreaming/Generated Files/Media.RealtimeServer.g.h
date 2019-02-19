@@ -12,8 +12,8 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation {
 
-template <typename D, typename B, typename... I>
-struct WINRT_EBO RealtimeServer_base : implements<D, RealtimeStreaming::Media::IRealtimeServer, B, no_module_lock, I...>
+template <typename D, typename... I>
+struct WINRT_EBO RealtimeServer_base : implements<D, RealtimeStreaming::Media::IRealtimeServer, RealtimeStreaming::Plugin::IRTModule, I...>
 {
     using base_type = RealtimeServer_base;
     using class_type = RealtimeStreaming::Media::RealtimeServer;

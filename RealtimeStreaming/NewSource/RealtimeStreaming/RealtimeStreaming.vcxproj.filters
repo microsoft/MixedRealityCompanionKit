@@ -73,9 +73,6 @@
     <ClCompile Include="Plugin\PluginManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
-    <ClCompile Include="Module.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
     <ClCompile Include="Media\RealtimeMediaPlayer.cpp">
       <Filter>Media</Filter>
     </ClCompile>
@@ -133,9 +130,6 @@
     <ClInclude Include="Common\ErrorHandling.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Common\LinkList.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Common\OpQueue.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -161,9 +155,6 @@
       <Filter>Plugin</Filter>
     </ClInclude>
     <ClInclude Include="Plugin\PluginManager.h">
-      <Filter>Plugin</Filter>
-    </ClInclude>
-    <ClInclude Include="Module.h">
       <Filter>Plugin</Filter>
     </ClInclude>
     <ClInclude Include="Media\RealtimeMediaPlayer.h">
@@ -216,17 +207,14 @@
     <Midl Include="Media\RealtimeMediaPlayer.idl">
       <Filter>Media</Filter>
     </Midl>
-    <Midl Include="SchemeHandler.idl">
-      <Filter>Media</Filter>
-    </Midl>
     <Midl Include="Network\DataBundleArgs.idl">
       <Filter>Network</Filter>
     </Midl>
     <Midl Include="RealtimeStreaming.idl">
       <Filter>Common</Filter>
     </Midl>
-    <Midl Include="Module.idl">
-      <Filter>Plugin</Filter>
+    <Midl Include="Media\SchemeHandler.idl">
+      <Filter>Media</Filter>
     </Midl>
   </ItemGroup>
   <ItemGroup>

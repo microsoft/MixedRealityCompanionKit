@@ -1,17 +1,24 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #pragma once
-import "RealtimeStreaming.idl";
-import "Module.idl";
 
 namespace RealtimeStreaming.Plugin
 {
-    [version(1.0), exclusiveto(ModuleManager), uuid(ed7ca192-2e9d-11e9-b210-d663bd873d93)]
-    interface IModuleManager : IInspectable
+    
+    [version(1.0), uuid(2edeb3fb-8008-4a13-b8d3-7081fd11443f)]
+    interface IRTModule : IInspectable
     {
-        UInt32 AddModule(Module pluginModule);
+        void Shutdown();
 
-        Module GetModule(UInt32 moduleHandle);
+    };
+    
+
+    [version(1.0), exclusiveto(ModuleManager), uuid(ed7ca192-2e9d-11e9-b210-d663bd873d93)]
+    interface IRTModuleManager : IInspectable
+    {
+        UInt32 AddModule(IRTModule pluginModule);
+
+        IRTModule GetModule(UInt32 moduleHandle);
 
         void ReleaseModule(UInt32 moduleHandle);
     };
@@ -21,6 +28,6 @@ namespace RealtimeStreaming.Plugin
     [threading(both)]
     runtimeclass ModuleManager
     {
-        [default] interface IModuleManager;
+        [default] interface IRTModuleManager;
     };
 }

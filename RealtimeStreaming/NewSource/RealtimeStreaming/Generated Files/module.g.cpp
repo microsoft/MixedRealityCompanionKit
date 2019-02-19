@@ -5,6 +5,7 @@
 #include "Media.RealtimeMediaPlayer.h"
 #include "Media.RealtimeMediaSource.h"
 #include "Media.RealtimeServer.h"
+#include "Network.Connection.h"
 #include "Network.DataBuffer.h"
 #include "Network.Listener.h"
 #include "Plugin.PluginManager.h"
@@ -62,6 +63,12 @@ int32_t WINRT_CALL WINRT_GetActivationFactory(void* classId, void** factory) noe
         if (requal(name, L"RealtimeStreaming.Media.RealtimeServer"))
         {
             *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::Media::factory_implementation::RealtimeServer>());
+            return 0;
+        }
+
+        if (requal(name, L"RealtimeStreaming.Network.Connection"))
+        {
+            *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::Network::factory_implementation::Connection>());
             return 0;
         }
 

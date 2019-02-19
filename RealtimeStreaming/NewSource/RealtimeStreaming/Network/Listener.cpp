@@ -34,7 +34,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
 
     // create a listener
     m_connectionReceivedEventToken = m_socketListener.ConnectionReceived({ this, &Listener::OnConnectionReceived });
-    m_signal = CreateEvent(nullptr, true, false, nullptr);
+    m_signal = handle(::CreateEvent(nullptr, true, false, nullptr));
 
     // Convert our port to a string
     std::string port = std::to_string(m_port);
@@ -77,7 +77,7 @@ void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
 
     //slim_lock_guard guard(m_lock);
 
-    m_connection = winrt::make<implementation::Connection>(args.Socket);
+    m_connection = winrt::make<implementation::Connection>(args.Socket());
 
     // Signal completion of ListenAsync()
     SetEvent(m_signal.get());

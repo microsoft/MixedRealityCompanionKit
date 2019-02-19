@@ -3,15 +3,18 @@
 #pragma once
 
 import "Plugin/ModuleManager.idl";
+import "Network/Connection.idl";
 
 namespace RealtimeStreaming.Media
 {
     [version(1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
-    runtimeclass RealtimeMediaPlayer : RealtimeStreaming.Plugin.Module
+    runtimeclass RealtimeMediaPlayer : RealtimeStreaming.Plugin.IRTModule
     {
         RealtimeMediaPlayer();
+
+        Windows.Foundation.IAsyncOperation<Windows.Media.MediaProperties.VideoEncodingProperties> InitAsync(RealtimeStreaming.Network.Connection connection);
 
         HRESULT Play();
         HRESULT Pause();

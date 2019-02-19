@@ -17,6 +17,8 @@ using namespace RealtimeStreaming::Common;
 using namespace Windows::Foundation;
 using namespace Windows::Storage::Streams;
 
+using SinkStreamOp = RealtimeStreaming::Media::SinkStreamOperation;
+
 #define SET_SAMPLE_FLAG(dest, destMask, pSample, flagName) \
 { \
     UINT32 unValue; \
@@ -28,7 +30,7 @@ using namespace Windows::Storage::Streams;
 }
 
 // If an entry is TRUE, the operation is valid from that state.
-bool NetworkMediaSinkStream::ValidStateMatrix[(int)SinkStreamState::Count][(int)SinkStreamOperation::Count] =
+bool NetworkMediaSinkStream::ValidStateMatrix[(int)winrt::RealtimeStreaming::Media::SinkStreamState::Count][(int)SinkStreamOp::Count] =
 {
     //            Operations:
     // States:    SetType  Start    Restart Pause   Stop    Sample  Marker
@@ -44,7 +46,7 @@ bool NetworkMediaSinkStream::ValidStateMatrix[(int)SinkStreamState::Count][(int)
 };
 
 _Use_decl_annotations_
-NetworkMediaSinkStream::AsyncOperation::AsyncOperation(SinkStreamOperation op)
+NetworkMediaSinkStream::AsyncOperation::AsyncOperation(SinkStreamOp op)
     : _cRef(1)
     , _op(op)
 {
@@ -96,8 +98,8 @@ HRESULT NetworkMediaSinkStream::AsyncOperation::QueryInterface(REFIID iid, void*
 
 _Use_decl_annotations_
 NetworkMediaSinkStream::NetworkMediaSinkStream(DWORD streamId,
-    Network::Connection connection,
-    NetworkMediaSink parentMediaSink)
+    RealtimeStreaming::Network::Connection connection,
+    RealtimeStreaming::Media::NetworkMediaSink parentMediaSink)
     : m_dwStreamId(streamId)
     , m_state(SinkStreamState::NotSet)
     , m_isShutdown(false)
@@ -259,7 +261,7 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
     IFC(CheckShutdown());
 
     // Validate the operation.
-    IFC(ValidateOperation(SinkStreamOperation::ProcessSample));
+    IFC(ValidateOperation(SinkStreamOp::ProcessSample));
 
     if(!m_isPlayerConnected)
     {
@@ -285,13 +287,17 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
         }
 
         // Add the sample to the sample queue.
-        IFC(m_sampleQueue.InsertBack(pSample));
+        com_ptr<IMFSample> spSample;
+        spSample.attach(pSample);
+
+        m_sampleQueue.push_back(spSample);
+        //IFC(m_sampleQueue.InsertBack(pSample));
 
         // Unless we are paused, start an async operation to dispatch the next sample.
         if (SinkStreamState::Paused != m_state)
         {
             // Queue the operation.
-            IFC(QueueAsyncOperation(SinkStreamOperation::ProcessSample));
+            IFC(QueueAsyncOperation(SinkStreamOp::ProcessSample));
         }
     }
 
@@ -312,12 +318,13 @@ HRESULT NetworkMediaSinkStream::PlaceMarker(
 {
     slim_lock_guard guard(m_lock);
 
-    IFR(ValidateOperation(SinkStreamOperation::PlaceMarker));
+    IFR(ValidateOperation(SinkStreamOp::PlaceMarker));
 
     com_ptr<IMarker> spMarker;
     IFR(MarkerImpl::Create(eMarkerType, pvarMarkerValue, pvarContextValue, spMarker.put()));
 
-    m_sampleQueue.InsertBack(spMarker.get());
+    m_sampleQueue.push_back(spMarker);
+    //m_sampleQueue.InsertBack(spMarker.get());
 
     if (SinkStreamState::Paused == m_state)
     {
@@ -325,7 +332,7 @@ HRESULT NetworkMediaSinkStream::PlaceMarker(
     }
 
     // Queue the operation.
-    return QueueAsyncOperation(SinkStreamOperation::PlaceMarker); // Increments ref count on pOp.
+    return QueueAsyncOperation(SinkStreamOp::PlaceMarker); // Increments ref count on pOp.
 }
 
 _Use_decl_annotations_
@@ -430,7 +437,7 @@ HRESULT NetworkMediaSinkStream::SetCurrentMediaType(
     IFR(CheckShutdown());
 
     // don't allow format changes after streaming starts.
-    IFR(ValidateOperation(SinkStreamOperation::SetMediaType));
+    IFR(ValidateOperation(SinkStreamOp::SetMediaType));
 
     // set media type already
     if (SinkStreamState::Ready <= m_state)
@@ -509,7 +516,7 @@ HRESULT NetworkMediaSinkStream::Start(MFTIME start)
 {
     slim_lock_guard guard(m_lock);
 
-    IFR(ValidateOperation(SinkStreamOperation::Start));
+    IFR(ValidateOperation(SinkStreamOp::Start));
 
     if (start != PRESENTATION_CURRENT_POSITION)
     {
@@ -517,40 +524,40 @@ HRESULT NetworkMediaSinkStream::Start(MFTIME start)
     }
     m_state = SinkStreamState::Started;
 
-    return QueueAsyncOperation(SinkStreamOperation::Start);
+    return QueueAsyncOperation(SinkStreamOp::Start);
 }
 
 // Called when the presentation clock stops.
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkStream::Stop()
 {
-    IFR(ValidateOperation(SinkStreamOperation::Stop));
+    IFR(ValidateOperation(SinkStreamOp::Stop));
 
     m_state = SinkStreamState::Stopped;
 
-    return QueueAsyncOperation(SinkStreamOperation::Stop);
+    return QueueAsyncOperation(SinkStreamOp::Stop);
 }
 
 // Called when the presentation clock pauses.
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkStream::Pause()
 {
-    IFR(ValidateOperation(SinkStreamOperation::Pause));
+    IFR(ValidateOperation(SinkStreamOp::Pause));
     
     m_state = SinkStreamState::Paused;
     
-    return QueueAsyncOperation(SinkStreamOperation::Pause);
+    return QueueAsyncOperation(SinkStreamOp::Pause);
 }
 
 // Called when the presentation clock restarts.
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkStream::Restart()
 {
-    IFR(ValidateOperation(SinkStreamOperation::Restart));
+    IFR(ValidateOperation(SinkStreamOp::Restart));
 
     m_state = SinkStreamState::Started;
 
-    return QueueAsyncOperation(SinkStreamOperation::Restart);
+    return QueueAsyncOperation(SinkStreamOp::Restart);
 }
 
 // Shuts down the stream sink.
@@ -568,7 +575,7 @@ HRESULT NetworkMediaSinkStream::Shutdown()
 
         MFUnlockWorkQueue(m_workQueueId);
 
-        m_sampleQueue.Clear();
+        m_sampleQueue.clear();
 
         m_eventQueue = nullptr;
         m_currentType = nullptr;
@@ -617,13 +624,17 @@ done:
 // Puts an async operation on the work queue.
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkStream::QueueAsyncOperation(
-    SinkStreamOperation op)
+    SinkStreamOp op)
 {
     com_ptr<IUnknown> spOp;
     spOp.attach(new (std::nothrow) AsyncOperation(op)); // Created with ref count = 1
     NULL_CHK_HR(spOp.get(), E_OUTOFMEMORY);
 
-    return MFPutWorkItem2(m_workQueueId, 0, &m_workQueueCB, spOp.get());
+    IMFAsyncCallback* owning{ nullptr };
+    winrt::copy_to_abi(m_workQueueCB, *reinterpret_cast<void**>(&owning));
+
+    return MFPutWorkItem2(m_workQueueId, 0, owning, spOp.get());
+    //return MFPutWorkItem2(m_workQueueId, 0, &m_workQueueCB, spOp.get());
 }
 
 _Use_decl_annotations_
@@ -644,8 +655,8 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
     AsyncOperation* pOp = static_cast<AsyncOperation *>(spState.get());
     switch (pOp->_op)
     {
-    case SinkStreamOperation::Start:
-    case SinkStreamOperation::Restart:
+    case SinkStreamOp::Start:
+    case SinkStreamOp::Restart:
         // Send MEStreamSinkStarted.
         IFC(QueueEvent(MEStreamSinkStarted, GUID_NULL, S_OK, nullptr));
 
@@ -668,7 +679,7 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
         }
         break;
 
-    case SinkStreamOperation::Stop:
+    case SinkStreamOp::Stop:
         // Drop samples from queue.
         IFC(DropSamplesFromQueue(nullptr));
 
@@ -676,13 +687,13 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
         IFC(QueueEvent(MEStreamSinkStopped, GUID_NULL, S_OK, nullptr));
         break;
 
-    case SinkStreamOperation::Pause:
+    case SinkStreamOp::Pause:
         IFC(QueueEvent(MEStreamSinkPaused, GUID_NULL, S_OK, nullptr));
         break;
 
-    case SinkStreamOperation::ProcessSample:
-    case SinkStreamOperation::PlaceMarker:
-    case SinkStreamOperation::SetMediaType:
+    case SinkStreamOp::ProcessSample:
+    case SinkStreamOp::PlaceMarker:
+    case SinkStreamOp::SetMediaType:
         IFC(DispatchProcessedSample(pOp));
         break;
     }
@@ -711,7 +722,7 @@ HRESULT NetworkMediaSinkStream::DispatchProcessedSample(
     // Ask for another sample
     if (fRequestMoreSamples)
     {
-        if (pOp->_op == SinkStreamOperation::ProcessSample)
+        if (pOp->_op == SinkStreamOp::ProcessSample)
         {
             IFR(QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
         }
@@ -736,7 +747,7 @@ HRESULT NetworkMediaSinkStream::SendSampleFromQueue(
 
 // Checks if an operation is valid in the current state.
 _Use_decl_annotations_
-HRESULT NetworkMediaSinkStream::ValidateOperation(SinkStreamOperation op)
+HRESULT NetworkMediaSinkStream::ValidateOperation(SinkStreamOp op)
 {
     assert(!m_isShutdown);
 
@@ -772,16 +783,26 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
     boolean fSendSamples = true;
     boolean fSendEOS = false;
 
-    com_ptr<IUnknown> spUnknown;
-    if (FAILED(m_sampleQueue.RemoveFront(spUnknown.put())))
+    if (m_sampleQueue.empty())
     {
         fRequestSamples = true;
         fSendSamples = false;
     }
 
+    com_ptr<IUnknown> spUnknown = m_sampleQueue.front();
+    m_sampleQueue.erase(m_sampleQueue.begin()); // Remove front element
+    
+    /*
+    TODO: necessary?
+    if (FAILED(m_sampleQueue.RemoveFront(spUnknown.put())))
+    {
+        fRequestSamples = true;
+        fSendSamples = false;
+    }*/
+
     while (fSendSamples)
     {
-        DataBundle dataBundle = DataBundle();
+        DataBundle dataBundle = nullptr;
 
         assert(spUnknown);
 
@@ -892,11 +913,16 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
 
         if (fSendSamples)
         {
-            if (FAILED(m_sampleQueue.RemoveFront(spUnknown.put())))
+
+            if (m_sampleQueue.empty())
+            //if (FAILED(m_sampleQueue.RemoveFront(spUnknown.put())))
             {
                 fRequestSamples = true;
                 fSendSamples = false;
             }
+
+            spUnknown = m_sampleQueue.front();
+            m_sampleQueue.erase(m_sampleQueue.begin()); // Remove front element
         }
     }
 
@@ -941,11 +967,13 @@ HRESULT NetworkMediaSinkStream::ProcessFormatChange(
     NULL_CHK(pMediaType)
 
     // Add the media type to the sample queue.
-    IFR(m_sampleQueue.InsertBack(pMediaType));
+    com_ptr< IMFMediaType> spMediaType;
+    spMediaType.attach(pMediaType);
+    m_sampleQueue.push_back(spMediaType);
 
     // Unless we are paused, start an async operation to dispatch the next sample.
     // Queue the operation.
-    return QueueAsyncOperation(SinkStreamOperation::SetMediaType);
+    return QueueAsyncOperation(SinkStreamOp::SetMediaType);
 }
 
 // Prepare bundle to send with frame sample data
@@ -964,16 +992,16 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     const size_t c_cbSampleHeaderSize = c_cPayloadHeader + c_cMediaSampleHeader;
 
     LONGLONG llSampleTime;
-    IFC(pSample->GetSampleTime(&llSampleTime));
+    IFT(pSample->GetSampleTime(&llSampleTime));
 
     LONGLONG llDuration;
-    IFC(pSample->GetSampleDuration(&llDuration));
+    IFT(pSample->GetSampleDuration(&llDuration));
 
     llSampleTime -= m_adjustedStartTime;
 
     if (llSampleTime < 0 && !fForce)
     {
-        IFC(MF_E_LATE_SAMPLE);
+        IFT(MF_E_LATE_SAMPLE);
     }
 
     if (llSampleTime < 0)
@@ -982,10 +1010,10 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     }
 
     DWORD cbTotalSampleLength = 0;
-    IFC(pSample->GetTotalLength(&cbTotalSampleLength));
+    IFT(pSample->GetTotalLength(&cbTotalSampleLength));
 
     // Create a bundle and initialize it with the sample
-    DataBundle dataBundle = DataBundle(pSample);
+    DataBundle dataBundle = make<Network::implementation::DataBundle>(pSample);
 
     // create a buffer for the media sample header
     DataBuffer dataBuffer = DataBuffer(c_cbSampleHeaderSize);
@@ -1038,9 +1066,6 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     // Put headers before the mediasample and camera data
     dataBundle.InsertBuffer(0, dataBuffer);
 
-done:
-    IFT(hr);
-
     return dataBundle;
 }
 
@@ -1073,9 +1098,9 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
 
     LONGLONG llSampleTime;
     com_ptr<IMFSample> spSample;
-    IFC(pAttributes->QueryInterface(__uuidof(IMFSample), spSample.put_void()));
+    IFT(pAttributes->QueryInterface(__uuidof(IMFSample), spSample.put_void()));
     //IFC(pAttributes->QueryInterface(__uuidof(IMFSample), static_cast<LPVOID*>(&spSample)));
-    IFC(spSample->GetSampleTime(&llSampleTime));
+    IFT(spSample->GetSampleTime(&llSampleTime));
 
     pSampleTick->hnsTimestamp = llSampleTime - m_adjustedStartTime;
     if (pSampleTick->hnsTimestamp < 0)
@@ -1083,11 +1108,11 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
         pSampleTick->hnsTimestamp = 0;
     }
 
-    IFC(pAttributes->SetUINT64(MFSampleExtension_Timestamp, llSampleTime));
+    IFT(pAttributes->SetUINT64(MFSampleExtension_Timestamp, llSampleTime));
 
     // copy attribute blob to a buffer
     // Get size of attributes blob
-    IFC(MFGetAttributesAsBlobSize(pAttributes, &pSampleTick->cbAttributesSize));
+    IFT(MFGetAttributesAsBlobSize(pAttributes, &pSampleTick->cbAttributesSize));
 
     // Create a buffer for attribute blob
     DataBuffer attributeBuffer = DataBuffer(pSampleTick->cbAttributesSize);
@@ -1098,7 +1123,7 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
     attribBufferImpl->Buffer(&pBuf);
 
     // Copy attributes to the buffer
-    IFC(MFGetAttributesAsBlob(pAttributes, pBuf, pSampleTick->cbAttributesSize));
+    IFT(MFGetAttributesAsBlob(pAttributes, pBuf, pSampleTick->cbAttributesSize));
 
     attributeBuffer.CurrentLength(pSampleTick->cbAttributesSize);
 
@@ -1109,13 +1134,10 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
     dataBuffer_Header.CurrentLength(c_cbHeaderSize);
 
     // Add fixed size header and description to the bundle
-    DataBundle dataBundle = DataBundle(dataBuffer_Header);
+    DataBundle dataBundle = make<Network::implementation::DataBundle>(dataBuffer_Header);
 
     // Add attributes to message
     dataBundle.AddBuffer(attributeBuffer);
-
-done:
-    IFT(hr);
 
     return dataBundle;
 }
@@ -1151,7 +1173,7 @@ DataBundle NetworkMediaSinkStream::PrepareFormatChange(
     dataBuffer.CurrentLength(c_cbPayloadSize);
 
     // Add fixed size header and description to the bundle
-    DataBundle dataBundle = DataBundle(dataBuffer);
+    DataBundle dataBundle = make<Network::implementation::DataBundle>(dataBuffer);
 
     // Add attributes
     dataBundle.AddBuffer(spAttr);
@@ -1162,7 +1184,7 @@ DataBundle NetworkMediaSinkStream::PrepareFormatChange(
 // Fill stream description and prepare attributes blob.
 _Use_decl_annotations_
 DataBuffer NetworkMediaSinkStream::FillStreamDescription(
-    Common::MediaTypeDescription* pStreamDescription)
+    RealtimeStreaming::Common::MediaTypeDescription* pStreamDescription)
 {
     Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::CompleteOpen()\n");
 
@@ -1172,7 +1194,7 @@ DataBuffer NetworkMediaSinkStream::FillStreamDescription(
 
     // Get the media type for the stream
     com_ptr<IMFMediaType> spMediaType;
-    IFC(GetCurrentMediaType(spMediaType.put()));
+    IFT(GetCurrentMediaType(spMediaType.put()));
 
     /*
     // filter types to those deemed needed
@@ -1186,17 +1208,17 @@ DataBuffer NetworkMediaSinkStream::FillStreamDescription(
 
     // set major type (Audio, Video and so on)
     GUID majorType, subType;
-    IFC(GetMajorType(&majorType));
+    IFT(GetMajorType(&majorType));
     pStreamDescription->guiMajorType = majorType;
 
     // set subtype (format of the stream)
-    IFC(spMediaType->GetGUID(MF_MT_SUBTYPE, &subType));
+    IFT(spMediaType->GetGUID(MF_MT_SUBTYPE, &subType));
     pStreamDescription->guiSubType = subType;
 
     // Set size of attributes blob
     UINT32 attributesSize = 0;
     //IFC(MFGetAttributesAsBlobSize(spFilteredMediaType.get(), &attributesSize));
-    IFC(MFGetAttributesAsBlobSize(spMediaType.get(), &attributesSize));
+    IFT(MFGetAttributesAsBlobSize(spMediaType.get(), &attributesSize));
 
     // Prepare a buffer for the filtered mediaType
     DataBuffer attributesBuffer{ attributesSize };
@@ -1211,14 +1233,11 @@ DataBuffer NetworkMediaSinkStream::FillStreamDescription(
 
     NULL_CHK(pBuffer);
 
-    IFC(MFGetAttributesAsBlob(spMediaType.get(), pBuffer, attributesSize));
+    IFT(MFGetAttributesAsBlob(spMediaType.get(), pBuffer, attributesSize));
     //IFC(MFGetAttributesAsBlob(spFilteredMediaType.get(), pBuffer, attributesSize));
 
     // were good, save the valus and return
     pStreamDescription->AttributesBlobSize = attributesSize;
-
-done:
-    IFT(hr);
 
     return attributesBuffer;
 }

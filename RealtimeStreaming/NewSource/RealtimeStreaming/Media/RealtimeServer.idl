@@ -9,7 +9,7 @@ namespace RealtimeStreaming.Media
     [version(1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
-    runtimeclass RealtimeServer : RealtimeStreaming.Plugin.Module
+    runtimeclass RealtimeServer : RealtimeStreaming.Plugin.IRTModule
     {
         RealtimeServer(RealtimeStreaming.Network.Connection connection,
                 Guid inputMediaType,

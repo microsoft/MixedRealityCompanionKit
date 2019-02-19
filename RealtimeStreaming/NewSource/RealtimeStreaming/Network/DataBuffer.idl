@@ -17,6 +17,6 @@ namespace RealtimeStreaming.Network
         HRESULT TrimLeft(UInt64 cbSize);
         RealtimeStreaming.Network.DataBuffer TrimRight(UInt64 cbSize);
 
-        HRESULT Reset();
+        void Reset();
     };
 }

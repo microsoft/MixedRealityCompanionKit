@@ -7,7 +7,7 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct Connector : ConnectorT<Connector, winrt::RealtimeStreaming::Plugin::Module>
+    struct Connector : ConnectorT<Connector>
     {
         public:
             Connector(_In_ Windows::Networking::HostName hostName,
@@ -19,6 +19,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void Connector::Closed(winrt::event_token const& token);
 
+            void Shutdown() {};
         private:
             void Close();
 

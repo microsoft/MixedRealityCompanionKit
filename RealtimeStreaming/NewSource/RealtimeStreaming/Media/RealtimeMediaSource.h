@@ -31,7 +31,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
     public:
         // Contructor
-        RealtimeMediaSource();
+        RealtimeMediaSource(){};
         virtual ~RealtimeMediaSource();
 
         Windows::Foundation::IAsyncAction InitAsync(
@@ -40,6 +40,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
         // IRealtimeMediaSource
         Windows::Media::Core::MediaStreamSource MediaStreamSource();
         Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
+
+        void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration) {};
 
     protected:
         void OnDataReceived(

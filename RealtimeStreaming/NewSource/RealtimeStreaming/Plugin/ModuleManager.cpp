@@ -25,7 +25,8 @@ ModuleManager::~ModuleManager()
 }
 
 _Use_decl_annotations_
-ModuleHandle ModuleManager::AddModule(Module newModule)
+ModuleHandle ModuleManager::AddModule(
+    RealtimeStreaming::Plugin::IRTModule newModule)
 {
     slim_lock_guard guard(m_lock);
 
@@ -34,7 +35,7 @@ ModuleHandle ModuleManager::AddModule(Module newModule)
     ModuleHandle returnHandle = MODULE_HANDLE_INVALID;
 
     // create a pair for the insert success
-    //std::pair<std::map<ModuleHandle, IModule> >::iterator, bool> pairReturn;
+    //std::pair<std::map<ModuleHandle, IRTModule> >::iterator, bool> pairReturn;
     auto pairReturn = _moduleHandleMap.insert(std::make_pair(handle, newModule));
 
     // make sure pair was added
@@ -51,7 +52,7 @@ ModuleHandle ModuleManager::AddModule(Module newModule)
 }
 
 _Use_decl_annotations_
-Module ModuleManager::GetModule(ModuleHandle moduleHandle)
+RealtimeStreaming::Plugin::IRTModule ModuleManager::GetModule(ModuleHandle moduleHandle)
 {
     if (moduleHandle <= MODULE_HANDLE_INVALID)
     {

@@ -22,4 +22,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
         throw hresult_not_implemented();
     }
+
+    void Listener::Shutdown()
+    {
+        throw hresult_not_implemented();
+    }
 }

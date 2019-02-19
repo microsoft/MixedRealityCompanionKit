@@ -8,7 +8,7 @@
 #include "Unity\IUnityInterface.h"
 #include "Unity\IUnityGraphics.h"
 
-namespace winrt::RealtimeStreaming::Plugin::implementation
+namespace winrt::RealtimeStreaming::Plugin
 {
     typedef UINT32 ModuleHandle;
 
@@ -31,7 +31,10 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
         _In_ UINT16 opertion,
         _In_ UINT32 bufferSize,
         _In_ const byte* buffer);
+}
 
+namespace winrt::RealtimeStreaming::Plugin::implementation
+{
     extern "C" struct MediaSampleArgs
     {
         ::IUnknown* videoTexture;
@@ -43,16 +46,15 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     struct PluginManager : PluginManagerT<PluginManager>
     {
         public:
-            PluginManager();
+            //PluginManager();
             ~PluginManager();
 
-            static PluginManager Instance();
+            Plugin::IRTModuleManager ModuleManager();
 
-            winrt::RealtimeStreaming::Plugin::implementation::ModuleManager ModuleManager();
+            static void Load(_In_ IUnityInterfaces* unityInterfaces);
+            static void UnLoad();
+            static void OnDeviceEvent(_In_ UnityGfxDeviceEventType eventType);
 
-            void Load(_In_ IUnityInterfaces* unityInterfaces);
-            void UnLoad();
-            void OnDeviceEvent(_In_ UnityGfxDeviceEventType eventType);
             BOOL IsOnThread();
 
             // Plugin
@@ -88,11 +90,13 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             STDMETHODIMP ConnectionRemoveReceived(
                 _In_ ModuleHandle connectionHandle,
                 _In_ INT64 token);
+            /*
             STDMETHODIMP ConnectionSendRawData(
                 _In_ ModuleHandle connectionHandle,
-                _In_ winrt::RealtimeStreaming::Common::PayloadType payloadType,
+                _In_ Common::PayloadType payloadType,
                 __in_ecount(bufferSize) byte* pBuffer,
                 _In_ UINT32 bufferSize);
+            */
             STDMETHODIMP ConnectionClose(
                 _In_ ModuleHandle connectionHandle);
 
@@ -149,7 +153,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
-            ModuleManager               m_moduleManager;
+            Plugin::IRTModuleManager               m_moduleManager;
 
             IUnityInterfaces*                   m_unityInterfaces;
             IUnityGraphics*                     m_unityGraphics;
@@ -163,10 +167,15 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     };
 }
 
-
 namespace winrt::RealtimeStreaming::Plugin::factory_implementation
 {
     struct PluginManager : PluginManagerT<PluginManager, implementation::PluginManager>
     {
     };
+}
+
+// TODO: Figure out cleaner way for singleton instance with full interface
+namespace winrt::RealtimeStreaming::Plugin
+{
+    static winrt::RealtimeStreaming::Plugin::implementation::PluginManager s_instance;
 }

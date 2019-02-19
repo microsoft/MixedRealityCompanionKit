@@ -11,7 +11,7 @@ using namespace RealtimeStreaming::Network::implementation;
 
 _Use_decl_annotations_
 DataBundleArgs::DataBundleArgs(
-    Common::PayloadType operation,
+    RealtimeStreaming::Common::PayloadType operation,
     RealtimeStreaming::Network::Connection connection,
     RealtimeStreaming::Network::DataBundle bundle)
     : m_payloadType(operation),

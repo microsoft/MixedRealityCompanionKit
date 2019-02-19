@@ -92,7 +92,7 @@ the queue.
 //      return MF_E_NOTACCEPTING.
 //
 //-------------------------------------------------------------------
-#include "linklist.h"
+
 
 // TODO: Delete this file???
 /*

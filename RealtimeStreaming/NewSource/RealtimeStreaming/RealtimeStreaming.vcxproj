@@ -100,7 +100,6 @@
     <ClInclude Include="Common\BaseAttributes.h" />
     <ClInclude Include="Common\D3D11DeviceResources.h" />
     <ClInclude Include="Common\ErrorHandling.h" />
-    <ClInclude Include="Common\LinkList.h" />
     <ClInclude Include="Common\OpQueue.h" />
     <ClInclude Include="Media\Marker.h" />
     <ClInclude Include="Media\MediaUtils.h" />
@@ -110,7 +109,6 @@
     <ClInclude Include="Media\RealtimeMediaSource.h" />
     <ClInclude Include="Media\RealtimeServer.h" />
     <ClInclude Include="Media\SchemeHandler.h" />
-    <ClInclude Include="Module.h" />
     <ClInclude Include="Network\Connection.h" />
     <ClInclude Include="Network\Connector.h" />
     <ClInclude Include="Network\DataBuffer.h" />
@@ -141,7 +139,6 @@
     <ClCompile Include="Media\RealtimeMediaSource.cpp" />
     <ClCompile Include="Media\RealtimeServer.cpp" />
     <ClCompile Include="Media\SchemeHandler.cpp" />
-    <ClCompile Include="Module.cpp" />
     <ClCompile Include="Network\Connection.cpp" />
     <ClCompile Include="Network\Connector.cpp" />
     <ClCompile Include="Network\DataBuffer.cpp" />
@@ -161,7 +158,7 @@
     <Midl Include="Media\RealtimeMediaPlayer.idl" />
     <Midl Include="Media\RealtimeMediaSource.idl" />
     <Midl Include="Media\RealtimeServer.idl" />
-    <Midl Include="Module.idl" />
+    <Midl Include="Media\SchemeHandler.idl" />
     <Midl Include="Network\DataBundleArgs.idl" />
     <Midl Include="Network\Connection.idl" />
     <Midl Include="Network\Connector.idl" />
@@ -171,7 +168,6 @@
     <Midl Include="Plugin\ModuleManager.idl" />
     <Midl Include="Plugin\PluginManager.idl" />
     <Midl Include="RealtimeStreaming.idl" />
-    <Midl Include="SchemeHandler.idl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

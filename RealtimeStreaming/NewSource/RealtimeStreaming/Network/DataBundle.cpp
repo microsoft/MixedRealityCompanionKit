@@ -18,6 +18,16 @@ DataBundle::DataBundle()
     m_buffers.clear();
 }
 
+DataBundle::DataBundle(
+    RealtimeStreaming::Network::DataBuffer dataBuffer)
+{
+    Log(Log_Level_All, L"DataBundleImpl::DataBundle()\n");
+
+    m_buffers.clear();
+
+    AddBuffer(dataBuffer);
+}
+
 _Use_decl_annotations_
 DataBundle::DataBundle(
     IMFSample* mediaSample)

@@ -28,7 +28,7 @@ namespace RealtimeStreaming.Network
     [version(1.0)]
     */
     [default_interface]
-    runtimeclass Connector : RealtimeStreaming.Plugin.Module
+    runtimeclass Connector : RealtimeStreaming.Plugin.IRTModule
     {
         //[default] interface IConnector;
         //Connector(HSTRING hostAddress, UInt16 port);

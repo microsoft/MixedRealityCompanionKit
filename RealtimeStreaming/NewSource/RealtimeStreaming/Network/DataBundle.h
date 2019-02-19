@@ -26,7 +26,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
     public:
         DataBundle();
-        //DataBundle(_In_ DataBuffer dataBuffer);
+        DataBundle(_In_ Network::DataBuffer dataBuffer);
         DataBundle(_In_ IMFSample* pSample);
         ~DataBundle();
 

@@ -36,7 +36,11 @@
 
 #include "Generated Files\winrt\RealtimeStreaming.Common.h"
 
-typedef UINT32 ModuleHandle;
+#ifndef MODULE_HANDLE
+typedef UINT32 MODULE_HANDLE;
+    #define MODULE_HANDLE_INVALID (UINT)0x0bad
+    #define MODULE_HANDLE_START (UINT)0x0bae
+#endif // MODULE_HANDLE")
 
 typedef int32_t INSTANCE_HANDLE;
 
@@ -53,13 +57,15 @@ extern wchar_t const __declspec(selectany)c_szNetworkSchemeWithColon[] = L"mrvc:
 #endif // INSTANCE_HANDLE_INVALID
 
 #ifndef RTDLL
-#ifdef REALTIMESTREAMING_EXPORTS
+
 #define RTDLL EXTERN_C HRESULT __declspec(dllexport) STDAPICALLTYPE
 #define RTDLL_(type) EXTERN_C type __declspec(dllexport) STDAPICALLTYPE
+/*
 #else
 #define RTDLL EXTERN_C HRESULT __declspec(dllimport) STDAPICALLTYPE
 #define RTDLL_(type) EXTERN_C type __declspec(dllimport) STDAPICALLTYPE
 #endif // REALTIMESTREAMING_EXPORTS
+*/
 #endif
 
 /*

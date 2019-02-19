@@ -44,8 +44,8 @@ DECLARE_INTERFACE_IID_(IDataBufferPriv, ::IUnknown, "297dd8ca-2fbe-11e9-b210-d66
 namespace winrt::RealtimeStreaming::Network::implementation
 {
     struct DataBuffer : DataBufferT<DataBuffer, 
-        IDataBufferPriv, 
-        Windows::Storage::Streams::IBuffer>
+        IDataBufferPriv>
+        //Windows::Storage::Streams::IBuffer>
         //WinClassic::Windows::Storage::Streams::IBufferByteAccess>
     {
         public:

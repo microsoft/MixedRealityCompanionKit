@@ -13,7 +13,7 @@ namespace RealtimeStreaming.Network
     [version(1.0)]
     */
     [default_interface]
-    runtimeclass Listener : RealtimeStreaming.Plugin.Module
+    runtimeclass Listener : RealtimeStreaming.Plugin.IRTModule
     {
         Listener(UInt16 port);
 

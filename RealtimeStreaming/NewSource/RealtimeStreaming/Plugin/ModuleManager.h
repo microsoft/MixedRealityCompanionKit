@@ -16,10 +16,10 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
         ModuleManager();
         ~ModuleManager();
 
-        // IModuleManager
-        UINT32 AddModule(_In_ Module newModule);
+        // IRTModuleManager
+        UINT32 AddModule(_In_ IRTModule newModule);
 
-        Module GetModule(_In_ ModuleHandle moduleHandle);
+        IRTModule GetModule(_In_ ModuleHandle moduleHandle);
 
         void ReleaseModule(_In_ ModuleHandle moduleHandle);
 
@@ -29,6 +29,6 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
 
         ModuleHandle _lastModuleHandleIndex;
 
-        std::map<ModuleHandle, IModule> _moduleHandleMap;
+        std::map<ModuleHandle, IRTModule> _moduleHandleMap;
     };
 }

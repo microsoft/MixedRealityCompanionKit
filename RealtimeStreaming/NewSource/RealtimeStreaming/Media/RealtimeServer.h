@@ -11,16 +11,16 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    struct RealtimeServer : RealtimeServerT<RealtimeServer, Plugin::Module>
+    struct RealtimeServer : RealtimeServerT<RealtimeServer>
     {
         public:
             RealtimeServer(_In_ Network::Connection connection,
                 _In_ GUID inputMediaType,
-                _In_ MediaEncodingProfile mediaEncodingProperties);
+                _In_ Windows::Media::MediaProperties::MediaEncodingProfile mediaEncodingProperties);
 
             virtual ~RealtimeServer();
 
-            // IModule
+            // IRTModule
             void Shutdown();
             
             void WriteFrame(

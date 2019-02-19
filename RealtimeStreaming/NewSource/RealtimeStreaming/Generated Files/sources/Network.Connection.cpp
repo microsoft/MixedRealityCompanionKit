@@ -3,6 +3,11 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
+    Connection::Connection(Windows::Networking::Sockets::StreamSocket const& streamSocket)
+    {
+        throw hresult_not_implemented();
+    }
+
     Windows::Foundation::IAsyncAction Connection::SendPayloadTypeAsync(RealtimeStreaming::Common::PayloadType const type)
     {
         throw hresult_not_implemented();
@@ -39,6 +44,11 @@ namespace winrt::RealtimeStreaming::Network::implementation
     }
 
     void Connection::Received(winrt::event_token const& token) noexcept
+    {
+        throw hresult_not_implemented();
+    }
+
+    void Connection::Shutdown()
     {
         throw hresult_not_implemented();
     }

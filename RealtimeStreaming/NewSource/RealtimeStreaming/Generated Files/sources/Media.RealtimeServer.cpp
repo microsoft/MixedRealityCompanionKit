@@ -17,4 +17,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
     {
         throw hresult_not_implemented();
     }
+
+    void RealtimeServer::Shutdown()
+    {
+        throw hresult_not_implemented();
+    }
 }

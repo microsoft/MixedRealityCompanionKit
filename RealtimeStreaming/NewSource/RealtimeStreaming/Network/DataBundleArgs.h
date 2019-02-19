@@ -21,14 +21,15 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
     private:
         Common::PayloadType   m_payloadType;
-        Connection    m_connection;
-        DataBundle    m_bundle;
+        Network::Connection    m_connection;
+        Network::DataBundle    m_bundle;
     };
 }
 
+/*
 namespace winrt::RealtimeStreaming::Network::factory_implementation
 {
     struct DataBundleArgs : DataBundleArgsT<DataBundleArgs, implementation::DataBundleArgs>
     {
     };
-}
+}*/

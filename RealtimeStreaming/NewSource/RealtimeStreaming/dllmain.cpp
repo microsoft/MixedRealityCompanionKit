@@ -4,10 +4,18 @@
 #include "pch.h"
 
 #include "Plugin/PluginManager.h"
+#include "Media/RealtimeMediaPlayer.h"
 
-using namespace Microsoft::WRL;
+#include "Media.RealtimeServer.g.h"
+
+//using namespace Microsoft::WRL;
 using namespace winrt::RealtimeStreaming::Plugin;
-//using namespace winrt::RealtimeStreaming::Network;
+
+namespace PluginInterface = winrt::RealtimeStreaming::Plugin;
+
+/*
+
+TOOD: DllMain needs to move to win32 project?
 
 STDAPI_(BOOL) DllMain(
     _In_opt_ HINSTANCE hInstance, _In_ DWORD dwReason, _In_opt_ LPVOID lpReserved)
@@ -40,37 +48,23 @@ STDAPI DllCanUnloadNow()
     const auto &module = Module<InProc>::GetModule();
     return module.GetObjectCount() == 0 ? S_OK : S_FALSE;
 }
+*/
+
+static void UNITY_INTERFACE_API OnRenderEvent(int32_t eventID) {}
 
 RTDLL_(void) UnityPluginLoad(_In_ IUnityInterfaces* unityInterfaces)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        instance->Load(unityInterfaces);
-    }
+    implementation::PluginManager::Load(unityInterfaces);
 }
 
 RTDLL_(void) UnityPluginUnload()
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        instance->UnLoad();
-    }
+    implementation::PluginManager::UnLoad();
 }
 
 RTDLL_(UnityRenderingEvent) GetPluginEventFunc()
 {
-    return PluginManagerStaticsImpl::OnPluginEvent;
-}
-
-RTDLL_(void) SetTime(_In_ float t)
-{
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        instance->SetTime(t);
-    }
+    return OnRenderEvent;
 }
 
 //
@@ -90,24 +84,12 @@ RTDLL ListenerCreateAndStart(
         return E_INVALIDARG;
     }
 
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ListenerCreateAndStart(port, listenerHandle, callback, managedObject);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ListenerCreateAndStart(port, listenerHandle, callback, managedObject);
 }
 RTDLL ListenerStopAndClose(
     _In_ UINT32 handle)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ListenerStopAndClose(handle);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ListenerStopAndClose(handle);
 }
 
 RTDLL ConnectorCreateAndStart(
@@ -121,24 +103,12 @@ RTDLL ConnectorCreateAndStart(
         return E_INVALIDARG;
     }
 
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectorCreateAndStart(address, connectorHandle, callback, managedObject);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectorCreateAndStart(address, connectorHandle, callback, managedObject);
 }
 RTDLL ConnectorStopAndClose(
     _In_ UINT32 handle)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectorStopAndClose(handle);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectorStopAndClose(handle);
 }
 
 RTDLL ConnectionAddDisconnected(
@@ -152,29 +122,17 @@ RTDLL ConnectionAddDisconnected(
         return E_INVALIDARG;
     }
 
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectionAddDisconnected(
-            static_cast<ModuleHandle>(handle),
-            callback,
-            managedObject,
-            tokenValue);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectionAddDisconnected(
+        static_cast<ModuleHandle>(handle),
+        callback,
+        managedObject,
+        tokenValue);
 }
 RTDLL ConnectionRemoveDisconnected(
     _In_ UINT32 handle,
     _In_ INT64 tokenValue)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectionRemoveDisconnected(handle, tokenValue);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectionRemoveDisconnected(handle, tokenValue);
 }
 RTDLL ConnectionAddReceived(
     _In_ UINT32 handle,
@@ -182,54 +140,23 @@ RTDLL ConnectionAddReceived(
     _In_ void* managedObject,
     _Out_ INT64* tokenValue)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectionAddReceived(
-            static_cast<ModuleHandle>(handle),
-            callback,
-            managedObject,
-            tokenValue);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectionAddReceived(
+        static_cast<ModuleHandle>(handle),
+        callback,
+        managedObject,
+        tokenValue);
 }
 RTDLL ConnectionRemoveReceived(
     _In_ UINT32 handle,
     _In_ INT64 tokenValue)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectionRemoveReceived(handle, tokenValue);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectionRemoveReceived(handle, tokenValue);
 }
-RTDLL ConnectionSendRawData(
-    _In_ ModuleHandle connectionHandle,
-    _In_ UINT16 payloadType,
-    __in_ecount(bufferSize) byte* pBuffer,
-    _In_ UINT32 bufferSize)
-{
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectionSendRawData(connectionHandle, (RealtimeStreaming::Network::PayloadType)payloadType, pBuffer, bufferSize);
-    }
 
-    return RPC_E_WRONG_THREAD;
-}
 RTDLL ConnectionClose(
     _In_ UINT32 handle)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->ConnectionClose(handle);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.ConnectionClose(handle);
 }
 
 //
@@ -243,13 +170,7 @@ RTDLL CreateRealtimeStreamingServer(
     _In_ UINT32 connectionHandle,
     _Inout_ UINT32* serverHandle)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTServerCreate(connectionHandle, serverHandle);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTServerCreate(connectionHandle, serverHandle);
 }
 
 RTDLL RealtimeStreamingWrite(
@@ -257,25 +178,13 @@ RTDLL RealtimeStreamingWrite(
     __in_ecount(bufferSize) BYTE* pBuffer,
     _In_ UINT32 bufferSize)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTServerWriteFrame(serverHandle, pBuffer, bufferSize);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTServerWriteFrame(serverHandle, pBuffer, bufferSize);
 }
 
 RTDLL RealtimeStreamingShutdown(
     _In_ UINT32 serverHandle)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTServerShutdown(serverHandle);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTServerShutdown(serverHandle);
 }
 
 //
@@ -289,80 +198,43 @@ RTDLL RealtimeStreamingShutdown(
 
 RTDLL CreateRealtimePlayer(
     _In_ ModuleHandle connectionHandle,
-    _In_ StateChangedCallback fnCallback,
+    _In_ winrt::RealtimeStreaming::Media::StateChangedCallback fnCallback,
     _In_ PlayerCreatedCallback callback,
     _In_ void* managedObject)
 {
-
     if (managedObject == nullptr)
     {
         return E_INVALIDARG;
     }
 
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTPlayerCreate(connectionHandle,
-            //fnCallback, 
-            callback,
-            managedObject);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTPlayerCreate(connectionHandle,
+        //fnCallback, 
+        callback,
+        managedObject);
 }
 
 RTDLL ReleaseRealtimePlayer()
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTPlayerRelease();
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTPlayerRelease();
 }
 
 RTDLL CreateRealtimePlayerTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture)
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTPlayerCreateTexture(
-            width, height, ppvTexture);
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTPlayerCreateTexture(
+        width, height, ppvTexture);
 }
 
 RTDLL RealtimePlayerPlay()
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTPlayerStart();
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTPlayerStart();
 }
 
 RTDLL RealtimePlayerPause()
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTPlayerPause();
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTPlayerPause();
 }
 
 RTDLL RealtimePlayerStop()
 {
-    auto instance = PluginManagerStaticsImpl::GetInstance();
-    if (nullptr != instance)
-    {
-        return instance->RTPlayerStop();
-    }
-
-    return RPC_E_WRONG_THREAD;
+    return PluginInterface::s_instance.RTPlayerStop();
 }

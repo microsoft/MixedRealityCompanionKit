@@ -7,7 +7,7 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct Listener : ListenerT<Listener, winrt::RealtimeStreaming::Plugin::Module>
+    struct Listener : ListenerT<Listener>
     {
 
         public:
@@ -21,14 +21,14 @@ namespace winrt::RealtimeStreaming::Network::implementation
                 void Listener::Closed(winrt::event_token const& token);
 
             void Close(); // TROY: Todo look at using?
-
+            
+            void Shutdown() {};
         protected:
             void OnConnectionReceived(
                 Windows::Networking::Sockets::StreamSocketListener /* sender */,
                 Windows::Networking::Sockets::StreamSocketListenerConnectionReceivedEventArgs args);
             
         private:
-            //Wrappers::CriticalSection   _lock;
             slim_mutex m_lock;
             handle m_signal{ nullptr };
 
@@ -36,10 +36,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
             
             winrt::event<Windows::Foundation::EventHandler<bool> > m_evtClosed;
 
-            StreamSocket           m_streamSocketResult;
-            StreamSocketListener   m_socketListener;
+            Windows::Networking::Sockets::StreamSocket           m_streamSocketResult;
+            Windows::Networking::Sockets::StreamSocketListener   m_socketListener;
             winrt::event_token m_connectionReceivedEventToken;
             Network::Connection m_connection{ nullptr };
-            //EventRegistrationToken          _connectionReceivedEventToken;
         };
 }

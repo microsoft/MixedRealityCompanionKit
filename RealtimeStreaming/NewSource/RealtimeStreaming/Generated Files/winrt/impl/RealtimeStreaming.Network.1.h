@@ -16,6 +16,13 @@ struct WINRT_EBO IConnection :
     IConnection(std::nullptr_t = nullptr) noexcept {}
 };
 
+struct WINRT_EBO IConnectionFactory :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<IConnectionFactory>
+{
+    IConnectionFactory(std::nullptr_t = nullptr) noexcept {}
+};
+
 struct WINRT_EBO IConnector :
     Windows::Foundation::IInspectable,
     impl::consume_t<IConnector>

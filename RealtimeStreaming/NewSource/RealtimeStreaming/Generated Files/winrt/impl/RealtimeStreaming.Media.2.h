@@ -43,8 +43,7 @@ struct WINRT_EBO RTSchemeHandler :
 
 struct WINRT_EBO RealtimeMediaPlayer :
     RealtimeStreaming::Media::IRealtimeMediaPlayer,
-    impl::base<RealtimeMediaPlayer, RealtimeStreaming::Plugin::Module>,
-    impl::require<RealtimeMediaPlayer, RealtimeStreaming::Plugin::IModule>
+    impl::require<RealtimeMediaPlayer, RealtimeStreaming::Plugin::IRTModule>
 {
     RealtimeMediaPlayer(std::nullptr_t) noexcept {}
     RealtimeMediaPlayer();
@@ -60,8 +59,7 @@ struct WINRT_EBO RealtimeMediaSource :
 
 struct WINRT_EBO RealtimeServer :
     RealtimeStreaming::Media::IRealtimeServer,
-    impl::base<RealtimeServer, RealtimeStreaming::Plugin::Module>,
-    impl::require<RealtimeServer, RealtimeStreaming::Plugin::IModule>
+    impl::require<RealtimeServer, RealtimeStreaming::Plugin::IRTModule>
 {
     RealtimeServer(std::nullptr_t) noexcept {}
     RealtimeServer(RealtimeStreaming::Network::Connection const& connection, winrt::guid const& inputMediaType, Windows::Media::MediaProperties::MediaEncodingProfile const& mediaEncodingProperties);
