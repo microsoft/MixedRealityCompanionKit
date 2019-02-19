@@ -11,9 +11,9 @@ enum class DeviceType : int32_t
     Warp = 2,
 };
 
+struct IModuleManager;
 struct IPluginManager;
 struct IRTModule;
-struct IRTModuleManager;
 struct ModuleManager;
 struct PluginManager;
 
@@ -21,23 +21,30 @@ struct PluginManager;
 
 namespace winrt::impl {
 
+template <> struct category<RealtimeStreaming::Plugin::IModuleManager>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Plugin::IPluginManager>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Plugin::IRTModule>{ using type = interface_category; };
-template <> struct category<RealtimeStreaming::Plugin::IRTModuleManager>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Plugin::ModuleManager>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Plugin::PluginManager>{ using type = class_category; };
 template <> struct category<RealtimeStreaming::Plugin::DeviceType>{ using type = enum_category; };
+template <> struct name<RealtimeStreaming::Plugin::IModuleManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.IModuleManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::IPluginManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.IPluginManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::IRTModule>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.IRTModule" }; };
-template <> struct name<RealtimeStreaming::Plugin::IRTModuleManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.IRTModuleManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::ModuleManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.ModuleManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::PluginManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.PluginManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::DeviceType>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.DeviceType" }; };
+template <> struct guid_storage<RealtimeStreaming::Plugin::IModuleManager>{ static constexpr guid value{ 0xED7CA192,0x2E9D,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
 template <> struct guid_storage<RealtimeStreaming::Plugin::IPluginManager>{ static constexpr guid value{ 0xB46023FE,0x14F5,0x53D2,{ 0x84,0xC0,0xA1,0x48,0xFE,0x95,0x7B,0xFF } }; };
 template <> struct guid_storage<RealtimeStreaming::Plugin::IRTModule>{ static constexpr guid value{ 0x2EDEB3FB,0x8008,0x4A13,{ 0xB8,0xD3,0x70,0x81,0xFD,0x11,0x44,0x3F } }; };
-template <> struct guid_storage<RealtimeStreaming::Plugin::IRTModuleManager>{ static constexpr guid value{ 0xED7CA192,0x2E9D,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
-template <> struct default_interface<RealtimeStreaming::Plugin::ModuleManager>{ using type = RealtimeStreaming::Plugin::IRTModuleManager; };
+template <> struct default_interface<RealtimeStreaming::Plugin::ModuleManager>{ using type = RealtimeStreaming::Plugin::IModuleManager; };
 template <> struct default_interface<RealtimeStreaming::Plugin::PluginManager>{ using type = RealtimeStreaming::Plugin::IPluginManager; };
+
+template <> struct abi<RealtimeStreaming::Plugin::IModuleManager>{ struct type : IInspectable
+{
+    virtual int32_t WINRT_CALL AddModule(void* pluginModule, uint32_t* result) noexcept = 0;
+    virtual int32_t WINRT_CALL GetModule(uint32_t moduleHandle, void** result) noexcept = 0;
+    virtual int32_t WINRT_CALL ReleaseModule(uint32_t moduleHandle) noexcept = 0;
+};};
 
 template <> struct abi<RealtimeStreaming::Plugin::IPluginManager>{ struct type : IInspectable
 {
@@ -49,12 +56,14 @@ template <> struct abi<RealtimeStreaming::Plugin::IRTModule>{ struct type : IIns
     virtual int32_t WINRT_CALL Shutdown() noexcept = 0;
 };};
 
-template <> struct abi<RealtimeStreaming::Plugin::IRTModuleManager>{ struct type : IInspectable
+template <typename D>
+struct consume_RealtimeStreaming_Plugin_IModuleManager
 {
-    virtual int32_t WINRT_CALL AddModule(void* pluginModule, uint32_t* result) noexcept = 0;
-    virtual int32_t WINRT_CALL GetModule(uint32_t moduleHandle, void** result) noexcept = 0;
-    virtual int32_t WINRT_CALL ReleaseModule(uint32_t moduleHandle) noexcept = 0;
-};};
+    uint32_t AddModule(RealtimeStreaming::Plugin::IRTModule const& pluginModule) const;
+    RealtimeStreaming::Plugin::IRTModule GetModule(uint32_t moduleHandle) const;
+    void ReleaseModule(uint32_t moduleHandle) const;
+};
+template <> struct consume<RealtimeStreaming::Plugin::IModuleManager> { template <typename D> using type = consume_RealtimeStreaming_Plugin_IModuleManager<D>; };
 
 template <typename D>
 struct consume_RealtimeStreaming_Plugin_IPluginManager
@@ -69,14 +78,5 @@ struct consume_RealtimeStreaming_Plugin_IRTModule
     void Shutdown() const;
 };
 template <> struct consume<RealtimeStreaming::Plugin::IRTModule> { template <typename D> using type = consume_RealtimeStreaming_Plugin_IRTModule<D>; };
-
-template <typename D>
-struct consume_RealtimeStreaming_Plugin_IRTModuleManager
-{
-    uint32_t AddModule(RealtimeStreaming::Plugin::IRTModule const& pluginModule) const;
-    RealtimeStreaming::Plugin::IRTModule GetModule(uint32_t moduleHandle) const;
-    void ReleaseModule(uint32_t moduleHandle) const;
-};
-template <> struct consume<RealtimeStreaming::Plugin::IRTModuleManager> { template <typename D> using type = consume_RealtimeStreaming_Plugin_IRTModuleManager<D>; };
 
 }

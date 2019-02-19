@@ -7,7 +7,7 @@
 namespace winrt::RealtimeStreaming::Plugin::implementation {
 
 template <typename D, typename... I>
-struct WINRT_EBO ModuleManager_base : implements<D, RealtimeStreaming::Plugin::IRTModuleManager, I...>
+struct WINRT_EBO ModuleManager_base : implements<D, RealtimeStreaming::Plugin::IModuleManager, I...>
 {
     using base_type = ModuleManager_base;
     using class_type = RealtimeStreaming::Plugin::ModuleManager;

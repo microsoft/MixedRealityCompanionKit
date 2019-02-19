@@ -46,10 +46,10 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     struct PluginManager : PluginManagerT<PluginManager>
     {
         public:
-            //PluginManager();
+            PluginManager();
             ~PluginManager();
 
-            Plugin::IRTModuleManager ModuleManager();
+            Plugin::ModuleManager ModuleManager();
 
             static void Load(_In_ IUnityInterfaces* unityInterfaces);
             static void UnLoad();
@@ -153,7 +153,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
-            Plugin::IRTModuleManager               m_moduleManager;
+            Plugin::ModuleManager               m_moduleManager;
 
             IUnityInterfaces*                   m_unityInterfaces;
             IUnityGraphics*                     m_unityGraphics;

@@ -49,6 +49,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         //WinClassic::Windows::Storage::Streams::IBufferByteAccess>
     {
         public:
+            DataBuffer();
             DataBuffer(_In_ DWORD dwMaxLength);
             DataBuffer(_In_ IMFMediaBuffer* pMediaBuffer);
             ~DataBuffer();
@@ -70,7 +71,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             void CurrentLength(ULONG len);
 
             void TrimLeft(_In_ ULONG cbSize);
-            DataBuffer TrimRight(_In_ ULONG cbSize);
+            Network::DataBuffer TrimRight(_In_ ULONG cbSize);
 
             void Reset();
 

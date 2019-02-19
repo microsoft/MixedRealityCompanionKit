@@ -133,11 +133,9 @@ template <typename D> void consume_RealtimeStreaming_Network_IDataBuffer<D>::Off
     check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBuffer)->put_Offset(value));
 }
 
-template <typename D> winrt::hresult consume_RealtimeStreaming_Network_IDataBuffer<D>::TrimLeft(uint64_t cbSize) const
+template <typename D> void consume_RealtimeStreaming_Network_IDataBuffer<D>::TrimLeft(uint64_t cbSize) const
 {
-    winrt::hresult result{};
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBuffer)->TrimLeft(cbSize, put_abi(result)));
-    return result;
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBuffer)->TrimLeft(cbSize));
 }
 
 template <typename D> RealtimeStreaming::Network::DataBuffer consume_RealtimeStreaming_Network_IDataBuffer<D>::TrimRight(uint64_t cbSize) const
@@ -471,13 +469,13 @@ struct produce<D, RealtimeStreaming::Network::IDataBuffer> : produce_base<D, Rea
         catch (...) { return to_hresult(); }
     }
 
-    int32_t WINRT_CALL TrimLeft(uint64_t cbSize, winrt::hresult* result) noexcept final
+    int32_t WINRT_CALL TrimLeft(uint64_t cbSize) noexcept final
     {
         try
         {
             typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(TrimLeft, WINRT_WRAP(winrt::hresult), uint64_t);
-            *result = detach_from<winrt::hresult>(this->shim().TrimLeft(cbSize));
+            WINRT_ASSERT_DECLARATION(TrimLeft, WINRT_WRAP(void), uint64_t);
+            this->shim().TrimLeft(cbSize);
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -712,6 +710,10 @@ inline Connection::Connection() :
 
 inline Connection::Connection(Windows::Networking::Sockets::StreamSocket const& streamSocket) :
     Connection(impl::call_factory<Connection, RealtimeStreaming::Network::IConnectionFactory>([&](auto&& f) { return f.CreateInstance(streamSocket); }))
+{}
+
+inline DataBuffer::DataBuffer() :
+    DataBuffer(impl::call_factory<DataBuffer>([](auto&& f) { return f.template ActivateInstance<DataBuffer>(); }))
 {}
 
 inline DataBuffer::DataBuffer(uint64_t size) :

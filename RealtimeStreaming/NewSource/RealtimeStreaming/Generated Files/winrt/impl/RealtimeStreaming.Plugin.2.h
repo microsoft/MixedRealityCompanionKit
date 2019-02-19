@@ -14,7 +14,7 @@ namespace winrt::impl {
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Plugin {
 
 struct WINRT_EBO ModuleManager :
-    RealtimeStreaming::Plugin::IRTModuleManager
+    RealtimeStreaming::Plugin::IModuleManager
 {
     ModuleManager(std::nullptr_t) noexcept {}
 };

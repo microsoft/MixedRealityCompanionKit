@@ -465,7 +465,7 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
     ULONG expectedSize = m_receivedHeader.cbPayloadSize - bundleSize;
     if (bufferSize > expectedSize)
     {
-        DataBuffer trimmed = payloadDataBuffer.TrimRight(expectedSize);
+        payloadDataBuffer.TrimRight(expectedSize);
     };
 
     // add the buffer to the bundle

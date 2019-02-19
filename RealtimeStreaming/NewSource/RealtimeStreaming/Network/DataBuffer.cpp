@@ -146,7 +146,7 @@ void DataBuffer::CurrentLength(ULONG len)
 
 
 _Use_decl_annotations_
-DataBuffer DataBuffer::TrimRight(ULONG cbSize)
+RealtimeStreaming::Network::DataBuffer DataBuffer::TrimRight(ULONG cbSize)
 {
     ULONG cbCurrentLen = CurrentLength();
 

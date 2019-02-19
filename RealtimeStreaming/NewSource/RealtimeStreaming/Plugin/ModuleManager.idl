@@ -14,7 +14,7 @@ namespace RealtimeStreaming.Plugin
     
 
     [version(1.0), exclusiveto(ModuleManager), uuid(ed7ca192-2e9d-11e9-b210-d663bd873d93)]
-    interface IRTModuleManager : IInspectable
+    interface IModuleManager : IInspectable
     {
         UInt32 AddModule(IRTModule pluginModule);
 
@@ -28,6 +28,6 @@ namespace RealtimeStreaming.Plugin
     [threading(both)]
     runtimeclass ModuleManager
     {
-        [default] interface IRTModuleManager;
+        [default] interface IModuleManager;
     };
 }

@@ -72,7 +72,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             //_In_ StateChangedCallback fnCallback);
         */
 
-        RealtimeMediaPlayer(_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
+        RealtimeMediaPlayer();
+        void Initialize(_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
 
         Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> InitAsync(_In_ Network::Connection connection);
 

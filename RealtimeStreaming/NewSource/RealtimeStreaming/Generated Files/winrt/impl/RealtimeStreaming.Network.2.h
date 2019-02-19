@@ -49,6 +49,7 @@ struct WINRT_EBO DataBuffer :
     impl::require<DataBuffer, Windows::Storage::Streams::IBuffer>
 {
     DataBuffer(std::nullptr_t) noexcept {}
+    DataBuffer();
     DataBuffer(uint64_t size);
 };
 

@@ -55,7 +55,7 @@ struct WINRT_EBO DataBufferT : implements<D, Windows::Foundation::IActivationFac
 
     Windows::Foundation::IInspectable ActivateInstance() const
     {
-        throw hresult_not_implemented();
+        return make<T>();
     }
 
     RealtimeStreaming::Network::DataBuffer CreateInstance(uint64_t size)

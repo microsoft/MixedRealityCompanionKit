@@ -58,16 +58,12 @@ void PluginManager::Uninitialize()
 
     assert(0 == m_eventTokens.size());
     m_eventTokens.clear();
-
-    if (nullptr != m_moduleManager)
-    {
-        m_moduleManager = nullptr;
-    }
+    m_moduleManager = nullptr;
 }
 
 /* static */
 _Use_decl_annotations_
-RealtimeStreaming::Plugin::IRTModuleManager PluginManager::ModuleManager()
+RealtimeStreaming::Plugin::ModuleManager PluginManager::ModuleManager()
 {
     return m_moduleManager;
 }
@@ -590,7 +586,9 @@ HRESULT PluginManager::RTPlayerCreate(
     auto connection = GetModule<Connection>(handle);
     //UnityGfxRenderer unityGraphics = m_unityGraphics->GetRenderer();
 
-    auto rtPlayer = make<Media::implementation::RealtimeMediaPlayer>(m_unityInterfaces);
+    RealtimeStreaming::Media::implementation::RealtimeMediaPlayer rtPlayer 
+        = winrt::make<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
+    rtPlayer.Initialize(s_deviceResource);
 
     s_spStreamingPlayer = nullptr; // make sure we unseat if previously assigned
     s_spStreamingPlayer = rtPlayer;

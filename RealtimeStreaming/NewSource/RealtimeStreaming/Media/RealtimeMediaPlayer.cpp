@@ -17,18 +17,21 @@ using namespace Windows::Media::Playback;
 
 using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
 
-RealtimeMediaPlayer::RealtimeMediaPlayer(
-    std::weak_ptr<IUnityDeviceResource> const& unityDevice
-)
+RealtimeMediaPlayer::RealtimeMediaPlayer()
 //_In_ StateChangedCallback fnCallback)
     //_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice)
     : m_d3dDevice(nullptr)
     , m_mediaPlayer(nullptr)
     , m_mediaPlaybackSession(nullptr)
     , m_primaryBuffer(std::make_shared<SharedTextureBuffer>())
-    , m_deviceResources(unityDevice)
+    //, m_deviceResources(unityDevice)
 {
 }
+void RealtimeMediaPlayer::Initialize(std::weak_ptr<IUnityDeviceResource> const& unityDevice)
+{
+    m_deviceResources = unityDevice;
+}
+
 
 void RealtimeMediaPlayer::Shutdown()
 {

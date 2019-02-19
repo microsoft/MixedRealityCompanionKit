@@ -10,11 +10,12 @@ namespace RealtimeStreaming.Network
     [version(1.0)]
     runtimeclass DataBuffer : Windows.Storage.Streams.IBuffer
     { 
+        DataBuffer();
         DataBuffer(UInt64 size);
         UInt64 CurrentLength{ get; set; };
         UInt64 Offset{ get; set; };
-        
-        HRESULT TrimLeft(UInt64 cbSize);
+
+        void TrimLeft(UInt64 cbSize);
         RealtimeStreaming.Network.DataBuffer TrimRight(UInt64 cbSize);
 
         void Reset();

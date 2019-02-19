@@ -11,7 +11,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
 
     public:
-        Connection() = delete;
+        Connection();
         Connection(_In_ Windows::Networking::Sockets::StreamSocket const& socket);
         ~Connection();
 

@@ -12,6 +12,25 @@ static_assert(winrt::check_version(CPPWINRT_VERSION, "1.0.180821.2"), "Mismatche
 
 namespace winrt::impl {
 
+template <typename D> uint32_t consume_RealtimeStreaming_Plugin_IModuleManager<D>::AddModule(RealtimeStreaming::Plugin::IRTModule const& pluginModule) const
+{
+    uint32_t result{};
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IModuleManager)->AddModule(get_abi(pluginModule), &result));
+    return result;
+}
+
+template <typename D> RealtimeStreaming::Plugin::IRTModule consume_RealtimeStreaming_Plugin_IModuleManager<D>::GetModule(uint32_t moduleHandle) const
+{
+    RealtimeStreaming::Plugin::IRTModule result{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IModuleManager)->GetModule(moduleHandle, put_abi(result)));
+    return result;
+}
+
+template <typename D> void consume_RealtimeStreaming_Plugin_IModuleManager<D>::ReleaseModule(uint32_t moduleHandle) const
+{
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IModuleManager)->ReleaseModule(moduleHandle));
+}
+
 template <typename D> RealtimeStreaming::Plugin::ModuleManager consume_RealtimeStreaming_Plugin_IPluginManager<D>::ModuleManager() const
 {
     RealtimeStreaming::Plugin::ModuleManager value{ nullptr };
@@ -24,60 +43,8 @@ template <typename D> void consume_RealtimeStreaming_Plugin_IRTModule<D>::Shutdo
     check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IRTModule)->Shutdown());
 }
 
-template <typename D> uint32_t consume_RealtimeStreaming_Plugin_IRTModuleManager<D>::AddModule(RealtimeStreaming::Plugin::IRTModule const& pluginModule) const
-{
-    uint32_t result{};
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IRTModuleManager)->AddModule(get_abi(pluginModule), &result));
-    return result;
-}
-
-template <typename D> RealtimeStreaming::Plugin::IRTModule consume_RealtimeStreaming_Plugin_IRTModuleManager<D>::GetModule(uint32_t moduleHandle) const
-{
-    RealtimeStreaming::Plugin::IRTModule result{ nullptr };
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IRTModuleManager)->GetModule(moduleHandle, put_abi(result)));
-    return result;
-}
-
-template <typename D> void consume_RealtimeStreaming_Plugin_IRTModuleManager<D>::ReleaseModule(uint32_t moduleHandle) const
-{
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Plugin::IRTModuleManager)->ReleaseModule(moduleHandle));
-}
-
 template <typename D>
-struct produce<D, RealtimeStreaming::Plugin::IPluginManager> : produce_base<D, RealtimeStreaming::Plugin::IPluginManager>
-{
-    int32_t WINRT_CALL get_ModuleManager(void** value) noexcept final
-    {
-        try
-        {
-            *value = nullptr;
-            typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(ModuleManager, WINRT_WRAP(RealtimeStreaming::Plugin::ModuleManager));
-            *value = detach_from<RealtimeStreaming::Plugin::ModuleManager>(this->shim().ModuleManager());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    }
-};
-
-template <typename D>
-struct produce<D, RealtimeStreaming::Plugin::IRTModule> : produce_base<D, RealtimeStreaming::Plugin::IRTModule>
-{
-    int32_t WINRT_CALL Shutdown() noexcept final
-    {
-        try
-        {
-            typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(Shutdown, WINRT_WRAP(void));
-            this->shim().Shutdown();
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    }
-};
-
-template <typename D>
-struct produce<D, RealtimeStreaming::Plugin::IRTModuleManager> : produce_base<D, RealtimeStreaming::Plugin::IRTModuleManager>
+struct produce<D, RealtimeStreaming::Plugin::IModuleManager> : produce_base<D, RealtimeStreaming::Plugin::IModuleManager>
 {
     int32_t WINRT_CALL AddModule(void* pluginModule, uint32_t* result) noexcept final
     {
@@ -111,6 +78,39 @@ struct produce<D, RealtimeStreaming::Plugin::IRTModuleManager> : produce_base<D,
             typename D::abi_guard guard(this->shim());
             WINRT_ASSERT_DECLARATION(ReleaseModule, WINRT_WRAP(void), uint32_t);
             this->shim().ReleaseModule(moduleHandle);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    }
+};
+
+template <typename D>
+struct produce<D, RealtimeStreaming::Plugin::IPluginManager> : produce_base<D, RealtimeStreaming::Plugin::IPluginManager>
+{
+    int32_t WINRT_CALL get_ModuleManager(void** value) noexcept final
+    {
+        try
+        {
+            *value = nullptr;
+            typename D::abi_guard guard(this->shim());
+            WINRT_ASSERT_DECLARATION(ModuleManager, WINRT_WRAP(RealtimeStreaming::Plugin::ModuleManager));
+            *value = detach_from<RealtimeStreaming::Plugin::ModuleManager>(this->shim().ModuleManager());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    }
+};
+
+template <typename D>
+struct produce<D, RealtimeStreaming::Plugin::IRTModule> : produce_base<D, RealtimeStreaming::Plugin::IRTModule>
+{
+    int32_t WINRT_CALL Shutdown() noexcept final
+    {
+        try
+        {
+            typename D::abi_guard guard(this->shim());
+            WINRT_ASSERT_DECLARATION(Shutdown, WINRT_WRAP(void));
+            this->shim().Shutdown();
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -199,9 +199,9 @@ template <> struct get_enumerator_values<RealtimeStreaming::Plugin::DeviceType>
 
 WINRT_EXPORT namespace std {
 
+template<> struct hash<winrt::RealtimeStreaming::Plugin::IModuleManager> : winrt::impl::hash_base<winrt::RealtimeStreaming::Plugin::IModuleManager> {};
 template<> struct hash<winrt::RealtimeStreaming::Plugin::IPluginManager> : winrt::impl::hash_base<winrt::RealtimeStreaming::Plugin::IPluginManager> {};
 template<> struct hash<winrt::RealtimeStreaming::Plugin::IRTModule> : winrt::impl::hash_base<winrt::RealtimeStreaming::Plugin::IRTModule> {};
-template<> struct hash<winrt::RealtimeStreaming::Plugin::IRTModuleManager> : winrt::impl::hash_base<winrt::RealtimeStreaming::Plugin::IRTModuleManager> {};
 template<> struct hash<winrt::RealtimeStreaming::Plugin::ModuleManager> : winrt::impl::hash_base<winrt::RealtimeStreaming::Plugin::ModuleManager> {};
 template<> struct hash<winrt::RealtimeStreaming::Plugin::PluginManager> : winrt::impl::hash_base<winrt::RealtimeStreaming::Plugin::PluginManager> {};
 

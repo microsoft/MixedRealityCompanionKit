@@ -76,7 +76,7 @@ template <> struct name<RealtimeStreaming::Network::DisconnectedDelegate>{ stati
 template <> struct guid_storage<RealtimeStreaming::Network::IConnection>{ static constexpr guid value{ 0x27487688,0x8BB0,0x5355,{ 0xBC,0x5F,0xB8,0x65,0xE2,0x1E,0x94,0x8A } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IConnectionFactory>{ static constexpr guid value{ 0x14F9460A,0x72AC,0x5AF7,{ 0xAC,0xA4,0xF3,0xCA,0xC9,0xB8,0x17,0x7C } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IConnector>{ static constexpr guid value{ 0xED572D29,0x652C,0x582E,{ 0x9E,0x69,0x13,0x4C,0xE9,0x03,0x3D,0xF7 } }; };
-template <> struct guid_storage<RealtimeStreaming::Network::IDataBuffer>{ static constexpr guid value{ 0xAF9BEB60,0xC840,0x567E,{ 0x99,0xB4,0x19,0x8E,0xE2,0x99,0x6E,0x07 } }; };
+template <> struct guid_storage<RealtimeStreaming::Network::IDataBuffer>{ static constexpr guid value{ 0x6658E1FD,0x76CD,0x5705,{ 0x93,0x20,0xFF,0x3D,0xA3,0x47,0xD9,0x1D } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBufferFactory>{ static constexpr guid value{ 0x6AC59985,0xEC6A,0x5753,{ 0xAA,0x3F,0x9E,0x45,0x71,0x7B,0xDA,0x8B } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBundle>{ static constexpr guid value{ 0x01458CE6,0x2E5F,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBundleArgs>{ static constexpr guid value{ 0x26A177FE,0x2E53,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
@@ -121,7 +121,7 @@ template <> struct abi<RealtimeStreaming::Network::IDataBuffer>{ struct type : I
     virtual int32_t WINRT_CALL put_CurrentLength(uint64_t value) noexcept = 0;
     virtual int32_t WINRT_CALL get_Offset(uint64_t* value) noexcept = 0;
     virtual int32_t WINRT_CALL put_Offset(uint64_t value) noexcept = 0;
-    virtual int32_t WINRT_CALL TrimLeft(uint64_t cbSize, winrt::hresult* result) noexcept = 0;
+    virtual int32_t WINRT_CALL TrimLeft(uint64_t cbSize) noexcept = 0;
     virtual int32_t WINRT_CALL TrimRight(uint64_t cbSize, void** result) noexcept = 0;
     virtual int32_t WINRT_CALL Reset() noexcept = 0;
 };};
@@ -212,7 +212,7 @@ struct consume_RealtimeStreaming_Network_IDataBuffer
     void CurrentLength(uint64_t value) const;
     uint64_t Offset() const;
     void Offset(uint64_t value) const;
-    winrt::hresult TrimLeft(uint64_t cbSize) const;
+    void TrimLeft(uint64_t cbSize) const;
     RealtimeStreaming::Network::DataBuffer TrimRight(uint64_t cbSize) const;
     void Reset() const;
 };
