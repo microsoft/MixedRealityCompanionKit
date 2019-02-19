@@ -9,14 +9,12 @@
 using namespace winrt;
 using namespace RealtimeStreaming::Network::implementation;
 
-_Use_decl_annotations_
-DataBundleArgs::DataBundleArgs(
-    RealtimeStreaming::Common::PayloadType operation,
-    RealtimeStreaming::Network::Connection connection,
-    RealtimeStreaming::Network::DataBundle bundle)
-    : m_payloadType(operation),
+DataBundleArgs::DataBundleArgs(RealtimeStreaming::Common::PayloadType const& type,
+    RealtimeStreaming::Network::Connection const& connection,
+    RealtimeStreaming::Network::DataBundle const& dataBundle)
+    : m_payloadType(type),
     m_connection(connection),
-    m_bundle(bundle)
+    m_bundle(dataBundle)
 {
     Log(Log_Level_Info, L"DataBundleArgsImpl::DataBundleArgsImpl()\n");
 }

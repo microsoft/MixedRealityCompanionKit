@@ -39,11 +39,10 @@ namespace RealtimeStreaming.Media
     */
     runtimeclass NetworkMediaSinkStream : Windows.Media.IMediaExtension
     {
-        /*
+        NetworkMediaSinkStream();
         NetworkMediaSinkStream(UInt32 streamId,
-                RealtimeStreaming::Network::Connection dataConnection,
-                RealtimeStreaming::Media::NetworkMediaSink parentMediaSink);
-                */
+                RealtimeStreaming.Network.Connection dataConnection,
+                RealtimeStreaming.Media.NetworkMediaSink parentMediaSink);
 
         HRESULT Start(Int64 start); //MFTIME
         HRESULT Restart();

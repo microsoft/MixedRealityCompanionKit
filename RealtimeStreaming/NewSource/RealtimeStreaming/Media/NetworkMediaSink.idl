@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #pragma once
 
+import "Network/Connection.idl";
+
 namespace RealtimeStreaming.Media
 {
     [marshaling_behavior(agile)]
@@ -10,14 +12,14 @@ namespace RealtimeStreaming.Media
     [default_interface]
     runtimeclass NetworkMediaSink : Windows.Media.IMediaExtension
     {
+        NetworkMediaSink();
+        NetworkMediaSink(
+            Windows.Media.MediaProperties.AudioEncodingProperties audioEncodingProperties,
+            Windows.Media.MediaProperties.VideoEncodingProperties videoEncodingProperties,
+            RealtimeStreaming.Network.Connection connection);
+
         event Windows.Foundation.EventHandler<Boolean> Closed;
 
         HRESULT OnEndOfStream(UInt32 streamId);
-
-        HRESULT HandleError(HRESULT hr);
-
-        HRESULT CheckShutdown();
-
-        HRESULT SendDescription();
     };
 }

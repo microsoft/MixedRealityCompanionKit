@@ -23,7 +23,7 @@ RealtimeServer::RealtimeServer(
     m_spMediaEncodingProfile.Container(nullptr);
 
     // create the custom network sink
-    m_spNetworkMediaSink = winrt::make<NetworkMediaSink>(m_spMediaEncodingProfile.Audio(),
+    m_spNetworkMediaSink = winrt::make<Media::implementation::NetworkMediaSink>(m_spMediaEncodingProfile.Audio(),
         m_spMediaEncodingProfile.Video(),
         connection);
 
@@ -92,12 +92,12 @@ void RealtimeServer::Shutdown()
 }
 
 _Use_decl_annotations_
-void RealtimeServer::WriteFrame(
-    UINT32 bufferSize,
-    BYTE* pBuffer)
+void RealtimeServer::WriteFrame(uint32_t bufferSize, 
+    array_view<uint8_t const> bufferArrayView)
 {
     HRESULT hr = S_OK;
 
+    const byte* pBuffer = bufferArrayView.data();
     NULL_THROW(pBuffer);
 
     // Create MediaBuffer
@@ -108,7 +108,7 @@ void RealtimeServer::WriteFrame(
     IFT(CreateIMFMediaBuffer(videoProps.Width(),
         videoProps.Height(),
         bufferSize,
-        pBuffer,
+        (BYTE*)pBuffer,
         spBuffer.put()));
 
     // Create a media sample and add the buffer to the sample.

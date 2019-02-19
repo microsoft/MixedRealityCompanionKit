@@ -3,6 +3,11 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
+    NetworkMediaSinkStream::NetworkMediaSinkStream(uint32_t streamId, RealtimeStreaming::Network::Connection const& dataConnection, RealtimeStreaming::Media::NetworkMediaSink const& parentMediaSink)
+    {
+        throw hresult_not_implemented();
+    }
+
     winrt::hresult NetworkMediaSinkStream::Start(int64_t start)
     {
         throw hresult_not_implemented();

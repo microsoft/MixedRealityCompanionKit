@@ -41,6 +41,31 @@ struct WINRT_EBO DataBundleArgs_base : implements<D, RealtimeStreaming::Network:
 
 }
 
+namespace winrt::RealtimeStreaming::Network::factory_implementation {
+
+template <typename D, typename T, typename... I>
+struct WINRT_EBO DataBundleArgsT : implements<D, Windows::Foundation::IActivationFactory, RealtimeStreaming::Network::IDataBundleArgsFactory, I...>
+{
+    using instance_type = RealtimeStreaming::Network::DataBundleArgs;
+
+    hstring GetRuntimeClassName() const
+    {
+        return L"RealtimeStreaming.Network.DataBundleArgs";
+    }
+
+    Windows::Foundation::IInspectable ActivateInstance() const
+    {
+        throw hresult_not_implemented();
+    }
+
+    RealtimeStreaming::Network::DataBundleArgs CreateInstance(RealtimeStreaming::Common::PayloadType const& type, RealtimeStreaming::Network::Connection const& connection, RealtimeStreaming::Network::DataBundle const& dataBundle)
+    {
+        return make<T>(type, connection, dataBundle);
+    }
+};
+
+}
+
 #if defined(WINRT_FORCE_INCLUDE_DATABUNDLEARGS_XAML_G_H) || __has_include("Network.DataBundleArgs.xaml.g.h")
 
 #include "Network.DataBundleArgs.xaml.g.h"

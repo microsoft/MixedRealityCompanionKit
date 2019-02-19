@@ -10,6 +10,21 @@ import "Plugin/ModuleManager.idl";
 namespace RealtimeStreaming.Network
 {
     delegate void DisconnectedDelegate();
+/*
+    [version(1.0), exclusiveto(Connection), uuid(5f5d7868-3470-11e9-b210-d663bd873d93)]
+    interface IConnection : IInspectable 
+    {
+        void Bind(Windows.Networking.Sockets.StreamSocket streamSocket);
+
+        Windows.Foundation.IAsyncAction SendPayloadTypeAsync(RealtimeStreaming.Common.PayloadType type);
+        Windows.Foundation.IAsyncAction SendBundleAsync(DataBundle dataBundle);
+
+        Boolean IsConnected{ get; };
+        Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo{ get; };
+
+        event DisconnectedDelegate Disconnected;
+        event Windows.Foundation.EventHandler<DataBundleArgs > Received;
+    };*/
 
     [marshaling_behavior(agile)]
     [threading(both)]
@@ -30,5 +45,6 @@ namespace RealtimeStreaming.Network
 
         event DisconnectedDelegate Disconnected;
         event Windows.Foundation.EventHandler<DataBundleArgs > Received;
+        //event ReceivedDelegate Received;
     };
 }

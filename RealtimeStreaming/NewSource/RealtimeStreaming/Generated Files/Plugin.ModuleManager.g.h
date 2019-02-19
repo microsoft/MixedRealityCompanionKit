@@ -37,6 +37,26 @@ struct WINRT_EBO ModuleManager_base : implements<D, RealtimeStreaming::Plugin::I
 
 }
 
+namespace winrt::RealtimeStreaming::Plugin::factory_implementation {
+
+template <typename D, typename T, typename... I>
+struct WINRT_EBO ModuleManagerT : implements<D, Windows::Foundation::IActivationFactory, I...>
+{
+    using instance_type = RealtimeStreaming::Plugin::ModuleManager;
+
+    hstring GetRuntimeClassName() const
+    {
+        return L"RealtimeStreaming.Plugin.ModuleManager";
+    }
+
+    Windows::Foundation::IInspectable ActivateInstance() const
+    {
+        return make<T>();
+    }
+};
+
+}
+
 #if defined(WINRT_FORCE_INCLUDE_MODULEMANAGER_XAML_G_H) || __has_include("Plugin.ModuleManager.xaml.g.h")
 
 #include "Plugin.ModuleManager.xaml.g.h"

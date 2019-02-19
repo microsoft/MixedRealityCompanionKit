@@ -24,6 +24,8 @@ struct WINRT_EBO NetworkMediaSink :
     impl::require<NetworkMediaSink, Windows::Media::IMediaExtension>
 {
     NetworkMediaSink(std::nullptr_t) noexcept {}
+    NetworkMediaSink();
+    NetworkMediaSink(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection);
 };
 
 struct WINRT_EBO NetworkMediaSinkStream :
@@ -31,6 +33,8 @@ struct WINRT_EBO NetworkMediaSinkStream :
     impl::require<NetworkMediaSinkStream, Windows::Media::IMediaExtension>
 {
     NetworkMediaSinkStream(std::nullptr_t) noexcept {}
+    NetworkMediaSinkStream();
+    NetworkMediaSinkStream(uint32_t streamId, RealtimeStreaming::Network::Connection const& dataConnection, RealtimeStreaming::Media::NetworkMediaSink const& parentMediaSink);
 };
 
 struct WINRT_EBO RTSchemeHandler :

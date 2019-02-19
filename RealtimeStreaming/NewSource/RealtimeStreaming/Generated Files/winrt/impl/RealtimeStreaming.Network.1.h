@@ -58,6 +58,13 @@ struct WINRT_EBO IDataBundleArgs :
     IDataBundleArgs(std::nullptr_t = nullptr) noexcept {}
 };
 
+struct WINRT_EBO IDataBundleArgsFactory :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<IDataBundleArgsFactory>
+{
+    IDataBundleArgsFactory(std::nullptr_t = nullptr) noexcept {}
+};
+
 struct WINRT_EBO IDataBundleFactory :
     Windows::Foundation::IInspectable,
     impl::consume_t<IDataBundleFactory>

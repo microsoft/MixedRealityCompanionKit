@@ -45,7 +45,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
     protected:
         void OnDataReceived(
-            _In_ Network::Connection const& sender,
+            //_In_ Network::Connection const& sender,
+            _In_ IInspectable const& sender,
             _In_ Network::DataBundleArgs const& args);
 
     private:

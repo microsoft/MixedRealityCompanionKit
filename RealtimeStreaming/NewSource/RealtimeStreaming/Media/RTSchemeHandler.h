@@ -40,3 +40,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
             RealtimeStreaming::Network::Connection m_connection{ nullptr };
         };
 }
+
+namespace winrt::RealtimeStreaming::Media::factory_implementation
+{
+    struct RTSchemeHandler : RTSchemeHandlerT<RTSchemeHandler, implementation::RTSchemeHandler>
+    {
+    };
+}

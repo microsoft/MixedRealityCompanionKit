@@ -9,9 +9,11 @@ namespace winrt::RealtimeStreaming::Network::implementation
 {
     struct DataBundleArgs : DataBundleArgsT<DataBundleArgs>
     {
-        DataBundleArgs(_In_ Common::PayloadType operation,
-            _In_ RealtimeStreaming::Network::Connection connection,
-            _In_ RealtimeStreaming::Network::DataBundle bundle);
+        //DataBundleArgs() = default;
+        DataBundleArgs(_In_ RealtimeStreaming::Common::PayloadType const& type, 
+            _In_ RealtimeStreaming::Network::Connection const& connection,
+            _In_ RealtimeStreaming::Network::DataBundle const& dataBundle);
+
         ~DataBundleArgs();
 
         //IDataBundleArgs
@@ -26,10 +28,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
     };
 }
 
-/*
 namespace winrt::RealtimeStreaming::Network::factory_implementation
 {
     struct DataBundleArgs : DataBundleArgsT<DataBundleArgs, implementation::DataBundleArgs>
     {
     };
-}*/
+}

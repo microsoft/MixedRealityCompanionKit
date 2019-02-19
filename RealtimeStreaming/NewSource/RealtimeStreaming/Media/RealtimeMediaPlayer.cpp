@@ -17,21 +17,12 @@ using namespace Windows::Media::Playback;
 
 using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
 
-RealtimeMediaPlayer::RealtimeMediaPlayer()
 //_In_ StateChangedCallback fnCallback)
-    //_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice)
-    : m_d3dDevice(nullptr)
-    , m_mediaPlayer(nullptr)
-    , m_mediaPlaybackSession(nullptr)
-    , m_primaryBuffer(std::make_shared<SharedTextureBuffer>())
-    //, m_deviceResources(unityDevice)
-{
-}
 void RealtimeMediaPlayer::Initialize(std::weak_ptr<IUnityDeviceResource> const& unityDevice)
 {
+    m_primaryBuffer = std::make_shared<SharedTextureBuffer>();
     m_deviceResources = unityDevice;
 }
-
 
 void RealtimeMediaPlayer::Shutdown()
 {
@@ -123,7 +114,7 @@ HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::Play()
+winrt::hresult RealtimeMediaPlayer::Play()
 {
     NULL_CHK_HR(m_mediaPlayer, MF_E_NOT_INITIALIZED);
 
@@ -142,7 +133,7 @@ HRESULT RealtimeMediaPlayer::Play()
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::Pause()
+winrt::hresult RealtimeMediaPlayer::Pause()
 {
     NULL_CHK_HR(m_mediaPlayer, MF_E_NOT_INITIALIZED);
 
@@ -161,7 +152,7 @@ HRESULT RealtimeMediaPlayer::Pause()
 }
 
 _Use_decl_annotations_
-HRESULT RealtimeMediaPlayer::Stop()
+winrt::hresult RealtimeMediaPlayer::Stop()
 {
     NULL_CHK_HR(m_mediaPlayer, MF_E_NOT_INITIALIZED);
 

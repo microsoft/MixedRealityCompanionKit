@@ -240,7 +240,8 @@ void RealtimeMediaSource::SendStopRequest()
 
 _Use_decl_annotations_
 void RealtimeMediaSource::OnDataReceived(
-    RealtimeStreaming::Network::Connection const& sender,
+    //RealtimeStreaming::Network::Connection const& sender,
+    IInspectable const& sender,
     RealtimeStreaming::Network::DataBundleArgs const& args)
 {
     // TODO: Troy figure out right lock

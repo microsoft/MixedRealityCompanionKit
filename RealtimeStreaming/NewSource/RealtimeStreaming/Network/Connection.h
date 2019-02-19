@@ -11,7 +11,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
 
     public:
-        Connection();
+        Connection() = default; // TODO: Clean this up design. Need ability to break waitforheader loop and re-bind connection?
         Connection(_In_ Windows::Networking::Sockets::StreamSocket const& socket);
         ~Connection();
 
@@ -19,6 +19,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
         void Close();
 
         //IConnection
+        //void Bind(_In_ Windows::Networking::Sockets::StreamSocket const& socket);
+
         bool IsConnected();
         Windows::Networking::Sockets::StreamSocketInformation ConnectionInfo();
 
@@ -28,11 +30,12 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Windows::Foundation::IAsyncAction SendBundleAsync(
             _In_ RealtimeStreaming::Network::DataBundle dataBundle);
 
-        event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
-        void Disconnected(event_token const& token);
+        winrt::event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
+        void Disconnected(winrt::event_token const& token) noexcept;
 
         event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler);
-        void Received(event_token const& token);
+        //event_token Received(winrt::delegate<DataBundleArgs> const& handler);
+        void Received(event_token const& token) noexcept;
 
         void Shutdown() {};
     protected:
@@ -73,11 +76,14 @@ namespace winrt::RealtimeStreaming::Network::implementation
         Common::PayloadHeader m_receivedHeader;
         RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
             
-        winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
-        winrt::event<Windows::Foundation::EventHandler<DataBundleArgs>> m_evtBundleReceived;
+        winrt::event<RealtimeStreaming::Network::DisconnectedDelegate> m_evtDisconnected;
+        //winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
+        winrt::event<Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs>> m_evtBundleReceived;
+        //winrt::event<winrt::delegate<DataBundleArgs>> m_evtBundleReceived;
 
     };
 }
+
 
 namespace winrt::RealtimeStreaming::Network::factory_implementation
 {

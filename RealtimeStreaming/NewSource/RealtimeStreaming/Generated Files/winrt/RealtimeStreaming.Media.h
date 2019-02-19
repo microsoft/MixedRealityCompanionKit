@@ -42,25 +42,11 @@ template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMed
     return result;
 }
 
-template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMediaSink<D>::HandleError(winrt::hresult const& hr) const
+template <typename D> RealtimeStreaming::Media::NetworkMediaSink consume_RealtimeStreaming_Media_INetworkMediaSinkFactory<D>::CreateInstance(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection) const
 {
-    winrt::hresult result{};
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSink)->HandleError(get_abi(hr), put_abi(result)));
-    return result;
-}
-
-template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMediaSink<D>::CheckShutdown() const
-{
-    winrt::hresult result{};
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSink)->CheckShutdown(put_abi(result)));
-    return result;
-}
-
-template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMediaSink<D>::SendDescription() const
-{
-    winrt::hresult result{};
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSink)->SendDescription(put_abi(result)));
-    return result;
+    RealtimeStreaming::Media::NetworkMediaSink value{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSinkFactory)->CreateInstance(get_abi(audioEncodingProperties), get_abi(videoEncodingProperties), get_abi(connection), put_abi(value)));
+    return value;
 }
 
 template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMediaSinkStream<D>::Start(int64_t start) const
@@ -96,6 +82,13 @@ template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMed
     winrt::hresult result{};
     check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSinkStream)->Shutdown(put_abi(result)));
     return result;
+}
+
+template <typename D> RealtimeStreaming::Media::NetworkMediaSinkStream consume_RealtimeStreaming_Media_INetworkMediaSinkStreamFactory<D>::CreateInstance(uint32_t streamId, RealtimeStreaming::Network::Connection const& dataConnection, RealtimeStreaming::Media::NetworkMediaSink const& parentMediaSink) const
+{
+    RealtimeStreaming::Media::NetworkMediaSinkStream value{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSinkStreamFactory)->CreateInstance(streamId, get_abi(dataConnection), get_abi(parentMediaSink), put_abi(value)));
+    return value;
 }
 
 template <typename D> RealtimeStreaming::Network::Connection consume_RealtimeStreaming_Media_IRTSchemeHandler<D>::DataConnection() const
@@ -229,38 +222,19 @@ struct produce<D, RealtimeStreaming::Media::INetworkMediaSink> : produce_base<D,
         }
         catch (...) { return to_hresult(); }
     }
+};
 
-    int32_t WINRT_CALL HandleError(winrt::hresult hr, winrt::hresult* result) noexcept final
+template <typename D>
+struct produce<D, RealtimeStreaming::Media::INetworkMediaSinkFactory> : produce_base<D, RealtimeStreaming::Media::INetworkMediaSinkFactory>
+{
+    int32_t WINRT_CALL CreateInstance(void* audioEncodingProperties, void* videoEncodingProperties, void* connection, void** value) noexcept final
     {
         try
         {
+            *value = nullptr;
             typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(HandleError, WINRT_WRAP(winrt::hresult), winrt::hresult const&);
-            *result = detach_from<winrt::hresult>(this->shim().HandleError(*reinterpret_cast<winrt::hresult const*>(&hr)));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    }
-
-    int32_t WINRT_CALL CheckShutdown(winrt::hresult* result) noexcept final
-    {
-        try
-        {
-            typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(CheckShutdown, WINRT_WRAP(winrt::hresult));
-            *result = detach_from<winrt::hresult>(this->shim().CheckShutdown());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    }
-
-    int32_t WINRT_CALL SendDescription(winrt::hresult* result) noexcept final
-    {
-        try
-        {
-            typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(SendDescription, WINRT_WRAP(winrt::hresult));
-            *result = detach_from<winrt::hresult>(this->shim().SendDescription());
+            WINRT_ASSERT_DECLARATION(CreateInstance, WINRT_WRAP(RealtimeStreaming::Media::NetworkMediaSink), Windows::Media::MediaProperties::AudioEncodingProperties const&, Windows::Media::MediaProperties::VideoEncodingProperties const&, RealtimeStreaming::Network::Connection const&);
+            *value = detach_from<RealtimeStreaming::Media::NetworkMediaSink>(this->shim().CreateInstance(*reinterpret_cast<Windows::Media::MediaProperties::AudioEncodingProperties const*>(&audioEncodingProperties), *reinterpret_cast<Windows::Media::MediaProperties::VideoEncodingProperties const*>(&videoEncodingProperties), *reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&connection)));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -325,6 +299,23 @@ struct produce<D, RealtimeStreaming::Media::INetworkMediaSinkStream> : produce_b
             typename D::abi_guard guard(this->shim());
             WINRT_ASSERT_DECLARATION(Shutdown, WINRT_WRAP(winrt::hresult));
             *result = detach_from<winrt::hresult>(this->shim().Shutdown());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    }
+};
+
+template <typename D>
+struct produce<D, RealtimeStreaming::Media::INetworkMediaSinkStreamFactory> : produce_base<D, RealtimeStreaming::Media::INetworkMediaSinkStreamFactory>
+{
+    int32_t WINRT_CALL CreateInstance(uint32_t streamId, void* dataConnection, void* parentMediaSink, void** value) noexcept final
+    {
+        try
+        {
+            *value = nullptr;
+            typename D::abi_guard guard(this->shim());
+            WINRT_ASSERT_DECLARATION(CreateInstance, WINRT_WRAP(RealtimeStreaming::Media::NetworkMediaSinkStream), uint32_t, RealtimeStreaming::Network::Connection const&, RealtimeStreaming::Media::NetworkMediaSink const&);
+            *value = detach_from<RealtimeStreaming::Media::NetworkMediaSinkStream>(this->shim().CreateInstance(streamId, *reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&dataConnection), *reinterpret_cast<RealtimeStreaming::Media::NetworkMediaSink const*>(&parentMediaSink)));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -525,6 +516,22 @@ struct produce<D, RealtimeStreaming::Media::IRealtimeServerFactory> : produce_ba
 }
 
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Media {
+
+inline NetworkMediaSink::NetworkMediaSink() :
+    NetworkMediaSink(impl::call_factory<NetworkMediaSink>([](auto&& f) { return f.template ActivateInstance<NetworkMediaSink>(); }))
+{}
+
+inline NetworkMediaSink::NetworkMediaSink(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection) :
+    NetworkMediaSink(impl::call_factory<NetworkMediaSink, RealtimeStreaming::Media::INetworkMediaSinkFactory>([&](auto&& f) { return f.CreateInstance(audioEncodingProperties, videoEncodingProperties, connection); }))
+{}
+
+inline NetworkMediaSinkStream::NetworkMediaSinkStream() :
+    NetworkMediaSinkStream(impl::call_factory<NetworkMediaSinkStream>([](auto&& f) { return f.template ActivateInstance<NetworkMediaSinkStream>(); }))
+{}
+
+inline NetworkMediaSinkStream::NetworkMediaSinkStream(uint32_t streamId, RealtimeStreaming::Network::Connection const& dataConnection, RealtimeStreaming::Media::NetworkMediaSink const& parentMediaSink) :
+    NetworkMediaSinkStream(impl::call_factory<NetworkMediaSinkStream, RealtimeStreaming::Media::INetworkMediaSinkStreamFactory>([&](auto&& f) { return f.CreateInstance(streamId, dataConnection, parentMediaSink); }))
+{}
 
 inline RTSchemeHandler::RTSchemeHandler() :
     RTSchemeHandler(impl::call_factory<RTSchemeHandler>([](auto&& f) { return f.template ActivateInstance<RTSchemeHandler>(); }))
@@ -815,7 +822,9 @@ template <> struct get_enumerator_values<RealtimeStreaming::Media::SourceStreamS
 WINRT_EXPORT namespace std {
 
 template<> struct hash<winrt::RealtimeStreaming::Media::INetworkMediaSink> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::INetworkMediaSink> {};
+template<> struct hash<winrt::RealtimeStreaming::Media::INetworkMediaSinkFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::INetworkMediaSinkFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::INetworkMediaSinkStream> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::INetworkMediaSinkStream> {};
+template<> struct hash<winrt::RealtimeStreaming::Media::INetworkMediaSinkStreamFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::INetworkMediaSinkStreamFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::IRTSchemeHandler> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRTSchemeHandler> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::IRealtimeMediaPlayer> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRealtimeMediaPlayer> {};
 template<> struct hash<winrt::RealtimeStreaming::Media::IRealtimeMediaSource> : winrt::impl::hash_base<winrt::RealtimeStreaming::Media::IRealtimeMediaSource> {};

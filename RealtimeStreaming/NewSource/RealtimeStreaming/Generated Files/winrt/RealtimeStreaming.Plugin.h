@@ -121,6 +121,10 @@ struct produce<D, RealtimeStreaming::Plugin::IRTModule> : produce_base<D, Realti
 
 WINRT_EXPORT namespace winrt::RealtimeStreaming::Plugin {
 
+inline ModuleManager::ModuleManager() :
+    ModuleManager(impl::call_factory<ModuleManager>([](auto&& f) { return f.template ActivateInstance<ModuleManager>(); }))
+{}
+
 inline PluginManager::PluginManager() :
     PluginManager(impl::call_factory<PluginManager>([](auto&& f) { return f.template ActivateInstance<PluginManager>(); }))
 {}

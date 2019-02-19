@@ -554,7 +554,8 @@ HRESULT CreateMediaDevice(
 
     spMultithread->SetMultithreadProtected(TRUE);
 
-    *ppDevice = spDevice.detach();
+    spDevice.copy_to(ppDevice);
+    //*ppDevice = spDevice.detach();
 
     return S_OK;
 }
@@ -601,7 +602,8 @@ HRESULT CreateIMFMediaBuffer(
     // Set the data length of the buffer.
     IFT(spBuffer->SetCurrentLength(cbBuffer));
 
-    *ppIMFBuffer = spBuffer.detach();
+    spBuffer.copy_to(ppIMFBuffer);
+    //*ppIMFBuffer = spBuffer.detach();
 
     return S_OK;
 }

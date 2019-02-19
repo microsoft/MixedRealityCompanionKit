@@ -8,13 +8,6 @@ using namespace winrt;
 using namespace RealtimeStreaming::Plugin::implementation;
 
 _Use_decl_annotations_
-ModuleManager::ModuleManager()
-{
-    _lastModuleHandleIndex = MODULE_HANDLE_START;
-    _moduleHandleMap.clear();
-}
-
-_Use_decl_annotations_
 ModuleManager::~ModuleManager() 
 {
     slim_lock_guard guard(m_lock);

@@ -17,6 +17,7 @@ struct WINRT_EBO ModuleManager :
     RealtimeStreaming::Plugin::IModuleManager
 {
     ModuleManager(std::nullptr_t) noexcept {}
+    ModuleManager();
 };
 
 struct WINRT_EBO PluginManager :

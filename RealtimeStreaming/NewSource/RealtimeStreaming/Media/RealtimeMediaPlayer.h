@@ -72,16 +72,16 @@ namespace winrt::RealtimeStreaming::Media::implementation
             //_In_ StateChangedCallback fnCallback);
         */
 
-        RealtimeMediaPlayer();
+        RealtimeMediaPlayer() = default;
         void Initialize(_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
 
         Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> InitAsync(_In_ Network::Connection connection);
 
         void Shutdown();
 
-        HRESULT Play();
-        HRESULT Pause();
-        HRESULT Stop();
+        winrt::hresult Play();
+        winrt::hresult Pause();
+        winrt::hresult Stop();
 
         event_token Closed(Windows::Foundation::EventHandler<Media::RealtimeMediaPlayer> const& handler);
         void Closed(event_token const& token);
@@ -109,7 +109,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         event_token m_openedToken;
         event_token m_videoFrameAvailableToken;
 
-        Windows::Media::Playback::MediaPlaybackSession m_mediaPlaybackSession;
+        Windows::Media::Playback::MediaPlaybackSession m_mediaPlaybackSession{ nullptr };
         event_token m_stateChangedEventToken;
 
         std::shared_ptr<SharedTextureBuffer> m_primaryBuffer;

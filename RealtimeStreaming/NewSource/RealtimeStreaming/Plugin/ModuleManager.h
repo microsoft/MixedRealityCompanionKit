@@ -13,7 +13,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     {
 
     public:
-        ModuleManager();
+        ModuleManager() = default;
         ~ModuleManager();
 
         // IRTModuleManager
@@ -27,8 +27,15 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
         //Wrappers::CriticalSection _lock;
         slim_mutex m_lock;
 
-        ModuleHandle _lastModuleHandleIndex;
+        ModuleHandle _lastModuleHandleIndex = MODULE_HANDLE_START;
 
         std::map<ModuleHandle, IRTModule> _moduleHandleMap;
+    };
+}
+
+namespace winrt::RealtimeStreaming::Plugin::factory_implementation
+{
+    struct ModuleManager : ModuleManagerT<ModuleManager, implementation::ModuleManager>
+    {
     };
 }

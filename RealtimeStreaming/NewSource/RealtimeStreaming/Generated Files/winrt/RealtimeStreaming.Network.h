@@ -216,6 +216,13 @@ template <typename D> RealtimeStreaming::Network::DataBundle consume_RealtimeStr
     return value;
 }
 
+template <typename D> RealtimeStreaming::Network::DataBundleArgs consume_RealtimeStreaming_Network_IDataBundleArgsFactory<D>::CreateInstance(RealtimeStreaming::Common::PayloadType const& type, RealtimeStreaming::Network::Connection const& connection, RealtimeStreaming::Network::DataBundle const& dataBundle) const
+{
+    RealtimeStreaming::Network::DataBundleArgs value{ nullptr };
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Network::IDataBundleArgsFactory)->CreateInstance(get_abi(type), get_abi(connection), get_abi(dataBundle), put_abi(value)));
+    return value;
+}
+
 template <typename D> Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> consume_RealtimeStreaming_Network_IListener<D>::ListenAsync() const
 {
     Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> operation{ nullptr };
@@ -643,6 +650,23 @@ struct produce<D, RealtimeStreaming::Network::IDataBundleArgs> : produce_base<D,
 };
 
 template <typename D>
+struct produce<D, RealtimeStreaming::Network::IDataBundleArgsFactory> : produce_base<D, RealtimeStreaming::Network::IDataBundleArgsFactory>
+{
+    int32_t WINRT_CALL CreateInstance(RealtimeStreaming::Common::PayloadType type, void* connection, void* dataBundle, void** value) noexcept final
+    {
+        try
+        {
+            *value = nullptr;
+            typename D::abi_guard guard(this->shim());
+            WINRT_ASSERT_DECLARATION(CreateInstance, WINRT_WRAP(RealtimeStreaming::Network::DataBundleArgs), RealtimeStreaming::Common::PayloadType const&, RealtimeStreaming::Network::Connection const&, RealtimeStreaming::Network::DataBundle const&);
+            *value = detach_from<RealtimeStreaming::Network::DataBundleArgs>(this->shim().CreateInstance(*reinterpret_cast<RealtimeStreaming::Common::PayloadType const*>(&type), *reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&connection), *reinterpret_cast<RealtimeStreaming::Network::DataBundle const*>(&dataBundle)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    }
+};
+
+template <typename D>
 struct produce<D, RealtimeStreaming::Network::IDataBundleFactory> : produce_base<D, RealtimeStreaming::Network::IDataBundleFactory>
 {};
 
@@ -718,6 +742,10 @@ inline DataBuffer::DataBuffer() :
 
 inline DataBuffer::DataBuffer(uint64_t size) :
     DataBuffer(impl::call_factory<DataBuffer, RealtimeStreaming::Network::IDataBufferFactory>([&](auto&& f) { return f.CreateInstance(size); }))
+{}
+
+inline DataBundleArgs::DataBundleArgs(RealtimeStreaming::Common::PayloadType const& type, RealtimeStreaming::Network::Connection const& connection, RealtimeStreaming::Network::DataBundle const& dataBundle) :
+    DataBundleArgs(impl::call_factory<DataBundleArgs, RealtimeStreaming::Network::IDataBundleArgsFactory>([&](auto&& f) { return f.CreateInstance(type, connection, dataBundle); }))
 {}
 
 inline Listener::Listener(uint16_t port) :
@@ -1204,6 +1232,7 @@ template<> struct hash<winrt::RealtimeStreaming::Network::IDataBuffer> : winrt::
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBufferFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBufferFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBundle> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBundle> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBundleArgs> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBundleArgs> {};
+template<> struct hash<winrt::RealtimeStreaming::Network::IDataBundleArgsFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBundleArgsFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IDataBundleFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IDataBundleFactory> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IListener> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IListener> {};
 template<> struct hash<winrt::RealtimeStreaming::Network::IListenerFactory> : winrt::impl::hash_base<winrt::RealtimeStreaming::Network::IListenerFactory> {};

@@ -24,6 +24,7 @@ struct IDataBuffer;
 struct IDataBufferFactory;
 struct IDataBundle;
 struct IDataBundleArgs;
+struct IDataBundleArgsFactory;
 struct IDataBundleFactory;
 struct IListener;
 struct IListenerFactory;
@@ -46,6 +47,7 @@ template <> struct category<RealtimeStreaming::Network::IDataBuffer>{ using type
 template <> struct category<RealtimeStreaming::Network::IDataBufferFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IDataBundle>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IDataBundleArgs>{ using type = interface_category; };
+template <> struct category<RealtimeStreaming::Network::IDataBundleArgsFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IDataBundleFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IListener>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Network::IListenerFactory>{ using type = interface_category; };
@@ -63,6 +65,7 @@ template <> struct name<RealtimeStreaming::Network::IDataBuffer>{ static constex
 template <> struct name<RealtimeStreaming::Network::IDataBufferFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBufferFactory" }; };
 template <> struct name<RealtimeStreaming::Network::IDataBundle>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBundle" }; };
 template <> struct name<RealtimeStreaming::Network::IDataBundleArgs>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBundleArgs" }; };
+template <> struct name<RealtimeStreaming::Network::IDataBundleArgsFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBundleArgsFactory" }; };
 template <> struct name<RealtimeStreaming::Network::IDataBundleFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IDataBundleFactory" }; };
 template <> struct name<RealtimeStreaming::Network::IListener>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IListener" }; };
 template <> struct name<RealtimeStreaming::Network::IListenerFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Network.IListenerFactory" }; };
@@ -79,7 +82,8 @@ template <> struct guid_storage<RealtimeStreaming::Network::IConnector>{ static 
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBuffer>{ static constexpr guid value{ 0x6658E1FD,0x76CD,0x5705,{ 0x93,0x20,0xFF,0x3D,0xA3,0x47,0xD9,0x1D } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBufferFactory>{ static constexpr guid value{ 0x6AC59985,0xEC6A,0x5753,{ 0xAA,0x3F,0x9E,0x45,0x71,0x7B,0xDA,0x8B } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBundle>{ static constexpr guid value{ 0x01458CE6,0x2E5F,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
-template <> struct guid_storage<RealtimeStreaming::Network::IDataBundleArgs>{ static constexpr guid value{ 0x26A177FE,0x2E53,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
+template <> struct guid_storage<RealtimeStreaming::Network::IDataBundleArgs>{ static constexpr guid value{ 0xB1DC8F42,0x81E1,0x5AB3,{ 0x92,0x19,0x52,0x4F,0x61,0x89,0xE8,0xC7 } }; };
+template <> struct guid_storage<RealtimeStreaming::Network::IDataBundleArgsFactory>{ static constexpr guid value{ 0x46BA7F57,0xE8AC,0x59F7,{ 0xB1,0x62,0xF1,0x34,0x9A,0x4A,0x3B,0x15 } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IDataBundleFactory>{ static constexpr guid value{ 0x042B0FBC,0x2E5F,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IListener>{ static constexpr guid value{ 0x4742583B,0x5E91,0x5304,{ 0x8B,0x7A,0xBB,0xC5,0xA8,0xF8,0x62,0x28 } }; };
 template <> struct guid_storage<RealtimeStreaming::Network::IListenerFactory>{ static constexpr guid value{ 0x40793CB7,0x87DB,0x5179,{ 0xBF,0x3B,0x0B,0xB5,0x03,0xDC,0x8B,0xB8 } }; };
@@ -146,6 +150,11 @@ template <> struct abi<RealtimeStreaming::Network::IDataBundleArgs>{ struct type
     virtual int32_t WINRT_CALL get_PayloadType(RealtimeStreaming::Common::PayloadType* value) noexcept = 0;
     virtual int32_t WINRT_CALL get_DataConnection(void** value) noexcept = 0;
     virtual int32_t WINRT_CALL get_Bundle(void** value) noexcept = 0;
+};};
+
+template <> struct abi<RealtimeStreaming::Network::IDataBundleArgsFactory>{ struct type : IInspectable
+{
+    virtual int32_t WINRT_CALL CreateInstance(RealtimeStreaming::Common::PayloadType type, void* connection, void* dataBundle, void** value) noexcept = 0;
 };};
 
 template <> struct abi<RealtimeStreaming::Network::IDataBundleFactory>{ struct type : IInspectable
@@ -245,6 +254,13 @@ struct consume_RealtimeStreaming_Network_IDataBundleArgs
     RealtimeStreaming::Network::DataBundle Bundle() const;
 };
 template <> struct consume<RealtimeStreaming::Network::IDataBundleArgs> { template <typename D> using type = consume_RealtimeStreaming_Network_IDataBundleArgs<D>; };
+
+template <typename D>
+struct consume_RealtimeStreaming_Network_IDataBundleArgsFactory
+{
+    RealtimeStreaming::Network::DataBundleArgs CreateInstance(RealtimeStreaming::Common::PayloadType const& type, RealtimeStreaming::Network::Connection const& connection, RealtimeStreaming::Network::DataBundle const& dataBundle) const;
+};
+template <> struct consume<RealtimeStreaming::Network::IDataBundleArgsFactory> { template <typename D> using type = consume_RealtimeStreaming_Network_IDataBundleArgsFactory<D>; };
 
 template <typename D>
 struct consume_RealtimeStreaming_Network_IDataBundleFactory

@@ -18,11 +18,25 @@ struct WINRT_EBO INetworkMediaSink :
     INetworkMediaSink(std::nullptr_t = nullptr) noexcept {}
 };
 
+struct WINRT_EBO INetworkMediaSinkFactory :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<INetworkMediaSinkFactory>
+{
+    INetworkMediaSinkFactory(std::nullptr_t = nullptr) noexcept {}
+};
+
 struct WINRT_EBO INetworkMediaSinkStream :
     Windows::Foundation::IInspectable,
     impl::consume_t<INetworkMediaSinkStream>
 {
     INetworkMediaSinkStream(std::nullptr_t = nullptr) noexcept {}
+};
+
+struct WINRT_EBO INetworkMediaSinkStreamFactory :
+    Windows::Foundation::IInspectable,
+    impl::consume_t<INetworkMediaSinkStreamFactory>
+{
+    INetworkMediaSinkStreamFactory(std::nullptr_t = nullptr) noexcept {}
 };
 
 struct WINRT_EBO IRTSchemeHandler :

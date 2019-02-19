@@ -43,7 +43,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
 
     co_await winrt::resume_on_signal(m_signal.get());
 
-    co_return m_connection;
+    return m_connection;
 }
 
 /* Event Handlers */

@@ -18,7 +18,7 @@ using namespace RealtimeStreaming::Common;
 //using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess; //IBufferByteAccess
 
 _Use_decl_annotations_
-Connection::Connection(StreamSocket const& socket)
+Connection::Connection(_In_ Windows::Networking::Sockets::StreamSocket const& socket)
     : m_concurrentFailedBuffers(0)
     , m_concurrentFailedBundles(0)
     , m_streamSocket(socket)
@@ -42,6 +42,16 @@ Connection::~Connection()
 
     Close();
 }
+/*
+void Connection::Bind(_In_ Windows::Networking::Sockets::StreamSocket const& socket)
+{
+    slim_lock_guard guard(m_lock);
+
+    m_streamSocket = socket;
+
+    WaitForHeader();
+}
+*/
 
 _Use_decl_annotations_
 void Connection::Close()
@@ -60,7 +70,7 @@ void Connection::Close()
     m_streamSocket = nullptr;
 
     // Fire disconnect event
-    m_evtDisconnected(*this, true);
+    m_evtDisconnected();
 }
 
 _Use_decl_annotations_
@@ -96,18 +106,16 @@ event_token Connection::Disconnected(
 {
     Log(Log_Level_All, L"ConnectionImpl::add_Disconnected() - Tid: %d \n", GetCurrentThreadId());
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     return m_evtDisconnected.add(handler);
 }
 
 _Use_decl_annotations_
-void Connection::Disconnected(winrt::event_token const& token)
+void Connection::Disconnected(winrt::event_token const& token) noexcept
 {
     Log(Log_Level_Info, L"ConnectionImpl::remove_Disconnected()\n");
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     m_evtDisconnected.remove(token);
@@ -119,18 +127,16 @@ event_token Connection::Received(
 {
     Log(Log_Level_Info, L"ConnectionImpl::add_Received()\n");
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     return m_evtBundleReceived.add(handler);
 }
 
 _Use_decl_annotations_
-void Connection::Received(winrt::event_token const& token)
+void Connection::Received(winrt::event_token const& token) noexcept
 {
     Log(Log_Level_Info, L"ConnectionImpl::remove_Received()\n");
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     m_evtBundleReceived.remove(token);
@@ -426,10 +432,11 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
 
     NULL_THROW(payloadBuffer);
 
-    DataBuffer payloadDataBuffer = DataBuffer(payloadBuffer.Capacity());
-    payloadBuffer.as<DataBuffer>(payloadDataBuffer);
+    UINT32 bytesRead = payloadBuffer.Length();
 
-    UINT32 bytesRead = payloadDataBuffer.Length();
+    auto payloadDataBuffer = payloadBuffer.as<RealtimeStreaming::Network::DataBuffer>();
+    NULL_THROW(payloadDataBuffer);
+
     DWORD bufferSize = payloadDataBuffer.CurrentLength();
 
     // makes sure this is the expected size

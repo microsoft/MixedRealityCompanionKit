@@ -43,6 +43,31 @@ struct WINRT_EBO NetworkMediaSink_base : implements<D, RealtimeStreaming::Media:
 
 }
 
+namespace winrt::RealtimeStreaming::Media::factory_implementation {
+
+template <typename D, typename T, typename... I>
+struct WINRT_EBO NetworkMediaSinkT : implements<D, Windows::Foundation::IActivationFactory, RealtimeStreaming::Media::INetworkMediaSinkFactory, I...>
+{
+    using instance_type = RealtimeStreaming::Media::NetworkMediaSink;
+
+    hstring GetRuntimeClassName() const
+    {
+        return L"RealtimeStreaming.Media.NetworkMediaSink";
+    }
+
+    Windows::Foundation::IInspectable ActivateInstance() const
+    {
+        return make<T>();
+    }
+
+    RealtimeStreaming::Media::NetworkMediaSink CreateInstance(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection)
+    {
+        return make<T>(audioEncodingProperties, videoEncodingProperties, connection);
+    }
+};
+
+}
+
 #if defined(WINRT_FORCE_INCLUDE_NETWORKMEDIASINK_XAML_G_H) || __has_include("Media.NetworkMediaSink.xaml.g.h")
 
 #include "Media.NetworkMediaSink.xaml.g.h"

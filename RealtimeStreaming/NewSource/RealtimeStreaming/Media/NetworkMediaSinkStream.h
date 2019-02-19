@@ -5,46 +5,12 @@
 
 #include "Media.NetworkMediaSinkStream.g.h"
 
-#include <mfapi.h>
-#include <mfidl.h>
-#include <mferror.h>
-//#include <mfobjects.h>
+#include "AsyncBase.h"
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    // T: Type of the parent object
-    template<class T>
-    struct AsyncCallback : winrt::implements<IMFAsyncCallback>
-    {
-    public:
-        typedef HRESULT(T::*InvokeFn)(IMFAsyncResult* pAsyncResult);
-
-        AsyncCallback(T* pParent, InvokeFn fn)
-            : _spParent(pParent)
-            , _pInvokeFn(fn)
-        {
-        }
-
-        // IMFAsyncCallback methods
-        STDMETHODIMP GetParameters(DWORD*, DWORD*)
-        {
-            // Implementation of this method is optional.
-            return E_NOTIMPL;
-        }
-
-        STDMETHODIMP Invoke(IMFAsyncResult* pAsyncResult)
-        {
-            return (_spParent.Get()->*_pInvokeFn)(pAsyncResult);
-        }
-
-    private:
-        com_ptr<T> _spParent;
-        InvokeFn _pInvokeFn;
-    };
-
     struct NetworkMediaSinkStream : NetworkMediaSinkStreamT<NetworkMediaSinkStream, IMFStreamSink, IMFMediaEventGenerator, IMFMediaTypeHandler>
     {
-            
         // AsyncOperation:
         // Used to queue asynchronous operations. When we call MFPutWorkItem, we use this
         // object for the callback state (pState). Then, when the callback is invoked,
@@ -69,7 +35,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             
 
     public:
-        NetworkMediaSinkStream(_In_ DWORD streamId,
+        NetworkMediaSinkStream() = default;
+        NetworkMediaSinkStream(_In_ uint32_t streamId,
             _In_ RealtimeStreaming::Network::Connection connection,
             _In_ RealtimeStreaming::Media::NetworkMediaSink parentMediaSink);
         virtual ~NetworkMediaSinkStream();
@@ -120,6 +87,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         IFACEMETHOD(GetMajorType) (
             _Out_ GUID* pguidMajorType);
 
+        // NetworkMediaSinkStream
         void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration) {};
 
         HRESULT Start(_In_ MFTIME start);
@@ -207,6 +175,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         DWORD m_workQueueId;     // ID of the work queue for asynchronous operations.
 
+        //AsyncCallback<NetworkMediaSinkStream> m_workQueueCB;     // Callback for the work queue.
         AsyncCallback<NetworkMediaSinkStream> m_workQueueCB;     // Callback for the work queue.
 
         com_ptr<IMFMediaEventQueue>  m_eventQueue;    // Event queue
@@ -222,11 +191,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
     };
 }
 
-/*
 namespace winrt::RealtimeStreaming::Media::factory_implementation
 {
     struct NetworkMediaSinkStream : NetworkMediaSinkStreamT<NetworkMediaSinkStream, implementation::NetworkMediaSinkStream>
     {
     };
 }
-*/

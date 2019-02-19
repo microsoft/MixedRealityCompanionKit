@@ -46,7 +46,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
     struct PluginManager : PluginManagerT<PluginManager>
     {
         public:
-            PluginManager();
+            PluginManager() = default;
             ~PluginManager();
 
             Plugin::ModuleManager ModuleManager();
@@ -55,7 +55,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             static void UnLoad();
             static void OnDeviceEvent(_In_ UnityGfxDeviceEventType eventType);
 
-            BOOL IsOnThread();
+            bool IsOnThread();
 
             // Plugin
             STDMETHODIMP ListenerCreateAndStart(
@@ -148,8 +148,6 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
                 _In_ INT64 tokenValue);
 
         private:
-            static DWORD                        s_threadId;
-
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 

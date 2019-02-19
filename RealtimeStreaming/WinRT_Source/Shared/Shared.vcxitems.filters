@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CameraCapture_Dll.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin.Module.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin.CaptureEngine.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.AudioPayload.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.MrcAudioEffect.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.MrcVideoEffect.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.Payload.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.PayloadHandler.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.Sink.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.StreamSink.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.VideoPayload.cpp">
+      <Filter>Media\Capture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.SharedTexture.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Functions.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PlatformBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)UnityDeviceResource.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D9.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsMetal.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityInterface.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin.Module.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin.CaptureEngine.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.AudioPayload.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.MrcAudioEffect.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.MrcVideoEffect.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.Payload.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.PayloadHandler.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.Sink.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.StreamSink.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.VideoPayload.h">
+      <Filter>Media\Capture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.SharedTexture.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Functions.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="$(MSBuildThisFileDirectory)Plugin.Module.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.AudioPayload.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.MrcAudioEffect.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.MrcVideoEffect.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.Payload.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.PayloadHandler.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.Sink.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.StreamSink.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.VideoPayload.idl">
+      <Filter>Media\Capture</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Plugin.CaptureEngine.idl">
+      <Filter>Plugin</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)CameraCapture_Dll.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Unity">
+      <UniqueIdentifier>{a48613d5-d087-4864-80b2-a9482a52f766}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{85dd6d22-d19e-4390-9cb0-3adbd1703f82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Media">
+      <UniqueIdentifier>{b7298666-beb2-464f-bb08-ab2a1af6a98c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Media\Capture">
+      <UniqueIdentifier>{f16bf546-1f83-422f-87e9-2c3d466d4de2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 #include "pch.h"
-#include "SchemeHandler.h"
+#include "RTSchemeHandler.h"
 #include "RealtimeMediaSource.h"
 
 using namespace winrt;
@@ -50,6 +50,8 @@ HRESULT RTSchemeHandler::BeginCreateObject(
     NULL_CHK(pwszURL);
     NULL_CHK(pCallback);
 
+    NULL_CHK(m_connection);
+
     if ((dwFlags & MF_RESOLUTION_MEDIASOURCE) == 0)
     {
         IFT(MF_E_UNSUPPORTED_BYTESTREAM_TYPE);
@@ -62,22 +64,34 @@ HRESULT RTSchemeHandler::BeginCreateObject(
 
     auto spMediaSource = winrt::make<implementation::RealtimeMediaSource>();
 
-    auto initMediaSourceOp = spMediaSource.as<IAsyncAction>();
-
     com_ptr<IMFAsyncResult> spAsyncResult;
     IFT(MFCreateAsyncResult(winrt::get_unknown(spMediaSource), pCallback, punkState, spAsyncResult.put()));
 
     // Block thread until async action finishes
-    //initMediaSourceOp.get();
+//initMediaSourceOp.get();
+
+    auto initAsync = spMediaSource.InitAsync(m_connection);
+    if (initAsync.Status() != AsyncStatus::Completed)
+    {
+        initAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
+        {
+            HRESULT result = status == AsyncStatus::Completed ? S_OK : E_FAIL;
+
+            LOG_RESULT(spAsyncResult->SetStatus(result));
+
+            return MFInvokeCallback(spAsyncResult.get());
+        });
+    }
 
     // until the source gets the stream descriptions, the event will not fire
-    concurrency::create_task(initMediaSourceOp).then([&]() {
+    /*
+    concurrency::create_task(spMediaSource.InitAsync(m_connection)).then([&]() {
         LOG_RESULT(spAsyncResult->SetStatus(S_OK));
 
         return MFInvokeCallback(spAsyncResult.get());
-    });
+    });*/
 
-    return S_OK;
+//    return S_OK;
     /*
     return StartAsyncThen(
         initMediaSourceOp.get(),

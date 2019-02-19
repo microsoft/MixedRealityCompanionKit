@@ -46,7 +46,7 @@ bool NetworkMediaSinkStream::ValidStateMatrix[(int)winrt::RealtimeStreaming::Med
 };
 
 _Use_decl_annotations_
-NetworkMediaSinkStream::AsyncOperation::AsyncOperation(SinkStreamOp op)
+NetworkMediaSinkStream::AsyncOperation::AsyncOperation(winrt::RealtimeStreaming::Media::SinkStreamOperation op)
     : _cRef(1)
     , _op(op)
 {
@@ -97,7 +97,7 @@ HRESULT NetworkMediaSinkStream::AsyncOperation::QueryInterface(REFIID iid, void*
 }
 
 _Use_decl_annotations_
-NetworkMediaSinkStream::NetworkMediaSinkStream(DWORD streamId,
+NetworkMediaSinkStream::NetworkMediaSinkStream(uint32_t streamId,
     RealtimeStreaming::Network::Connection connection,
     RealtimeStreaming::Media::NetworkMediaSink parentMediaSink)
     : m_dwStreamId(streamId)
@@ -624,17 +624,19 @@ done:
 // Puts an async operation on the work queue.
 _Use_decl_annotations_
 HRESULT NetworkMediaSinkStream::QueueAsyncOperation(
-    SinkStreamOp op)
+    RealtimeStreaming::Media::SinkStreamOperation op)
 {
     com_ptr<IUnknown> spOp;
     spOp.attach(new (std::nothrow) AsyncOperation(op)); // Created with ref count = 1
     NULL_CHK_HR(spOp.get(), E_OUTOFMEMORY);
 
+    /*
     IMFAsyncCallback* owning{ nullptr };
     winrt::copy_to_abi(m_workQueueCB, *reinterpret_cast<void**>(&owning));
 
     return MFPutWorkItem2(m_workQueueId, 0, owning, spOp.get());
-    //return MFPutWorkItem2(m_workQueueId, 0, &m_workQueueCB, spOp.get());
+    */
+    return MFPutWorkItem2(m_workQueueId, 0, &m_workQueueCB, spOp.get());
 }
 
 _Use_decl_annotations_
@@ -747,7 +749,8 @@ HRESULT NetworkMediaSinkStream::SendSampleFromQueue(
 
 // Checks if an operation is valid in the current state.
 _Use_decl_annotations_
-HRESULT NetworkMediaSinkStream::ValidateOperation(SinkStreamOp op)
+HRESULT NetworkMediaSinkStream::ValidateOperation(
+    RealtimeStreaming::Media::SinkStreamOperation op)
 {
     assert(!m_isShutdown);
 

@@ -23,9 +23,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             // IRTModule
             void Shutdown();
             
-            void WriteFrame(
-                _In_ UINT32 bufferSize,
-                __in_ecount(bufferSize) BYTE* pBuffer);
+            void WriteFrame(_In_ uint32_t bufferSize,
+                __in_ecount(bufferSize) array_view<uint8_t const> bufferArrayView);
 
             Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
 

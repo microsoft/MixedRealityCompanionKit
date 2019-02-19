@@ -49,7 +49,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         //WinClassic::Windows::Storage::Streams::IBufferByteAccess>
     {
         public:
-            DataBuffer();
+            DataBuffer() = default;
             DataBuffer(_In_ DWORD dwMaxLength);
             DataBuffer(_In_ IMFMediaBuffer* pMediaBuffer);
             ~DataBuffer();
@@ -98,5 +98,12 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
             BYTE* _byteBuffer;
             DWORD _bufferOffset;
+    };
+}
+
+namespace winrt::RealtimeStreaming::Network::factory_implementation
+{
+    struct DataBuffer : DataBufferT<DataBuffer, implementation::DataBuffer>
+    {
     };
 }

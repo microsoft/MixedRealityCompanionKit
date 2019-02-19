@@ -42,3 +42,10 @@ namespace winrt::RealtimeStreaming::Network::implementation
             Network::Connection m_connection{ nullptr };
         };
 }
+
+namespace winrt::RealtimeStreaming::Network::factory_implementation
+{
+    struct Listener : ListenerT<Listener, implementation::Listener>
+    {
+    };
+}

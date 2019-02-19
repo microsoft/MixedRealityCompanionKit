@@ -11,12 +11,13 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-        struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, IMFStreamSink, IMFClockStateSink, IMFMediaTypeHandler>
+        struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, IMFMediaSink, IMFClockStateSink>
         {
         public:
+            NetworkMediaSink() = default;
             NetworkMediaSink(
-                _In_ Windows::Media::MediaProperties::IAudioEncodingProperties audioEncodingProperties,
-                _In_ Windows::Media::MediaProperties::IVideoEncodingProperties videoEncodingProperties,
+                _In_ Windows::Media::MediaProperties::AudioEncodingProperties audioEncodingProperties,
+                _In_ Windows::Media::MediaProperties::VideoEncodingProperties videoEncodingProperties,
                 _In_ RealtimeStreaming::Network::Connection connection);
 
             virtual ~NetworkMediaSink();
@@ -64,6 +65,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             // NetworkMediaSink
             winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void NetworkMediaSink::Closed(winrt::event_token const& token);
+
+            winrt::hresult OnEndOfStream(_In_ uint32_t streamId);
         private:
             // TOOD: Remove HRESULT?
             HRESULT SendStreamReady();
@@ -88,18 +91,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 return S_OK;
             }
 
-            HRESULT OnEndOfStream(
-                _In_ DWORD dwStreamId)
-            {
-                slim_lock_guard guard(m_lock);
-
-                _cStreamsEnded++;
-
-                return S_OK;
-            }
-
         private:
-            //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
             LONGLONG m_llStartTime;
@@ -115,4 +107,12 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
             winrt::event<Windows::Foundation::EventHandler<bool>> m_evtClosed;
         };
+}
+
+
+namespace winrt::RealtimeStreaming::Media::factory_implementation
+{
+    struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, implementation::NetworkMediaSink>
+    {
+    };
 }

@@ -33,7 +33,7 @@ template <> struct name<RealtimeStreaming::Plugin::IRTModule>{ static constexpr 
 template <> struct name<RealtimeStreaming::Plugin::ModuleManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.ModuleManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::PluginManager>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.PluginManager" }; };
 template <> struct name<RealtimeStreaming::Plugin::DeviceType>{ static constexpr auto & value{ L"RealtimeStreaming.Plugin.DeviceType" }; };
-template <> struct guid_storage<RealtimeStreaming::Plugin::IModuleManager>{ static constexpr guid value{ 0xED7CA192,0x2E9D,0x11E9,{ 0xB2,0x10,0xD6,0x63,0xBD,0x87,0x3D,0x93 } }; };
+template <> struct guid_storage<RealtimeStreaming::Plugin::IModuleManager>{ static constexpr guid value{ 0x94089243,0x5EB2,0x5716,{ 0xB5,0x96,0x76,0xAD,0x64,0x25,0x87,0xF9 } }; };
 template <> struct guid_storage<RealtimeStreaming::Plugin::IPluginManager>{ static constexpr guid value{ 0xB46023FE,0x14F5,0x53D2,{ 0x84,0xC0,0xA1,0x48,0xFE,0x95,0x7B,0xFF } }; };
 template <> struct guid_storage<RealtimeStreaming::Plugin::IRTModule>{ static constexpr guid value{ 0x2EDEB3FB,0x8008,0x4A13,{ 0xB8,0xD3,0x70,0x81,0xFD,0x11,0x44,0x3F } }; };
 template <> struct default_interface<RealtimeStreaming::Plugin::ModuleManager>{ using type = RealtimeStreaming::Plugin::IModuleManager; };

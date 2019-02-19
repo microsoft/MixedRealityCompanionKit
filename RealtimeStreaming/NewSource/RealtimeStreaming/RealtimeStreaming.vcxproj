@@ -94,9 +94,11 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|x64'">StdCall</CallingConvention>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AsyncBase.h" />
     <ClInclude Include="Common\BaseAttributes.h" />
     <ClInclude Include="Common\D3D11DeviceResources.h" />
     <ClInclude Include="Common\ErrorHandling.h" />
@@ -108,7 +110,7 @@
     <ClInclude Include="Media\RealtimeMediaPlayer.h" />
     <ClInclude Include="Media\RealtimeMediaSource.h" />
     <ClInclude Include="Media\RealtimeServer.h" />
-    <ClInclude Include="Media\SchemeHandler.h" />
+    <ClInclude Include="Media\RTSchemeHandler.h" />
     <ClInclude Include="Network\Connection.h" />
     <ClInclude Include="Network\Connector.h" />
     <ClInclude Include="Network\DataBuffer.h" />
@@ -138,7 +140,8 @@
     <ClCompile Include="Media\RealtimeMediaPlayer.cpp" />
     <ClCompile Include="Media\RealtimeMediaSource.cpp" />
     <ClCompile Include="Media\RealtimeServer.cpp" />
-    <ClCompile Include="Media\SchemeHandler.cpp" />
+    <ClCompile Include="Media\RTSchemeHandler.cpp" />
+    <ClCompile Include="module.g.cpp" />
     <ClCompile Include="Network\Connection.cpp" />
     <ClCompile Include="Network\Connector.cpp" />
     <ClCompile Include="Network\DataBuffer.cpp" />
@@ -148,7 +151,6 @@
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="Plugin\ModuleManager.cpp" />
     <ClCompile Include="Plugin\PluginManager.cpp" />
   </ItemGroup>

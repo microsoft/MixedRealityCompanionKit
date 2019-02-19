@@ -26,7 +26,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Media\Marker.cpp">
       <Filter>Media</Filter>
@@ -41,9 +40,6 @@
       <Filter>Media</Filter>
     </ClCompile>
     <ClCompile Include="Media\RealtimeServer.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
-    <ClCompile Include="Media\SchemeHandler.cpp">
       <Filter>Media</Filter>
     </ClCompile>
     <ClCompile Include="Media\NetworkMediaSink.cpp">
@@ -82,6 +78,10 @@
     <ClCompile Include="Common\UnityDeviceResource.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="module.g.cpp" />
+    <ClCompile Include="Media\RTSchemeHandler.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -98,9 +98,6 @@
       <Filter>Media</Filter>
     </ClInclude>
     <ClInclude Include="Media\RealtimeServer.h">
-      <Filter>Media</Filter>
-    </ClInclude>
-    <ClInclude Include="Media\SchemeHandler.h">
       <Filter>Media</Filter>
     </ClInclude>
     <ClInclude Include="Media\NetworkMediaSink.h">
@@ -169,12 +166,15 @@
     <ClInclude Include="Unity\PlatformBase.h">
       <Filter>Unity</Filter>
     </ClInclude>
+    <ClInclude Include="AsyncBase.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="Media\RTSchemeHandler.h">
+      <Filter>Media</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="Media\NetworkMediaSink.idl">
-      <Filter>Media</Filter>
-    </Midl>
-    <Midl Include="Media\NetworkMediaSinkStream.idl">
       <Filter>Media</Filter>
     </Midl>
     <Midl Include="Media\RealtimeMediaSource.idl">
@@ -214,6 +214,9 @@
       <Filter>Common</Filter>
     </Midl>
     <Midl Include="Media\SchemeHandler.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="Media\NetworkMediaSinkStream.idl">
       <Filter>Media</Filter>
     </Midl>
   </ItemGroup>

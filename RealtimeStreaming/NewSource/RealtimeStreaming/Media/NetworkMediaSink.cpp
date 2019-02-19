@@ -166,7 +166,7 @@ inline HRESULT Execute(std::vector<com_ptr<IMFStreamSink>> &list, TFunc fn)
     for (auto const& stream : list)
     {
         hr = fn(stream.get());
-        if (FAILED(HR))
+        if (FAILED(hr))
         {
             return hr;
         }
@@ -175,8 +175,8 @@ inline HRESULT Execute(std::vector<com_ptr<IMFStreamSink>> &list, TFunc fn)
     return hr;
 }
 
-NetworkMediaSink::NetworkMediaSink(IAudioEncodingProperties audioEncodingProperties,
-    IVideoEncodingProperties videoEncodingProperties,
+NetworkMediaSink::NetworkMediaSink(AudioEncodingProperties audioEncodingProperties,
+    VideoEncodingProperties videoEncodingProperties,
     Connection connection)
     : m_llStartTime(0)
     , _cStreamsEnded(0)
@@ -195,7 +195,7 @@ NetworkMediaSink::NetworkMediaSink(IAudioEncodingProperties audioEncodingPropert
 
     // subscribe to connection data
     // TODO: move to function?
-    auto bundleReceivedCallback = [&](_In_ Connection const& sender, _In_ DataBundleArgs const& args) -> HRESULT
+    auto bundleReceivedCallback = [&](_In_ IInspectable const& /* sender */, _In_ DataBundleArgs const& args) -> HRESULT
     {
         Log(Log_Level_Info, L"NetworkSinkImpl::OnBundleReceived");
 
@@ -275,8 +275,9 @@ HRESULT NetworkMediaSink::AddStreamSink(
         IFT(MF_E_STREAMSINK_EXISTS);
     }
 
+    //NetworkMediaSinkStream networkSinkStream = NetworkMediaSinkStream(dwStreamSinkIdentifier, m_connection, *this);
     auto networkSinkStream = winrt::make<NetworkMediaSinkStream>(dwStreamSinkIdentifier, m_connection, *this);
-
+    
     spMFStream = networkSinkStream.as<IMFStreamSink>();
 
     IFR(networkSinkStream.as<IMFMediaTypeHandler>()->SetCurrentMediaType(pMediaType));
@@ -492,7 +493,7 @@ HRESULT NetworkMediaSink::Shutdown()
 
     _cStreamsEnded = 0;
 
-    m_evtClosed(*this);
+    m_evtClosed(*this, true);
 }
 
 // IMFClockStateSink
@@ -555,6 +556,16 @@ void NetworkMediaSink::Closed(winrt::event_token const& token)
 
     m_evtClosed.remove(token);
 }
+
+winrt::hresult NetworkMediaSink::OnEndOfStream(uint32_t streamId)
+{
+    slim_lock_guard guard(m_lock);
+
+    _cStreamsEnded++;
+
+    return S_OK;
+}
+
 
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::HandleError(

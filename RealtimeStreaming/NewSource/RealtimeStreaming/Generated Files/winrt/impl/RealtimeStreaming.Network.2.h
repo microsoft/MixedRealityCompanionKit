@@ -63,6 +63,7 @@ struct WINRT_EBO DataBundleArgs :
     RealtimeStreaming::Network::IDataBundleArgs
 {
     DataBundleArgs(std::nullptr_t) noexcept {}
+    DataBundleArgs(RealtimeStreaming::Common::PayloadType const& type, RealtimeStreaming::Network::Connection const& connection, RealtimeStreaming::Network::DataBundle const& dataBundle);
 };
 
 struct WINRT_EBO Listener :

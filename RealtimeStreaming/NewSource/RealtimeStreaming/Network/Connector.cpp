@@ -44,7 +44,9 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
 
     co_await m_streamSocketResult.ConnectAsync(m_hostName, winrt::to_hstring(port));
 
-    co_return winrt::make<Network::implementation::Connection>(m_streamSocketResult);
+    auto connection = winrt::make<Network::implementation::Connection>(m_streamSocketResult);
+
+    co_return connection;
 }
 
 /* Event Handlers */

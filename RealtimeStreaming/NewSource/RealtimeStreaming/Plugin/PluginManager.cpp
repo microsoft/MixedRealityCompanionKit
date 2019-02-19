@@ -18,6 +18,7 @@ using namespace winrt;
 using namespace RealtimeStreaming::Plugin::implementation;
 using namespace RealtimeStreaming::Common;
 using namespace RealtimeStreaming::Network;
+using namespace RealtimeStreaming::Media;
 
 using namespace Windows::Foundation;
 using namespace Windows::Storage::Streams;
@@ -30,6 +31,7 @@ static std::shared_ptr<IUnityDeviceResource> s_deviceResource;
 static UnityGfxRenderer s_deviceType = kUnityGfxRendererNull;
 static IUnityInterfaces* s_unityInterfaces = nullptr;
 static IUnityGraphics* s_unityGraphics = nullptr;
+static DWORD s_threadId;
 
 static winrt::RealtimeStreaming::Media::RealtimeMediaPlayer s_spStreamingPlayer{ nullptr };
 
@@ -69,7 +71,7 @@ RealtimeStreaming::Plugin::ModuleManager PluginManager::ModuleManager()
 }
 
 _Use_decl_annotations_
-BOOL PluginManager::IsOnThread()
+bool PluginManager::IsOnThread()
 {
     return (s_threadId == GetCurrentThreadId());
 }
@@ -171,12 +173,15 @@ HRESULT PluginManager::ListenerCreateAndStart(
 
     // Save handle of newly created listener to output
     *listenerHandle = m_moduleManager.AddModule(listener);
-    
-    concurrency::create_task(listener.ListenAsync()).then([&](_In_ Connection connection)
+
+    auto listenAsync = listener.ListenAsync(); // TODO: need to save reference outside of function call?
+    listenAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
         Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
 
         //slim_lock_guard guard(m_lock);
+
+        auto connection = asyncOp.GetResults();
 
         if (m_moduleManager == nullptr)
         {
@@ -231,12 +236,15 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     Connector connector = winrt::make<Network::implementation::Connector>(hostName, uri.Port());
 
     *connectorHandle = m_moduleManager.AddModule(connector);
-    
-    concurrency::create_task(connector.ConnectAsync()).then([&](_In_ Connection connection)
+
+    auto connectAsync = connector.ConnectAsync(); // TODO: need to save reference outside of function call?
+    connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
         Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() [ConnectAsync()] -Tid:%d \n", GetCurrentThreadId());
 
         slim_lock_guard guard(m_lock);
+
+        auto connection = asyncOp.GetResults();
 
         if (m_moduleManager == nullptr)
         {
@@ -246,7 +254,6 @@ HRESULT PluginManager::ConnectorCreateAndStart(
 
         ModuleHandle handle = m_moduleManager.AddModule(connection);
         CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
-
     });
 }
 
@@ -282,10 +289,8 @@ HRESULT PluginManager::ConnectionAddDisconnected(
     slim_lock_guard guard(m_lock);
 
     Network::Connection connection = GetModule<Network::Connection>(handle);
-    event_token disconnectedToken = connection.Disconnected([this, handle, callback, pCallbackObject](_In_ Connection sender)
+    event_token disconnectedToken = connection.Disconnected([this, handle, callback, pCallbackObject]()
     {
-        NULL_CHK(sender);
-
         callback(handle, pCallbackObject, S_OK);
     });
 
@@ -337,7 +342,7 @@ HRESULT PluginManager::ConnectionAddReceived(
     // register for callback
     winrt::event_token evtReceivedToken = 
         connection.Received([this, handle, callback, pCallbackObject](
-            _In_ Network::Connection const& sender,
+            _In_ IInspectable const& /* sender */,
             _In_ Network::DataBundleArgs const& args)
     {
         Log(Log_Level_Info, L"PluginManagerImpl::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
@@ -586,18 +591,25 @@ HRESULT PluginManager::RTPlayerCreate(
     auto connection = GetModule<Connection>(handle);
     //UnityGfxRenderer unityGraphics = m_unityGraphics->GetRenderer();
 
-    RealtimeStreaming::Media::implementation::RealtimeMediaPlayer rtPlayer 
-        = winrt::make<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
-    rtPlayer.Initialize(s_deviceResource);
+    RealtimeMediaPlayer rtPlayer = winrt::make<Media::implementation::RealtimeMediaPlayer>();
+
+    //*connectorHandle = m_moduleManager.AddModule(rtPlayer);
+
+    auto rtPlayerImpl = rtPlayer.as<Media::implementation::RealtimeMediaPlayer>();
+    
+    rtPlayerImpl->Initialize(s_deviceResource);
 
     s_spStreamingPlayer = nullptr; // make sure we unseat if previously assigned
-    s_spStreamingPlayer = rtPlayer;
+    //s_spStreamingPlayer = rtPlayer;
 
-    concurrency::create_task(s_spStreamingPlayer.InitAsync(connection)).then([&](_In_ VideoEncodingProperties videoProps) {
+    auto initAsync = rtPlayer.InitAsync(connection); // TODO: need to save reference outside of function call?
+    initAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
+    {
         Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
 
         //slim_lock_guard guard(m_lock);
-
+        
+        auto videoProps = asyncOp.GetResults();
         UINT32 width = videoProps.Width(), height = videoProps.Height();
 
         Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
@@ -608,7 +620,7 @@ HRESULT PluginManager::RTPlayerCreate(
             height);
     });
 
-    return S_OK;
+    //return S_OK;
 }
 
 _Use_decl_annotations_
@@ -683,9 +695,10 @@ void PluginManager::CompletePluginCallback(
     _In_ ModuleHandle handle,
     _In_ HRESULT hr)
 {
-    LOG_RESULT(ExceptionBoundary([&]()
+    LOG_RESULT(ExceptionBoundary([&]() -> HRESULT
     {
         callback(handle, pCallbackObject, hr);
+        return hr;
     }));
 }
 

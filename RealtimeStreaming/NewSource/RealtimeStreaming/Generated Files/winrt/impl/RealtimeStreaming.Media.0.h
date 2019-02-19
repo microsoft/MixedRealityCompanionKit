@@ -22,6 +22,7 @@ struct MediaStreamSource;
 
 WINRT_EXPORT namespace winrt::Windows::Media::MediaProperties {
 
+struct AudioEncodingProperties;
 struct MediaEncodingProfile;
 struct VideoEncodingProperties;
 
@@ -63,7 +64,9 @@ enum class SourceStreamState : int32_t
 };
 
 struct INetworkMediaSink;
+struct INetworkMediaSinkFactory;
 struct INetworkMediaSinkStream;
+struct INetworkMediaSinkStreamFactory;
 struct IRTSchemeHandler;
 struct IRealtimeMediaPlayer;
 struct IRealtimeMediaSource;
@@ -81,7 +84,9 @@ struct RealtimeServer;
 namespace winrt::impl {
 
 template <> struct category<RealtimeStreaming::Media::INetworkMediaSink>{ using type = interface_category; };
+template <> struct category<RealtimeStreaming::Media::INetworkMediaSinkFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::INetworkMediaSinkStream>{ using type = interface_category; };
+template <> struct category<RealtimeStreaming::Media::INetworkMediaSinkStreamFactory>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::IRTSchemeHandler>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ using type = interface_category; };
 template <> struct category<RealtimeStreaming::Media::IRealtimeMediaSource>{ using type = interface_category; };
@@ -97,7 +102,9 @@ template <> struct category<RealtimeStreaming::Media::SinkStreamOperation>{ usin
 template <> struct category<RealtimeStreaming::Media::SinkStreamState>{ using type = enum_category; };
 template <> struct category<RealtimeStreaming::Media::SourceStreamState>{ using type = enum_category; };
 template <> struct name<RealtimeStreaming::Media::INetworkMediaSink>{ static constexpr auto & value{ L"RealtimeStreaming.Media.INetworkMediaSink" }; };
+template <> struct name<RealtimeStreaming::Media::INetworkMediaSinkFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Media.INetworkMediaSinkFactory" }; };
 template <> struct name<RealtimeStreaming::Media::INetworkMediaSinkStream>{ static constexpr auto & value{ L"RealtimeStreaming.Media.INetworkMediaSinkStream" }; };
+template <> struct name<RealtimeStreaming::Media::INetworkMediaSinkStreamFactory>{ static constexpr auto & value{ L"RealtimeStreaming.Media.INetworkMediaSinkStreamFactory" }; };
 template <> struct name<RealtimeStreaming::Media::IRTSchemeHandler>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRTSchemeHandler" }; };
 template <> struct name<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRealtimeMediaPlayer" }; };
 template <> struct name<RealtimeStreaming::Media::IRealtimeMediaSource>{ static constexpr auto & value{ L"RealtimeStreaming.Media.IRealtimeMediaSource" }; };
@@ -112,8 +119,10 @@ template <> struct name<RealtimeStreaming::Media::RealtimeServer>{ static conste
 template <> struct name<RealtimeStreaming::Media::SinkStreamOperation>{ static constexpr auto & value{ L"RealtimeStreaming.Media.SinkStreamOperation" }; };
 template <> struct name<RealtimeStreaming::Media::SinkStreamState>{ static constexpr auto & value{ L"RealtimeStreaming.Media.SinkStreamState" }; };
 template <> struct name<RealtimeStreaming::Media::SourceStreamState>{ static constexpr auto & value{ L"RealtimeStreaming.Media.SourceStreamState" }; };
-template <> struct guid_storage<RealtimeStreaming::Media::INetworkMediaSink>{ static constexpr guid value{ 0x35D3F60F,0xFA0D,0x53BC,{ 0x8D,0x53,0x7F,0x96,0xB7,0xE9,0x23,0x49 } }; };
+template <> struct guid_storage<RealtimeStreaming::Media::INetworkMediaSink>{ static constexpr guid value{ 0xAC3AB2F0,0x35DA,0x5E90,{ 0xB4,0xC2,0xA1,0x34,0x84,0xEB,0xEB,0xA2 } }; };
+template <> struct guid_storage<RealtimeStreaming::Media::INetworkMediaSinkFactory>{ static constexpr guid value{ 0xB247F71F,0x5B39,0x58CF,{ 0x9F,0x10,0x99,0x60,0x97,0xBF,0x85,0x93 } }; };
 template <> struct guid_storage<RealtimeStreaming::Media::INetworkMediaSinkStream>{ static constexpr guid value{ 0x98D2B666,0xDBD9,0x5DEF,{ 0x8C,0x8A,0x75,0x2C,0x47,0x68,0x3A,0x7A } }; };
+template <> struct guid_storage<RealtimeStreaming::Media::INetworkMediaSinkStreamFactory>{ static constexpr guid value{ 0x6B4FADDC,0x5414,0x597E,{ 0xB7,0x32,0x6E,0x60,0x24,0x17,0xED,0x8D } }; };
 template <> struct guid_storage<RealtimeStreaming::Media::IRTSchemeHandler>{ static constexpr guid value{ 0xA5596274,0xA51A,0x5F7A,{ 0x83,0xF6,0x55,0xCA,0x2D,0x33,0x4D,0x89 } }; };
 template <> struct guid_storage<RealtimeStreaming::Media::IRealtimeMediaPlayer>{ static constexpr guid value{ 0x3D824337,0xCEBC,0x5785,{ 0xB0,0x54,0xAA,0x67,0x15,0xEA,0xAB,0x1C } }; };
 template <> struct guid_storage<RealtimeStreaming::Media::IRealtimeMediaSource>{ static constexpr guid value{ 0x03F7C586,0x1504,0x5810,{ 0xAB,0x3A,0x7A,0x74,0xC9,0x9B,0x19,0x8D } }; };
@@ -131,9 +140,11 @@ template <> struct abi<RealtimeStreaming::Media::INetworkMediaSink>{ struct type
     virtual int32_t WINRT_CALL add_Closed(void* handler, winrt::event_token* token) noexcept = 0;
     virtual int32_t WINRT_CALL remove_Closed(winrt::event_token token) noexcept = 0;
     virtual int32_t WINRT_CALL OnEndOfStream(uint32_t streamId, winrt::hresult* result) noexcept = 0;
-    virtual int32_t WINRT_CALL HandleError(winrt::hresult hr, winrt::hresult* result) noexcept = 0;
-    virtual int32_t WINRT_CALL CheckShutdown(winrt::hresult* result) noexcept = 0;
-    virtual int32_t WINRT_CALL SendDescription(winrt::hresult* result) noexcept = 0;
+};};
+
+template <> struct abi<RealtimeStreaming::Media::INetworkMediaSinkFactory>{ struct type : IInspectable
+{
+    virtual int32_t WINRT_CALL CreateInstance(void* audioEncodingProperties, void* videoEncodingProperties, void* connection, void** value) noexcept = 0;
 };};
 
 template <> struct abi<RealtimeStreaming::Media::INetworkMediaSinkStream>{ struct type : IInspectable
@@ -143,6 +154,11 @@ template <> struct abi<RealtimeStreaming::Media::INetworkMediaSinkStream>{ struc
     virtual int32_t WINRT_CALL Stop(winrt::hresult* result) noexcept = 0;
     virtual int32_t WINRT_CALL Pause(winrt::hresult* result) noexcept = 0;
     virtual int32_t WINRT_CALL Shutdown(winrt::hresult* result) noexcept = 0;
+};};
+
+template <> struct abi<RealtimeStreaming::Media::INetworkMediaSinkStreamFactory>{ struct type : IInspectable
+{
+    virtual int32_t WINRT_CALL CreateInstance(uint32_t streamId, void* dataConnection, void* parentMediaSink, void** value) noexcept = 0;
 };};
 
 template <> struct abi<RealtimeStreaming::Media::IRTSchemeHandler>{ struct type : IInspectable
@@ -187,11 +203,15 @@ struct consume_RealtimeStreaming_Media_INetworkMediaSink
     Closed_revoker Closed(auto_revoke_t, Windows::Foundation::EventHandler<bool> const& handler) const;
     void Closed(winrt::event_token const& token) const noexcept;
     winrt::hresult OnEndOfStream(uint32_t streamId) const;
-    winrt::hresult HandleError(winrt::hresult const& hr) const;
-    winrt::hresult CheckShutdown() const;
-    winrt::hresult SendDescription() const;
 };
 template <> struct consume<RealtimeStreaming::Media::INetworkMediaSink> { template <typename D> using type = consume_RealtimeStreaming_Media_INetworkMediaSink<D>; };
+
+template <typename D>
+struct consume_RealtimeStreaming_Media_INetworkMediaSinkFactory
+{
+    RealtimeStreaming::Media::NetworkMediaSink CreateInstance(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection) const;
+};
+template <> struct consume<RealtimeStreaming::Media::INetworkMediaSinkFactory> { template <typename D> using type = consume_RealtimeStreaming_Media_INetworkMediaSinkFactory<D>; };
 
 template <typename D>
 struct consume_RealtimeStreaming_Media_INetworkMediaSinkStream
@@ -203,6 +223,13 @@ struct consume_RealtimeStreaming_Media_INetworkMediaSinkStream
     winrt::hresult Shutdown() const;
 };
 template <> struct consume<RealtimeStreaming::Media::INetworkMediaSinkStream> { template <typename D> using type = consume_RealtimeStreaming_Media_INetworkMediaSinkStream<D>; };
+
+template <typename D>
+struct consume_RealtimeStreaming_Media_INetworkMediaSinkStreamFactory
+{
+    RealtimeStreaming::Media::NetworkMediaSinkStream CreateInstance(uint32_t streamId, RealtimeStreaming::Network::Connection const& dataConnection, RealtimeStreaming::Media::NetworkMediaSink const& parentMediaSink) const;
+};
+template <> struct consume<RealtimeStreaming::Media::INetworkMediaSinkStreamFactory> { template <typename D> using type = consume_RealtimeStreaming_Media_INetworkMediaSinkStreamFactory<D>; };
 
 template <typename D>
 struct consume_RealtimeStreaming_Media_IRTSchemeHandler
