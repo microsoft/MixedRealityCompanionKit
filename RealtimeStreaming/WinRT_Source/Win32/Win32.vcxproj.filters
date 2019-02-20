@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="Generated Files\module.g.cpp" />
+    <ClCompile Include="module.g.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

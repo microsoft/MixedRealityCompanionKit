@@ -1,0 +1,37 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+import "Connection.idl";
+
+namespace RealtimeStreaming.Media
+{
+    [version(1.0)]
+    enum SourceStreamState
+    {
+        Invalid,
+        Opening,
+        Starting,
+        Started,
+        Stopped,
+        Shutdown,
+        Count
+    };
+
+    /*
+    [activatable(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    */
+    [default_interface]
+    runtimeclass RealtimeMediaSource : Windows.Media.IMediaExtension
+    {
+        RealtimeMediaSource();
+
+        Windows.Foundation.IAsyncAction InitAsync(RealtimeStreaming.Network.Connection connection);
+
+        Windows.Media.Core.MediaStreamSource MediaStreamSource{ get; };
+
+        Windows.Media.MediaProperties.VideoEncodingProperties VideoProperties{ get; };
+    };
+}

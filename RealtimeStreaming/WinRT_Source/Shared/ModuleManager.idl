@@ -1,0 +1,28 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+
+namespace RealtimeStreaming.Plugin
+{
+
+    [version(1.0), uuid(2edeb3fb-8008-4a13-b8d3-7081fd11443f)]
+    interface IRTModule : IInspectable
+    {
+        void Shutdown();
+
+    };
+
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    runtimeclass ModuleManager
+    {
+        ModuleManager();
+
+        UInt32 AddModule(IRTModule pluginModule);
+
+        IRTModule GetModule(UInt32 moduleHandle);
+
+        void ReleaseModule(UInt32 moduleHandle);
+    };
+}

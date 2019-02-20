@@ -1,0 +1,24 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+import "Connection.idl";
+import "ModuleManager.idl";
+
+namespace RealtimeStreaming.Network
+{
+    /*
+    [activatable(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    */
+    [default_interface]
+    runtimeclass Listener : RealtimeStreaming.Plugin.IRTModule
+    {
+        Listener(UInt16 port);
+
+        Windows.Foundation.IAsyncOperation<Connection> ListenAsync();
+
+        event Windows.Foundation.EventHandler<Boolean> Closed;
+    };
+}

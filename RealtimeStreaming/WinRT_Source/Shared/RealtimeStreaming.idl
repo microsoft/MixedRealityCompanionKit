@@ -1,0 +1,98 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+// Forward Declare
+namespace RealtimeStreaming.Common
+{
+    typedef enum PayloadType PayloadType;
+    typedef enum SampleFlags SampleFlags;
+
+    typedef struct PayloadHeader PayloadHeader;
+    typedef struct MediaTypeDescription MediaTypeDescription;
+    typedef struct MediaSampleHeader MediaSampleHeader;
+    typedef struct MediaStreamTick MediaStreamTick;
+}
+
+// interface defines
+namespace RealtimeStreaming.Common
+{
+    // enums
+    [version(1.0)]
+    enum PayloadType
+    {
+        Unknown,
+        State_Scene,
+        State_Input,
+        State_CaptureReady,
+        State_CaptureStarted,
+        State_CaptureStopped,
+        RequestMediaDescription,
+        RequestMediaStart,
+        RequestMediaStop,
+        RequestMediaCaptureStart,
+        RequestMediaCaptureRecord,
+        RequestMediaCaptureStop,
+        RequestMediaEncodeStart,
+        RequestMediaEncodeStop,
+        SendMediaDescription,
+        SendMediaSample,
+        SendMediaStreamTick,
+        SendFormatChange,
+        ENDOFLIST
+    };
+
+    [version(1.0)]
+    enum SampleFlags
+    {
+        SampleFlag_BottomFieldFirst = 0,
+        SampleFlag_CleanPoint = 1,
+        SampleFlag_DerivedFromTopField = 2,
+        SampleFlag_Discontinuity = 3,
+        SampleFlag_Interlaced = 4,
+        SampleFlag_RepeatFirstField = 5,
+        SampleFlag_SingleField = 6
+    };
+
+    // structs
+    [version(1.0)]
+    struct PayloadHeader
+    {
+        PayloadType ePayloadType;
+        UInt32 cbPayloadSize;
+    };
+
+    [version(1.0)]
+    struct MediaDescription
+    {
+        UInt32 StreamCount;
+        UInt32 StreamTypeHeaderSize;
+    };
+
+    [version(1.0)]
+    struct MediaTypeDescription
+    {
+        Guid guiMajorType;
+        Guid guiSubType;
+        UInt32 dwStreamId;
+        UInt32 AttributesBlobSize;
+    };
+
+    [version(1.0)]
+    struct MediaSampleHeader
+    {
+        UInt32 dwStreamId;
+        UInt64 hnsTimestamp;
+        UInt64 hnsDuration;
+        UInt32 dwFlags;
+        UInt32 dwFlagMasks;
+        UInt32 cbCameraDataSize;
+    };
+
+    [version(1.0)]
+    struct MediaStreamTick
+    {
+        UInt32 dwStreamId;
+        UInt64 hnsTimestamp;
+        UInt32 cbAttributesSize;
+    };
+}

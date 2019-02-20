@@ -1,0 +1,25 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+
+import "ModuleManager.idl";
+import "Connection.idl";
+
+namespace RealtimeStreaming.Media
+{
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    runtimeclass RealtimeMediaPlayer : RealtimeStreaming.Plugin.IRTModule
+    {
+        RealtimeMediaPlayer();
+
+        Windows.Foundation.IAsyncOperation<Windows.Media.MediaProperties.VideoEncodingProperties> InitAsync(RealtimeStreaming.Network.Connection connection);
+
+        HRESULT Play();
+        HRESULT Pause();
+        HRESULT Stop();
+
+        event Windows.Foundation.EventHandler<RealtimeMediaPlayer> Closed;
+    };
+}

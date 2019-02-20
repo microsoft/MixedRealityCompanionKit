@@ -1,52 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)CameraCapture_Dll.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin.Module.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Plugin.CaptureEngine.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.AudioPayload.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.MrcAudioEffect.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.MrcVideoEffect.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.Payload.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.PayloadHandler.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.Sink.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.StreamSink.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Capture.VideoPayload.cpp">
-      <Filter>Media\Capture</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.SharedTexture.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Media.Functions.cpp">
-      <Filter>Media</Filter>
-    </ClCompile>
+    <Filter Include="Unity">
+      <UniqueIdentifier>{6b62d866-c305-47d0-8385-32d96fdce6e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{55a9e3e1-5e2a-4145-ab04-e6b74b972b5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{23f87c4d-d61d-4827-81d4-9db2edf58bc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{0fff1335-0d45-4b58-8e4b-c031a4766196}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Media">
+      <UniqueIdentifier>{a4f70e92-cd80-453a-b7d2-024d05f78489}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)PlatformBase.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)UnityDeviceResource.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h">
       <Filter>Unity</Filter>
     </ClInclude>
@@ -59,99 +30,185 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h">
       <Filter>Unity</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsMetal.h">
-      <Filter>Unity</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityInterface.h">
       <Filter>Unity</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin.Module.h">
-      <Filter>Plugin</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\PlatformBase.h">
+      <Filter>Unity</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Plugin.CaptureEngine.h">
-      <Filter>Plugin</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\RenderingPlugin.h">
+      <Filter>Unity</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.AudioPayload.h">
-      <Filter>Media\Capture</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\UnityDeviceResource.h">
+      <Filter>Unity</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.MrcAudioEffect.h">
-      <Filter>Media\Capture</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AsyncBase.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.MrcVideoEffect.h">
-      <Filter>Media\Capture</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.Payload.h">
-      <Filter>Media\Capture</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ErrorHandling.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.PayloadHandler.h">
-      <Filter>Media\Capture</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)OpQueue.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.Sink.h">
-      <Filter>Media\Capture</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.StreamSink.h">
-      <Filter>Media\Capture</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Capture.VideoPayload.h">
-      <Filter>Media\Capture</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.SharedTexture.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Marker.h">
       <Filter>Media</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Media.Functions.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)MediaUtils.h">
       <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeServer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RTSchemeHandler.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Connection.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Connector.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBuffer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBundle.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBundleArgs.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Listener.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSink.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ModuleManager.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PluginManager.h">
+      <Filter>Plugin</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="$(MSBuildThisFileDirectory)Plugin.Module.idl">
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Marker.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)MediaUtils.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeServer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RTSchemeHandler.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Connection.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Connector.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBuffer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBundle.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBundleArgs.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Listener.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSink.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ModuleManager.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)PluginManager.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeServer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Connection.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Connector.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBuffer.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundle.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundleArgs.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Listener.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)ModuleManager.idl">
       <Filter>Plugin</Filter>
     </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.AudioPayload.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.MrcAudioEffect.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.MrcVideoEffect.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.Payload.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.PayloadHandler.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.Sink.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.StreamSink.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Media.Capture.VideoPayload.idl">
-      <Filter>Media\Capture</Filter>
-    </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)Plugin.CaptureEngine.idl">
+    <Midl Include="$(MSBuildThisFileDirectory)PluginManager.idl">
       <Filter>Plugin</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RTSchemeHandler.idl">
+      <Filter>Media</Filter>
     </Midl>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)CameraCapture_Dll.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Unity">
-      <UniqueIdentifier>{a48613d5-d087-4864-80b2-a9482a52f766}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Plugin">
-      <UniqueIdentifier>{85dd6d22-d19e-4390-9cb0-3adbd1703f82}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Media">
-      <UniqueIdentifier>{b7298666-beb2-464f-bb08-ab2a1af6a98c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Media\Capture">
-      <UniqueIdentifier>{f16bf546-1f83-422f-87e9-2c3d466d4de2}</UniqueIdentifier>
-    </Filter>
+    <None Include="$(MSBuildThisFileDirectory)packages.config" />
+    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
   </ItemGroup>
 </Project>
