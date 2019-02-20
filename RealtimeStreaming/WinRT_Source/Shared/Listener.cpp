@@ -36,6 +36,11 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
     m_connectionReceivedEventToken = m_socketListener.ConnectionReceived({ this, &Listener::OnConnectionReceived });
     m_signal = handle(::CreateEvent(nullptr, true, false, nullptr));
 
+    // activate a stream socket before listening
+    m_socketListener.Control().KeepAlive(true);
+    m_socketListener.Control().NoDelay(true);
+    m_socketListener.Control().QualityOfService(SocketQualityOfService::LowLatency);
+
     // Convert our port to a string
     std::string port = std::to_string(m_port);
 

@@ -191,9 +191,8 @@ HRESULT NetworkMediaSinkStream::QueueEvent(
 {
     slim_shared_lock_guard const guard(m_lock);
 
-    IFR(CheckShutdown());
-
-    return m_eventQueue->QueueEventParamVar(met, guidExtendedType, hrStatus, pvValue);
+    // Call internal method wrapped with lock
+    return _QueueEvent(met, guidExtendedType, hrStatus, pvValue);
 }
 
 // IMFStreamSink methods
@@ -273,7 +272,7 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
             m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureReady).get();
         }
 
-        IFC(QueueEvent(MEStreamSinkRequestSample, GUID_NULL, hr, nullptr));
+        IFC(_QueueEvent(MEStreamSinkRequestSample, GUID_NULL, hr, nullptr));
     }
     else
     {
@@ -665,7 +664,7 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
     case SinkStreamOp::Start:
     case SinkStreamOp::Restart:
         // Send MEStreamSinkStarted.
-        IFC(QueueEvent(MEStreamSinkStarted, GUID_NULL, S_OK, nullptr));
+        IFC(_QueueEvent(MEStreamSinkStarted, GUID_NULL, S_OK, nullptr));
 
         // There might be samples queue from earlier (ie, while paused).
         boolean fRequestMoreSamples;
@@ -682,7 +681,7 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
         // If false there is no samples in the queue now so request one
         if (fRequestMoreSamples)
         {
-            IFC(QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
+            IFC(_QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
         }
         break;
 
@@ -691,11 +690,11 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
         IFC(DropSamplesFromQueue(nullptr));
 
         // Send the event even if the previous call failed.
-        IFC(QueueEvent(MEStreamSinkStopped, GUID_NULL, S_OK, nullptr));
+        IFC(_QueueEvent(MEStreamSinkStopped, GUID_NULL, S_OK, nullptr));
         break;
 
     case SinkStreamOp::Pause:
-        IFC(QueueEvent(MEStreamSinkPaused, GUID_NULL, S_OK, nullptr));
+        IFC(_QueueEvent(MEStreamSinkPaused, GUID_NULL, S_OK, nullptr));
         break;
 
     case SinkStreamOp::ProcessSample:
@@ -731,7 +730,7 @@ HRESULT NetworkMediaSinkStream::DispatchProcessedSample(
     {
         if (pOp->_op == SinkStreamOp::ProcessSample)
         {
-            IFR(QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
+            IFR(_QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
         }
     }
 
@@ -843,7 +842,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
                     hr = spMarker->GetContext(&var);
                     if (SUCCEEDED(hr))
                     {
-                        hr = QueueEvent(MEStreamSinkMarker, GUID_NULL, S_OK, &var);
+                        hr = _QueueEvent(MEStreamSinkMarker, GUID_NULL, S_OK, &var);
                     }
                 }
 
@@ -912,7 +911,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
             if (m_state == SinkStreamState::Started && fProcessingSample)
             {
                 // If we are still in started state request another sample
-                IFR(QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
+                IFR(_QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr));
             }
 
             // We stop if we processed a sample otherwise keep looking
@@ -1043,10 +1042,7 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     MediaSampleHeader* pSampleHeader = reinterpret_cast<MediaSampleHeader *>(pBuf + c_cPayloadHeader);
     ZeroMemory(pSampleHeader, c_cMediaSampleHeader);
 
-    DWORD identifer;
-    GetIdentifier(&identifer);
-
-    pSampleHeader->dwStreamId = identifer;
+    pSampleHeader->dwStreamId = m_dwStreamId;
     pSampleHeader->hnsTimestamp = llSampleTime;
     pSampleHeader->hnsDuration = llDuration;
 
@@ -1248,4 +1244,17 @@ DataBuffer NetworkMediaSinkStream::FillStreamDescription(
     pStreamDescription->AttributesBlobSize = attributesSize;
 
     return attributesBuffer;
+}
+
+_Use_decl_annotations_
+HRESULT NetworkMediaSinkStream::_QueueEvent(
+    MediaEventType met,
+    REFGUID guidExtendedType,
+    HRESULT hrStatus,
+    PROPVARIANT const* pvValue)
+{
+    // Underlying method for interface IMFMediaEventGenerator::QueueEvent() so class methods with lock can call internally
+    IFR(CheckShutdown());
+
+    return m_eventQueue->QueueEventParamVar(met, guidExtendedType, hrStatus, pvValue);
 }

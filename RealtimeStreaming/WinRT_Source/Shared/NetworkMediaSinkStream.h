@@ -143,6 +143,12 @@ namespace winrt::RealtimeStreaming::Media::implementation
         Network::DataBundle PrepareFormatChange(
             _In_ IMFMediaType* pMediaType);
 
+        HRESULT _QueueEvent(
+            _In_ MediaEventType mediaEventType,
+            _In_ REFGUID guidExtendedType,
+            _In_ HRESULT hrStatus,
+            _In_opt_ PROPVARIANT const* pvValue);
+
         HRESULT HandleError(HRESULT hr)
         {
             if (!m_isShutdown && FAILED(hr))

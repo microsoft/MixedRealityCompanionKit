@@ -45,10 +45,15 @@ namespace winrt::RealtimeStreaming::Network::implementation
             return (nullptr != m_streamSocket) ? S_OK : MF_E_SHUTDOWN;
         }
 
-        Windows::Foundation::IAsyncAction WaitForHeader();
-        Windows::Foundation::IAsyncAction WaitForPayload();
-        Windows::Foundation::IAsyncAction OnHeaderReceived(); // TODO: save header locally versus passing by parameter?
-        Windows::Foundation::IAsyncAction OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer payloadBuffer);
+        winrt::fire_and_forget RunSocketLoop();
+        //void ProcessSocketLoop();
+        Windows::Foundation::IAsyncAction ReadPayloadLoopAsync();
+
+        Windows::Foundation::IAsyncAction WaitForHeaderAsync();
+        Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForPayloadAsync();
+        
+        HRESULT OnHeaderReceived(); 
+        HRESULT OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer payloadBuffer);
 
         STDMETHODIMP NotifyBundleComplete(
             _In_ RealtimeStreaming::Common::PayloadType operation,

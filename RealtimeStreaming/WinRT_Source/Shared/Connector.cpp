@@ -46,7 +46,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
 
     auto connection = winrt::make<Network::implementation::Connection>(m_streamSocket);
 
-    co_return connection;
+    return connection;
 }
 
 /* Event Handlers */

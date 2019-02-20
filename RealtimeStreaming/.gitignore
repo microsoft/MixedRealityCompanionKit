@@ -5,7 +5,8 @@
 **/Debug/
 **/Release/
 Samples/**/Library/
-Samples/**/Temp/
+**/Temp/
+**/Generated Files/
 Samples/**/bin/
 Samples/**/obj/
 Samples/**/Unity/*.csproj
@@ -17,3 +18,4 @@ Source/**/*_p.c
 Source/**/*.winmd
 Source/**/MixedRemoteViewCompositor.h
 *.dll
+WinRT_Source/Build/
