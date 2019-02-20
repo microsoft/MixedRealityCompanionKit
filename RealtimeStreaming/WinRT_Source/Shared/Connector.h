@@ -30,7 +30,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             Windows::Networking::HostName m_hostName{ nullptr };
             UINT16 m_port;
      
-            Windows::Networking::Sockets::StreamSocket m_streamSocketResult;
+            Windows::Networking::Sockets::StreamSocket m_streamSocket;
 
             winrt::event<Windows::Foundation::EventHandler<bool> > m_evtClosed;
     };

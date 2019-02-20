@@ -83,9 +83,8 @@ IAsyncAction RealtimeMediaSource::InitAsync(
     RealtimeStreaming::Network::Connection connection)
 {
     slim_lock_guard guard(m_lock);
-    //auto lock = _lock.Lock();
-    //auto lock = m_lock.LockExclusive();
 
+    m_connection = nullptr; // unseat if necessary
     m_connection = connection;
 
     // register for message events
@@ -107,7 +106,6 @@ _Use_decl_annotations_
 MediaStreamSource RealtimeMediaSource::MediaStreamSource()
 {
     slim_shared_lock_guard const guard(m_lock);
-    //auto lock = _lock.Lock();
 
     return m_mediaStreamSource;
 }
@@ -398,6 +396,7 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     mediaStreamDescriptor = VideoStreamDescriptor(m_spVideoEncoding);
 
     // Create internal MediaStreamSource
+    m_mediaStreamSource = nullptr;
     m_mediaStreamSource = Windows::Media::Core::MediaStreamSource(mediaStreamDescriptor);
 
     // Set buffer time to 0 and IsLive true for realtime streaming to reduce latency

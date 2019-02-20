@@ -68,10 +68,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
             winrt::hresult OnEndOfStream(_In_ uint32_t streamId);
         private:
-            // TOOD: Remove HRESULT?
-            HRESULT SendStreamReady();
-            HRESULT SendStreamStopped();
-            HRESULT SendDescription();
+            Windows::Foundation::IAsyncAction SendStreamReady();
+            Windows::Foundation::IAsyncAction SendStreamStopped();
+            Windows::Foundation::IAsyncAction SendDescription();
             HRESULT HandleError(_In_ HRESULT hr);
 
             HRESULT SetMediaStreamProperties(

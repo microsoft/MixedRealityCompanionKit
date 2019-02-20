@@ -61,7 +61,7 @@ HRESULT MarkerImpl::Create(
 
     if (SUCCEEDED(hr))
     {
-       * ppMarker = spMarker.detach();
+       *ppMarker = spMarker.detach();
     }
 
     return hr;

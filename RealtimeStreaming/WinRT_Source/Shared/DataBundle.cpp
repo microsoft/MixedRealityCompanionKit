@@ -49,7 +49,7 @@ DataBundle::DataBundle(
         IFT(mediaSample->GetBufferByIndex(index, spMediaBuffer.put()));
 
         // create the dataBuffer
-        DataBuffer databuffer = DataBuffer(spMediaBuffer.get());
+        auto databuffer = winrt::make<Network::implementation::DataBuffer>(spMediaBuffer.get());
 
         // add the buffer to bundle
         AddBuffer(databuffer);

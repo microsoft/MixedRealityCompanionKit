@@ -106,7 +106,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         Windows::Media::MediaProperties::VideoEncodingProperties m_spVideoEncoding{ nullptr };
 
-        Network::Connection m_connection; // Network sender
+        Network::Connection m_connection{ nullptr };
         winrt::event_token m_evtReceivedToken;
 
         Windows::Media::Core::MediaStreamSourceSampleRequest m_spRequest{ nullptr };

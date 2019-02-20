@@ -138,7 +138,7 @@ namespace RealtimeStreaming
 
         private void OnListenerConnected(object sender, Connection connection)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            this.plugin.QueueAction(() =>
             {
                 Debug.Log("OnListenerConnected");
 

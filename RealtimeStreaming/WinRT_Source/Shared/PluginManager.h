@@ -151,7 +151,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             //Wrappers::CriticalSection _lock;
             slim_mutex m_lock;
 
-            Plugin::ModuleManager               m_moduleManager;
+            Plugin::ModuleManager               m_moduleManager{ nullptr };
 
             IUnityInterfaces*                   m_unityInterfaces;
             IUnityGraphics*                     m_unityGraphics;

@@ -16,7 +16,7 @@ RealtimeServer::RealtimeServer(
     MediaEncodingProfile mediaEncodingProperties)
     : m_spMediaEncodingProfile(mediaEncodingProperties)
 {
-    Log(Log_Level_Info, L"RealtimeServerImpl::RuntimeClassInitialize()\n");
+    Log(Log_Level_Info, L"RealtimeServer::RealtimeServer() - Tid:%d \n", GetCurrentThreadId());
 
     // TODO: Currently hardcoded to not accept audio
     m_spMediaEncodingProfile.Audio(nullptr);

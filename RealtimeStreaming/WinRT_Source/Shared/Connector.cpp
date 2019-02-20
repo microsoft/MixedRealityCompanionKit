@@ -16,7 +16,7 @@ Connector::Connector(_In_ Windows::Networking::HostName hostName,
     _In_ UINT16 port)
     : m_hostName(hostName)
     , m_port(port)
-    , m_streamSocketResult(nullptr)
+    //, m_streamSocket(nullptr)
 {
     Log(Log_Level_Info, L"ConnectorImpl::Connector()\n");
 }
@@ -36,15 +36,15 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
     Log(Log_Level_Info, L"ConnectorImpl::ConnectAsync()\n");
 
     // activate a stream socket
-    m_streamSocketResult.Control().KeepAlive(true);
-    m_streamSocketResult.Control().NoDelay(true);
-    m_streamSocketResult.Control().QualityOfService(SocketQualityOfService::LowLatency);
+    m_streamSocket.Control().KeepAlive(true);
+    m_streamSocket.Control().NoDelay(true);
+    m_streamSocket.Control().QualityOfService(SocketQualityOfService::LowLatency);
 
     std::string port = std::to_string(m_port);
 
-    co_await m_streamSocketResult.ConnectAsync(m_hostName, winrt::to_hstring(port));
+    co_await m_streamSocket.ConnectAsync(m_hostName, winrt::to_hstring(port));
 
-    auto connection = winrt::make<Network::implementation::Connection>(m_streamSocketResult);
+    auto connection = winrt::make<Network::implementation::Connection>(m_streamSocket);
 
     co_return connection;
 }

@@ -36,7 +36,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             
             winrt::event<Windows::Foundation::EventHandler<bool> > m_evtClosed;
 
-            Windows::Networking::Sockets::StreamSocket           m_streamSocketResult;
+            Windows::Networking::Sockets::StreamSocket           m_streamSocket;
             Windows::Networking::Sockets::StreamSocketListener   m_socketListener;
             winrt::event_token m_connectionReceivedEventToken;
             Network::Connection m_connection{ nullptr };

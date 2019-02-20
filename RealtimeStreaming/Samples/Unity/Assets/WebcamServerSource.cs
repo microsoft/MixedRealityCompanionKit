@@ -45,10 +45,12 @@ public class WebcamServerSource : MonoBehaviour
 
     private void OnServerStateChanged(object sender, StateChangedEventArgs<RealtimeVideoServer.ServerState> e)
     {
+        // TODO: StartWebCam needs to occur on UnitymainThread, move to Update() method action like plugin.QueueAction()
         Plugin.ExecuteOnUnityThread(() =>
         {
             if (e.CurrentState == RealtimeVideoServer.ServerState.ListenerConnected)
             {
+                UnityEngine.Debug.Log("Server State changed to ListenerConnected - Starting WebCam");
                 StartWebCam();
             }
         });

@@ -67,6 +67,11 @@ void PluginManager::Uninitialize()
 _Use_decl_annotations_
 RealtimeStreaming::Plugin::ModuleManager PluginManager::ModuleManager()
 {
+    if (m_moduleManager == nullptr)
+    {
+        m_moduleManager = winrt::make<Plugin::implementation::ModuleManager>();
+    }
+
     return m_moduleManager;
 }
 
@@ -160,7 +165,7 @@ HRESULT PluginManager::ListenerCreateAndStart(
     RealtimeStreaming::Plugin::PluginCallback callback,
     void* pCallbackObject)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::StartListener()\n");
+    Log(Log_Level_Info, L"PluginManager::StartListener() - Tid:%d \n", GetCurrentThreadId());
     
     // Init with default
     *listenerHandle = MODULE_HANDLE_INVALID;
@@ -169,15 +174,15 @@ HRESULT PluginManager::ListenerCreateAndStart(
     NULL_CHK(callback);
 
     // Create a new listener
-    Network::Listener listener = Listener(port);
+    Network::Listener listener = winrt::make<Network::implementation::Listener>(port);
 
     // Save handle of newly created listener to output
-    *listenerHandle = m_moduleManager.AddModule(listener);
+    *listenerHandle = ModuleManager().AddModule(listener);
 
     auto listenAsync = listener.ListenAsync(); // TODO: need to save reference outside of function call?
     listenAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
-        Log(Log_Level_Info, L"Manager::StartListener() - ListenAsync()\n");
+        Log(Log_Level_Info, L"PluginManager::StartListener() - ListenAsync() Completed - Tid:%d \n", GetCurrentThreadId());
 
         //slim_lock_guard guard(m_lock);
 
@@ -189,9 +194,11 @@ HRESULT PluginManager::ListenerCreateAndStart(
             CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
         }
 
-        ModuleHandle handle = m_moduleManager.AddModule(connection);
+        ModuleHandle handle = ModuleManager().AddModule(connection);
         CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
     });
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -209,7 +216,7 @@ HRESULT PluginManager::ListenerStopAndClose(
     }
 
     // release the handle
-    m_moduleManager.ReleaseModule(handle);
+    ModuleManager().ReleaseModule(handle);
 
     return S_OK;
 }
@@ -235,14 +242,14 @@ HRESULT PluginManager::ConnectorCreateAndStart(
 
     Connector connector = winrt::make<Network::implementation::Connector>(hostName, uri.Port());
 
-    *connectorHandle = m_moduleManager.AddModule(connector);
+    *connectorHandle = ModuleManager().AddModule(connector);
 
     auto connectAsync = connector.ConnectAsync(); // TODO: need to save reference outside of function call?
     connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() [ConnectAsync()] -Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
 
-        slim_lock_guard guard(m_lock);
+        //slim_lock_guard guard(m_lock);
 
         auto connection = asyncOp.GetResults();
 
@@ -252,9 +259,11 @@ HRESULT PluginManager::ConnectorCreateAndStart(
             CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
         }
 
-        ModuleHandle handle = m_moduleManager.AddModule(connection);
+        ModuleHandle handle = ModuleManager().AddModule(connection);
         CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
     });
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -271,7 +280,7 @@ HRESULT PluginManager::ConnectorStopAndClose(
     }
 
     // release the handle
-    m_moduleManager.ReleaseModule(handle);
+    ModuleManager().ReleaseModule(handle);
 }
 
 _Use_decl_annotations_
@@ -447,7 +456,7 @@ HRESULT PluginManager::ConnectionSendRawData(
     const DWORD c_cbBufferSize = sizeof(PayloadHeader) + c_cbPayloadSize;
 
     // Create send buffer
-    DataBuffer spDataBuffer = DataBuffer(c_cbBufferSize);
+    DataBuffer spDataBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbBufferSize);
     com_ptr<IBuffer> spBuffer;
     spBuffer.attach(spDataBuffer.as<IBuffer>());
 
@@ -500,7 +509,7 @@ HRESULT PluginManager::ConnectionClose(
     }
 
     // unregister from the connection
-    m_moduleManager.ReleaseModule(handle);
+    ModuleManager().ReleaseModule(handle);
     return S_OK;
 }
 
@@ -511,14 +520,15 @@ HRESULT PluginManager::RTServerCreate(
 {
     NULL_CHK(serverHandle);
 
-    Log(Log_Level_Info, L"PluginManagerImpl::RTServerCreate()\n");
+    Log(Log_Level_Info, L"PluginManagerImpl::RTServerCreate() -Tid:%d \n", GetCurrentThreadId());
 
-    Network::Connection connection = GetModule<Network::Connection>(*serverHandle);
+    Network::Connection connection = GetModule<Network::Connection>(connectionHandle);
 
     // Default encoding activation
     auto mediaProfile = MediaEncodingProfile::CreateHevc(VideoEncodingQuality::HD720p);
 
-    Media::RealtimeServer rtServer = RealtimeStreaming::Media::RealtimeServer(connection, 
+    Media::RealtimeServer rtServer = winrt::make<Media::implementation::RealtimeServer>(
+        connection, 
         MFVideoFormat_RGB32, 
         mediaProfile);
 
@@ -531,7 +541,7 @@ HRESULT PluginManager::RTServerCreate(
         IFT(E_NOT_SET);
     }
 
-    handle = m_moduleManager.AddModule(rtServer);
+    handle = ModuleManager().AddModule(rtServer);
     *serverHandle = handle;
 
     return S_OK;
@@ -549,7 +559,7 @@ HRESULT PluginManager::RTServerShutdown(
     rtServer.Shutdown();
 
     // release the handle
-    m_moduleManager.ReleaseModule(serverHandle);
+    ModuleManager().ReleaseModule(serverHandle);
 
     return S_OK;
 }
@@ -597,11 +607,11 @@ HRESULT PluginManager::RTPlayerCreate(
     //*connectorHandle = m_moduleManager.AddModule(rtPlayer);
 
     auto rtPlayerImpl = rtPlayer.as<Media::implementation::RealtimeMediaPlayer>();
-    
+
     rtPlayerImpl->Initialize(s_deviceResource);
 
     s_spStreamingPlayer = nullptr; // make sure we unseat if previously assigned
-    //s_spStreamingPlayer = rtPlayer;
+    s_spStreamingPlayer = rtPlayer;
 
     auto initAsync = rtPlayer.InitAsync(connection); // TODO: need to save reference outside of function call?
     initAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
@@ -621,7 +631,7 @@ HRESULT PluginManager::RTPlayerCreate(
             height);
     });
 
-    //return S_OK;
+    return S_OK;
 }
 
 _Use_decl_annotations_
@@ -708,7 +718,7 @@ T PluginManager::GetModule(_In_ ModuleHandle handle)
 {
     if (m_moduleManager != nullptr)
     {
-        return m_moduleManager.GetModule(handle).as<T>();
+        return ModuleManager().GetModule(handle).as<T>();
     }
 
     return nullptr;
@@ -760,9 +770,9 @@ winrt::event_token PluginManager::RemoveToken(
 
         if (vectorIt != eventList.end())
         {
-            eventList.erase(vectorIt);
-
             returnToken = *vectorIt;
+
+            eventList.erase(vectorIt);
         }
     }
 

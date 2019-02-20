@@ -10,38 +10,27 @@ using namespace winrt::RealtimeStreaming::Network::implementation;
 _Use_decl_annotations_
 DataBuffer::DataBuffer(
     DWORD maxLength)
+    : _bufferOffset(0)
+    , _byteBuffer(nullptr)
 {
     Log(Log_Level_All, L"DataBufferImpl::DataBuffer(DWORD)\n");
 
     com_ptr<IMFMediaBuffer> spMediaBuffer;
     IFT(MFCreateMemoryBuffer(maxLength, spMediaBuffer.put()));
 
-    DataBuffer(spMediaBuffer.get());
+    Initialize(spMediaBuffer.get());
+    //DataBuffer(spMediaBuffer.get());
 }
 
 _Use_decl_annotations_
 DataBuffer::DataBuffer(
     IMFMediaBuffer* pMediaBuffer)
     : _bufferOffset(0)
+    , _byteBuffer(nullptr)
 {
     Log(Log_Level_All, L"DataBufferImpl::DataBuffer(IMFMediaBuffer)\n");
 
-    NULL_THROW(pMediaBuffer);
-
-    _mfMediaBuffer.attach(pMediaBuffer);
-    _mf2DBuffer = _mfMediaBuffer.as<IMF2DBuffer>();
-
-    if (_mf2DBuffer != nullptr)
-    {
-        LONG lPitch;
-        IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
-    }
-    else
-    {
-        DWORD cbMaxLength;
-        DWORD cbCurrentLength;
-        IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
-    }
+    Initialize(pMediaBuffer);
 }
 
 DataBuffer::~DataBuffer()
@@ -64,7 +53,42 @@ DataBuffer::~DataBuffer()
     }
 }
 
+_Use_decl_annotations_
+void DataBuffer::Initialize(IMFMediaBuffer* pMediaBuffer)
+{
+    NULL_THROW(pMediaBuffer);
+
+    _mfMediaBuffer.copy_from(pMediaBuffer);
+
+    try
+    {
+        _mf2DBuffer = _mfMediaBuffer.as<IMF2DBuffer>();
+        LONG lPitch;
+        IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
+    }
+    catch (winrt::hresult_error const& ex)
+    {
+        DWORD cbMaxLength;
+        DWORD cbCurrentLength;
+        IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
+    }
+
+    /*
+    if (_mf2DBuffer != nullptr)
+    {
+        LONG lPitch;
+        IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
+    }
+    else
+    {
+        DWORD cbMaxLength;
+        DWORD cbCurrentLength;
+        IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
+    }*/
+}
+
 // IBuffer
+_Use_decl_annotations_
 UINT32 DataBuffer::Capacity()
 {
     DWORD maxLength = 0;
@@ -72,11 +96,14 @@ UINT32 DataBuffer::Capacity()
 
     return maxLength;
 }
+
+_Use_decl_annotations_
 UINT32 DataBuffer::Length()
 {
     return CurrentLength();
 }
 
+_Use_decl_annotations_
 void DataBuffer::Length(UINT32 value)
 {
     CurrentLength(value);
@@ -87,7 +114,7 @@ _Use_decl_annotations_
 HRESULT DataBuffer::Buffer(
     BYTE** ppBuffer)
 {
-    GetBufferPointer(ppBuffer);
+    *ppBuffer = _byteBuffer + _bufferOffset;
     return S_OK;
 }
 
@@ -166,7 +193,7 @@ RealtimeStreaming::Network::DataBuffer DataBuffer::TrimRight(ULONG cbSize)
         cbSize, 
         spMediaBuffer.put()));
 
-    DataBuffer dataBuffer = DataBuffer(spMediaBuffer.get());
+    auto dataBuffer = winrt::make<Network::implementation::DataBuffer>(spMediaBuffer.get());
 
     // Change the size of the length of the buffer
     CurrentLength(cbCurrentLen - cbSize);
@@ -206,13 +233,6 @@ HRESULT DataBuffer::GetMediaBuffer(
     NULL_CHK_HR(_mfMediaBuffer, E_NOT_SET);
 
     _mfMediaBuffer.copy_to(ppMediaBuffer);
-}
-
-_Use_decl_annotations_
-HRESULT DataBuffer::GetBufferPointer(BYTE** pBuffer)
-{
-    *pBuffer = _byteBuffer + _bufferOffset;
-    return S_OK;
 }
 
 _Use_decl_annotations_

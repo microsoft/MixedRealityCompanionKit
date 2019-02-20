@@ -288,7 +288,7 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
 
         // Add the sample to the sample queue.
         com_ptr<IMFSample> spSample;
-        spSample.attach(pSample);
+        spSample.copy_from(pSample);
 
         m_sampleQueue.push_back(spSample);
         //IFC(m_sampleQueue.InsertBack(pSample));
@@ -432,12 +432,14 @@ HRESULT NetworkMediaSinkStream::SetCurrentMediaType(
 {
     NULL_CHK(pMediaType);
 
-    slim_lock_guard guard(m_lock);
+    {
+        slim_lock_guard guard(m_lock);
 
-    IFR(CheckShutdown());
+        IFR(CheckShutdown());
 
-    // don't allow format changes after streaming starts.
-    IFR(ValidateOperation(SinkStreamOp::SetMediaType));
+        // don't allow format changes after streaming starts.
+        IFR(ValidateOperation(SinkStreamOp::SetMediaType));
+    }
 
     // set media type already
     if (SinkStreamState::Ready <= m_state)
@@ -445,10 +447,13 @@ HRESULT NetworkMediaSinkStream::SetCurrentMediaType(
         IFR(IsMediaTypeSupported(pMediaType, nullptr));
     }
 
+    slim_lock_guard guard(m_lock);
+
     GUID guiMajorType = GUID_NULL;
     IFR(pMediaType->GetMajorType(&guiMajorType));
     m_fIsVideo = (guiMajorType == MFMediaType_Video);
 
+    m_currentType = nullptr; // reset comptr for new setting
     IFR(MFCreateMediaType(m_currentType.put()));
     IFR(pMediaType->CopyAllItems(m_currentType.get()));
     IFR(m_currentType->GetGUID(MF_MT_SUBTYPE, &m_currentSubtype));
@@ -970,8 +975,8 @@ HRESULT NetworkMediaSinkStream::ProcessFormatChange(
     NULL_CHK(pMediaType)
 
     // Add the media type to the sample queue.
-    com_ptr< IMFMediaType> spMediaType;
-    spMediaType.attach(pMediaType);
+    com_ptr<IMFMediaType> spMediaType;
+    spMediaType.copy_from(pMediaType);
     m_sampleQueue.push_back(spMediaType);
 
     // Unless we are paused, start an async operation to dispatch the next sample.
@@ -1019,7 +1024,7 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     DataBundle dataBundle = make<Network::implementation::DataBundle>(pSample);
 
     // create a buffer for the media sample header
-    DataBuffer dataBuffer = DataBuffer(c_cbSampleHeaderSize);
+    DataBuffer dataBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbSampleHeaderSize);
 
     // Prepare the buffer
     BYTE* pBuf;
@@ -1084,7 +1089,7 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
     HRESULT hr = S_OK;
     const DWORD c_cbHeaderSize = sizeof(PayloadHeader) + sizeof(MediaStreamTick);
 
-    DataBuffer dataBuffer_Header = DataBuffer(c_cbHeaderSize);
+    DataBuffer dataBuffer_Header = winrt::make<Network::implementation::DataBuffer>(c_cbHeaderSize);
 
     // Prepare PayloadType header
     auto dataBufferImpl = dataBuffer_Header.as<Network::implementation::DataBuffer>();
@@ -1118,7 +1123,7 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
     IFT(MFGetAttributesAsBlobSize(pAttributes, &pSampleTick->cbAttributesSize));
 
     // Create a buffer for attribute blob
-    DataBuffer attributeBuffer = DataBuffer(pSampleTick->cbAttributesSize);
+    DataBuffer attributeBuffer = winrt::make<Network::implementation::DataBuffer>(pSampleTick->cbAttributesSize);
 
     // Prepare the IBuffer
     auto attribBufferImpl = attributeBuffer.as<Network::implementation::DataBuffer>();

@@ -9,25 +9,6 @@
 #include <mfidl.h>
 #include <mferror.h>
 
-/*
-// To help differentiate winrt::Windows::.... from Windows::
-namespace WinClassic {
-#include <robuffer.h> // IBufferByteAccess
-};*/
-
-/*
-struct __declspec(uuid("297dd8ca-2fbe-11e9-b210-d663bd873d93")) IDataBufferPriv : ::IUnknown
-{
-    STDMETHOD(GetMediaBuffer)(
-        _COM_Outptr_ IMFMediaBuffer** mfBuffer);
-
-    STDMETHOD(GetBufferPointer)(_Out_ BYTE** pBuffer);
-
-    STDMETHOD(GetTexture)(
-        _Outptr_ ID3D11Texture2D** ppTexture,
-        _Out_ UINT *uiViewIndex);
-};*/
-
 DECLARE_INTERFACE_IID_(IDataBufferPriv, ::IUnknown, "297dd8ca-2fbe-11e9-b210-d663bd873d93")
 {
     STDMETHOD(GetMediaBuffer)(
@@ -40,13 +21,9 @@ DECLARE_INTERFACE_IID_(IDataBufferPriv, ::IUnknown, "297dd8ca-2fbe-11e9-b210-d66
         _Out_ UINT *uiViewIndex) PURE;
 };
 
-
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct DataBuffer : DataBufferT<DataBuffer, 
-        IDataBufferPriv>
-        //Windows::Storage::Streams::IBuffer>
-        //WinClassic::Windows::Storage::Streams::IBufferByteAccess>
+    struct DataBuffer : DataBufferT<DataBuffer, IDataBufferPriv>
     {
         public:
             DataBuffer() = default;
@@ -79,8 +56,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
             STDOVERRIDEMETHODIMP  GetMediaBuffer(
                 _COM_Outptr_ IMFMediaBuffer** mfBuffer);
 
-            STDOVERRIDEMETHODIMP  GetBufferPointer(_Out_ BYTE** pBuffer);
-
             STDOVERRIDEMETHODIMP  GetTexture(
                 _Outptr_ ID3D11Texture2D** ppTexture,
                 _Out_ UINT *uiViewIndex);
@@ -92,6 +67,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
             IFACEMETHOD_(DWORD, GetOffset) () const { return _bufferOffset; }
             */
         private:
+            void Initialize(_In_ IMFMediaBuffer* pMediaBuffer);
+
             com_ptr<IMFMediaBuffer>  _mfMediaBuffer;
             com_ptr<IMF2DBuffer>     _mf2DBuffer;
             //com_ptr<IMFDXGIBuffer>   _mfDXGIBuffer;

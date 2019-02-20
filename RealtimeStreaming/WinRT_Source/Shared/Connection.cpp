@@ -149,14 +149,12 @@ IAsyncAction Connection::SendPayloadTypeAsync(
     Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
 
     // Create send buffer
-    DataBuffer dataBuffer = DataBuffer(sizeof(PayloadHeader));
+    auto dataBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
     
     // get the buffer pointer
     BYTE* pBuffer;
-    dataBuffer.Buffer(&pBuffer);
+    dataBuffer.as<DataBuffer>()->Buffer(&pBuffer);
     NULL_THROW(pBuffer);
-
-    DataBundle dataBundle = DataBundle(dataBuffer);
 
     // cast to the dataPtr
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuffer);
@@ -166,7 +164,9 @@ IAsyncAction Connection::SendPayloadTypeAsync(
     pOpHeader->ePayloadType = payloadType;
 
     dataBuffer.CurrentLength(sizeof(PayloadHeader));
-    dataBundle.AddBuffer(dataBuffer);
+
+    auto dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
+    //dataBundle.AddBuffer(dataBuffer);
 
     return SendBundleAsync(dataBundle);
 }
@@ -204,7 +204,7 @@ IAsyncAction Connection::SendBundleAsync(
 
     co_await outputStream.FlushAsync();
 
-    Log(Log_Level_Info, L"ConnectionImpl::SendBundle() - Buffers: %d - TotalLength: %d\n", bufferCount, totalLength);
+    Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync() - Buffers: %d - TotalLength: %d\n", bufferCount, totalLength);
 }
 
 
@@ -222,18 +222,11 @@ IAsyncAction Connection::WaitForHeader()
         ResetBundle();
     }
 
-    // TODO: Look at why using member variable???
-    // Maybe create one and then pass through to OnheaderReceived*?
-    if (nullptr == m_spHeaderBuffer)
-    {
-        m_spHeaderBuffer = DataBuffer(sizeof(PayloadHeader));
-    }
+    //auto headerBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
+    m_spHeaderBuffer = nullptr;
+    m_spHeaderBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
 
-    auto headerBufferImpl = m_spHeaderBuffer.as<implementation::DataBuffer>();
-    com_ptr<IMFMediaBuffer> spMediaBuffer;
-    IFT(headerBufferImpl->GetMediaBuffer(spMediaBuffer.put()));
-
-    DWORD bufferLen = headerBufferImpl->Capacity();
+    DWORD bufferLen = m_spHeaderBuffer.Capacity();
 
     // should be the same as sizeof(PayloadHeader)
     if (bufferLen != sizeof(PayloadHeader))
@@ -243,9 +236,11 @@ IAsyncAction Connection::WaitForHeader()
 
     // get the socket input stream reader
     IInputStream inputStream = m_streamSocket.InputStream();
-
-    auto bufferResult = co_await inputStream.ReadAsync(m_spHeaderBuffer, bufferLen, InputStreamOptions::Partial);
     
+    auto bufferResult = co_await inputStream.ReadAsync(m_spHeaderBuffer, 
+        bufferLen, 
+        InputStreamOptions::Partial);
+
     m_spHeaderBuffer = nullptr; //unseat current header buffer
     m_spHeaderBuffer = bufferResult.as<RealtimeStreaming::Network::DataBuffer>();
 
@@ -269,11 +264,11 @@ IAsyncAction Connection::WaitForPayload()
         IFT(HRESULT_FROM_WIN32(ERROR_INVALID_STATE));
     }
 
-    DataBuffer payloadBuffer = DataBuffer(m_receivedHeader.cbPayloadSize);
+    auto payloadBuffer = winrt::make<Network::implementation::DataBuffer>(m_receivedHeader.cbPayloadSize);
 
     // get the underlying buffer and makes sure it the right size
     com_ptr<IMFMediaBuffer> spMediaBuffer;
-    payloadBuffer.GetMediaBuffer(spMediaBuffer.put());
+    payloadBuffer.as<DataBuffer>()->GetMediaBuffer(spMediaBuffer.put());
     //IFT(payloadBuffer.MediaBuffer(&spMediaBuffer));
 
     DWORD bufferLen = 0;
@@ -313,7 +308,7 @@ HRESULT Connection::ProcessHeaderBuffer(
 {
     NULL_CHK(header);
 
-    DataBundle dataBundle = DataBundle(dataBuffer);
+    auto dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
 
     LOG_RESULT(NotifyBundleComplete(header->ePayloadType, dataBundle));
 
@@ -336,7 +331,7 @@ HRESULT Connection::NotifyBundleComplete(
         }
     }
 
-    DataBundleArgs args = DataBundleArgs(payloadType, *this, dataBundle);
+    auto args = winrt::make<Network::implementation::DataBundleArgs>(payloadType, *this, dataBundle);
     m_evtBundleReceived(*this, args);
 }
 
@@ -462,7 +457,7 @@ Windows::Foundation::IAsyncAction Connection::OnPayloadReceived(IBuffer payloadB
     // create bundle to hold all buffers
     if (nullptr == m_receivedBundle)
     {
-        m_receivedBundle = DataBundle();
+        m_receivedBundle = winrt::make<Network::implementation::DataBundle>();
     }
 
     ULONG bundleSize = m_receivedBundle.TotalSize();

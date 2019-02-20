@@ -12,8 +12,8 @@ using namespace Windows::Networking::Sockets;
 
 Listener::Listener(UINT16 port)
     : m_port(port)
-    , m_socketListener(nullptr)
-    , m_streamSocketResult(nullptr)
+    //, m_socketListener(nullptr)
+    , m_streamSocket(nullptr)
 {
     Log(Log_Level_Info, L"Listener::ListenerImpl()\n");
 }
@@ -75,12 +75,15 @@ void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
 {
     Log(Log_Level_Info, L"ListenerImpl::OnConnectionReceived()\n");
 
-    //slim_lock_guard guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
-    m_connection = winrt::make<implementation::Connection>(args.Socket());
+    if (m_connection == nullptr)
+    {
+        m_connection = winrt::make<implementation::Connection>(args.Socket());
 
-    // Signal completion of ListenAsync()
-    SetEvent(m_signal.get());
+        // Signal completion of ListenAsync()
+        SetEvent(m_signal.get());
+    }
 };
 
 _Use_decl_annotations_
@@ -114,5 +117,5 @@ void Listener::Close()
     }
     */
     m_socketListener = nullptr;
-    m_streamSocketResult = nullptr;
+    m_streamSocket = nullptr;
 }
