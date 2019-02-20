@@ -789,16 +789,19 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
     boolean fRequestSamples = false;
     boolean fSendSamples = true;
     boolean fSendEOS = false;
+    com_ptr<IUnknown> spUnknown;
 
     if (m_sampleQueue.empty())
     {
         fRequestSamples = true;
         fSendSamples = false;
     }
+    else
+    {
+        spUnknown = m_sampleQueue.front();
+        m_sampleQueue.erase(m_sampleQueue.begin()); // Remove front element
+    }
 
-    com_ptr<IUnknown> spUnknown = m_sampleQueue.front();
-    m_sampleQueue.erase(m_sampleQueue.begin()); // Remove front element
-    
     /*
     TODO: necessary?
     if (FAILED(m_sampleQueue.RemoveFront(spUnknown.put())))

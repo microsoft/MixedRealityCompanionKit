@@ -245,7 +245,7 @@ _Use_decl_annotations_
 IAsyncAction Connection::SendPayloadTypeAsync(
     PayloadType payloadType)
 {
-    Log(Log_Level_All, L"ConnectionImpl::SendBundleAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
+    Log(Log_Level_All, L"ConnectionImpl::SendPayloadTypeAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
 
     // Create send buffer
     auto dataBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
@@ -283,8 +283,6 @@ IAsyncAction Connection::SendBundleAsync(
 
         IFT(CheckClosed());
         outputStream = m_streamSocket.OutputStream();
-
-        Log(Log_Level_Info, m_streamSocket.Information().LocalPort().data());
     }
 
     UINT32 totalLength = 0;
@@ -340,14 +338,9 @@ IAsyncAction Connection::WaitForHeaderAsync()
 
     // get the socket input stream reader
     IInputStream inputStream = m_streamSocket.InputStream();
-    
-    Log(Log_Level_Info, m_streamSocket.Information().LocalPort().data());
-    Log(Log_Level_Info, L" - ");
-    Log(Log_Level_Info, m_streamSocket.Information().RemotePort().data());
-    Log(Log_Level_Info, L"\n");
 
-    Buffer test = Buffer(bufferLen);
-    auto bufferResult = co_await inputStream.ReadAsync(test,
+    Buffer filler = Buffer(bufferLen);
+    auto bufferResult = co_await inputStream.ReadAsync(filler,
             bufferLen,
             InputStreamOptions::Partial);
 
@@ -358,7 +351,6 @@ IAsyncAction Connection::WaitForHeaderAsync()
     catch (winrt::hresult_error const& ex)
     {
         LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-        int a = 4;
     }
 
     //co_await OnHeaderReceived();

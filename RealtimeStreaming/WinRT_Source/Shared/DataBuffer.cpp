@@ -19,7 +19,6 @@ DataBuffer::DataBuffer(
     IFT(MFCreateMemoryBuffer(maxLength, spMediaBuffer.put()));
 
     Initialize(spMediaBuffer.get());
-    //DataBuffer(spMediaBuffer.get());
 }
 
 _Use_decl_annotations_
@@ -60,22 +59,10 @@ void DataBuffer::Initialize(IMFMediaBuffer* pMediaBuffer)
 
     _mfMediaBuffer.copy_from(pMediaBuffer);
 
-    try
+    auto imf2dBuffer = _mfMediaBuffer.try_as<IMF2DBuffer>();
+    if (imf2dBuffer != nullptr)
     {
-        _mf2DBuffer = _mfMediaBuffer.as<IMF2DBuffer>();
-        LONG lPitch;
-        IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
-    }
-    catch (winrt::hresult_error const& ex)
-    {
-        DWORD cbMaxLength;
-        DWORD cbCurrentLength;
-        IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
-    }
-
-    /*
-    if (_mf2DBuffer != nullptr)
-    {
+        _mf2DBuffer = imf2dBuffer;
         LONG lPitch;
         IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
     }
@@ -84,7 +71,7 @@ void DataBuffer::Initialize(IMFMediaBuffer* pMediaBuffer)
         DWORD cbMaxLength;
         DWORD cbCurrentLength;
         IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
-    }*/
+    }
 }
 
 // IBuffer
