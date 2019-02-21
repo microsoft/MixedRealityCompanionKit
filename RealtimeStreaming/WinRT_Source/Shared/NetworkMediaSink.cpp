@@ -18,6 +18,8 @@ using namespace Windows::Foundation;
 using namespace Windows::Media::MediaProperties;
 using namespace Windows::Media::Capture;
 
+using implDataBuffer = winrt::RealtimeStreaming::Network::implementation::DataBuffer;
+
 class ShutdownFunc
 {
 public:
@@ -187,11 +189,11 @@ NetworkMediaSink::NetworkMediaSink(AudioEncodingProperties audioEncodingProperti
     // Set up media streams
     if (nullptr != audioEncodingProperties)
     {
-        IFT(SetMediaStreamProperties(MediaStreamType::Audio, audioEncodingProperties));
+        // TODO: Turn on support for audio
+        //IFT(SetMediaStreamProperties(MediaStreamType::Audio, audioEncodingProperties));
     }
 
-    IFT(SetMediaStreamProperties(MediaStreamType::VideoRecord, 
-        videoEncodingProperties));
+    IFT(SetMediaStreamProperties(MediaStreamType::VideoRecord, videoEncodingProperties));
 
     // subscribe to connection data
     // TODO: move to function?
@@ -327,7 +329,6 @@ HRESULT NetworkMediaSink::RemoveStreamSink(DWORD dwStreamSinkIdentifier)
             break;
         }
     }
-
 
     if (it == m_streams.end())
     {
@@ -603,72 +604,79 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     Log(Log_Level_Info, L"NetworkSinkImpl::SendDescription() begin...\n");
 
     // Size of the constant buffer header
-    const DWORD c_cStreams = m_streams.size();
-    const DWORD c_cbPayloadHeaderSize = sizeof(PayloadHeader);
-    const DWORD c_cbMediaDescriptionSize = sizeof(MediaDescription);
-    const DWORD c_cbStreamTypeDescription = sizeof(MediaTypeDescription);
-    const DWORD c_cbStreamTypeHeaderSize = c_cStreams * c_cbStreamTypeDescription;
-    const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
+    const UINT32 c_cStreams = m_streams.size();
+    const UINT32 c_cbPayloadHeaderSize = sizeof(PayloadHeader);
+    const UINT32 c_cbMediaDescriptionSize = sizeof(MediaDescription);
+    const UINT32 c_cbStreamTypeDescription = sizeof(MediaTypeDescription);
+    const UINT32 c_cbStreamTypeHeaderSize = c_cStreams * c_cbStreamTypeDescription;
+    //const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
 
-    // Create send buffer
-    DataBuffer headerDataBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbBufferSize);
+    // Create header buffer
+    DataBuffer headerDataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
+    headerDataBuffer.CurrentLength(c_cbPayloadHeaderSize);
 
     // get the buffer pointer
-    auto dataBufferImpl = headerDataBuffer.as<Network::implementation::DataBuffer>();
-    BYTE* pBuf;
-    dataBufferImpl->Buffer(&pBuf);
+    BYTE* pHeaderBufer = implDataBuffer::GetBufferPointer(headerDataBuffer);
 
     // Prepare payload header 8 bytes - type and size of payload to follow
-    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuf);
+    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pHeaderBufer);
     NULL_THROW(pOpHeader);
-    ZeroMemory(pOpHeader, c_cbPayloadHeaderSize);
     pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
-    pOpHeader->cbPayloadSize = c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize; // still need to add the size of MediaAttributes for each stream
+
+    // Calculate size of attributes for each stream to get total payload size
+    UINT32 cbPayloadBufferSize = c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
+    for (auto const& stream : m_streams)
+    {
+        auto spMediaTypeHandler = stream.as<NetworkMediaSinkStream>();
+
+        UINT32 attributeBlobSize;
+        spMediaTypeHandler->GetAttributesBlobSize(&attributeBlobSize);
+
+        cbPayloadBufferSize += attributeBlobSize;
+    }
+
+    pOpHeader->cbPayloadSize = cbPayloadBufferSize;
+
+    DataBuffer payloadDataBuffer = winrt::make<implDataBuffer>(cbPayloadBufferSize);
+    payloadDataBuffer.CurrentLength(cbPayloadBufferSize);
+
+    BYTE* pPayloadBuffer = implDataBuffer::GetBufferPointer(payloadDataBuffer);
 
     // Media Description - how many streams and the total bytes for each streams attributes
-    MediaDescription* pMediaDescription = reinterpret_cast<MediaDescription*>(pBuf + c_cbPayloadHeaderSize);
+    MediaDescription* pMediaDescription = reinterpret_cast<MediaDescription*>(pPayloadBuffer + c_cbPayloadHeaderSize);
     NULL_THROW(pMediaDescription);
     ZeroMemory(pMediaDescription, c_cbMediaDescriptionSize);
     pMediaDescription->StreamCount = c_cStreams;
     pMediaDescription->StreamTypeHeaderSize = c_cbStreamTypeHeaderSize; // populates later
 
-    // create array to hold the stream's IMFAttributes property
-    std::vector<DataBuffer> svStreamMFAttributes(c_cStreams, make<Network::implementation::DataBuffer>());
-    //std::vector<Network::implementation::DataBuffer> svStreamMFAttributes(c_cStreams);
-
     // Prepare the MediaTypeDescription
-    MediaTypeDescription* streamTypeHeaderPtr = reinterpret_cast<MediaTypeDescription* >(pBuf + c_cbPayloadHeaderSize + c_cbMediaDescriptionSize);
+    MediaTypeDescription* streamTypeHeaderPtr = reinterpret_cast<MediaTypeDescription* >(pPayloadBuffer + c_cbMediaDescriptionSize);
     NULL_THROW(streamTypeHeaderPtr);
 
-    // get each streams ppMediaType info and its attrbutes as a DataBuffer
+    // get each streams MediaTypeDescription info and its attrbutes into the databuffer
     DWORD nStream = 0;
     auto it = m_streams.begin();
+    BYTE* pCurrAttributes = pPayloadBuffer + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
     for (; it != m_streams.end(); ++nStream, ++it)
     {
         // zero out the memory block for stream type description
         ZeroMemory(&streamTypeHeaderPtr[nStream], c_cbStreamTypeDescription);
 
-        com_ptr <NetworkMediaSinkStream> spMediaTypeHandler = (*it).as<NetworkMediaSinkStream>();
+        auto spMediaTypeHandler = (*it).as<NetworkMediaSinkStream>();
         NULL_THROW(spMediaTypeHandler);
 
         // Get the MediaType info from stream
-        svStreamMFAttributes[nStream] = spMediaTypeHandler->FillStreamDescription(&streamTypeHeaderPtr[nStream]);
+        IFT(spMediaTypeHandler->FillStreamDescription(&streamTypeHeaderPtr[nStream], pCurrAttributes));
 
-        // Add size of ppMediaType blob to the payload size.
-        pOpHeader->cbPayloadSize += streamTypeHeaderPtr[nStream].AttributesBlobSize;
+        // Move our attributes pointer ahead correctly
+        UINT32 attributeBlobSize;
+        spMediaTypeHandler->GetAttributesBlobSize(&attributeBlobSize);
+        pCurrAttributes += attributeBlobSize;
     }
-
-    // update total payload size
-    headerDataBuffer.CurrentLength(c_cbBufferSize);
 
     // Prepare the bundle to send
     DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(headerDataBuffer);
-
-    // Add ppMediaType data
-    for (DWORD nStream = 0; nStream < c_cStreams; ++nStream)
-    {
-        dataBundle.AddBuffer(svStreamMFAttributes[nStream]);
-    }
+    dataBundle.AddBuffer(payloadDataBuffer);
 
     co_await m_connection.SendBundleAsync(dataBundle);
 
@@ -680,6 +688,7 @@ HRESULT NetworkMediaSink::SetMediaStreamProperties(
     Windows::Media::Capture::MediaStreamType mediaStreamType,
     Windows::Media::MediaProperties::IMediaEncodingProperties mediaEncodingProperties)
 {
+    // We only support Video Record & Audio
     if (mediaStreamType != MediaStreamType::VideoRecord && mediaStreamType != MediaStreamType::Audio)
     {
         IFR(E_INVALIDARG);

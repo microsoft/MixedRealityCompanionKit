@@ -52,7 +52,7 @@ PluginManager::~PluginManager()
 
 void PluginManager::Uninitialize()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::Uninitialize()\n");
+    Log(Log_Level_Info, L"PluginManager::Uninitialize()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -86,7 +86,7 @@ bool PluginManager::IsOnThread()
 _Use_decl_annotations_
 void PluginManager::Load(IUnityInterfaces* unityInterfaces)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::Load()\n");
+    Log(Log_Level_Info, L"PluginManager::Load()\n");
 
     //slim_lock_guard guard(m_lock);
 
@@ -107,7 +107,7 @@ void PluginManager::Load(IUnityInterfaces* unityInterfaces)
 _Use_decl_annotations_
 void PluginManager::UnLoad()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::UnLoad()\n");
+    Log(Log_Level_Info, L"PluginManager::UnLoad()\n");
 
     //slim_lock_guard guard(m_lock);
 
@@ -127,7 +127,7 @@ void PluginManager::UnLoad()
 _Use_decl_annotations_
 void PluginManager::OnDeviceEvent(UnityGfxDeviceEventType eventType)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::OnDeviceEvent ");
+    Log(Log_Level_Info, L"PluginManager::OnDeviceEvent ");
 
     //slim_lock_guard guard(m_lock);
 
@@ -205,7 +205,7 @@ _Use_decl_annotations_
 HRESULT PluginManager::ListenerStopAndClose(
     ModuleHandle handle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::StopListener()\n");
+    Log(Log_Level_Info, L"PluginManager::StopListener()\n");
 
     //slim_lock_guard guard(m_lock);
     slim_lock_guard guard(m_lock);
@@ -229,7 +229,7 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     RealtimeStreaming::Plugin::PluginCallback callback,
     void* pCallbackObject)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::ConnectorCreateAndStart() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(connectorHandle);
     NULL_CHK(callback);
@@ -247,7 +247,7 @@ HRESULT PluginManager::ConnectorCreateAndStart(
     auto connectAsync = connector.ConnectAsync(); // TODO: need to save reference outside of function call?
     connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"PluginManager::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
 
         //slim_lock_guard guard(m_lock);
 
@@ -270,7 +270,7 @@ _Use_decl_annotations_
 HRESULT PluginManager::ConnectorStopAndClose(
     ModuleHandle handle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::CloseConnector()\n");
+    Log(Log_Level_Info, L"PluginManager::CloseConnector()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -290,7 +290,7 @@ HRESULT PluginManager::ConnectionAddDisconnected(
     void* pCallbackObject,
     INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddDisconnected() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::ConnectionAddDisconnected() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
@@ -317,7 +317,7 @@ HRESULT PluginManager::ConnectionRemoveDisconnected(
     ModuleHandle handle,
     INT64 tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionRemoveReceived()\n");
+    Log(Log_Level_Info, L"PluginManager::ConnectionRemoveReceived()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -338,7 +338,7 @@ HRESULT PluginManager::ConnectionAddReceived(
     void* pCallbackObject,
     INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionAddReceived() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::ConnectionAddReceived() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
@@ -354,7 +354,7 @@ HRESULT PluginManager::ConnectionAddReceived(
             _In_ IInspectable const& /* sender */,
             _In_ Network::DataBundleArgs const& args)
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"PluginManager::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
 
         HRESULT hr = S_OK;
 
@@ -411,7 +411,7 @@ HRESULT PluginManager::ConnectionRemoveReceived(
     ModuleHandle handle,
     INT64 tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionRemoveReceived()\n");
+    Log(Log_Level_Info, L"PluginManager::ConnectionRemoveReceived()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -433,7 +433,7 @@ HRESULT PluginManager::ConnectionSendRawData(
     byte* pBuffer,
     UINT32 bufferSize)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionSendRawData\n");
+    Log(Log_Level_Info, L"PluginManager::ConnectionSendRawData\n");
 
     HRESULT hr = S_OK;
 
@@ -487,7 +487,7 @@ _Use_decl_annotations_
 HRESULT PluginManager::ConnectionClose(
     ModuleHandle handle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::ConnectionClose()\n");
+    Log(Log_Level_Info, L"PluginManager::ConnectionClose()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -520,7 +520,7 @@ HRESULT PluginManager::RTServerCreate(
 {
     NULL_CHK(serverHandle);
 
-    Log(Log_Level_Info, L"PluginManagerImpl::RTServerCreate() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::RTServerCreate() -Tid:%d \n", GetCurrentThreadId());
 
     Network::Connection connection = GetModule<Network::Connection>(connectionHandle);
 
@@ -551,7 +551,7 @@ _Use_decl_annotations_
 HRESULT PluginManager::RTServerShutdown(
     ModuleHandle serverHandle)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTServerShutdown()\n");
+    Log(Log_Level_Info, L"PluginManager::RTServerShutdown()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -572,7 +572,7 @@ HRESULT PluginManager::RTServerWriteFrame(
 {
     NULL_CHK(pBuffer);
 
-    Log(Log_Level_Info, L"PluginManagerImpl::RTServerWriteFrame()\n");
+    Log(Log_Level_Info, L"PluginManager::RTServerWriteFrame()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -591,7 +591,7 @@ HRESULT PluginManager::RTPlayerCreate(
     RealtimeStreaming::Plugin::PlayerCreatedCallback callback,
     void* pCallbackObject)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(pCallbackObject);
@@ -616,14 +616,14 @@ HRESULT PluginManager::RTPlayerCreate(
     auto initAsync = rtPlayer.InitAsync(connection); // TODO: need to save reference outside of function call?
     initAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
-        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"PluginManager::RTPlayerCreate() [InitAsync()] -Tid:%d \n", GetCurrentThreadId());
 
         //slim_lock_guard guard(m_lock);
         
         auto videoProps = asyncOp.GetResults();
         UINT32 width = videoProps.Width(), height = videoProps.Height();
 
-        Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
+        Log(Log_Level_Info, L"PluginManager::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
         
         callback(pCallbackObject,
             S_OK,
@@ -637,7 +637,7 @@ HRESULT PluginManager::RTPlayerCreate(
 _Use_decl_annotations_
 HRESULT PluginManager::RTPlayerRelease()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerRelease() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::RTPlayerRelease() -Tid:%d \n", GetCurrentThreadId());
 
     if (s_spStreamingPlayer != nullptr)
     {
@@ -652,7 +652,7 @@ HRESULT PluginManager::RTPlayerCreateTexture(_In_ UINT32 width,
     _In_ UINT32 height,
     _COM_Outptr_ void** ppvTexture)
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerCreateTexture(%d, %d) -Tid:%d \n", width, height, GetCurrentThreadId());
+    Log(Log_Level_Info, L"PluginManager::RTPlayerCreateTexture(%d, %d) -Tid:%d \n", width, height, GetCurrentThreadId());
 
     NULL_CHK(ppvTexture);
     NULL_CHK(s_spStreamingPlayer);
@@ -667,7 +667,7 @@ HRESULT PluginManager::RTPlayerCreateTexture(_In_ UINT32 width,
 _Use_decl_annotations_
 HRESULT  PluginManager::RTPlayerStart()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStart()\n");
+    Log(Log_Level_Info, L"PluginManager::RTPlayerStart()\n");
 
     NULL_CHK(s_spStreamingPlayer);
 
@@ -678,7 +678,7 @@ HRESULT  PluginManager::RTPlayerStart()
 _Use_decl_annotations_
 HRESULT  PluginManager::RTPlayerPause()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerPause()\n");
+    Log(Log_Level_Info, L"PluginManager::RTPlayerPause()\n");
 
     NULL_CHK(s_spStreamingPlayer);
 
@@ -689,7 +689,7 @@ HRESULT  PluginManager::RTPlayerPause()
 _Use_decl_annotations_
 HRESULT PluginManager::RTPlayerStop()
 {
-    Log(Log_Level_Info, L"PluginManagerImpl::RTPlayerStop()\n");
+    Log(Log_Level_Info, L"PluginManager::RTPlayerStop()\n");
 
     NULL_CHK(s_spStreamingPlayer);
 

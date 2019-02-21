@@ -1155,10 +1155,12 @@ _Use_decl_annotations_
 DataBundle NetworkMediaSinkStream::PrepareFormatChange(
     IMFMediaType* pMediaType)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStream::CompleteOpen()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::PrepareFormatChange()\n");
 
     const DWORD c_cbPayloadSize = sizeof(PayloadHeader) + sizeof(MediaTypeDescription);
 
+    // TODO: FIX THIS!!!!
+    /*
     auto dataBuffer = make<Network::implementation::DataBuffer>(c_cbPayloadSize);
 
     // Prepare PayloadType header
@@ -1185,24 +1187,18 @@ DataBundle NetworkMediaSinkStream::PrepareFormatChange(
 
     // Add attributes
     dataBundle.AddBuffer(spAttr);
-
+    
     return dataBundle;
+    */
+    return make<Network::implementation::DataBundle>();
 }
 
-// Fill stream description and prepare attributes blob.
-_Use_decl_annotations_
-DataBuffer NetworkMediaSinkStream::FillStreamDescription(
-    RealtimeStreaming::Common::MediaTypeDescription* pStreamDescription)
+
+HRESULT NetworkMediaSinkStream::GetAttributesBlobSize(UINT32* ppAttributeSize)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStream::CompleteOpen()\n");
-
-    // Clear the stream descriptor memory
-    ZeroMemory(pStreamDescription, sizeof(MediaTypeDescription));
-    HRESULT hr = S_OK;
-
     // Get the media type for the stream
     com_ptr<IMFMediaType> spMediaType;
-    IFT(GetCurrentMediaType(spMediaType.put()));
+    IFR(GetCurrentMediaType(spMediaType.put()));
 
     /*
     // filter types to those deemed needed
@@ -1211,43 +1207,50 @@ DataBuffer NetworkMediaSinkStream::FillStreamDescription(
     IFC(FilterOutputMediaType(spMediaType.get(), spFilteredMediaType.get()));
     */
 
-    // fill in streamDescription
-    pStreamDescription->dwStreamId = m_dwStreamId;
-
-    // set major type (Audio, Video and so on)
-    GUID majorType, subType;
-    IFT(GetMajorType(&majorType));
-    pStreamDescription->guiMajorType = majorType;
-
-    // set subtype (format of the stream)
-    IFT(spMediaType->GetGUID(MF_MT_SUBTYPE, &subType));
-    pStreamDescription->guiSubType = subType;
-
     // Set size of attributes blob
-    UINT32 attributesSize = 0;
     //IFC(MFGetAttributesAsBlobSize(spFilteredMediaType.get(), &attributesSize));
-    IFT(MFGetAttributesAsBlobSize(spMediaType.get(), &attributesSize));
+    IFR(MFGetAttributesAsBlobSize(spMediaType.get(), ppAttributeSize));
 
-    // Prepare a buffer for the filtered mediaType
-    auto attributesBuffer = make<Network::implementation::DataBuffer>(attributesSize);
+    return S_OK;
+}
 
-    // Set length of the buffer
-    attributesBuffer.CurrentLength(attributesSize);
+// Fill stream description and prepare attributes blob.
+_Use_decl_annotations_
+HRESULT NetworkMediaSinkStream::FillStreamDescription(
+    RealtimeStreaming::Common::MediaTypeDescription* pStreamDescription,
+    BYTE* pAttributesBlob)
+{
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::FillStreamDescription()\n");
 
-    // Copy attributes to the buffer
-    auto dataBufferImpl = attributesBuffer.as<Network::implementation::DataBuffer>();
-    BYTE* pBuffer;
-    dataBufferImpl->Buffer(&pBuffer);
+    NULL_CHK(pStreamDescription);
+    NULL_CHK(pAttributesBlob);
 
-    NULL_CHK(pBuffer);
+    // Clear the stream descriptor memory
+    ZeroMemory(pStreamDescription, sizeof(MediaTypeDescription));
 
-    IFT(MFGetAttributesAsBlob(spMediaType.get(), pBuffer, attributesSize));
-    //IFC(MFGetAttributesAsBlob(spFilteredMediaType.get(), pBuffer, attributesSize));
+    // Get the media type for the stream
+    com_ptr<IMFMediaType> spMediaType;
+    IFR(GetCurrentMediaType(spMediaType.put()));
 
-    // were good, save the valus and return
-    pStreamDescription->AttributesBlobSize = attributesSize;
+    // Get major type (Audio, Video and so on) and subtype (format of the stream)
+    GUID majorType, subType;
+    IFR(GetMajorType(&majorType));
+    IFR(spMediaType->GetGUID(MF_MT_SUBTYPE, &subType));
 
-    return attributesBuffer;
+    // Copy Attributes out to blob
+    UINT32 attributeBlobSize;
+    GetAttributesBlobSize(&attributeBlobSize);
+
+    IFR(MFGetAttributesAsBlob(spMediaType.get(), pAttributesBlob, attributeBlobSize));
+    //IFR(MFGetAttributesAsBlob(spFilteredMediaType.get(), pBuffer, attributesSize));
+
+    // fill in streamDescription
+    pStreamDescription->guiMajorType = majorType;
+    pStreamDescription->dwStreamId = m_dwStreamId;
+    pStreamDescription->guiSubType = subType;
+    pStreamDescription->AttributesBlobSize = attributeBlobSize;
+
+    return S_OK;
 }
 
 _Use_decl_annotations_

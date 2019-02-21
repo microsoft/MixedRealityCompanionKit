@@ -38,6 +38,8 @@ Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket co
     ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
     m_receivedHeader.ePayloadType = PayloadType::Unknown;
 
+    //m_dataReader.InputStreamOptions(Windows::Storage::Streams::InputStreamOptions::Partial);
+
     // Create background task
     RunSocketLoop();
 }
@@ -52,13 +54,11 @@ Connection::~Connection()
     Close();
 }
 
-IAsyncAction Connection::ReadPayloadLoopAsync()
+void Connection::ReadPayloadLoop()
 {
     Log(Log_Level_All, L"Connection::ReadPayloadLoopAsync[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
-    //co_await winrt::resume_background();
-    //IBuffer buffer = WaitForPayloadAsync().get();
-    auto buffer{ co_await WaitForPayloadAsync() };
+    IBuffer buffer = WaitForPayloadAsync().get();
 
     if (buffer.Length() != 0)
     {
@@ -67,7 +67,7 @@ IAsyncAction Connection::ReadPayloadLoopAsync()
         if (hr == PARTIAL_PAYLOAD_RECEIVED)
         {
             // We have not read all of the payload yet
-            co_await ReadPayloadLoopAsync();
+            ReadPayloadLoop();
         }
         // whether we succed or fail otherwise, we want to restart SocketReceiveLoop()
     }
@@ -89,12 +89,16 @@ winrt::fire_and_forget Connection::RunSocketLoop()
         return;
     }
 
+    Log(Log_Level_All, L"Connection::RunSocketLoop - UnConsumed: %d - Tid: %d \n", 
+        m_dataReader.UnconsumedBufferLength(), 
+        GetCurrentThreadId());
+
     HRESULT hr = OnHeaderReceived(headerBuffer);
 
     if (SUCCEEDED(hr))
     {
         //co_await ReadPayloadLoopAsync();
-        ReadPayloadLoopAsync().get();
+        ReadPayloadLoop();
     }
     // if failed, then we proceed to continuation which will restart loop (i.e call WaitForHeaderAsync())
 
@@ -197,8 +201,6 @@ IAsyncAction Connection::SendPayloadTypeAsync(
     // TODO: Consider switch to co_await for sendbundle at bottom
     // TODO: Also re-write this to direct write one buffer instead of creating DataBundle
 
-    co_await winrt::resume_background();
-
     Log(Log_Level_All, L"Connection::SendPayloadTypeAsync(%d)[%d] - Tid: %d \n",  payloadType, m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     // Create send buffer
@@ -217,13 +219,15 @@ IAsyncAction Connection::SendPayloadTypeAsync(
     auto dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
     //dataBundle.AddBuffer(dataBuffer);
 
-    SendBundleAsync(dataBundle).get();
+    co_await SendBundleAsync(dataBundle);
 }
 
 _Use_decl_annotations_
 IAsyncAction Connection::SendBundleAsync(
     RealtimeStreaming::Network::DataBundle const dataBundle)
 {
+    co_await winrt::resume_background();
+
     Log(Log_Level_Info, L"Connection::SendBundleAsync()[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     try
@@ -257,13 +261,14 @@ IAsyncAction Connection::SendBundleAsync(
         array_view<byte const> bufferArrayView{ pBuffer, pBuffer + currBuffer.Length() };
 
         dataWriter.WriteBytes(bufferArrayView);
+        co_await dataWriter.StoreAsync();
         //outputStream.WriteAsync(currBuffer).get();
         //pendingWrites.push_back(outputStream.WriteAsync(currBuffer));
 
         bufferCount++;
     }
 
-    co_await dataWriter.StoreAsync();
+    //co_await dataWriter.StoreAsync();
     //co_await dataWriter.FlushAsync();
     //co_await outputStream.FlushAsync();
     dataWriter.DetachStream();
@@ -300,7 +305,7 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
     {
         // TODO: Optimize this by re-using local member buffer instead of consistent construction?
         Buffer tempBuffer = Buffer(sizeof(PayloadHeader));
-        DWORD bufferLen = tempBuffer.Capacity();
+        UINT32 bufferLen = tempBuffer.Capacity();
 
         co_await m_dataReader.LoadAsync(bufferLen);
         return m_dataReader.ReadBuffer(bufferLen);
@@ -344,7 +349,7 @@ IAsyncOperation<IBuffer> Connection::WaitForPayloadAsync()
     {
         // TODO: Optimize this by re-using local member buffer instead of consistent construction?
         Buffer tempBuffer = Buffer(m_receivedHeader.cbPayloadSize);
-        DWORD bufferLen = tempBuffer.Capacity();
+        UINT32 bufferLen = tempBuffer.Capacity();
 
         co_await m_dataReader.LoadAsync(bufferLen);
         return m_dataReader.ReadBuffer(bufferLen);

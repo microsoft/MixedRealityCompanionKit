@@ -111,7 +111,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         bool IsVideo() const { return m_fIsVideo; }
 
-        Network::DataBuffer FillStreamDescription(_Inout_ Common::MediaTypeDescription* pStreamDescription);
+        HRESULT GetAttributesBlobSize(UINT32* ppAttributeSize);
+        HRESULT FillStreamDescription(
+            _Inout_ Common::MediaTypeDescription* pStreamDescription,
+            _Out_ BYTE* pAttributesBlob);
 
     private:
         HRESULT ValidateOperation(
@@ -185,10 +188,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
         AsyncCallback<NetworkMediaSinkStream> m_workQueueCB;     // Callback for the work queue.
 
         com_ptr<IMFMediaEventQueue>  m_eventQueue;    // Event queue
-            
-        // array<com_ptr>?
-        std::vector<com_ptr<IUnknown>> m_sampleQueue;
-        //ComPtrList<IUnknown>        m_sampleQueue;   // Queue to hold samples and markers.
+
+        std::vector<com_ptr<IUnknown>> m_sampleQueue;// Queue to hold samples and markers.
                                                     // Applies to: ProcessSample, PlaceMarker
 
         // ValidStateMatrix: Defines a look-up table that says which operations

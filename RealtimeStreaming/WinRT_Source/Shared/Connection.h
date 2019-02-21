@@ -42,7 +42,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         }
 
         winrt::fire_and_forget RunSocketLoop();
-        Windows::Foundation::IAsyncAction ReadPayloadLoopAsync();
+        void ReadPayloadLoop();
 
         Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForHeaderAsync();
         Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForPayloadAsync();
