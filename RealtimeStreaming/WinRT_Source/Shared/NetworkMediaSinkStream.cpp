@@ -269,7 +269,8 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
 
         if (nullptr != m_connection)
         {
-            m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureReady).get();
+            // TODO: Switch back to sync
+            m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureReady);//.get();
         }
 
         IFC(_QueueEvent(MEStreamSinkRequestSample, GUID_NULL, hr, nullptr));

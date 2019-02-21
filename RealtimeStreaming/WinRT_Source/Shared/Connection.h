@@ -28,7 +28,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             _In_ RealtimeStreaming::Common::PayloadType payloadType);
 
         Windows::Foundation::IAsyncAction SendBundleAsync(
-            _In_ RealtimeStreaming::Network::DataBundle dataBundle);
+            _In_ RealtimeStreaming::Network::DataBundle const dataBundle);
 
         winrt::event_token Disconnected(RealtimeStreaming::Network::DisconnectedDelegate const& handler);
         void Disconnected(winrt::event_token const& token) noexcept;
@@ -49,11 +49,11 @@ namespace winrt::RealtimeStreaming::Network::implementation
         //void ProcessSocketLoop();
         Windows::Foundation::IAsyncAction ReadPayloadLoopAsync();
 
-        Windows::Foundation::IAsyncAction WaitForHeaderAsync();
+        Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForHeaderAsync();
         Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForPayloadAsync();
         
-        HRESULT OnHeaderReceived(); 
-        HRESULT OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer payloadBuffer);
+        HRESULT OnHeaderReceived(_In_ Windows::Storage::Streams::IBuffer const&  headerBuffer);
+        HRESULT OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer const&  payloadBuffer);
 
         STDMETHODIMP NotifyBundleComplete(
             _In_ RealtimeStreaming::Common::PayloadType operation,
@@ -64,7 +64,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
     private:
         HRESULT ProcessHeaderBuffer(
             _In_ Common::PayloadHeader* header,
-            _In_ Network::DataBuffer dataBuffer);
+            _In_ Windows::Storage::Streams::IBuffer dataBuffer);
 
     private:
         //Wrappers::CriticalSection _lock;
@@ -75,7 +75,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
         Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
 
-        RealtimeStreaming::Network::DataBuffer  m_spHeaderBuffer{ nullptr };
+        //RealtimeStreaming::Network::DataBuffer  m_spHeaderBuffer{ nullptr };
 
         // currently bundle that is incoming
         Common::PayloadHeader m_receivedHeader;

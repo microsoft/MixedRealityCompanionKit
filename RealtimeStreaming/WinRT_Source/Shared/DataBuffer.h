@@ -29,6 +29,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             DataBuffer() = default;
             DataBuffer(_In_ DWORD dwMaxLength);
             DataBuffer(_In_ IMFMediaBuffer* pMediaBuffer);
+            //DataBuffer(_In_ Windows::Storage::Streams::IBuffer dwMaxLength);
             ~DataBuffer();
 
             // IBuffer
