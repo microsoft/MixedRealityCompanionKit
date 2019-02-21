@@ -251,7 +251,7 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
 {
     NULL_CHK(pSample);
 
-    Log(Log_Level_All, L"NetworkMediaSinkStreamImpl::ProcessSample() begin...\n");
+    Log(Log_Level_All, L"NetworkMediaSinkStream::ProcessSample() begin...\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -651,7 +651,7 @@ HRESULT NetworkMediaSinkStream::OnDispatchWorkItem(
     // Called by work queue thread. Need to hold the critical section.
     slim_lock_guard guard(m_lock);
 
-    Log(Log_Level_All, L"NetworkMediaSinkStreamImpl::OnDispatchWorkItem() begin...\n");
+    Log(Log_Level_All, L"NetworkMediaSinkStream::OnDispatchWorkItem() begin...\n");
 
     HRESULT hr = S_OK;
 
@@ -780,7 +780,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
     boolean fFlush,
     boolean *fNeedMoreSamples)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::ProcessSamplesFromQueue()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::ProcessSamplesFromQueue()\n");
 
     if (FAILED(CheckShutdown()))
     {
@@ -973,7 +973,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
 HRESULT NetworkMediaSinkStream::ProcessFormatChange(
     IMFMediaType* pMediaType)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::ProcessFormatChange()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::ProcessFormatChange()\n");
 
     NULL_CHK(pMediaType)
 
@@ -993,7 +993,7 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     IMFSample* pSample, 
     bool fForce)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::PrepareSample()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::PrepareSample()\n");
 
     NULL_THROW(pSample);
     HRESULT hr = S_OK;
@@ -1053,7 +1053,7 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     // dwFlags and masks
     if (IsVideo())
     {
-        Log(Log_Level_All, L"NetworkMediaSinkStreamImpl::PrepareSample: TS: %I64d, DUR: %I64d\n", pSampleHeader->hnsTimestamp, pSampleHeader->hnsDuration);
+        Log(Log_Level_All, L"NetworkMediaSinkStream::PrepareSample: TS: %I64d, DUR: %I64d\n", pSampleHeader->hnsTimestamp, pSampleHeader->hnsDuration);
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, BottomFieldFirst);
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, CleanPoint);
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, DerivedFromTopField);
@@ -1082,7 +1082,7 @@ _Use_decl_annotations_
 RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick(
     IMFAttributes* pAttributes)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::PrepareStreamTick()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::PrepareStreamTick()\n");
 
     NULL_THROW(pAttributes);
     
@@ -1155,11 +1155,11 @@ _Use_decl_annotations_
 DataBundle NetworkMediaSinkStream::PrepareFormatChange(
     IMFMediaType* pMediaType)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::CompleteOpen()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::CompleteOpen()\n");
 
     const DWORD c_cbPayloadSize = sizeof(PayloadHeader) + sizeof(MediaTypeDescription);
 
-    DataBuffer dataBuffer{ c_cbPayloadSize };
+    auto dataBuffer = make<Network::implementation::DataBuffer>(c_cbPayloadSize);
 
     // Prepare PayloadType header
     auto dataBufferImpl = dataBuffer.as<Network::implementation::DataBuffer>();
@@ -1194,7 +1194,7 @@ _Use_decl_annotations_
 DataBuffer NetworkMediaSinkStream::FillStreamDescription(
     RealtimeStreaming::Common::MediaTypeDescription* pStreamDescription)
 {
-    Log(Log_Level_Info, L"NetworkMediaSinkStreamImpl::CompleteOpen()\n");
+    Log(Log_Level_Info, L"NetworkMediaSinkStream::CompleteOpen()\n");
 
     // Clear the stream descriptor memory
     ZeroMemory(pStreamDescription, sizeof(MediaTypeDescription));
@@ -1229,7 +1229,7 @@ DataBuffer NetworkMediaSinkStream::FillStreamDescription(
     IFT(MFGetAttributesAsBlobSize(spMediaType.get(), &attributesSize));
 
     // Prepare a buffer for the filtered mediaType
-    DataBuffer attributesBuffer{ attributesSize };
+    auto attributesBuffer = make<Network::implementation::DataBuffer>(attributesSize);
 
     // Set length of the buffer
     attributesBuffer.CurrentLength(attributesSize);

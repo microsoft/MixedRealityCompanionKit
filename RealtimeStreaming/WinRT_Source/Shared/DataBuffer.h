@@ -26,11 +26,15 @@ namespace winrt::RealtimeStreaming::Network::implementation
     struct DataBuffer : DataBufferT<DataBuffer, IDataBufferPriv>
     {
         public:
+            // TODO: Create static method to get rawpointer? to avoid casting to implementation
             DataBuffer() = default;
             DataBuffer(_In_ DWORD dwMaxLength);
             DataBuffer(_In_ IMFMediaBuffer* pMediaBuffer);
-            //DataBuffer(_In_ Windows::Storage::Streams::IBuffer dwMaxLength);
+            DataBuffer(_In_ Windows::Storage::Streams::IBuffer const& buffer);
             ~DataBuffer();
+
+            static BYTE* GetBufferPointer(
+                _In_ RealtimeStreaming::Network::DataBuffer const& dataBuffer);
 
             // IBuffer
             UINT32 Capacity();
@@ -45,6 +49,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             ULONG Offset();
             void Offset(ULONG value);
 
+            // TODO: Coalesce with Length() of IBuffer (update idl?)
             ULONG CurrentLength();
             void CurrentLength(ULONG len);
 

@@ -153,10 +153,10 @@ void RealtimeMediaSource::OnSampleRequested(Windows::Media::Core::MediaStreamSou
 
     if (m_latestSample == nullptr)
     {
-        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnSampleRequested() - No latest sample, taking deferral \n");
+        Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRequested() - No latest sample, taking deferral \n");
 
         if (m_deferral != nullptr) {
-            Log(Log_Level_Error, L"RealtimeMediaSourceImpl::OnSampleRequested() - Got deferral when another has not completed\n");
+            Log(Log_Level_Error, L"RealtimeMediaSource::OnSampleRequested() - Got deferral when another has not completed\n");
         }
 
         m_deferral = m_spRequest.GetDeferral();
@@ -209,7 +209,7 @@ void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const
 _Use_decl_annotations_
 void RealtimeMediaSource::SendDescribeRequest()
 {
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendDescribeRequest()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::SendDescribeRequest()\n");
 
     NULL_THROW(m_connection, E_POINTER);
 
@@ -219,7 +219,7 @@ void RealtimeMediaSource::SendDescribeRequest()
 _Use_decl_annotations_
 void RealtimeMediaSource::SendStartRequest()
 {
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendStartRequest()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::SendStartRequest()\n");
 
     NULL_THROW(m_connection, E_POINTER);
 
@@ -229,7 +229,7 @@ void RealtimeMediaSource::SendStartRequest()
 _Use_decl_annotations_
 void RealtimeMediaSource::SendStopRequest()
 {
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::SendStopRequest()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::SendStopRequest()\n");
 
     NULL_THROW(m_connection, E_POINTER);
 
@@ -249,7 +249,7 @@ void RealtimeMediaSource::OnDataReceived(
 
     IFT(CheckShutdown());
 
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived(%d)\n", type);
+    Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived(%d)\n", type);
 
     Network::DataBundle data = args.Bundle();
 
@@ -268,7 +268,7 @@ void RealtimeMediaSource::OnDataReceived(
         IFT(ProcessMediaFormatChange(data));
         break;
     case PayloadType::SendMediaStreamTick:
-        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::OnDataReceived() - PayloadType::SendMediaStreamTick\n");
+        Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived() - PayloadType::SendMediaStreamTick\n");
         // TODO: Troy how to turn on without IMFMediaSource
         //IFC(ProcessMediaTick(spDataBundle.get()));
         break;
@@ -281,7 +281,7 @@ HRESULT RealtimeMediaSource::ProcessCaptureReady()
 {
     slim_lock_guard guard(m_lock);
 
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessCaptureReady()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::ProcessCaptureReady()\n");
 
     if (m_eSourceState == SourceStreamState::Started || m_eSourceState == SourceStreamState::Stopped)
     {
@@ -297,7 +297,7 @@ _Use_decl_annotations_
 HRESULT RealtimeMediaSource::ProcessMediaDescription(
     RealtimeStreaming::Network::DataBundle const& dataBundle)
 {
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaDescription()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaDescription()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -505,7 +505,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
 
     auto dataBundleImpl = dataBundle.as<IDataBundlePriv>();
 
-    Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaSample()\n");
 
     com_ptr<IMFSample> spSample;
 
@@ -514,7 +514,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     {
         if (FAILED(ProcessCaptureReady()))
         {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSourceImpl::ProcessMediaSample() - not in a state to receive data.");
+            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSource::ProcessMediaSample() - not in a state to receive data.");
         }
         else
         {
@@ -530,7 +530,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     {
         //auto lock = _lock.Lock();
 
-        Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample() - CurrentTS: %d - Last TS:%d \n", sampleHead.hnsTimestamp, m_lastTimeStamp);
+        Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaSample() - CurrentTS: %d - Last TS:%d \n", sampleHead.hnsTimestamp, m_lastTimeStamp);
 
         // Drop sample if it's timestamp is in the past of what we have processed
         if (m_lastTimeStamp > sampleHead.hnsTimestamp)
@@ -557,7 +557,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
 
         if (m_deferral != nullptr)
         {
-            Log(Log_Level_Info, L"RealtimeMediaSourceImpl::ProcessMediaSample - Fire Deferral()\n");
+            Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaSample - Fire Deferral()\n");
 
             com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest = m_spRequest.as< IMFMediaStreamSourceSampleRequest>();
 
@@ -613,7 +613,7 @@ HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
     {
         if (FAILED(ProcessCaptureReady()))
         {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSourceImpl::ProcessMediaFormatChange() - not in a state to receive data.");
+            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSource::ProcessMediaFormatChange() - not in a state to receive data.");
         }
     }
 

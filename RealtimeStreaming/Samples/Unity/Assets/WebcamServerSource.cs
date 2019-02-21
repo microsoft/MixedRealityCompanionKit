@@ -38,7 +38,7 @@ public class WebcamServerSource : MonoBehaviour
             if (timer > WRITE_FPS)
             {
                 timer = 0;
-                this.CaptureWebcam();
+                //this.CaptureWebcam();
             }
         }
     }

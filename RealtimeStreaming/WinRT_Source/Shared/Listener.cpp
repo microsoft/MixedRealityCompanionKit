@@ -15,12 +15,12 @@ Listener::Listener(UINT16 port)
     //, m_socketListener(nullptr)
     , m_streamSocket(nullptr)
 {
-    Log(Log_Level_Info, L"Listener::ListenerImpl()\n");
+    Log(Log_Level_Info, L"Listener::Listener()\n");
 }
 
 Listener::~Listener()
 {
-    Log(Log_Level_Info, L"Listener::~ListenerImpl()\n");
+    Log(Log_Level_Info, L"Listener::~Listener()\n");
 
     // TODO: Close like original?
     // Close();
@@ -30,7 +30,7 @@ Listener::~Listener()
 _Use_decl_annotations_
 IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
 {
-    Log(Log_Level_Info, L"ListenerImpl::ListenAsync()\n");
+    Log(Log_Level_Info, L"Listener::ListenAsync()\n");
 
     // create a listener
     m_connectionReceivedEventToken = m_socketListener.ConnectionReceived({ this, &Listener::OnConnectionReceived });
@@ -78,7 +78,7 @@ _Use_decl_annotations_
 void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
     StreamSocketListenerConnectionReceivedEventArgs args)
 {
-    Log(Log_Level_Info, L"ListenerImpl::OnConnectionReceived()\n");
+    Log(Log_Level_Info, L"Listener::OnConnectionReceived()\n");
 
     slim_lock_guard guard(m_lock);
 

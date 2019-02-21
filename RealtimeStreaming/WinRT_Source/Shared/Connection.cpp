@@ -28,11 +28,11 @@ Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket co
     : m_concurrentFailedBuffers(0)
     , m_concurrentFailedBundles(0)
     , m_streamSocket(socket)
+    , m_dataReader(socket.InputStream())
     , m_receivedBundle(nullptr)
 {
     Log(Log_Level_All, L"Connection::Connection - Tid: %d \n", GetCurrentThreadId());
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
@@ -47,16 +47,18 @@ Connection::~Connection()
 {
     slim_lock_guard guard(m_lock);
 
-    Log(Log_Level_Warning, L"ConnectionImpl::~ConnectionImpl()\n");
+    Log(Log_Level_Warning, L"Connection::~Connection()\n");
 
     Close();
 }
 
 IAsyncAction Connection::ReadPayloadLoopAsync()
 {
-    co_await winrt::resume_background();
+    Log(Log_Level_All, L"Connection::ReadPayloadLoopAsync[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
-    IBuffer buffer = WaitForPayloadAsync().get();
+    //co_await winrt::resume_background();
+    //IBuffer buffer = WaitForPayloadAsync().get();
+    auto buffer{ co_await WaitForPayloadAsync() };
 
     if (buffer.Length() != 0)
     {
@@ -69,30 +71,11 @@ IAsyncAction Connection::ReadPayloadLoopAsync()
         }
         // whether we succed or fail otherwise, we want to restart SocketReceiveLoop()
     }
-
-    /*
-    return concurrency::create_task([=]()
-    //.then([this](IBuffer result)
-    {
-        IBuffer buffer{ WaitForPayloadAsync().get() };
-
-        if (buffer.Length() != 0)
-        {
-            HRESULT hr = OnPayloadReceived(buffer);
-            if (hr == PARTIAL_PAYLOAD_RECEIVED)
-            {
-                // We have not read all of the payload yet
-                return ReadPayloadLoopAsync();
-            }
-            // whether we succed or fail otherwise, we want to restart SocketReceiveLoop()
-        }
-        // else is null and we fail and restart back to WaitForHeader
-    });*/
 }
 
 winrt::fire_and_forget Connection::RunSocketLoop()
 {
-    Log(Log_Level_All, L"Connection::RunSocketLoop - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::RunSocketLoop[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     co_await winrt::resume_background();
 
@@ -110,68 +93,24 @@ winrt::fire_and_forget Connection::RunSocketLoop()
 
     if (SUCCEEDED(hr))
     {
-        co_await ReadPayloadLoopAsync();
+        //co_await ReadPayloadLoopAsync();
+        ReadPayloadLoopAsync().get();
     }
     // if failed, then we proceed to continuation which will restart loop (i.e call WaitForHeaderAsync())
 
     RunSocketLoop();
 }
 
-/*
-void Connection::ProcessSocketLoop()
-{
-    // Returned HResults are failed siliently by restarting process to waitforheader
-    // Thrown HResult exceptions will abort connection & close socket
-    concurrency::create_task(WaitForHeaderAsync()).then([=]() 
-    {
-        HRESULT hr = OnHeaderReceived(); // uses m_headerBuffer, consider switching to local?
-        
-        if (SUCCEEDED(hr))
-        {
-            return ReadPayloadLoopAsync();
-        }
-        // if failed, then we proceed to continuation which will restart loop (i.e call WaitForHeaderAsync())
-    }).then([=](concurrency::task<void> previousTask)
-    {
-        try 
-        {
-            previousTask.get();
-
-            ProcessSocketLoop();
-        }
-        catch (winrt::hresult_error const& ex)
-        {   
-            LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-            Close();
-        }
-        catch (concurrency::task_canceled&)
-        {
-            //close socket?
-        }
-    });
-}*/
-
-/*
-void Connection::Bind(_In_ Windows::Networking::Sockets::StreamSocket const& socket)
-{
-    slim_lock_guard guard(m_lock);
-
-    m_streamSocket = socket;
-
-    WaitForHeader();
-}
-*/
-
 _Use_decl_annotations_
 void Connection::Close()
 {
-    Log(Log_Level_Info, L"ConnectionImpl::Close()\n");
+    Log(Log_Level_Info, L"Connection::Close()\n");
 
     if (nullptr == m_streamSocket)
     {
         return;
     }
-
+    
     ResetBundle();
 
     // cleanup socket
@@ -185,7 +124,7 @@ void Connection::Close()
 _Use_decl_annotations_
 bool Connection::IsConnected()
 {
-    Log(Log_Level_Info, L"ConnectionImpl::get_IsConnected()\n");
+    Log(Log_Level_Info, L"Connection::get_IsConnected()\n");
 
     //auto lock = _lock.Lock();
     slim_shared_lock_guard const guard(m_lock);
@@ -195,7 +134,7 @@ bool Connection::IsConnected()
 _Use_decl_annotations_
 StreamSocketInformation Connection::ConnectionInfo()
 {
-    Log(Log_Level_Info, L"ConnectionImpl::get_ConnectionInfo()\n");
+    Log(Log_Level_Info, L"Connection::get_ConnectionInfo()\n");
 
     slim_shared_lock_guard const guard(m_lock);
 
@@ -213,7 +152,7 @@ _Use_decl_annotations_
 event_token Connection::Disconnected(
     RealtimeStreaming::Network::DisconnectedDelegate const& handler)
 {
-    Log(Log_Level_All, L"ConnectionImpl::add_Disconnected() - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::add_Disconnected() - Tid: %d \n", GetCurrentThreadId());
 
     slim_lock_guard guard(m_lock);
 
@@ -223,7 +162,7 @@ event_token Connection::Disconnected(
 _Use_decl_annotations_
 void Connection::Disconnected(winrt::event_token const& token) noexcept
 {
-    Log(Log_Level_Info, L"ConnectionImpl::remove_Disconnected()\n");
+    Log(Log_Level_Info, L"Connection::remove_Disconnected()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -234,7 +173,7 @@ _Use_decl_annotations_
 event_token Connection::Received(
     EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler)
 {
-    Log(Log_Level_Info, L"ConnectionImpl::add_Received()\n");
+    Log(Log_Level_Info, L"Connection::add_Received()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -244,7 +183,7 @@ event_token Connection::Received(
 _Use_decl_annotations_
 void Connection::Received(winrt::event_token const& token) noexcept
 {
-    Log(Log_Level_Info, L"ConnectionImpl::remove_Received()\n");
+    Log(Log_Level_Info, L"Connection::remove_Received()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -255,25 +194,24 @@ _Use_decl_annotations_
 IAsyncAction Connection::SendPayloadTypeAsync(
     PayloadType payloadType)
 {
+    // TODO: Consider switch to co_await for sendbundle at bottom
+    // TODO: Also re-write this to direct write one buffer instead of creating DataBundle
+
     co_await winrt::resume_background();
 
-    Log(Log_Level_All, L"ConnectionImpl::SendPayloadTypeAsync(%d) - Tid: %d \n", payloadType, GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::SendPayloadTypeAsync(%d)[%d] - Tid: %d \n",  payloadType, m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     // Create send buffer
     auto dataBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
-    
-    // get the buffer pointer
-    BYTE* pBuffer;
-    dataBuffer.as<DataBuffer>()->Buffer(&pBuffer);
-    NULL_THROW(pBuffer);
 
     // cast to the dataPtr
-    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuffer);
+    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(DataBuffer::GetBufferPointer(dataBuffer));
     NULL_THROW(pOpHeader);
 
     pOpHeader->cbPayloadSize = 0;
     pOpHeader->ePayloadType = payloadType;
 
+    // Since we set new data into the buffer, we need to indicate how much data was written
     dataBuffer.CurrentLength(sizeof(PayloadHeader));
 
     auto dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
@@ -286,15 +224,18 @@ _Use_decl_annotations_
 IAsyncAction Connection::SendBundleAsync(
     RealtimeStreaming::Network::DataBundle const dataBundle)
 {
-    Log(Log_Level_Info, L"ConnectionImpl::SendBundleAsync(bundle) - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Connection::SendBundleAsync()[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
+
+    try
+    {
 
     // get the output stream for socket
-    IOutputStream outputStream{ nullptr };
+    DataWriter dataWriter{ nullptr };
     {
         slim_lock_guard guard(m_lock);
 
         IFT(CheckClosed());
-        outputStream = m_streamSocket.OutputStream();
+        dataWriter = DataWriter(m_streamSocket.OutputStream());
     }
 
     UINT32 totalLength = 0;
@@ -302,23 +243,39 @@ IAsyncAction Connection::SendBundleAsync(
 
     std::vector< IAsyncOperationWithProgress< unsigned int, unsigned int > > pendingWrites{};
 
-    // send one buffer at a time syncronously
     auto dataBundleImpl = dataBundle.as<implementation::DataBundle>();
     for (auto const& currBuffer : dataBundleImpl->GetBuffers())
     {
-        IBuffer buffer = currBuffer.as<IBuffer>();
-
         totalLength += currBuffer.Length();
 
-        outputStream.WriteAsync(buffer).get();
+        // TODO: Create cleaner way to send data?
+        // TOOD: Re-try multiple packets flushasync approach*
+
+        BYTE* pBuffer = DataBuffer::GetBufferPointer(currBuffer);
+
+        // a view over(and not a copy of) the input data
+        array_view<byte const> bufferArrayView{ pBuffer, pBuffer + currBuffer.Length() };
+
+        dataWriter.WriteBytes(bufferArrayView);
+        //outputStream.WriteAsync(currBuffer).get();
         //pendingWrites.push_back(outputStream.WriteAsync(currBuffer));
 
         bufferCount++;
     }
 
+    co_await dataWriter.StoreAsync();
+    //co_await dataWriter.FlushAsync();
     //co_await outputStream.FlushAsync();
+    dataWriter.DetachStream();
 
     Log(Log_Level_Info, L"Connection::SendBundleAsync() - Buffers: %d - TotalLength: %d - TID: %d\n", bufferCount, totalLength, GetCurrentThreadId());
+
+    }
+    catch (winrt::hresult_error const& ex)
+    {
+        Log(Log_Level_All, L"Connection::SendBundleAsync Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+    }
 }
 
 
@@ -326,9 +283,12 @@ IAsyncAction Connection::SendBundleAsync(
 _Use_decl_annotations_
 IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
 {
-    Log(Log_Level_All, L"Connection::WaitForHeader - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::WaitForHeaderAsync()[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
-    IFT(CheckClosed());
+    if (FAILED(CheckClosed()))
+    {
+        return nullptr;
+    }
 
     if (PayloadType::Unknown != m_receivedHeader.ePayloadType ||
         0 != m_receivedHeader.cbPayloadSize)
@@ -338,32 +298,21 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
 
     try
     {
+        // TODO: Optimize this by re-using local member buffer instead of consistent construction?
+        Buffer tempBuffer = Buffer(sizeof(PayloadHeader));
+        DWORD bufferLen = tempBuffer.Capacity();
 
-    //auto headerBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
-    //m_spHeaderBuffer = nullptr; //reseat local member buffer
-    //m_spHeaderBuffer = winrt::make<Network::implementation::DataBuffer>(sizeof(PayloadHeader));
+        co_await m_dataReader.LoadAsync(bufferLen);
+        return m_dataReader.ReadBuffer(bufferLen);
 
-    Buffer filler = Buffer(sizeof(PayloadHeader));
+        /*
+        // get the socket input stream reader
+        auto bufferResult = co_await m_streamSocket.InputStream().ReadAsync(tempBuffer,
+                bufferLen,
+                InputStreamOptions::Partial);
 
-    DWORD bufferLen = filler.Capacity();
-
-    /*
-    // should be the same as sizeof(PayloadHeader)
-    if (bufferLen != sizeof(PayloadHeader))
-    {
-        m_spHeaderBuffer.CurrentLength(sizeof(PayloadHeader));
-    }
-    */
-    // get the socket input stream reader
-    IInputStream inputStream = m_streamSocket.InputStream();
-
-    auto bufferResult = co_await inputStream.ReadAsync(filler,
-            bufferLen,
-            InputStreamOptions::Partial);
-
-    //m_spHeaderBuffer = nullptr; //unseat current header buffer
-    //m_spHeaderBuffer = bufferResult.as<RealtimeStreaming::Network::DataBuffer>();
         return bufferResult;
+        */
     }
     catch (winrt::hresult_error const& ex)
     {
@@ -372,13 +321,12 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
     }
 
     return nullptr;
-    //co_await OnHeaderReceived();
 }
 
 _Use_decl_annotations_
 IAsyncOperation<IBuffer> Connection::WaitForPayloadAsync()
 {
-    Log(Log_Level_Info, L"ConnectionImpl::WaitForPayload()\n");
+    Log(Log_Level_Info, L"Connection::WaitForPayloadAsync()[%d]\n", m_streamSocket.Information().LocalPort());
 
     if (FAILED(CheckClosed()))
     {
@@ -392,35 +340,29 @@ IAsyncOperation<IBuffer> Connection::WaitForPayloadAsync()
         IFT(HRESULT_FROM_WIN32(ERROR_INVALID_STATE));
     }
 
-    auto payloadBuffer = winrt::make<Network::implementation::DataBuffer>(m_receivedHeader.cbPayloadSize);
-
-    // get the underlying buffer and makes sure it the right size
-    com_ptr<IMFMediaBuffer> spMediaBuffer;
-    payloadBuffer.as<DataBuffer>()->GetMediaBuffer(spMediaBuffer.put());
-    //IFT(payloadBuffer.MediaBuffer(&spMediaBuffer));
-
-    DWORD bufferLen = 0;
-    IFT(spMediaBuffer->GetMaxLength(&bufferLen));
-
-    // should be the same as sizeof(PayloadHeader)
-    if (bufferLen != m_receivedHeader.cbPayloadSize)
+    try
     {
-        IFT(spMediaBuffer->SetCurrentLength(m_receivedHeader.cbPayloadSize))
+        // TODO: Optimize this by re-using local member buffer instead of consistent construction?
+        Buffer tempBuffer = Buffer(m_receivedHeader.cbPayloadSize);
+        DWORD bufferLen = tempBuffer.Capacity();
+
+        co_await m_dataReader.LoadAsync(bufferLen);
+        return m_dataReader.ReadBuffer(bufferLen);
+    }
+    catch (winrt::hresult_error const& ex)
+    {
+        Log(Log_Level_All, L"Connection::WaitForPayloadAsync Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
     }
 
-    // get the socket input stream reader
-    auto asyncResult = co_await m_streamSocket.InputStream().ReadAsync(payloadBuffer,
-        m_receivedHeader.cbPayloadSize,
-        InputStreamOptions::None);
-
-    return asyncResult;
+    return nullptr;
     //co_await OnPayloadReceived(asyncInfo);
 }
 
 _Use_decl_annotations_
 void Connection::ResetBundle()
 {
-    Log(Log_Level_Info, L"ConnectionImpl::ResetBundle()\n");
+    Log(Log_Level_Info, L"Connection::ResetBundle()\n");
 
     if (nullptr != m_receivedBundle)
     {
@@ -437,9 +379,10 @@ HRESULT Connection::ProcessHeaderBuffer(
 {
     NULL_CHK(header);
 
-    Network::DataBuffer db = dataBuffer.as<Network::DataBuffer>();
-
-    auto dataBundle = winrt::make<Network::implementation::DataBundle>(db);
+    // TODO: Figure out how to transform IBuffer to DataBuffer. May need to just copy bytes? wasteful
+    //Network::DataBuffer db = dataBuffer.as<Network::DataBuffer>();
+    //auto dataBundle = winrt::make<Network::implementation::DataBundle>(db);
+    auto dataBundle = winrt::make<Network::implementation::DataBundle>();
 
     IFR(NotifyBundleComplete(header->ePayloadType, dataBundle));
 
@@ -451,7 +394,7 @@ HRESULT Connection::NotifyBundleComplete(
     RealtimeStreaming::Common::PayloadType payloadType,
     RealtimeStreaming::Network::DataBundle dataBundle)
 {
-    Log(Log_Level_Info, L"ConnectionImpl::OnCompleteBundle\n");
+    Log(Log_Level_Info, L"Connection::OnCompleteBundle\n");
 
     {
         slim_shared_lock_guard const guard(m_lock);
@@ -463,6 +406,7 @@ HRESULT Connection::NotifyBundleComplete(
     }
 
     auto args = winrt::make<Network::implementation::DataBundleArgs>(payloadType, *this, dataBundle);
+
     m_evtBundleReceived(*this, args);
 }
 
@@ -470,7 +414,7 @@ HRESULT Connection::NotifyBundleComplete(
 _Use_decl_annotations_
 HRESULT Connection::OnHeaderReceived(IBuffer const& headerBuffer)
 {
-    Log(Log_Level_All, L"Connection::OnHeaderReceived - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::OnHeaderReceived()[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     auto headerBufferImpl = headerBuffer.as<IBufferByte>();
     NULL_CHK(headerBufferImpl);
@@ -481,8 +425,6 @@ HRESULT Connection::OnHeaderReceived(IBuffer const& headerBuffer)
     DWORD bufferSize = headerBuffer.Capacity();
     
     // makes sure this is the expected size
-    // TODO: uncomment?
-    /*
     if (bytesRead != sizeof(PayloadHeader) ||
         bytesRead != bufferSize)
     {
@@ -490,7 +432,6 @@ HRESULT Connection::OnHeaderReceived(IBuffer const& headerBuffer)
 
         goto done;
     }
-    */
 
     // ensure we are waiting for a new payload
     if (m_receivedHeader.ePayloadType != PayloadType::Unknown)
@@ -557,13 +498,15 @@ done:
 _Use_decl_annotations_
 HRESULT Connection::OnPayloadReceived(IBuffer const& payloadBuffer)
 {
-    Log(Log_Level_All, L"ConnectionImpl::OnPayloadReceived\n");
+    Log(Log_Level_All, L"Connection::OnPayloadReceived\n");
 
     NULL_CHK(payloadBuffer);
 
     UINT32 bytesRead = payloadBuffer.Length();
 
-    auto payloadDataBuffer = payloadBuffer.as<RealtimeStreaming::Network::DataBuffer>();
+    // Copy IBuffer data into DataBuffer
+    auto payloadDataBuffer = make<Network::implementation::DataBuffer>(payloadBuffer);
+    //auto payloadDataBuffer = payloadBuffer.as<RealtimeStreaming::Network::DataBuffer>();
     NULL_CHK(payloadDataBuffer);
 
     HRESULT hr = S_OK;
@@ -590,7 +533,7 @@ HRESULT Connection::OnPayloadReceived(IBuffer const& payloadBuffer)
         goto done;
     }
 
-    // create bundle to hold all buffers
+    // create bundle to hold all buffers, lazy load
     if (nullptr == m_receivedBundle)
     {
         m_receivedBundle = winrt::make<Network::implementation::DataBundle>();

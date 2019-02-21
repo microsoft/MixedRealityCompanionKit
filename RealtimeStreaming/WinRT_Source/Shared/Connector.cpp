@@ -18,13 +18,13 @@ Connector::Connector(_In_ Windows::Networking::HostName hostName,
     , m_port(port)
     //, m_streamSocket(nullptr)
 {
-    Log(Log_Level_Info, L"ConnectorImpl::Connector()\n");
+    Log(Log_Level_Info, L"Connector::Connector()\n");
 }
 
 _Use_decl_annotations_
 Connector::~Connector()
 {
-    Log(Log_Level_Info, L"ConnectorImpl::~Connector()\n");
+    Log(Log_Level_Info, L"Connector::~Connector()\n");
 
     //Close();
 }
@@ -33,7 +33,7 @@ Connector::~Connector()
 _Use_decl_annotations_
 IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync()
 {
-    Log(Log_Level_Info, L"ConnectorImpl::ConnectAsync()\n");
+    Log(Log_Level_Info, L"Connector::ConnectAsync()\n");
 
     // activate a stream socket
     m_streamSocket.Control().KeepAlive(true);
@@ -53,7 +53,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
 _Use_decl_annotations_
 event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler)
 {
-    Log(Log_Level_All, L"ConnectorImpl::add_Closed() - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_All, L"Connector::add_Closed() - Tid: %d \n", GetCurrentThreadId());
 
     //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
@@ -64,7 +64,7 @@ event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& han
 _Use_decl_annotations_
 void Connector::Closed(winrt::event_token const& token)
 {
-    Log(Log_Level_Info, L"ConnectorImpl::remove_Closed()\n");
+    Log(Log_Level_Info, L"Connector::remove_Closed()\n");
 
     //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
@@ -75,7 +75,7 @@ void Connector::Closed(winrt::event_token const& token)
 _Use_decl_annotations_
 void Connector::Close()
 {
-    Log(Log_Level_Info, L"ConnectorImpl::Close()\n");
+    Log(Log_Level_Info, L"Connector::Close()\n");
 
     /*
     com_ptr<Windows::Foundation::IClosable> closeable;

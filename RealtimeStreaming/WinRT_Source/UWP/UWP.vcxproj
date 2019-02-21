@@ -120,6 +120,9 @@ copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Assets\$
     <ClCompile>
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StdCall</CallingConvention>
     </ClCompile>
+    <ClCompile>
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">StdCall</CallingConvention>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />

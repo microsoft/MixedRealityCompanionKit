@@ -18,9 +18,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
         // IClosable
         void Close();
 
-        //IConnection
-        //void Bind(_In_ Windows::Networking::Sockets::StreamSocket const& socket);
-
         bool IsConnected();
         Windows::Networking::Sockets::StreamSocketInformation ConnectionInfo();
 
@@ -34,7 +31,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
         void Disconnected(winrt::event_token const& token) noexcept;
 
         event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler);
-        //event_token Received(winrt::delegate<DataBundleArgs> const& handler);
         void Received(event_token const& token) noexcept;
 
         void Shutdown() {};
@@ -46,7 +42,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
         }
 
         winrt::fire_and_forget RunSocketLoop();
-        //void ProcessSocketLoop();
         Windows::Foundation::IAsyncAction ReadPayloadLoopAsync();
 
         Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForHeaderAsync();
@@ -80,12 +75,11 @@ namespace winrt::RealtimeStreaming::Network::implementation
         // currently bundle that is incoming
         Common::PayloadHeader m_receivedHeader;
         RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
-            
-        winrt::event<RealtimeStreaming::Network::DisconnectedDelegate> m_evtDisconnected;
-        //winrt::event<Windows::Foundation::EventHandler<IInspectable>> m_evtDisconnected;
-        winrt::event<Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs>> m_evtBundleReceived;
-        //winrt::event<winrt::delegate<DataBundleArgs>> m_evtBundleReceived;
 
+        Windows::Storage::Streams::DataReader m_dataReader{ nullptr };
+
+        winrt::event<RealtimeStreaming::Network::DisconnectedDelegate> m_evtDisconnected;
+        winrt::event<Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs>> m_evtBundleReceived;
     };
 }
 

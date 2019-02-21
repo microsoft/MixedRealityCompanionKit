@@ -3,9 +3,28 @@
 
 #include "pch.h"
 #include "DataBuffer.h"
+#include <robuffer.h>
 
 using namespace winrt;
 using namespace winrt::RealtimeStreaming::Network::implementation;
+using namespace winrt::Windows::Storage::Streams;
+
+using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess;
+
+/* static */
+BYTE* DataBuffer::GetBufferPointer(
+    _In_ RealtimeStreaming::Network::DataBuffer const& dataBuffer)
+{
+    BYTE* pBuffer;
+    auto implBuffer = dataBuffer.try_as<RealtimeStreaming::Network::implementation::DataBuffer>();
+    if (implBuffer != nullptr)
+    {
+        implBuffer->Buffer(&pBuffer);
+        return pBuffer;
+    }
+
+    return nullptr;
+}
 
 _Use_decl_annotations_
 DataBuffer::DataBuffer(
@@ -30,6 +49,30 @@ DataBuffer::DataBuffer(
     Log(Log_Level_All, L"DataBufferImpl::DataBuffer(IMFMediaBuffer)\n");
 
     Initialize(pMediaBuffer);
+}
+
+_Use_decl_annotations_
+DataBuffer::DataBuffer(
+    IBuffer const& copyFromBuffer)
+    : _bufferOffset(0)
+    , _byteBuffer(nullptr)
+{
+    Log(Log_Level_All, L"DataBufferImpl::DataBuffer(IBuffer)\n");
+
+    UINT32 bufferLen = copyFromBuffer.Length();
+
+    com_ptr<IMFMediaBuffer> spMediaBuffer;
+    IFT(MFCreateMemoryBuffer(bufferLen, spMediaBuffer.put()));
+
+    Initialize(spMediaBuffer.get());
+
+    BYTE* pInData;
+    auto bufferReader = copyFromBuffer.as<IBufferByteAccess>();
+    bufferReader->Buffer(&pInData);
+
+    memcpy(_byteBuffer, pInData, bufferLen);
+
+    CurrentLength(bufferLen);
 }
 
 DataBuffer::~DataBuffer()
@@ -64,12 +107,16 @@ void DataBuffer::Initialize(IMFMediaBuffer* pMediaBuffer)
     {
         _mf2DBuffer = imf2dBuffer;
         LONG lPitch;
+
+        // Get us access to the memory in the buffer, for reading or writing.
         IFT(_mf2DBuffer->Lock2D(&_byteBuffer, &lPitch));
     }
     else
     {
         DWORD cbMaxLength;
         DWORD cbCurrentLength;
+        
+        // Get us access to the memory in the buffer, for reading or writing.
         IFT(_mfMediaBuffer->Lock(&_byteBuffer, &cbMaxLength, &cbCurrentLength));
     }
 }

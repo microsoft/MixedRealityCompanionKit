@@ -204,6 +204,7 @@ NetworkMediaSink::NetworkMediaSink(AudioEncodingProperties audioEncodingProperti
         switch (args.PayloadType())
         {
         case PayloadType::RequestMediaDescription:
+            // TODO: Fire and forget?
             SendDescription();
             break;
         case PayloadType::RequestMediaStart:
@@ -227,7 +228,7 @@ NetworkMediaSink::NetworkMediaSink(AudioEncodingProperties audioEncodingProperti
 
     // TODO: Consider making separate function call for server to indicate when it is ready
     // instead of auto-ready
-    SendStreamReady();
+    //SendStreamReady();
 }
 
 NetworkMediaSink::~NetworkMediaSink()
@@ -610,10 +611,10 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
 
     // Create send buffer
-    DataBuffer dataBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbBufferSize);
+    DataBuffer headerDataBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbBufferSize);
 
     // get the buffer pointer
-    auto dataBufferImpl = dataBuffer.as<Network::implementation::DataBuffer>();
+    auto dataBufferImpl = headerDataBuffer.as<Network::implementation::DataBuffer>();
     BYTE* pBuf;
     dataBufferImpl->Buffer(&pBuf);
 
@@ -632,7 +633,8 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     pMediaDescription->StreamTypeHeaderSize = c_cbStreamTypeHeaderSize; // populates later
 
     // create array to hold the stream's IMFAttributes property
-    std::vector<DataBuffer> svStreamMFAttributes(c_cStreams);
+    std::vector<DataBuffer> svStreamMFAttributes(c_cStreams, make<Network::implementation::DataBuffer>());
+    //std::vector<Network::implementation::DataBuffer> svStreamMFAttributes(c_cStreams);
 
     // Prepare the MediaTypeDescription
     MediaTypeDescription* streamTypeHeaderPtr = reinterpret_cast<MediaTypeDescription* >(pBuf + c_cbPayloadHeaderSize + c_cbMediaDescriptionSize);
@@ -647,7 +649,7 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
         ZeroMemory(&streamTypeHeaderPtr[nStream], c_cbStreamTypeDescription);
 
         com_ptr <NetworkMediaSinkStream> spMediaTypeHandler = (*it).as<NetworkMediaSinkStream>();
-        NULL_THROW(spMediaTypeHandler.get());
+        NULL_THROW(spMediaTypeHandler);
 
         // Get the MediaType info from stream
         svStreamMFAttributes[nStream] = spMediaTypeHandler->FillStreamDescription(&streamTypeHeaderPtr[nStream]);
@@ -657,10 +659,10 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     }
 
     // update total payload size
-    dataBuffer.CurrentLength(c_cbBufferSize);
+    headerDataBuffer.CurrentLength(c_cbBufferSize);
 
     // Prepare the bundle to send
-    DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
+    DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(headerDataBuffer);
 
     // Add ppMediaType data
     for (DWORD nStream = 0; nStream < c_cStreams; ++nStream)
