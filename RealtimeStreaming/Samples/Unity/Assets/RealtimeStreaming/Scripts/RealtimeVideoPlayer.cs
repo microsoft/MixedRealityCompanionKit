@@ -542,10 +542,9 @@ namespace RealtimeStreaming
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
                 
                 Plugin.ExecuteOnUnityThread(() => {
-                    Debug.Log("Player_PluginCallbackWrapper::OnCreated_Callback" + width + " = " + height);
-                    // TODO: weird arm bug that converts 1280x720 to 300610376x193538080
-                    //thisObj.OnCreated(result, width, height);
-                    thisObj.OnCreated(result, 1280, 720);
+                    Debug.Log("Player_PluginCallbackWrapper::OnCreated_Callback " + width + " x " + height);
+
+                    thisObj.OnCreated(result, width, height);
                 });
             }
 

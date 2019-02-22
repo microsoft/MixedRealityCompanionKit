@@ -227,7 +227,6 @@ IAsyncAction Connection::SendPayloadTypeAsync(
     // cast to the dataPtr
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(DataBuffer::GetBufferPointer(dataBuffer));
     NULL_THROW(pOpHeader);
-
     pOpHeader->cbPayloadSize = 0;
     pOpHeader->ePayloadType = payloadType;
 
@@ -235,7 +234,6 @@ IAsyncAction Connection::SendPayloadTypeAsync(
     dataBuffer.CurrentLength(sizeof(PayloadHeader));
 
     auto dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
-    //dataBundle.AddBuffer(dataBuffer);
 
     co_await SendBundleAsync(dataBundle);
 }
@@ -250,61 +248,46 @@ IAsyncAction Connection::SendBundleAsync(
 
     try
     {
+        // get the output stream for socket
+        DataWriter dataWriter{ nullptr };
+        {
+            slim_lock_guard guard(m_lock);
 
-    // get the output stream for socket
-    DataWriter dataWriter{ nullptr };
-    {
-        slim_lock_guard guard(m_lock);
+            IFT(CheckClosed());
+            dataWriter = DataWriter(m_streamSocket.OutputStream());
+        }
 
-        IFT(CheckClosed());
-        dataWriter = DataWriter(m_streamSocket.OutputStream());
-    }
+        UINT32 totalLength = 0, bufferCount = 0;
 
-    UINT32 totalLength = 0;
-    UINT32 bufferCount = 0;
+        //std::vector< IAsyncOperationWithProgress< unsigned int, unsigned int > > pendingWrites{};
 
-    std::vector< IAsyncOperationWithProgress< unsigned int, unsigned int > > pendingWrites{};
+        auto dataBundleImpl = dataBundle.as<implementation::DataBundle>();
+        for (auto const& currBuffer : dataBundleImpl->GetBuffers())
+        {
+            totalLength += currBuffer.Length();
+        }
 
-    auto dataBundleImpl = dataBundle.as<implementation::DataBundle>();
-    for (auto const& currBuffer : dataBundleImpl->GetBuffers())
-    {
-        totalLength += currBuffer.Length();
-    }
+        dataWriter.WriteUInt32(totalLength);
 
-    dataWriter.WriteUInt32(totalLength);
+        for (auto const& currBuffer : dataBundleImpl->GetBuffers())
+        {
+            BYTE* pBuffer = DataBuffer::GetBufferPointer(currBuffer);
 
-    for (auto const& currBuffer : dataBundleImpl->GetBuffers())
-    {
-        //totalLength += currBuffer.Length();
+            // a view over(and not a copy of) the input data
+            array_view<byte const> bufferArrayView{ pBuffer, pBuffer + currBuffer.Length() };
 
-        // TODO: Create cleaner way to send data?
-        // TOOD: Re-try multiple packets flushasync approach*
+            dataWriter.WriteBytes(bufferArrayView);
+            //pendingWrites.push_back(outputStream.WriteAsync(currBuffer));
 
-        BYTE* pBuffer = DataBuffer::GetBufferPointer(currBuffer);
+            bufferCount++;
+        }
 
-        // a view over(and not a copy of) the input data
-        array_view<byte const> bufferArrayView{ pBuffer, pBuffer + currBuffer.Length() };
+        co_await dataWriter.StoreAsync();
+        co_await dataWriter.FlushAsync();
 
-        dataWriter.WriteBytes(bufferArrayView);
-        //outputStream.WriteAsync(currBuffer).get();
-        //pendingWrites.push_back(outputStream.WriteAsync(currBuffer));
+        dataWriter.DetachStream();
 
-        bufferCount++;
-    }
-
-    auto op = dataWriter.StoreAsync();
-    co_await op;
-    
-    Log(Log_Level_Info, L"Connection::SendBundleAsync() - StoreAsync ErrorCode: %d - Bytes Stored: %d d\n",
-        op.ErrorCode(),
-        op.GetResults());
-
-    //co_await dataWriter.StoreAsync();
-    co_await dataWriter.FlushAsync();
-    //co_await outputStream.FlushAsync();
-    dataWriter.DetachStream();
-
-    Log(Log_Level_Info, L"Connection::SendBundleAsync() - Buffers: %d - TotalLength: %d - TID: %d\n", bufferCount, totalLength, GetCurrentThreadId());
+        Log(Log_Level_Info, L"Connection::SendBundleAsync() - Buffers: %d - TotalLength: %d - TID: %d\n", bufferCount, totalLength, GetCurrentThreadId());
 
     }
     catch (winrt::hresult_error const& ex)

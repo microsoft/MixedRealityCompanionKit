@@ -397,6 +397,9 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
         CreatePropertiesFromMediaDescription(pMediaTypeDesc[0], // MediaTypeDescription* pStreamDescription,
             dataBundle);
 
+    Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaDescription() %d - %d - %d - %s \n", 
+        m_spVideoEncoding.Bitrate(), m_spVideoEncoding.Width(), m_spVideoEncoding.Height(), m_spVideoEncoding.Subtype().data());
+
     mediaStreamDescriptor = VideoStreamDescriptor(m_spVideoEncoding);
 
     // Create internal MediaStreamSource
