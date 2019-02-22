@@ -230,7 +230,7 @@ NetworkMediaSink::NetworkMediaSink(AudioEncodingProperties audioEncodingProperti
 
     // TODO: Consider making separate function call for server to indicate when it is ready
     // instead of auto-ready
-    //SendStreamReady();
+    SendStreamReady();
 }
 
 NetworkMediaSink::~NetworkMediaSink()
@@ -700,7 +700,7 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     //const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
 
     // Calculate size of attributes for each stream to get total payload size
-    UINT32 cbPayloadBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
+    UINT32 cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
     for (auto const& stream : m_streams)
     {
         auto spMediaTypeHandler = stream.as<NetworkMediaSinkStream>();
@@ -708,12 +708,12 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
         UINT32 attributeBlobSize;
         spMediaTypeHandler->GetAttributesBlobSize(&attributeBlobSize);
 
-        cbPayloadBufferSize += attributeBlobSize;
+        cbBufferSize += attributeBlobSize;
     }
 
     // Create header buffer
-    DataBuffer dataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
-    dataBuffer.CurrentLength(cbPayloadBufferSize);
+    DataBuffer dataBuffer = winrt::make<implDataBuffer>(cbBufferSize);
+    dataBuffer.CurrentLength(cbBufferSize);
 
     // get the buffer pointer
     BYTE* pBuffer = implDataBuffer::GetBufferPointer(dataBuffer);
@@ -722,7 +722,7 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuffer);
     NULL_THROW(pOpHeader);
     pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
-    pOpHeader->cbPayloadSize = cbPayloadBufferSize;
+    pOpHeader->cbPayloadSize = cbBufferSize - c_cbPayloadHeaderSize;
 
     // Media Description - how many streams and the total bytes for each streams attributes
     MediaDescription* pMediaDescription = reinterpret_cast<MediaDescription*>(pBuffer + c_cbPayloadHeaderSize);
