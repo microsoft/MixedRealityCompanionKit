@@ -130,26 +130,28 @@ void DataBundle::Reset(void)
 // DataBundleImpl
 _Use_decl_annotations_
 HRESULT  DataBundle::CopyTo(
-    DWORD nOffset, 
-    DWORD cbSize, 
+    UINT32 nOffset,
+    UINT32 cbSize,
     void* pDest,
     UINT32* pCBCopied)
 {
     NULL_CHK(pDest);
+    NULL_CHK(pCBCopied);
+    *pCBCopied = 0;
 
     auto it = m_buffers.begin();
     auto itEnd = m_buffers.end();
 
-    DWORD cbSkipped = 0;
-    DWORD cbCopied = 0;
+    UINT32 cbSkipped = 0;
+    UINT32 cbCopied = 0;
 
     // Skip to the offset
     for (; cbSkipped < nOffset && it != itEnd; ++it)
     {
         auto buffer = (*it).as<implementation::DataBuffer>();
-        DWORD cbLen = buffer->CurrentLength();
-        DWORD nStart = 0;
-        DWORD cbCopy = 0;
+        UINT32 cbLen = buffer->CurrentLength();
+        UINT32 nStart = 0;
+        UINT32 cbCopy = 0;
 
         if (cbSkipped + cbLen <= nOffset)
         {
@@ -181,8 +183,8 @@ HRESULT  DataBundle::CopyTo(
     {
         auto dataBuffer = (*it).as<implementation::DataBuffer>();
 
-        DWORD cbLen = dataBuffer->CurrentLength();
-        DWORD cbCopy = min(cbLen, cbSize - cbCopied);
+        UINT32 cbLen = dataBuffer->CurrentLength();
+        UINT32 cbCopy = min(cbLen, cbSize - cbCopied);
 
         // get the raw byte pointer
         BYTE *pBuffer = nullptr;
@@ -194,12 +196,14 @@ HRESULT  DataBundle::CopyTo(
         cbCopied += cbCopy;
     }
 
-   return cbCopied;
+    *pCBCopied = cbCopied;
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT  DataBundle::MoveLeft(
-    DWORD cbSize, 
+    UINT32 cbSize, 
     void* pDest)
 {
     UINT32 cbCopied;
@@ -211,13 +215,14 @@ HRESULT  DataBundle::MoveLeft(
     }
 
     TrimLeft(cbSize);
+    return S_OK;
 }
 
 _Use_decl_annotations_
 HRESULT  DataBundle::TrimLeft(
-    DWORD cbSize)
+    UINT32 cbSize)
 {
-    DWORD cbTotalLength = TotalSize();
+    UINT32 cbTotalLength = TotalSize();
 
     if (cbSize > cbTotalLength)
     {
@@ -246,6 +251,8 @@ HRESULT  DataBundle::TrimLeft(
             break;
         }
     }
+
+    return S_OK;
 }
 
 _Use_decl_annotations_

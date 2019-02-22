@@ -58,7 +58,7 @@ Connection::~Connection()
 
 void Connection::ReadPayloadLoop()
 {
-    Log(Log_Level_All, L"Connection::ReadPayloadLoopAsync[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::ReadPayloadLoop[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     IBuffer buffer = WaitForPayloadAsync().get();
 
@@ -83,27 +83,43 @@ winrt::fire_and_forget Connection::RunSocketLoop()
 
     Log(Log_Level_All, L"Connection::RunSocketLoop - resume_background - Tid: %d \n", GetCurrentThreadId());
 
-    auto headerBuffer{ co_await WaitForHeaderAsync() };
-
-    if (headerBuffer == nullptr)
+    try
     {
-        // TODO: Close and cancel loop?
+        co_await m_dataReader.LoadAsync(sizeof(UINT32));
+        UINT32 payloadSize = m_dataReader.ReadUInt32();
+
+        co_await m_dataReader.LoadAsync(payloadSize);
+        auto headerBuffer = m_dataReader.ReadBuffer(sizeof(PayloadHeader));
+
+        HRESULT hr = OnHeaderReceived(headerBuffer);
+
+        if (m_receivedHeader.cbPayloadSize != 0)
+        {
+            auto payloadBuffer = m_dataReader.ReadBuffer(m_receivedHeader.cbPayloadSize);
+
+            hr = OnPayloadReceived(payloadBuffer);
+        }
+
+        /*
+        auto headerBuffer{ co_await WaitForHeaderAsync() };
+
+        HRESULT hr = OnHeaderReceived(headerBuffer);
+
+        if (SUCCEEDED(hr))
+        {
+            //co_await ReadPayloadLoopAsync();
+            ReadPayloadLoop();
+        }
+        // if failed, then we proceed to continuation which will restart loop (i.e call WaitForHeaderAsync())
+        */
+    }
+    catch (winrt::hresult_error const& ex)
+    {
+        Log(Log_Level_All, L"Connection::RunSocketLoop Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+        Close();
         return;
     }
-
-    Log(Log_Level_All, L"Connection::RunSocketLoop - UnConsumed: %d - Tid: %d \n", 
-        m_dataReader.UnconsumedBufferLength(), 
-        GetCurrentThreadId());
-
-    HRESULT hr = OnHeaderReceived(headerBuffer);
-
-    if (SUCCEEDED(hr))
-    {
-        //co_await ReadPayloadLoopAsync();
-        ReadPayloadLoop();
-    }
-    // if failed, then we proceed to continuation which will restart loop (i.e call WaitForHeaderAsync())
-
     RunSocketLoop();
 }
 
@@ -253,6 +269,13 @@ IAsyncAction Connection::SendBundleAsync(
     for (auto const& currBuffer : dataBundleImpl->GetBuffers())
     {
         totalLength += currBuffer.Length();
+    }
+
+    dataWriter.WriteUInt32(totalLength);
+
+    for (auto const& currBuffer : dataBundleImpl->GetBuffers())
+    {
+        //totalLength += currBuffer.Length();
 
         // TODO: Create cleaner way to send data?
         // TOOD: Re-try multiple packets flushasync approach*
@@ -263,15 +286,21 @@ IAsyncAction Connection::SendBundleAsync(
         array_view<byte const> bufferArrayView{ pBuffer, pBuffer + currBuffer.Length() };
 
         dataWriter.WriteBytes(bufferArrayView);
-        co_await dataWriter.StoreAsync();
         //outputStream.WriteAsync(currBuffer).get();
         //pendingWrites.push_back(outputStream.WriteAsync(currBuffer));
 
         bufferCount++;
     }
 
+    auto op = dataWriter.StoreAsync();
+    co_await op;
+    
+    Log(Log_Level_Info, L"Connection::SendBundleAsync() - StoreAsync ErrorCode: %d - Bytes Stored: %d d\n",
+        op.ErrorCode(),
+        op.GetResults());
+
     //co_await dataWriter.StoreAsync();
-    //co_await dataWriter.FlushAsync();
+    co_await dataWriter.FlushAsync();
     //co_await outputStream.FlushAsync();
     dataWriter.DetachStream();
 
@@ -294,7 +323,8 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
 
     if (FAILED(CheckClosed()))
     {
-        return nullptr;
+        // Throw HRESULT to cancel socket read loop
+        IFT(E_FAIL);
     }
 
     if (PayloadType::Unknown != m_receivedHeader.ePayloadType ||
@@ -303,43 +333,32 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
         ResetBundle();
     }
 
-    try
-    {
-        // TODO: Optimize this by re-using local member buffer instead of consistent construction?
-        Buffer tempBuffer = Buffer(sizeof(PayloadHeader));
-        UINT32 bufferLen = tempBuffer.Capacity();
+    // TODO: Optimize this by re-using local member buffer instead of consistent construction?
+    //Buffer tempBuffer = Buffer(sizeof(PayloadHeader));
+    UINT32 bufferLen = sizeof(PayloadHeader);
 
-        UINT32 bytesLoaded = co_await m_dataReader.LoadAsync(bufferLen);
+    UINT32 bytesLoaded = co_await m_dataReader.LoadAsync(bufferLen);
+        
+    Log(Log_Level_All, L"Connection::WaitForHeader %d bytes downloaded - Tid: %d \n", 
+        bytesLoaded,
+        GetCurrentThreadId());
 
-        Log(Log_Level_All, L"Connection::WaitForHeaderAsync() Unconsumed: %d - Tid: %d \n", m_dataReader.UnconsumedBufferLength(), GetCurrentThreadId());
-        Log(Log_Level_All, L"Connection::WaitForHeaderAsync() Loaded: %d - Tid: %d \n", bytesLoaded, GetCurrentThreadId());
-        // UGHGHGHGGH
+    return m_dataReader.ReadBuffer(bytesLoaded);
 
-        return m_dataReader.ReadBuffer(bufferLen);
+    /*
+    // get the socket input stream reader
+    auto bufferResult = co_await m_streamSocket.InputStream().ReadAsync(tempBuffer,
+            bufferLen,
+            InputStreamOptions::Partial);
 
-        /*
-        // get the socket input stream reader
-        auto bufferResult = co_await m_streamSocket.InputStream().ReadAsync(tempBuffer,
-                bufferLen,
-                InputStreamOptions::Partial);
-
-        return bufferResult;
-        */
-    }
-    catch (winrt::hresult_error const& ex)
-    {
-        // TODO: close?
-        Log(Log_Level_All, L"Connection::WaitForHeader Exception Thrown - Tid: %d \n", GetCurrentThreadId());
-        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-    }
-
-    return nullptr;
+    return bufferResult;
+    */
 }
 
 _Use_decl_annotations_
 IAsyncOperation<IBuffer> Connection::WaitForPayloadAsync()
 {
-    Log(Log_Level_Info, L"Connection::WaitForPayloadAsync()[%d]\n", m_streamSocket.Information().LocalPort());
+    Log(Log_Level_Info, L"Connection::WaitForPayloadAsync()[%d] - TID: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
 
     if (FAILED(CheckClosed()))
     {
@@ -353,23 +372,12 @@ IAsyncOperation<IBuffer> Connection::WaitForPayloadAsync()
         IFT(HRESULT_FROM_WIN32(ERROR_INVALID_STATE));
     }
 
-    try
-    {
-        // TODO: Optimize this by re-using local member buffer instead of consistent construction?
-        Buffer tempBuffer = Buffer(m_receivedHeader.cbPayloadSize);
-        UINT32 bufferLen = tempBuffer.Capacity();
+    // TODO: Optimize this by re-using local member buffer instead of consistent construction?
+    Buffer tempBuffer = Buffer(m_receivedHeader.cbPayloadSize);
+    UINT32 bufferLen = tempBuffer.Capacity();
 
-        co_await m_dataReader.LoadAsync(bufferLen);
-        return m_dataReader.ReadBuffer(bufferLen);
-    }
-    catch (winrt::hresult_error const& ex)
-    {
-        Log(Log_Level_All, L"Connection::WaitForPayloadAsync Exception Thrown - Tid: %d \n", GetCurrentThreadId());
-        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-    }
-
-    return nullptr;
-    //co_await OnPayloadReceived(asyncInfo);
+    UINT32 bytesRead = co_await m_dataReader.LoadAsync(bufferLen);
+    return m_dataReader.ReadBuffer(bytesRead);
 }
 
 _Use_decl_annotations_
@@ -499,13 +507,11 @@ HRESULT Connection::OnHeaderReceived(IBuffer const& headerBuffer)
 done:
     if (m_concurrentFailedBuffers > c_cbMaxBufferFailures)
     {
+        // Throw HRESULT so we can close socket due to multiple failed buffers
         IFT(hr);
-        //LOG_RESULT(hr);
-        //Close();
     }
 
     return hr; 
-    //return WaitForHeader(); // go back to waiting for header
 }
 
 _Use_decl_annotations_

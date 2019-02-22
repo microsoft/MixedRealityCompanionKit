@@ -27,6 +27,8 @@ public class WebcamServerSource : MonoBehaviour
 
         this.server.ServerStateChanged += this.OnServerStateChanged;
         this.server.StartListener();
+
+        StartWebCam();
     }
 
     private void Update()
@@ -38,7 +40,7 @@ public class WebcamServerSource : MonoBehaviour
             if (timer > WRITE_FPS)
             {
                 timer = 0;
-                //this.CaptureWebcam();
+                this.CaptureWebcam();
             }
         }
     }
@@ -51,7 +53,7 @@ public class WebcamServerSource : MonoBehaviour
             if (e.CurrentState == RealtimeVideoServer.ServerState.ListenerConnected)
             {
                 UnityEngine.Debug.Log("Server State changed to ListenerConnected - Starting WebCam");
-                StartWebCam();
+                //StartWebCam();
             }
         });
     }

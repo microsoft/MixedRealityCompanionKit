@@ -820,7 +820,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
         bool fProcessingSample = false;
 
         // Determine if this is a marker or a sample.
-        com_ptr<IMFSample> spMediaSample = spMediaSample.as<IMFSample>();
+        com_ptr<IMFSample> spMediaSample = spUnknown.as<IMFSample>();
         if (spMediaSample != nullptr)
         {
             if (!fFlush)
