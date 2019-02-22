@@ -411,6 +411,9 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     m_sampleRequestedToken = m_mediaStreamSource.SampleRequested({ this, &RealtimeMediaSource::OnSampleRequested });
     m_closeRequestedToken = m_mediaStreamSource.Closed({ this, &RealtimeMediaSource::OnClosed });
 
+    // Signal completion of InitAsync()
+    SetEvent(m_signal.get());
+
     m_eSourceState = SourceStreamState::Starting;
 
     // Ask the server to start sending media samples to process

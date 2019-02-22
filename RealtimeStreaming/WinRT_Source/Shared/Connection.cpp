@@ -40,8 +40,6 @@ Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket co
 
     Log(Log_Level_All, L"Connection::Connection - ISS: %d\n", m_dataReader.InputStreamOptions());
 
-    //m_dataReader.InputStreamOptions(Windows::Storage::Streams::InputStreamOptions::Partial);
-
     // Create background task
     RunSocketLoop();
 }
@@ -306,16 +304,24 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
     try
     {
         // TODO: Optimize this by re-using local member buffer instead of consistent construction?
-        Buffer tempBuffer = Buffer(sizeof(PayloadHeader));
-        UINT32 bufferLen = tempBuffer.Capacity();
+        UINT32 cbRead = sizeof(PayloadHeader);
+        UINT32 bytesLoaded = co_await m_dataReader.LoadAsync(cbRead);
 
-        UINT32 bytesLoaded = co_await m_dataReader.LoadAsync(bufferLen);
+        auto buffer = m_dataReader.ReadBuffer(cbRead);
 
-        Log(Log_Level_All, L"Connection::WaitForHeaderAsync() Unconsumed: %d - Tid: %d \n", m_dataReader.UnconsumedBufferLength(), GetCurrentThreadId());
-        Log(Log_Level_All, L"Connection::WaitForHeaderAsync() Loaded: %d - Tid: %d \n", bytesLoaded, GetCurrentThreadId());
-        // UGHGHGHGGH
+        BYTE* pBuffer;
+        buffer.as<IBufferByte>()->Buffer(&pBuffer);
 
-        return m_dataReader.ReadBuffer(bufferLen);
+        PayloadHeader* header = reinterpret_cast<PayloadHeader*>(pBuffer);
+        if (header->cbPayloadSize != 0)
+        {
+            UINT32 bytesReader = m_dataReader.LoadAsync(header->cbPayloadSize).get();
+            auto payload = m_dataReader.ReadBuffer(header->cbPayloadSize);
+            int c = payload.Length();
+            int a = 4;
+        }
+
+        return buffer;
 
         /*
         // get the socket input stream reader
