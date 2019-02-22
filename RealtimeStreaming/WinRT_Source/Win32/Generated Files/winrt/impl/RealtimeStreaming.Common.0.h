@@ -51,7 +51,7 @@ namespace winrt::impl {
 template <> struct category<RealtimeStreaming::Common::PayloadType>{ using type = enum_category; };
 template <> struct category<RealtimeStreaming::Common::SampleFlags>{ using type = enum_category; };
 template <> struct category<RealtimeStreaming::Common::MediaDescription>{ using type = struct_category<uint32_t,uint32_t>; };
-template <> struct category<RealtimeStreaming::Common::MediaSampleHeader>{ using type = struct_category<uint32_t,uint64_t,uint64_t,uint32_t,uint32_t,uint32_t>; };
+template <> struct category<RealtimeStreaming::Common::MediaSampleHeader>{ using type = struct_category<uint32_t,uint64_t,uint64_t,uint32_t,uint32_t>; };
 template <> struct category<RealtimeStreaming::Common::MediaStreamTick>{ using type = struct_category<uint32_t,uint64_t,uint32_t>; };
 template <> struct category<RealtimeStreaming::Common::MediaTypeDescription>{ using type = struct_category<winrt::guid,winrt::guid,uint32_t,uint32_t>; };
 template <> struct category<RealtimeStreaming::Common::PayloadHeader>{ using type = struct_category<RealtimeStreaming::Common::PayloadType,uint32_t>; };
@@ -78,7 +78,6 @@ struct struct_RealtimeStreaming_Common_MediaSampleHeader
     uint64_t hnsDuration;
     uint32_t dwFlags;
     uint32_t dwFlagMasks;
-    uint32_t cbCameraDataSize;
 };
 template <> struct abi<RealtimeStreaming::Common::MediaSampleHeader>{ using type = struct_RealtimeStreaming_Common_MediaSampleHeader; };
 

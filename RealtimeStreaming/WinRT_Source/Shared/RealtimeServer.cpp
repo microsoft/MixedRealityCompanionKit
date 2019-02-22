@@ -29,12 +29,12 @@ RealtimeServer::RealtimeServer(
 
     // Create sink writer which will write to our custom network sink
     com_ptr<IMFSinkWriter> spSinkWriter;
+    com_ptr<IMFAttributes> spAttributes;
+    IFT(MFCreateAttributes(spAttributes.put(), 1));
+    IFT(spAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE));
 
-    // TODO: https://docs.microsoft.com/en-us/windows/desktop/medfound/sink-writer-attributes
-    // Add sink writer attributes*
-    
     IFT(MFCreateSinkWriterFromMediaSink(m_spNetworkMediaSink.as<IMFMediaSink>().get(),
-        nullptr,
+        spAttributes.get(),
         spSinkWriter.put()));
 
     // Set the output media type.

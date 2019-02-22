@@ -257,8 +257,6 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
         */
     });
 
-    // set frameserver mode for video
-    m_mediaPlayer.IsVideoFrameServerEnabled(true);
     m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Foundation::IInspectable const& args)
     {

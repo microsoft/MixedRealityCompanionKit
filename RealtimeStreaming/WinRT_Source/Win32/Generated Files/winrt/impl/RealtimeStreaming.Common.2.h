@@ -28,12 +28,11 @@ struct MediaSampleHeader
     uint64_t hnsDuration;
     uint32_t dwFlags;
     uint32_t dwFlagMasks;
-    uint32_t cbCameraDataSize;
 };
 
 inline bool operator==(MediaSampleHeader const& left, MediaSampleHeader const& right) noexcept
 {
-    return left.dwStreamId == right.dwStreamId && left.hnsTimestamp == right.hnsTimestamp && left.hnsDuration == right.hnsDuration && left.dwFlags == right.dwFlags && left.dwFlagMasks == right.dwFlagMasks && left.cbCameraDataSize == right.cbCameraDataSize;
+    return left.dwStreamId == right.dwStreamId && left.hnsTimestamp == right.hnsTimestamp && left.hnsDuration == right.hnsDuration && left.dwFlags == right.dwFlags && left.dwFlagMasks == right.dwFlagMasks;
 }
 
 inline bool operator!=(MediaSampleHeader const& left, MediaSampleHeader const& right) noexcept
