@@ -38,6 +38,8 @@ Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket co
     ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
     m_receivedHeader.ePayloadType = PayloadType::Unknown;
 
+    Log(Log_Level_All, L"Connection::Connection - ISS: %d\n", m_dataReader.InputStreamOptions());
+
     //m_dataReader.InputStreamOptions(Windows::Storage::Streams::InputStreamOptions::Partial);
 
     // Create background task
@@ -307,7 +309,12 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
         Buffer tempBuffer = Buffer(sizeof(PayloadHeader));
         UINT32 bufferLen = tempBuffer.Capacity();
 
-        co_await m_dataReader.LoadAsync(bufferLen);
+        UINT32 bytesLoaded = co_await m_dataReader.LoadAsync(bufferLen);
+
+        Log(Log_Level_All, L"Connection::WaitForHeaderAsync() Unconsumed: %d - Tid: %d \n", m_dataReader.UnconsumedBufferLength(), GetCurrentThreadId());
+        Log(Log_Level_All, L"Connection::WaitForHeaderAsync() Loaded: %d - Tid: %d \n", bytesLoaded, GetCurrentThreadId());
+        // UGHGHGHGGH
+
         return m_dataReader.ReadBuffer(bufferLen);
 
         /*
@@ -321,6 +328,7 @@ IAsyncOperation<IBuffer> Connection::WaitForHeaderAsync()
     }
     catch (winrt::hresult_error const& ex)
     {
+        // TODO: close?
         Log(Log_Level_All, L"Connection::WaitForHeader Exception Thrown - Tid: %d \n", GetCurrentThreadId());
         LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
     }

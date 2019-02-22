@@ -60,9 +60,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
             _In_ Windows::Media::Core::MediaStreamSourceClosedEventArgs const& args);
 
         // Network calls
-        void SendDescribeRequest();
-        void SendStartRequest();
-        void SendStopRequest();
+        winrt::fire_and_forget SendDescribeRequest();
+        winrt::fire_and_forget SendStartRequest();
+        winrt::fire_and_forget SendStopRequest();
 
         // Network handlers
         HRESULT ProcessCaptureReady();
