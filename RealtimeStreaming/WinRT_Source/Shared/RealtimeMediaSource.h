@@ -59,6 +59,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
         void OnClosed(_In_ Windows::Media::Core::MediaStreamSource const& sender,
             _In_ Windows::Media::Core::MediaStreamSourceClosedEventArgs const& args);
 
+        void OnSampleRendered(Windows::Media::Core::MediaStreamSource sender,
+            Windows::Media::Core::MediaStreamSourceSampleRenderedEventArgs args);
+
         // Network calls
         winrt::fire_and_forget SendDescribeRequest();
         winrt::fire_and_forget SendStartRequest();

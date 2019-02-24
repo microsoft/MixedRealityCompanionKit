@@ -103,7 +103,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         uint32_t m_resetToken;
         com_ptr<IMFDXGIDeviceManager> m_dxgiDeviceManager;
 
-        Windows::Media::Playback::MediaPlayer m_mediaPlayer;
+        Windows::Media::Playback::MediaPlayer m_mediaPlayer{ nullptr };
         event_token m_endedToken;
         event_token m_failedToken;
         event_token m_openedToken;

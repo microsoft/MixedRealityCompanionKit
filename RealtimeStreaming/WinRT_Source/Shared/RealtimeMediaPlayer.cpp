@@ -208,6 +208,8 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_failedToken = m_mediaPlayer.MediaFailed([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Media::Playback::MediaPlayerFailedEventArgs const& args)
     {
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::MediaFailed()\n");
+
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
         
@@ -231,6 +233,8 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_openedToken = m_mediaPlayer.MediaOpened([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Foundation::IInspectable const& args)
     {
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::MediaOpened()\n");
+
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
 
@@ -260,6 +264,8 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Foundation::IInspectable const& args)
     {
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::VideoFrameAvailable()\n");
+
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
 
@@ -273,6 +279,8 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_stateChangedEventToken = m_mediaPlaybackSession.PlaybackStateChanged([=](Windows::Media::Playback::MediaPlaybackSession const& sender, 
         Windows::Foundation::IInspectable const& args)
     {
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::PlaybackStateChanged()\n");
+
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
 

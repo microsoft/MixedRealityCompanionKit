@@ -411,6 +411,8 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     m_mediaStreamSource.BufferTime(span);
     m_mediaStreamSource.IsLive(true);
 
+    m_mediaStreamSource.SampleRendered({ this, &RealtimeMediaSource::OnSampleRendered });
+
     m_startingRequestedToken = m_mediaStreamSource.Starting({ this, &RealtimeMediaSource::OnStarting });
     m_sampleRequestedToken = m_mediaStreamSource.SampleRequested({ this, &RealtimeMediaSource::OnSampleRequested });
     m_closeRequestedToken = m_mediaStreamSource.Closed({ this, &RealtimeMediaSource::OnClosed });
@@ -434,6 +436,12 @@ done:
     // TODO: signal async method from initasync*
     return hr;
     //return CompleteAsyncAction(hr);
+}
+
+void RealtimeMediaSource::OnSampleRendered(Windows::Media::Core::MediaStreamSource sender, 
+    Windows::Media::Core::MediaStreamSourceSampleRenderedEventArgs args)
+{
+    Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRendered() - %d \n", args.SampleLag().count());
 }
 
 _Use_decl_annotations_
