@@ -24,16 +24,17 @@ using IBufferByte = ::Windows::Storage::Streams::IBufferByteAccess;
 using namespace concurrency;
 
 _Use_decl_annotations_
-Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket const& socket)
+Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket const socket)
     : m_concurrentFailedBuffers(0)
     , m_concurrentFailedBundles(0)
-    , m_streamSocket(socket)
-    , m_dataReader(socket.InputStream())
     , m_receivedBundle(nullptr)
 {
     Log(Log_Level_All, L"Connection::Connection - Tid: %d \n", GetCurrentThreadId());
 
     slim_lock_guard guard(m_lock);
+
+    m_streamSocket = socket;
+    m_dataReader = DataReader(socket.InputStream());
 
     ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
     m_receivedHeader.ePayloadType = PayloadType::Unknown;

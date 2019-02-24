@@ -12,7 +12,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
     public:
         Connection() = default; // TODO: Clean this up design. Need ability to break waitforheader loop and re-bind connection?
-        Connection(_In_ Windows::Networking::Sockets::StreamSocket const& socket);
+        Connection(_In_ Windows::Networking::Sockets::StreamSocket const socket);
         ~Connection();
 
         // IClosable
@@ -62,15 +62,12 @@ namespace winrt::RealtimeStreaming::Network::implementation
             _In_ Windows::Storage::Streams::IBuffer dataBuffer);
 
     private:
-        //Wrappers::CriticalSection _lock;
         slim_mutex m_lock;
 
         UINT16      m_concurrentFailedBuffers;
         UINT16      m_concurrentFailedBundles;
 
         Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
-
-        //RealtimeStreaming::Network::DataBuffer  m_spHeaderBuffer{ nullptr };
 
         // currently bundle that is incoming
         Common::PayloadHeader m_receivedHeader;

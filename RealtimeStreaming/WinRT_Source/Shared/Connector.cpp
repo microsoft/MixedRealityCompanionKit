@@ -44,9 +44,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
 
     co_await m_streamSocket.ConnectAsync(m_hostName, winrt::to_hstring(port));
 
-    auto connection = winrt::make<Network::implementation::Connection>(m_streamSocket);
-
-    return connection;
+    return winrt::make<Network::implementation::Connection>(m_streamSocket);
 }
 
 /* Event Handlers */
@@ -55,7 +53,6 @@ event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& han
 {
     Log(Log_Level_All, L"Connector::add_Closed() - Tid: %d \n", GetCurrentThreadId());
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     return m_evtClosed.add(handler);
