@@ -699,8 +699,19 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     const UINT32 c_cbStreamTypeHeaderSize = c_cStreams * c_cbStreamTypeDescription;
     //const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
 
+    DataBuffer headerDataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
+    headerDataBuffer.CurrentLength(c_cbPayloadHeaderSize);
+
+    // get the buffer pointer
+    BYTE* pHeaderBuffer = implDataBuffer::GetBufferPointer(headerDataBuffer);
+
+    // Prepare payload header 8 bytes - type and size of payload to follow
+    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pHeaderBuffer);
+    NULL_THROW(pOpHeader);
+    pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
+
     // Calculate size of attributes for each stream to get total payload size
-    UINT32 cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
+    UINT32 cbPayloadSize = c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
     for (auto const& stream : m_streams)
     {
         auto spMediaTypeHandler = stream.as<NetworkMediaSinkStream>();
@@ -708,37 +719,31 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
         UINT32 attributeBlobSize;
         spMediaTypeHandler->GetAttributesBlobSize(&attributeBlobSize);
 
-        cbBufferSize += attributeBlobSize;
+        cbPayloadSize += attributeBlobSize;
     }
+    pOpHeader->cbPayloadSize = cbPayloadSize;
 
     // Create header buffer
-    DataBuffer dataBuffer = winrt::make<implDataBuffer>(cbBufferSize);
-    dataBuffer.CurrentLength(cbBufferSize);
+    DataBuffer payloadDataBuffer = winrt::make<implDataBuffer>(cbPayloadSize);
+    payloadDataBuffer.CurrentLength(cbPayloadSize);
 
-    // get the buffer pointer
-    BYTE* pBuffer = implDataBuffer::GetBufferPointer(dataBuffer);
-
-    // Prepare payload header 8 bytes - type and size of payload to follow
-    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuffer);
-    NULL_THROW(pOpHeader);
-    pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
-    pOpHeader->cbPayloadSize = cbBufferSize - c_cbPayloadHeaderSize;
+    BYTE* pPayloadBuffer = implDataBuffer::GetBufferPointer(payloadDataBuffer);
 
     // Media Description - how many streams and the total bytes for each streams attributes
-    MediaDescription* pMediaDescription = reinterpret_cast<MediaDescription*>(pBuffer + c_cbPayloadHeaderSize);
+    MediaDescription* pMediaDescription = reinterpret_cast<MediaDescription*>(pPayloadBuffer);
     NULL_THROW(pMediaDescription);
     ZeroMemory(pMediaDescription, c_cbMediaDescriptionSize);
     pMediaDescription->StreamCount = c_cStreams;
     pMediaDescription->StreamTypeHeaderSize = c_cbStreamTypeHeaderSize; // populates later
 
     // Prepare the MediaTypeDescription
-    MediaTypeDescription* streamTypeHeaderPtr = reinterpret_cast<MediaTypeDescription*>(pBuffer + c_cbPayloadHeaderSize + c_cbMediaDescriptionSize);
+    MediaTypeDescription* streamTypeHeaderPtr = reinterpret_cast<MediaTypeDescription*>(pPayloadBuffer + c_cbMediaDescriptionSize);
     NULL_THROW(streamTypeHeaderPtr);
 
     // get each streams MediaTypeDescription info and its attrbutes into the databuffer
     DWORD nStream = 0;
     auto it = m_streams.begin();
-    BYTE* pCurrAttributes = pBuffer + c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
+    BYTE* pCurrAttributes = pPayloadBuffer + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
     for (; it != m_streams.end(); ++nStream, ++it)
     {
         // zero out the memory block for stream type description
@@ -757,8 +762,8 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     }
 
     // Prepare the bundle to send
-    DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(dataBuffer);
-    //dataBundle.AddBuffer(payloadDataBuffer);
+    DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(headerDataBuffer);
+    dataBundle.AddBuffer(payloadDataBuffer);
 
     co_await m_connection.SendBundleAsync(dataBundle);
 

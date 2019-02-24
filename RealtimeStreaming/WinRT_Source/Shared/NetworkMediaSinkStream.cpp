@@ -820,7 +820,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
         bool fProcessingSample = false;
 
         // Determine if this is a marker or a sample.
-        com_ptr<IMFSample> spMediaSample = spMediaSample.as<IMFSample>();
+        com_ptr<IMFSample> spMediaSample = spUnknown.as<IMFSample>();
         if (spMediaSample != nullptr)
         {
             if (!fFlush)
@@ -931,9 +931,11 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
                 fRequestSamples = true;
                 fSendSamples = false;
             }
-
-            spUnknown = m_sampleQueue.front();
-            m_sampleQueue.erase(m_sampleQueue.begin()); // Remove front element
+            else
+            {
+                spUnknown = m_sampleQueue.front();
+                m_sampleQueue.erase(m_sampleQueue.begin()); // Remove front element
+            }
         }
     }
 
@@ -1027,25 +1029,20 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
     DataBundle dataBundle = make<Network::implementation::DataBundle>(pSample);
 
     // create a buffer for the media sample header
-    DataBuffer dataBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbSampleHeaderSize);
+    DataBuffer sampleInfoBuffer = winrt::make<Network::implementation::DataBuffer>(c_cbSampleHeaderSize);
 
     // Prepare the buffer
-    BYTE* pBuf;
-    auto dataBufferImpl = dataBuffer.as<Network::implementation::DataBuffer>();
-    dataBufferImpl->Buffer(&pBuf);
+    BYTE* pBuf = Network::implementation::DataBuffer::GetBufferPointer(sampleInfoBuffer);
 
     // populate the PayloadType header
     PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pBuf);
     ZeroMemory(pOpHeader, c_cPayloadHeader);
-
-    // fill in the PayloadType header info
     pOpHeader->ePayloadType = PayloadType::SendMediaSample;
     pOpHeader->cbPayloadSize = c_cMediaSampleHeader + cbTotalSampleLength;
 
     // fill in the media sample header info
     MediaSampleHeader* pSampleHeader = reinterpret_cast<MediaSampleHeader *>(pBuf + c_cPayloadHeader);
     ZeroMemory(pSampleHeader, c_cMediaSampleHeader);
-
     pSampleHeader->dwStreamId = m_dwStreamId;
     pSampleHeader->hnsTimestamp = llSampleTime;
     pSampleHeader->hnsDuration = llDuration;
@@ -1061,18 +1058,13 @@ DataBundle NetworkMediaSinkStream::PrepareSample(
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, Interlaced);
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, RepeatFirstField);
         SET_SAMPLE_FLAG(pSampleHeader->dwFlags, pSampleHeader->dwFlagMasks, pSample, SingleField);
-
-        pSampleHeader->cbCameraDataSize = 0;
     }
 
-    // update the payload size to include additional buffer
-    pOpHeader->cbPayloadSize += pSampleHeader->cbCameraDataSize;
-
     // set the size of the header buffer
-    dataBuffer.CurrentLength(c_cbSampleHeaderSize);
+    sampleInfoBuffer.CurrentLength(c_cbSampleHeaderSize);
 
     // Put headers before the mediasample and camera data
-    dataBundle.InsertBuffer(0, dataBuffer);
+    dataBundle.InsertBuffer(0, sampleInfoBuffer);
 
     return dataBundle;
 }

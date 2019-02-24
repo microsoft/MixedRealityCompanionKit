@@ -7,15 +7,15 @@
 
 struct __declspec(uuid("bb9ac868-2fbd-11e9-b210-d663bd873d93")) IDataBundlePriv : ::IUnknown
 {
-    STDMETHOD(CopyTo)(_In_ DWORD nOffset,
-        _In_ DWORD cbSize,
+    STDMETHOD(CopyTo)(_In_ UINT32 nOffset,
+        _In_ UINT32 cbSize,
         _In_reads_bytes_(cbSize) void* pDest,
         _Out_ UINT32* pCBCopied) PURE;
 
-    STDMETHOD(MoveLeft)(_In_ DWORD cbSize,
+    STDMETHOD(MoveLeft)(_In_ UINT32 cbSize,
         _Out_writes_bytes_(cbSize) void* pDest) PURE;
 
-    STDMETHOD(TrimLeft)(_In_ DWORD cbSize) PURE;
+    STDMETHOD(TrimLeft)(_In_ UINT32 cbSize) PURE;
 
     STDMETHOD(ToMFSample)(_COM_Outptr_result_maybenull_ IMFSample** ppSample) PURE;
 };
@@ -44,15 +44,15 @@ namespace winrt::RealtimeStreaming::Network::implementation
         void Reset();
 
         // IDataBundlePriv
-        STDOVERRIDEMETHODIMP CopyTo(_In_ DWORD nOffset,
-            _In_ DWORD cbSize,
+        STDOVERRIDEMETHODIMP CopyTo(_In_ UINT32 nOffset,
+            _In_ UINT32 cbSize,
             _In_reads_bytes_(cbSize) void* pDest,
             _Out_ UINT32* pCBCopied);
 
-        STDOVERRIDEMETHODIMP  MoveLeft(_In_ DWORD cbSize,
+        STDOVERRIDEMETHODIMP  MoveLeft(_In_ UINT32 cbSize,
             _Out_writes_bytes_(cbSize) void* pDest);
 
-        STDOVERRIDEMETHODIMP  TrimLeft(_In_ DWORD cbSize);
+        STDOVERRIDEMETHODIMP  TrimLeft(_In_ UINT32 cbSize);
 
         STDOVERRIDEMETHODIMP ToMFSample(_COM_Outptr_result_maybenull_ IMFSample** ppSample);
         

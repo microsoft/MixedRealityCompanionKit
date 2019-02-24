@@ -52,13 +52,15 @@ IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     MediaStreamSource mediaStreamSource = m_RealtimeMediaSource.MediaStreamSource();
 
     MediaSource source = MediaSource::CreateFromMediaStreamSource(mediaStreamSource);
+    m_mediaPlayer.Source(source);
 
+    /*
     MediaPlaybackItem item = MediaPlaybackItem(source);
-
     m_mediaPlayer.Source(item);
+    */
 
     // TODO: Turn this into MediaEncodingProfile when supporting audio
-    co_return m_RealtimeMediaSource.VideoProperties();
+    return m_RealtimeMediaSource.VideoProperties();
 }
 
 event_token RealtimeMediaPlayer::Closed(Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
@@ -208,6 +210,9 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     {
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
+        
+        auto hresult = args.ExtendedErrorCode();
+        int a = 4;
         /*
         TODO: Callback
         CALLBACK_STATE state{};
@@ -252,8 +257,6 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
         */
     });
 
-    // set frameserver mode for video
-    m_mediaPlayer.IsVideoFrameServerEnabled(true);
     m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Foundation::IInspectable const& args)
     {

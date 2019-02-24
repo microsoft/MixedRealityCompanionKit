@@ -263,7 +263,8 @@ void RealtimeMediaSource::OnDataReceived(
         ProcessCaptureReady();
         break;
     case PayloadType::SendMediaDescription:
-        IFT(ProcessMediaDescription(data));
+        //IFT(ProcessMediaDescription(data));
+        ProcessMediaDescription(data);
         break;
     case PayloadType::SendMediaSample:
         IFT(ProcessMediaSample(data));
@@ -396,6 +397,9 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
         CreatePropertiesFromMediaDescription(pMediaTypeDesc[0], // MediaTypeDescription* pStreamDescription,
             dataBundle);
 
+    Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaDescription() %d - %d - %d - %s \n", 
+        m_spVideoEncoding.Bitrate(), m_spVideoEncoding.Width(), m_spVideoEncoding.Height(), m_spVideoEncoding.Subtype().data());
+
     mediaStreamDescriptor = VideoStreamDescriptor(m_spVideoEncoding);
 
     // Create internal MediaStreamSource
@@ -421,6 +425,9 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
 
     m_eSourceState = SourceStreamState::Started;
 
+    // Signal completion of InitAsync()
+    SetEvent(m_signal.get());
+
 done:
     delete[] pPtr;
 
@@ -434,7 +441,7 @@ VideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescriptio
     RealtimeStreaming::Common::MediaTypeDescription streamDescription,
     RealtimeStreaming::Network::DataBundle attributesBuffer)
 {
-    VideoEncodingProperties videoProps;
+    IVideoEncodingProperties videoProps;
     auto attributesBufferImpl = attributesBuffer.as<IDataBundlePriv>();
 
     // Create Media Type from attributes blob
@@ -478,7 +485,7 @@ VideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescriptio
         reinterpret_cast<void**>(put_abi(m_encodingProperties))));
     */
     IFC(MFCreatePropertiesFromMediaType(spMediaType.get(),
-        guid_of<VideoEncodingProperties>(),
+        guid_of<IVideoEncodingProperties>(),
         reinterpret_cast<void**>(winrt::put_abi(videoProps))));
 
     /*
@@ -499,7 +506,7 @@ done:
 
     IFT(hr);
 
-    return videoProps;
+    return videoProps.as<VideoEncodingProperties>();
 }
 
 _Use_decl_annotations_

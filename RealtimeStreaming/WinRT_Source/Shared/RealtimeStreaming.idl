@@ -85,7 +85,6 @@ namespace RealtimeStreaming.Common
         UInt64 hnsDuration;
         UInt32 dwFlags;
         UInt32 dwFlagMasks;
-        UInt32 cbCameraDataSize;
     };
 
     [version(1.0)]
