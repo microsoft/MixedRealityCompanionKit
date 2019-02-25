@@ -7,7 +7,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
     struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink>
     {
         NetworkMediaSink() = default;
-        NetworkMediaSink(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection);
+        NetworkMediaSink(RealtimeStreaming::Network::Connection const& connection);
 
         winrt::event_token Closed(Windows::Foundation::EventHandler<bool> const& handler);
         void Closed(winrt::event_token const& token) noexcept;

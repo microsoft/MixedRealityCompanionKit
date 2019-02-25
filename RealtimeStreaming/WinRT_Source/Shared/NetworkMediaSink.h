@@ -15,10 +15,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         {
         public:
             NetworkMediaSink() = default;
-            NetworkMediaSink(
-                _In_ Windows::Media::MediaProperties::AudioEncodingProperties audioEncodingProperties,
-                _In_ Windows::Media::MediaProperties::VideoEncodingProperties videoEncodingProperties,
-                _In_ RealtimeStreaming::Network::Connection connection);
+            NetworkMediaSink(_In_ RealtimeStreaming::Network::Connection connection);
 
             virtual ~NetworkMediaSink();
 
@@ -68,18 +65,16 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
             winrt::hresult OnEndOfStream(_In_ uint32_t streamId);
         private:
-            Windows::Foundation::IAsyncAction SendStreamReady();
-            Windows::Foundation::IAsyncAction SendStreamStopped();
-            Windows::Foundation::IAsyncAction SendDescription();
+            winrt::fire_and_forget SendStreamReady();
+            winrt::fire_and_forget SendStreamStopped();
+            winrt::fire_and_forget SendDescription();
+
+            void OnDataReceived(
+                //_In_ Network::Connection const& sender,
+                _In_ IInspectable const& sender,
+                _In_ Network::DataBundleArgs const& args);
+
             HRESULT HandleError(_In_ HRESULT hr);
-
-            HRESULT SetMediaStreamProperties(
-                _In_ Windows::Media::Capture::MediaStreamType mediaStreamType,
-                _In_ Windows::Media::MediaProperties::IMediaEncodingProperties mediaEncodingProperties);
-
-            HRESULT ConvertPropertiesToMediaType(
-                _In_ Windows::Media::MediaProperties::IMediaEncodingProperties const& mediaEncodingProp,
-                _Out_ IMFMediaType** ppMediaType);
 
             HRESULT CheckShutdown()
             {
@@ -96,7 +91,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
             LONGLONG m_llStartTime;
             winrt::com_ptr<IMFPresentationClock> m_presentationClock;  // Presentation clock.
 
-            //StreamContainer m_streams;
             std::vector<winrt::com_ptr<IMFStreamSink> > m_streams;
 
             long _cStreamsEnded;

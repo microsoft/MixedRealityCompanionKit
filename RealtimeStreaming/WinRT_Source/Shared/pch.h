@@ -34,8 +34,6 @@
 
 #include "ErrorHandling.h"
 
-//#include "Generated Files\winrt\RealtimeStreaming.Common.h"
-
 #ifndef MODULE_HANDLE
 typedef UINT32 MODULE_HANDLE;
     #define MODULE_HANDLE_INVALID (UINT)0x0bad

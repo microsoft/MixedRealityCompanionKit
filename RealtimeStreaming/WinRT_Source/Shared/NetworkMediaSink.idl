@@ -13,10 +13,7 @@ namespace RealtimeStreaming.Media
     runtimeclass NetworkMediaSink : Windows.Media.IMediaExtension
     {
         NetworkMediaSink();
-        NetworkMediaSink(
-            Windows.Media.MediaProperties.AudioEncodingProperties audioEncodingProperties,
-            Windows.Media.MediaProperties.VideoEncodingProperties videoEncodingProperties,
-            RealtimeStreaming.Network.Connection connection);
+        NetworkMediaSink(RealtimeStreaming.Network.Connection connection);
 
         event Windows.Foundation.EventHandler<Boolean> Closed;
 

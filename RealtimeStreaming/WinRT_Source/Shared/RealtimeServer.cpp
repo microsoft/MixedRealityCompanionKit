@@ -23,9 +23,7 @@ RealtimeServer::RealtimeServer(
     m_spMediaEncodingProfile.Container(nullptr);
 
     // create the custom network sink
-    m_spNetworkMediaSink = winrt::make<Media::implementation::NetworkMediaSink>(m_spMediaEncodingProfile.Audio(),
-        m_spMediaEncodingProfile.Video(),
-        connection);
+    m_spNetworkMediaSink = winrt::make<Media::implementation::NetworkMediaSink>(connection);
 
     // Create sink writer which will write to our custom network sink
     com_ptr<IMFSinkWriter> spSinkWriter;

@@ -60,9 +60,9 @@ struct WINRT_EBO NetworkMediaSinkT : implements<D, Windows::Foundation::IActivat
         return make<T>();
     }
 
-    RealtimeStreaming::Media::NetworkMediaSink CreateInstance(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection)
+    RealtimeStreaming::Media::NetworkMediaSink CreateInstance(RealtimeStreaming::Network::Connection const& connection)
     {
-        return make<T>(audioEncodingProperties, videoEncodingProperties, connection);
+        return make<T>(connection);
     }
 };
 

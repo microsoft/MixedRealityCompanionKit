@@ -25,7 +25,7 @@ struct WINRT_EBO NetworkMediaSink :
 {
     NetworkMediaSink(std::nullptr_t) noexcept {}
     NetworkMediaSink();
-    NetworkMediaSink(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection);
+    NetworkMediaSink(RealtimeStreaming::Network::Connection const& connection);
 };
 
 struct WINRT_EBO NetworkMediaSinkStream :

@@ -42,10 +42,10 @@ template <typename D> winrt::hresult consume_RealtimeStreaming_Media_INetworkMed
     return result;
 }
 
-template <typename D> RealtimeStreaming::Media::NetworkMediaSink consume_RealtimeStreaming_Media_INetworkMediaSinkFactory<D>::CreateInstance(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection) const
+template <typename D> RealtimeStreaming::Media::NetworkMediaSink consume_RealtimeStreaming_Media_INetworkMediaSinkFactory<D>::CreateInstance(RealtimeStreaming::Network::Connection const& connection) const
 {
     RealtimeStreaming::Media::NetworkMediaSink value{ nullptr };
-    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSinkFactory)->CreateInstance(get_abi(audioEncodingProperties), get_abi(videoEncodingProperties), get_abi(connection), put_abi(value)));
+    check_hresult(WINRT_SHIM(RealtimeStreaming::Media::INetworkMediaSinkFactory)->CreateInstance(get_abi(connection), put_abi(value)));
     return value;
 }
 
@@ -227,14 +227,14 @@ struct produce<D, RealtimeStreaming::Media::INetworkMediaSink> : produce_base<D,
 template <typename D>
 struct produce<D, RealtimeStreaming::Media::INetworkMediaSinkFactory> : produce_base<D, RealtimeStreaming::Media::INetworkMediaSinkFactory>
 {
-    int32_t WINRT_CALL CreateInstance(void* audioEncodingProperties, void* videoEncodingProperties, void* connection, void** value) noexcept final
+    int32_t WINRT_CALL CreateInstance(void* connection, void** value) noexcept final
     {
         try
         {
             *value = nullptr;
             typename D::abi_guard guard(this->shim());
-            WINRT_ASSERT_DECLARATION(CreateInstance, WINRT_WRAP(RealtimeStreaming::Media::NetworkMediaSink), Windows::Media::MediaProperties::AudioEncodingProperties const&, Windows::Media::MediaProperties::VideoEncodingProperties const&, RealtimeStreaming::Network::Connection const&);
-            *value = detach_from<RealtimeStreaming::Media::NetworkMediaSink>(this->shim().CreateInstance(*reinterpret_cast<Windows::Media::MediaProperties::AudioEncodingProperties const*>(&audioEncodingProperties), *reinterpret_cast<Windows::Media::MediaProperties::VideoEncodingProperties const*>(&videoEncodingProperties), *reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&connection)));
+            WINRT_ASSERT_DECLARATION(CreateInstance, WINRT_WRAP(RealtimeStreaming::Media::NetworkMediaSink), RealtimeStreaming::Network::Connection const&);
+            *value = detach_from<RealtimeStreaming::Media::NetworkMediaSink>(this->shim().CreateInstance(*reinterpret_cast<RealtimeStreaming::Network::Connection const*>(&connection)));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -521,8 +521,8 @@ inline NetworkMediaSink::NetworkMediaSink() :
     NetworkMediaSink(impl::call_factory<NetworkMediaSink>([](auto&& f) { return f.template ActivateInstance<NetworkMediaSink>(); }))
 {}
 
-inline NetworkMediaSink::NetworkMediaSink(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection) :
-    NetworkMediaSink(impl::call_factory<NetworkMediaSink, RealtimeStreaming::Media::INetworkMediaSinkFactory>([&](auto&& f) { return f.CreateInstance(audioEncodingProperties, videoEncodingProperties, connection); }))
+inline NetworkMediaSink::NetworkMediaSink(RealtimeStreaming::Network::Connection const& connection) :
+    NetworkMediaSink(impl::call_factory<NetworkMediaSink, RealtimeStreaming::Media::INetworkMediaSinkFactory>([&](auto&& f) { return f.CreateInstance(connection); }))
 {}
 
 inline NetworkMediaSinkStream::NetworkMediaSinkStream() :

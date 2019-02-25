@@ -9,8 +9,11 @@ namespace winrt::RealtimeStreaming::Network::implementation
 {
     struct Connection : ConnectionT<Connection> //  ,Plugin::IRTModule
     {
-
     public:
+        static RealtimeStreaming::Network::DataBuffer CreatePayloadHeaderBuffer(
+            _In_ RealtimeStreaming::Common::PayloadType payloadType,
+            _In_ UINT32 cbPayloadSize);
+
         Connection() = default; // TODO: Clean this up design. Need ability to break waitforheader loop and re-bind connection?
         Connection(_In_ Windows::Networking::Sockets::StreamSocket const socket);
         ~Connection();
@@ -42,24 +45,13 @@ namespace winrt::RealtimeStreaming::Network::implementation
         }
 
         winrt::fire_and_forget RunSocketLoop();
-        void ReadPayloadLoop();
 
-        Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForHeaderAsync();
-        Windows::Foundation::IAsyncOperation<Windows::Storage::Streams::IBuffer> WaitForPayloadAsync();
-        
         HRESULT OnHeaderReceived(_In_ Windows::Storage::Streams::IBuffer const&  headerBuffer);
         HRESULT OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer const&  payloadBuffer);
 
         STDMETHODIMP NotifyBundleComplete(
             _In_ RealtimeStreaming::Common::PayloadType operation,
             _In_ RealtimeStreaming::Network::DataBundle dataBundle);
-
-        void ResetBundle();
-
-    private:
-        HRESULT ProcessHeaderBuffer(
-            _In_ Common::PayloadHeader* header,
-            _In_ Windows::Storage::Streams::IBuffer dataBuffer);
 
     private:
         slim_mutex m_lock;
@@ -69,9 +61,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
         Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
 
-        // currently bundle that is incoming
         Common::PayloadHeader m_receivedHeader;
-        RealtimeStreaming::Network::DataBundle    m_receivedBundle{ nullptr };
 
         Windows::Storage::Streams::DataReader m_dataReader{ nullptr };
 

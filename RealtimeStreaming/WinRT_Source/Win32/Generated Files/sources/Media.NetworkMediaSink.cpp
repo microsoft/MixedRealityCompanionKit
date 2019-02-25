@@ -3,7 +3,7 @@
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-    NetworkMediaSink::NetworkMediaSink(Windows::Media::MediaProperties::AudioEncodingProperties const& audioEncodingProperties, Windows::Media::MediaProperties::VideoEncodingProperties const& videoEncodingProperties, RealtimeStreaming::Network::Connection const& connection)
+    NetworkMediaSink::NetworkMediaSink(RealtimeStreaming::Network::Connection const& connection)
     {
         throw hresult_not_implemented();
     }

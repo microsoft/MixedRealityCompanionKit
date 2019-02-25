@@ -14,8 +14,6 @@ DECLARE_INTERFACE_IID_(IDataBufferPriv, ::IUnknown, "297dd8ca-2fbe-11e9-b210-d66
     STDMETHOD(GetMediaBuffer)(
         _COM_Outptr_ IMFMediaBuffer** mfBuffer) PURE;
 
-    //STDMETHOD(GetBufferPointer)(_Out_ BYTE** pBuffer) PURE;
-
     STDMETHOD(GetTexture)(
         _Outptr_ ID3D11Texture2D** ppTexture,
         _Out_ UINT *uiViewIndex) PURE;
@@ -26,7 +24,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
     struct DataBuffer : DataBufferT<DataBuffer, IDataBufferPriv>
     {
         public:
-            // TODO: Create static method to get rawpointer? to avoid casting to implementation
             DataBuffer() = default;
             DataBuffer(_In_ DWORD dwMaxLength);
             DataBuffer(_In_ IMFMediaBuffer* pMediaBuffer);

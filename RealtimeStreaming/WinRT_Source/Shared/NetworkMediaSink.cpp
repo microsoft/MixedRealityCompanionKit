@@ -25,8 +25,6 @@ class ShutdownFunc
 public:
     HRESULT operator()(_In_ IMFStreamSink* pStream) const
     {
-        //IFT(reinterpret_cast<winrt::IInspectable*>(request)->QueryInterface(spRequest.ReleaseAndGetAddressOf()));
-
         return static_cast<NetworkMediaSinkStream*>(pStream)->Shutdown();
     }
 };
@@ -80,10 +78,6 @@ static HRESULT AddAttribute(
     _In_ IMFAttributes *mfAttributes)
 {
     NULL_CHK(mfAttributes);
-
-    // store as a smart pointer
-    //com_ptr<IMFAttributes> spAttrib; 
-    //spAttrib.attach(mfAttributes);
 
     switch (propValue.Type())
     {
@@ -161,7 +155,7 @@ inline HRESULT GetStreamId(
 }
 
 template <class TFunc>
-inline HRESULT Execute(std::vector<com_ptr<IMFStreamSink>> &list, TFunc fn)
+inline HRESULT ExecutePerStream(std::vector<com_ptr<IMFStreamSink>> &list, TFunc fn)
 {
     HRESULT hr = S_OK;
 
@@ -177,56 +171,14 @@ inline HRESULT Execute(std::vector<com_ptr<IMFStreamSink>> &list, TFunc fn)
     return hr;
 }
 
-NetworkMediaSink::NetworkMediaSink(AudioEncodingProperties audioEncodingProperties,
-    VideoEncodingProperties videoEncodingProperties,
-    Connection connection)
+NetworkMediaSink::NetworkMediaSink(Connection connection)
     : m_llStartTime(0)
     , _cStreamsEnded(0)
     , m_presentationClock(nullptr)
     , m_connection(connection)
 {
-
-    // Set up media streams
-    if (nullptr != audioEncodingProperties)
-    {
-        // TODO: Turn on support for audio
-        //IFT(SetMediaStreamProperties(MediaStreamType::Audio, audioEncodingProperties));
-    }
-
-    //IFT(SetMediaStreamProperties(MediaStreamType::VideoRecord, videoEncodingProperties));
-
-    // subscribe to connection data
-    // TODO: move to function?
-    auto bundleReceivedCallback = [&](_In_ IInspectable const& /* sender */, _In_ DataBundleArgs const& args) -> HRESULT
-    {
-        Log(Log_Level_Info, L"NetworkMediaSink::OnBundleReceived - Tid:%d \n", GetCurrentThreadId());
-
-        HRESULT hr = S_OK;
-
-        switch (args.PayloadType())
-        {
-        case PayloadType::RequestMediaDescription:
-            // TODO: Fire and forget?
-            SendDescription();
-            break;
-        case PayloadType::RequestMediaStart:
-            // triggers the _connected state
-            if (nullptr != m_presentationClock)
-            {
-                LOG_RESULT_MSG(m_presentationClock->GetTime(&m_llStartTime), L"NetworkMediaSink - MediaStartRequested, Not able to set start time from presentation clock");
-            }
-            IFC(Execute(m_streams, ConnectedFunc(true, m_llStartTime)));
-            break;
-        case PayloadType::RequestMediaStop:
-            IFC(Execute(m_streams, ConnectedFunc(false, m_llStartTime)));
-            break;
-        };
-
-    done:
-        return S_OK;
-    };
-
-    m_bundleReceivedEventToken = m_connection.Received(bundleReceivedCallback);
+    // Subscribe to connection data received event
+    m_bundleReceivedEventToken = m_connection.Received({ this, &NetworkMediaSink::OnDataReceived });
 
     // TODO: Consider making separate function call for server to indicate when it is ready
     // instead of auto-ready
@@ -336,7 +288,6 @@ HRESULT NetworkMediaSink::RemoveStreamSink(DWORD dwStreamSinkIdentifier)
     }
 
     m_streams.erase(it);
-    //IFR(m_streams.Remove(pos, nullptr));
 
     return static_cast<NetworkMediaSinkStream*>(spStream.get())->Shutdown();
 }
@@ -375,21 +326,11 @@ HRESULT NetworkMediaSink::GetStreamSinkByIndex(
 
     auto it = m_streams.begin() + dwIndex;
 
-    /*
-    DWORD dwCurrent = 0;
-    StreamContainer::POSITION pos = m_streams.FrontPosition();
-    StreamContainer::POSITION endPos = m_streams.EndPosition();
-    for (; pos != endPos && dwCurrent < dwIndex; pos = m_streams.Next(pos), ++dwCurrent)
-    {
-        // Just move to proper position
-    }
-    */
     if (it == m_streams.end())
     {
         IFR(MF_E_UNEXPECTED);
     }
 
-    //IFR(m_streams.GetItemPos(pos, spStream.put()));
     (*it).copy_to(ppStreamSink);
 
     return S_OK;
@@ -486,7 +427,7 @@ HRESULT NetworkMediaSink::Shutdown()
     }
 
     // clear all streams
-    Execute(m_streams, ShutdownFunc());
+    ExecutePerStream(m_streams, ShutdownFunc());
     m_streams.clear();
 
     // notify any connections that sink is shutdown
@@ -512,7 +453,7 @@ HRESULT NetworkMediaSink::OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockSta
     // Start each stream.
     m_llStartTime = llClockStartOffset;
 
-    return Execute(m_streams, StartFunc(llClockStartOffset));
+    return ExecutePerStream(m_streams, StartFunc(llClockStartOffset));
 }
 
 _Use_decl_annotations_
@@ -523,7 +464,7 @@ HRESULT NetworkMediaSink::OnClockStop(MFTIME hnsSystemTime)
     IFR(CheckShutdown());
 
     // Stop each stream
-    return Execute(m_streams, StopFunc());
+    return ExecutePerStream(m_streams, StopFunc());
 }
 
 _Use_decl_annotations_
@@ -569,6 +510,34 @@ winrt::hresult NetworkMediaSink::OnEndOfStream(uint32_t streamId)
     return S_OK;
 }
 
+_Use_decl_annotations_
+void NetworkMediaSink::OnDataReceived(
+    //RealtimeStreaming::Network::Connection const& sender,
+    IInspectable const& sender,
+    RealtimeStreaming::Network::DataBundleArgs const& args)
+{
+    Log(Log_Level_Info, L"NetworkMediaSink::OnDataReceived - Tid:%d \n", GetCurrentThreadId());
+
+    HRESULT hr = S_OK;
+
+    switch (args.PayloadType())
+    {
+    case PayloadType::RequestMediaDescription:
+        SendDescription();
+        break;
+    case PayloadType::RequestMediaStart:
+        // triggers the _connected state
+        if (nullptr != m_presentationClock)
+        {
+            LOG_RESULT_MSG(m_presentationClock->GetTime(&m_llStartTime), L"NetworkMediaSink - MediaStartRequested, Not able to set start time from presentation clock");
+        }
+        IFT(ExecutePerStream(m_streams, ConnectedFunc(true, m_llStartTime)));
+        break;
+    case PayloadType::RequestMediaStop:
+        IFT(ExecutePerStream(m_streams, ConnectedFunc(false, m_llStartTime)));
+        break;
+    };
+}
 
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::HandleError(
@@ -583,7 +552,7 @@ HRESULT NetworkMediaSink::HandleError(
 }
 
 _Use_decl_annotations_
-IAsyncAction NetworkMediaSink::SendStreamReady()
+winrt::fire_and_forget NetworkMediaSink::SendStreamReady()
 {
     NULL_THROW(m_connection);
 
@@ -591,124 +560,23 @@ IAsyncAction NetworkMediaSink::SendStreamReady()
 }
 
 _Use_decl_annotations_
-IAsyncAction NetworkMediaSink::SendStreamStopped()
+winrt::fire_and_forget NetworkMediaSink::SendStreamStopped()
 {
     NULL_THROW(m_connection);
 
     co_await m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureStopped);
 }
 
-/*
 _Use_decl_annotations_
-IAsyncAction NetworkMediaSink::SendDescription(void)
+winrt::fire_and_forget NetworkMediaSink::SendDescription(void)
 {
     Log(Log_Level_Info, L"NetworkSinkImpl::SendDescription() begin...\n");
 
     // Size of the constant buffer header
     const UINT32 c_cStreams = m_streams.size();
-    const UINT32 c_cbPayloadHeaderSize = sizeof(PayloadHeader);
     const UINT32 c_cbMediaDescriptionSize = sizeof(MediaDescription);
     const UINT32 c_cbStreamTypeDescription = sizeof(MediaTypeDescription);
     const UINT32 c_cbStreamTypeHeaderSize = c_cStreams * c_cbStreamTypeDescription;
-    //const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
-
-    // Create header buffer
-    DataBuffer headerDataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
-    headerDataBuffer.CurrentLength(c_cbPayloadHeaderSize);
-
-    // get the buffer pointer
-    BYTE* pHeaderBufer = implDataBuffer::GetBufferPointer(headerDataBuffer);
-
-    // Prepare payload header 8 bytes - type and size of payload to follow
-    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pHeaderBufer);
-    NULL_THROW(pOpHeader);
-    pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
-
-    // Calculate size of attributes for each stream to get total payload size
-    UINT32 cbPayloadBufferSize = c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
-    for (auto const& stream : m_streams)
-    {
-        auto spMediaTypeHandler = stream.as<NetworkMediaSinkStream>();
-
-        UINT32 attributeBlobSize;
-        spMediaTypeHandler->GetAttributesBlobSize(&attributeBlobSize);
-
-        cbPayloadBufferSize += attributeBlobSize;
-    }
-
-    pOpHeader->cbPayloadSize = cbPayloadBufferSize;
-
-    DataBuffer payloadDataBuffer = winrt::make<implDataBuffer>(cbPayloadBufferSize);
-    payloadDataBuffer.CurrentLength(cbPayloadBufferSize);
-
-    BYTE* pPayloadBuffer = implDataBuffer::GetBufferPointer(payloadDataBuffer);
-
-    // Media Description - how many streams and the total bytes for each streams attributes
-    MediaDescription* pMediaDescription = reinterpret_cast<MediaDescription*>(pPayloadBuffer + c_cbPayloadHeaderSize);
-    NULL_THROW(pMediaDescription);
-    ZeroMemory(pMediaDescription, c_cbMediaDescriptionSize);
-    pMediaDescription->StreamCount = c_cStreams;
-    pMediaDescription->StreamTypeHeaderSize = c_cbStreamTypeHeaderSize; // populates later
-
-    // Prepare the MediaTypeDescription
-    MediaTypeDescription* streamTypeHeaderPtr = reinterpret_cast<MediaTypeDescription* >(pPayloadBuffer + c_cbMediaDescriptionSize);
-    NULL_THROW(streamTypeHeaderPtr);
-
-    // get each streams MediaTypeDescription info and its attrbutes into the databuffer
-    DWORD nStream = 0;
-    auto it = m_streams.begin();
-    BYTE* pCurrAttributes = pPayloadBuffer + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
-    for (; it != m_streams.end(); ++nStream, ++it)
-    {
-        // zero out the memory block for stream type description
-        ZeroMemory(&streamTypeHeaderPtr[nStream], c_cbStreamTypeDescription);
-
-        auto spMediaTypeHandler = (*it).as<NetworkMediaSinkStream>();
-        NULL_THROW(spMediaTypeHandler);
-
-        // Get the MediaType info from stream
-        IFT(spMediaTypeHandler->FillStreamDescription(&streamTypeHeaderPtr[nStream], pCurrAttributes));
-
-        // Move our attributes pointer ahead correctly
-        UINT32 attributeBlobSize;
-        spMediaTypeHandler->GetAttributesBlobSize(&attributeBlobSize);
-        pCurrAttributes += attributeBlobSize;
-    }
-
-    // Prepare the bundle to send
-    DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(headerDataBuffer);
-    dataBundle.AddBuffer(payloadDataBuffer);
-
-    co_await m_connection.SendBundleAsync(dataBundle);
-
-    Log(Log_Level_Info, L"NetworkMediaSink::SendDescription finished()\n");
- }
-*/
-
-
-_Use_decl_annotations_
-IAsyncAction NetworkMediaSink::SendDescription(void)
-{
-    Log(Log_Level_Info, L"NetworkSinkImpl::SendDescription() begin...\n");
-
-    // Size of the constant buffer header
-    const UINT32 c_cStreams = m_streams.size();
-    const UINT32 c_cbPayloadHeaderSize = sizeof(PayloadHeader);
-    const UINT32 c_cbMediaDescriptionSize = sizeof(MediaDescription);
-    const UINT32 c_cbStreamTypeDescription = sizeof(MediaTypeDescription);
-    const UINT32 c_cbStreamTypeHeaderSize = c_cStreams * c_cbStreamTypeDescription;
-    //const DWORD c_cbBufferSize = c_cbPayloadHeaderSize + c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
-
-    DataBuffer headerDataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
-    headerDataBuffer.CurrentLength(c_cbPayloadHeaderSize);
-
-    // get the buffer pointer
-    BYTE* pHeaderBuffer = implDataBuffer::GetBufferPointer(headerDataBuffer);
-
-    // Prepare payload header 8 bytes - type and size of payload to follow
-    PayloadHeader* pOpHeader = reinterpret_cast<PayloadHeader*>(pHeaderBuffer);
-    NULL_THROW(pOpHeader);
-    pOpHeader->ePayloadType = PayloadType::SendMediaDescription;
 
     // Calculate size of attributes for each stream to get total payload size
     UINT32 cbPayloadSize = c_cbMediaDescriptionSize + c_cbStreamTypeHeaderSize;
@@ -721,9 +589,8 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
 
         cbPayloadSize += attributeBlobSize;
     }
-    pOpHeader->cbPayloadSize = cbPayloadSize;
 
-    // Create header buffer
+    // Create payload buffer
     DataBuffer payloadDataBuffer = winrt::make<implDataBuffer>(cbPayloadSize);
     payloadDataBuffer.CurrentLength(cbPayloadSize);
 
@@ -762,6 +629,8 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     }
 
     // Prepare the bundle to send
+    auto headerDataBuffer = Network::implementation::Connection::CreatePayloadHeaderBuffer(PayloadType::SendMediaDescription, cbPayloadSize);
+
     DataBundle dataBundle = winrt::make<Network::implementation::DataBundle>(headerDataBuffer);
     dataBundle.AddBuffer(payloadDataBuffer);
 
@@ -770,7 +639,7 @@ IAsyncAction NetworkMediaSink::SendDescription(void)
     Log(Log_Level_Info, L"NetworkMediaSink::SendDescription finished()\n");
 }
 
-// TODO: Remove unnecessary?
+/*
 _Use_decl_annotations_
 HRESULT NetworkMediaSink::SetMediaStreamProperties(
     Windows::Media::Capture::MediaStreamType mediaStreamType,
@@ -832,5 +701,5 @@ HRESULT NetworkMediaSink::ConvertPropertiesToMediaType(
     spMediaType.copy_to(ppMediaType);
 
     return S_OK;
-}
+}*/
 
