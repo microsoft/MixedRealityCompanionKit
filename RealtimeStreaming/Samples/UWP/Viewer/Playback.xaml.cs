@@ -33,8 +33,9 @@ namespace Viewer
                 {
                     this.txAddress.Text = this.txAddress.PlaceholderText;
                 }
+                Windows.Networking.HostName host = new Windows.Networking.HostName(this.txAddress.Text);
+                this.connector = new Connector(host, port);
 
-                this.connector = new Connector(this.txAddress.Text, port);
                 if (this.connector != null)
                 {
                     this.connection = await this.connector.ConnectAsync();
@@ -72,7 +73,7 @@ namespace Viewer
             StopPlayback();
         }
 
-        private void Connection_Disconnected(Connection sender)
+        private void Connection_Disconnected()
         {
             CloseConnection();
         }
@@ -89,13 +90,11 @@ namespace Viewer
             if (this.connection != null)
             {
                 this.connection.Disconnected -= Connection_Disconnected;
-                this.connection.Uninitialize();
                 this.connection = null;
             }
 
             if (this.connector != null)
             {
-                this.connector.Uninitialize();
                 this.connector = null;
             }
         }

@@ -6,12 +6,6 @@ import "ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
 {
-    /*
-    [activatable(1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    */
     [default_interface]
     runtimeclass Listener : RealtimeStreaming.Plugin.IRTModule
     {

@@ -12,7 +12,6 @@ using namespace Windows::Networking::Sockets;
 
 Listener::Listener(UINT16 port)
     : m_port(port)
-    //, m_socketListener(nullptr)
     , m_streamSocket(nullptr)
 {
     Log(Log_Level_Info, L"Listener::Listener()\n");
@@ -57,7 +56,6 @@ event_token Listener::Closed(Windows::Foundation::EventHandler<bool> const& hand
 {
     Log(Log_Level_All, L"Listener::add_Closed() - Tid: %d \n", GetCurrentThreadId());
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     return m_evtClosed.add(handler);
@@ -68,7 +66,6 @@ void Listener::Closed(winrt::event_token const& token)
 {
     Log(Log_Level_Info, L"Listener::remove_Closed()\n");
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     m_evtClosed.remove(token);

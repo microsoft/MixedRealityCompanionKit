@@ -62,12 +62,10 @@ namespace Viewer
         private void StartCapture()
         {
             var p = MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p);
-            p.Video.Width = 1000;
-            p.Video.Height = 1000;
 
             Guid MFVideoFormat_RGB32 = new Guid("{00000016-0000-0010-8000-00AA00389B71}");
 
-            this.rtServer = RealtimeServer.Create(this.connection,
+            this.rtServer = new RealtimeServer(this.connection,
                 MFVideoFormat_RGB32,
                 MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p)
                 );
@@ -84,7 +82,7 @@ namespace Viewer
         {
             if (this.rtServer != null)
             {
-                rtServer.WriteDirect(frameBuffer);
+                rtServer.WriteFrame((uint)frameBuffer.Length, frameBuffer);
             }
         }
 
@@ -93,22 +91,21 @@ namespace Viewer
             CloseConnection();
         }
 
-        private void Connection_Disconnected(Connection sender)
+        private void Connection_Disconnected()
         {
             CloseConnection();
         }
 
-        private void Connection_Received(Connection sender, BundleReceivedArgs args)
+        private void Connection_Received(Object sender, DataBundleArgs args)
         {
 
         }
 
-        private async void CloseConnection()
+        private void CloseConnection()
         {
             if (this.rtServer != null)
             {
                 this.rtServer.Shutdown();
-                this.rtServer.Uninitialize();
                 this.rtServer = null;
             }
 
@@ -116,13 +113,11 @@ namespace Viewer
             {
                 this.connection.Disconnected -= Connection_Disconnected;
                 this.connection.Received -= Connection_Received;
-                this.connection.Uninitialize();
                 this.connection = null;
             }
 
             if (this.listener != null)
             {
-                this.listener.Uninitialize();
                 this.listener = null;
             }
         }
