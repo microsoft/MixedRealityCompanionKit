@@ -61,6 +61,7 @@ HRESULT SharedTextureBuffer::Create(
     // srv for the texture
     // TODO: Add details here for NV12 reasoning on Hololens with video processing
     srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.get(), D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R8G8_UNORM);
+    //srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.get(), D3D11_SRV_DIMENSION_TEXTURE2D);
     IFG(d3dDevice->CreateShaderResourceView(spTexture.get(), &srvDesc, spSRV_Luma.put()), done);
 
     srvDesc.Format = DXGI_FORMAT_R8_UNORM;
@@ -492,8 +493,7 @@ HRESULT CreateMediaDevice(
     // This flag adds support for surfaces with a different color channel ordering
     // than the API default. It is required for compatibility with Direct2D.
     // TODO: Check this setting out if needed
-    //UINT creationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-    UINT creationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT;
+    UINT creationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
 #if defined(_DEBUG)
     // If the project is in a debug build, enable debugging via SDK Layers with this flag.

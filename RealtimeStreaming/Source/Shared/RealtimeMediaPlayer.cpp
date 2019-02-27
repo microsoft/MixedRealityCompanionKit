@@ -267,14 +267,23 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Foundation::IInspectable const& args)
     {
-        Log(Log_Level_Info, L"RealtimeMediaPlayer::VideoFrameAvailable()\n");
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::RealtimeMediaPlayer()\n");
 
-        UNREFERENCED_PARAMETER(sender);
-        UNREFERENCED_PARAMETER(args);
-
-        if (nullptr != m_primaryBuffer->mediaSurface)
+        try
         {
-            m_mediaPlayer.CopyFrameToVideoSurface(m_primaryBuffer->mediaSurface);
+            UNREFERENCED_PARAMETER(sender);
+            UNREFERENCED_PARAMETER(args);
+
+
+            if (nullptr != m_primaryBuffer->mediaSurface)
+            {
+                m_mediaPlayer.CopyFrameToVideoSurface(m_primaryBuffer->mediaSurface);
+            }
+        }
+        catch (winrt::hresult_error const& ex)
+        {
+            Log(Log_Level_All, L"RealtimeMediaPlayer::RealtimeMediaPlayer Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+            LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
         }
     });
 

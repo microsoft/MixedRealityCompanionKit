@@ -49,7 +49,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
         HRESULT OnHeaderReceived(_In_ Windows::Storage::Streams::IBuffer const&  headerBuffer);
         HRESULT OnPayloadReceived(_In_ Windows::Storage::Streams::IBuffer const&  payloadBuffer);
 
-        STDMETHODIMP NotifyBundleComplete(
+        void NotifyBundleComplete(
             _In_ RealtimeStreaming::Common::PayloadType operation,
             _In_ RealtimeStreaming::Network::DataBundle dataBundle);
 

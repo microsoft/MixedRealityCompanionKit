@@ -31,7 +31,7 @@ RealtimeStreaming::Network::DataBuffer Connection::CreatePayloadHeaderBuffer(
     _In_ RealtimeStreaming::Common::PayloadType payloadType,
     _In_ UINT32 cbPayloadSize)
 {
-    DataBuffer headerDataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
+    auto headerDataBuffer = winrt::make<implDataBuffer>(c_cbPayloadHeaderSize);
     headerDataBuffer.CurrentLength(c_cbPayloadHeaderSize);
 
     // get the buffer pointer
@@ -79,7 +79,7 @@ Connection::~Connection()
 
 winrt::fire_and_forget Connection::RunSocketLoop()
 {
-    Log(Log_Level_All, L"Connection::RunSocketLoop[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::RunSocketLoop - Tid: %d \n", GetCurrentThreadId());
 
     //co_await winrt::resume_background();
     //Log(Log_Level_All, L"Connection::RunSocketLoop - resume_background - Tid: %d \n", GetCurrentThreadId());
@@ -109,9 +109,13 @@ winrt::fire_and_forget Connection::RunSocketLoop()
             else
             {
                 // We received no payload, so push on notification
-                LOG_RESULT(NotifyBundleComplete(m_receivedHeader.ePayloadType, nullptr));
+                NotifyBundleComplete(m_receivedHeader.ePayloadType, nullptr);
             }
         }
+
+        // Reset header for next read
+        ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
+        m_receivedHeader.ePayloadType = PayloadType::Unknown;
     }
     catch (winrt::hresult_error const& ex)
     {
@@ -218,7 +222,7 @@ _Use_decl_annotations_
 IAsyncAction Connection::SendPayloadTypeAsync(
     PayloadType payloadType)
 {
-    Log(Log_Level_All, L"Connection::SendPayloadTypeAsync(%d)[%d] - Tid: %d \n",  payloadType, m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::SendPayloadTypeAsync(%d) - Tid: %d \n",  payloadType, GetCurrentThreadId());
 
     auto headerDataBuffer = Connection::CreatePayloadHeaderBuffer(payloadType, 0);
 
@@ -233,13 +237,15 @@ IAsyncAction Connection::SendBundleAsync(
 {
     co_await winrt::resume_background();
 
-    Log(Log_Level_Info, L"Connection::SendBundleAsync()[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
+    Log(Log_Level_Info, L"Connection::SendBundleAsync() - Tid: %d \n", GetCurrentThreadId());
     
+    /*
     {
         // Check that we still have an active socket
         slim_lock_guard guard(m_lock);
         IFT(CheckClosed());
     }
+    */
 
     // TODO: remove try/catch?
     try
@@ -288,20 +294,11 @@ IAsyncAction Connection::SendBundleAsync(
 
 // IConnectionInternal
 _Use_decl_annotations_
-HRESULT Connection::NotifyBundleComplete(
+void Connection::NotifyBundleComplete(
     RealtimeStreaming::Common::PayloadType payloadType,
     RealtimeStreaming::Network::DataBundle dataBundle)
 {
     Log(Log_Level_Info, L"Connection::OnCompleteBundle\n");
-
-    {
-        slim_shared_lock_guard const guard(m_lock);
-
-        if (FAILED(CheckClosed()))
-        {
-            return S_OK;
-        }
-    }
 
     auto args = winrt::make<Network::implementation::DataBundleArgs>(payloadType, *this, dataBundle);
 
@@ -312,7 +309,7 @@ HRESULT Connection::NotifyBundleComplete(
 _Use_decl_annotations_
 HRESULT Connection::OnHeaderReceived(IBuffer const& headerBuffer)
 {
-    Log(Log_Level_All, L"Connection::OnHeaderReceived()[%d] - Tid: %d \n", m_streamSocket.Information().LocalPort(), GetCurrentThreadId());
+    Log(Log_Level_All, L"Connection::OnHeaderReceived() - Tid: %d \n", GetCurrentThreadId());
 
     auto headerBufferImpl = headerBuffer.as<IBufferByte>();
     NULL_CHK(headerBufferImpl);
@@ -415,7 +412,7 @@ HRESULT Connection::OnPayloadReceived(IBuffer const& payloadBuffer)
     }
 
     // store the bundle data to be used for notification
-    LOG_RESULT(NotifyBundleComplete(m_receivedHeader.ePayloadType, receivedBundle));
+    NotifyBundleComplete(m_receivedHeader.ePayloadType, receivedBundle);
 
 done:
     if (m_concurrentFailedBundles > c_cbMaxBundleFailures)

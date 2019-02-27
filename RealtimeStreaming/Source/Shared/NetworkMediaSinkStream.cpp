@@ -820,7 +820,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
         bool fProcessingSample = false;
 
         // Determine if this is a marker or a sample.
-        com_ptr<IMFSample> spMediaSample = spUnknown.as<IMFSample>();
+        com_ptr<IMFSample> spMediaSample = spUnknown.try_as<IMFSample>();
         if (spMediaSample != nullptr)
         {
             if (!fFlush)
@@ -832,7 +832,7 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
         else
         {
             // Check for marker
-            com_ptr<IMarker> spMarker = spUnknown.as<IMarker>();
+            com_ptr<IMarker> spMarker = spUnknown.try_as<IMarker>();
             if (spMarker != nullptr)
             {
                 PROPVARIANT var;
@@ -891,8 +891,8 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
             }
             else
             {
-                com_ptr<IMFMediaType> spMediaType = spUnknown.as<IMFMediaType>();
-                if (!fFlush && !m_fGetFirstSampleTime)
+                com_ptr<IMFMediaType> spMediaType = spUnknown.try_as<IMFMediaType>();
+                if (!fFlush && !m_fGetFirstSampleTime && spMediaType != nullptr)
                 {
                     dataBundle = PrepareFormatChange(spMediaType.get());
                 }

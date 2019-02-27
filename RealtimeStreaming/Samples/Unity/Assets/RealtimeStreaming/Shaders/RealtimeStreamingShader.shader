@@ -35,14 +35,13 @@
 
             sampler2D _MainTex_Luma;
             sampler2D _MainTex_Chroma;
-            float4 _MainTex_ST;
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
+                o.uv = v.uv;
+                UNITY_TRANSFER_FOG(o, o.vertex);
                 return o;
             }
 
