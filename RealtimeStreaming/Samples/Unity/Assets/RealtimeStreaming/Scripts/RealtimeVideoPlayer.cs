@@ -372,6 +372,13 @@ namespace RealtimeStreaming
                     return;
                 }
 
+                // TODO: This is hardcoded for weird bug on ARM
+                if (width > 16384 || height == 1)
+                {
+                    width = 1280;
+                    height = 720;
+                }
+
                 this.textureWidth = width;
                 this.textureHeight = height;
 
