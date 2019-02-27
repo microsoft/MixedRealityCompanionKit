@@ -150,7 +150,6 @@ void RealtimeMediaSource::OnSampleRequested(Windows::Media::Core::MediaStreamSou
     Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRequested()\n");
 
     slim_lock_guard guard(m_lock);
-    //auto lock = _lock.Lock();
 
     m_spRequest = nullptr; //unseat our local member variable
     m_spRequest = args.Request();

@@ -30,7 +30,8 @@ struct SharedTextureBuffer
 
     CD3D11_TEXTURE2D_DESC frameTextureDesc;
     winrt::com_ptr<ID3D11Texture2D> frameTexture;
-    winrt::com_ptr<ID3D11ShaderResourceView> frameTextureSRV;
+    winrt::com_ptr<ID3D11ShaderResourceView> frameTextureSRV_Luma;
+    winrt::com_ptr<ID3D11ShaderResourceView> frameTextureSRV_Chroma;
     HANDLE sharedTextureHandle;
     winrt::com_ptr<ID3D11Texture2D> mediaTexture;
     winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DSurface mediaSurface;

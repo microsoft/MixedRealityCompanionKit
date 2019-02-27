@@ -36,7 +36,8 @@ HRESULT SharedTextureBuffer::Create(
     // since the device is locked, unlock before we exit function
     HRESULT hr = S_OK;
 
-    auto textureDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, width, height);
+    //auto textureDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, width, height);
+    auto textureDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_NV12, width, height);
     textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
     textureDesc.MipLevels = 1;
     textureDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
@@ -45,7 +46,8 @@ HRESULT SharedTextureBuffer::Create(
     // create a texture
     com_ptr<ID3D11Texture2D> spTexture = nullptr;
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-    com_ptr<ID3D11ShaderResourceView> spSRV = nullptr;
+    com_ptr<ID3D11ShaderResourceView> spSRV_Luma = nullptr;
+    com_ptr<ID3D11ShaderResourceView> spSRV_Chroma = nullptr;
     com_ptr<IDXGIResource1> spDXGIResource = nullptr;
     com_ptr<ID3D11Texture2D> spMediaTexture = nullptr;
     HANDLE sharedHandle = INVALID_HANDLE_VALUE;
@@ -57,8 +59,12 @@ HRESULT SharedTextureBuffer::Create(
     IFG(d3dDevice->CreateTexture2D(&textureDesc, nullptr, spTexture.put()), done);
 
     // srv for the texture
-    srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.get(), D3D11_SRV_DIMENSION_TEXTURE2D);
-    IFG(d3dDevice->CreateShaderResourceView(spTexture.get(), &srvDesc, spSRV.put()), done);
+    // TODO: Add details here for NV12 reasoning on Hololens with video processing
+    srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(spTexture.get(), D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R8G8_UNORM);
+    IFG(d3dDevice->CreateShaderResourceView(spTexture.get(), &srvDesc, spSRV_Luma.put()), done);
+
+    srvDesc.Format = DXGI_FORMAT_R8_UNORM;
+    IFG(d3dDevice->CreateShaderResourceView(spTexture.get(), &srvDesc, spSRV_Chroma.put()), done);
 
     IFG(spTexture->QueryInterface(__uuidof(IDXGIResource1), spDXGIResource.put_void()), done);
 
@@ -83,7 +89,8 @@ HRESULT SharedTextureBuffer::Create(
 
     buffer->frameTextureDesc = textureDesc;
     buffer->frameTexture.attach(spTexture.detach());
-    buffer->frameTextureSRV.attach(spSRV.detach());
+    buffer->frameTextureSRV_Luma.attach(spSRV_Luma.detach());
+    buffer->frameTextureSRV_Chroma.attach(spSRV_Chroma.detach());
     buffer->sharedTextureHandle = sharedHandle;
     buffer->mediaTexture.attach(spMediaTexture.detach());
     buffer->mediaSurface = mediaSurface;
@@ -107,7 +114,8 @@ done:
 SharedTextureBuffer::SharedTextureBuffer()
     : frameTextureDesc{}
     , frameTexture(nullptr)
-    , frameTextureSRV(nullptr)
+    , frameTextureSRV_Luma(nullptr)
+    , frameTextureSRV_Chroma(nullptr)
     , sharedTextureHandle(INVALID_HANDLE_VALUE)
     , mediaTexture(nullptr)
     , mediaSurface(nullptr)
@@ -135,7 +143,8 @@ void SharedTextureBuffer::Reset()
     mediaBuffer = nullptr;
     mediaSurface = nullptr;
     mediaTexture = nullptr;
-    frameTextureSRV = nullptr;
+    frameTextureSRV_Luma = nullptr;
+    frameTextureSRV_Chroma = nullptr;
     frameTexture = nullptr;
 
     ZeroMemory(&frameTextureDesc, sizeof(CD3D11_TEXTURE2D_DESC));
@@ -482,7 +491,9 @@ HRESULT CreateMediaDevice(
 
     // This flag adds support for surfaces with a different color channel ordering
     // than the API default. It is required for compatibility with Direct2D.
-    UINT creationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+    // TODO: Check this setting out if needed
+    //UINT creationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+    UINT creationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT;
 
 #if defined(_DEBUG)
     // If the project is in a debug build, enable debugging via SDK Layers with this flag.

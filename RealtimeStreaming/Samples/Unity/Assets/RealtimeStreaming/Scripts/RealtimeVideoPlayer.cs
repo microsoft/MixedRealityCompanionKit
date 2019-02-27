@@ -83,7 +83,9 @@ namespace RealtimeStreaming
         private Connection networkConnection = null;
 
         private uint textureWidth, textureHeight;
-        private Texture2D streamingTexture;
+        private Texture2D streamingTexture_Luma;
+        private Texture2D streamingTexture_Chroma;
+
         private PlayerPlugin.StateChangedCallback stateCallback;
         private GCHandle thisObject = default(GCHandle);
 
@@ -115,11 +117,6 @@ namespace RealtimeStreaming
             if (Input.GetKey(KeyCode.P))
             {
                 ConnectPlayer();
-            }
-
-            if (Input.GetKey(KeyCode.Space))
-            {
-                this.target.material.mainTexture = this.streamingTexture;
             }
         }
 #endif
@@ -177,7 +174,7 @@ namespace RealtimeStreaming
             if (isPlayerCreated)
             {
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(), "RealtimeVideoPlayer::exReleasePlayer()");
-                this.streamingTexture = null;
+                this.streamingTexture_Luma = this.streamingTexture_Chroma = null;
                 isPlayerCreated = false;
             }
         }
@@ -380,29 +377,42 @@ namespace RealtimeStreaming
 
                 Debug.Log("RealTimePlayer::OnCreated - " + width + " by " + height);
 
+                // TODO: Add information here for YUV work
+
                 // create native texture for playback
-                IntPtr nativeTexture = IntPtr.Zero;
+                IntPtr nativeTexture_L = IntPtr.Zero;
+                IntPtr nativeTexture_UV = IntPtr.Zero;
+
                 Plugin.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.textureWidth,
                     this.textureHeight,
-                    out nativeTexture), 
+                    out nativeTexture_L,
+                    out nativeTexture_UV), 
                     "RealtimeVideoPlayer::exCreateExternalTexture");
 
-                // TODO: textureformat on callback*
-
                 // Create the unity texture2d 
-                this.streamingTexture =
+                this.streamingTexture_Luma =
                     Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
-                    TextureFormat.BGRA32,
-                    //TextureFormat.RGBA32,
+                    TextureFormat.RG16,
                     false, 
                     true,
-                    nativeTexture);
+                    nativeTexture_L);
+
+                this.streamingTexture_Chroma =
+                    Texture2D.CreateExternalTexture((int)this.textureWidth,
+                    (int)this.textureHeight,
+                    TextureFormat.R8,
+                    //TextureFormat.RGBA32,
+                    false,
+                    true,
+                    nativeTexture_UV);
 
                 // set texture for the shader
+                // TODO: Check that shader is expected
                 if (this.target != null)
                 {
-                    this.target.material.mainTexture = this.streamingTexture;
+                    this.target.material.SetTexture("_MainTex_Luma", this.streamingTexture_Luma);
+                    this.target.material.SetTexture("_MainTex_Chroma", this.streamingTexture_Chroma);
                 }
 
                 this.Play();
@@ -522,7 +532,7 @@ namespace RealtimeStreaming
             internal static extern long exReleasePlayer();
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayerTexture")]
-            internal static extern long exCreateExternalTexture(UInt32 width, UInt32 height, out System.IntPtr playbackTexture);
+            internal static extern long exCreateExternalTexture(UInt32 width, UInt32 height, out System.IntPtr texture_L, out System.IntPtr texture_UV);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimePlayerPlay")]
             internal static extern long exPlay();

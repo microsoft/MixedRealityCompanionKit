@@ -180,10 +180,14 @@ RTDLL ReleaseRealtimePlayer()
     return PluginInterface::s_instance.RTPlayerRelease();
 }
 
-RTDLL CreateRealtimePlayerTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture)
+RTDLL CreateRealtimePlayerTexture(
+    _In_ UINT32 width, 
+    _In_ UINT32 height, 
+    _COM_Outptr_ void** ppvTexture_L,
+    _COM_Outptr_ void** ppvTexture_UV)
 {
     return PluginInterface::s_instance.RTPlayerCreateTexture(
-        width, height, ppvTexture);
+        width, height, ppvTexture_L, ppvTexture_UV);
 }
 
 RTDLL RealtimePlayerPlay()

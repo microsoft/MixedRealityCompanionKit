@@ -121,7 +121,8 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             STDMETHODIMP RTPlayerCreateTexture(
                 _In_ UINT32 width,
                 _In_ UINT32 height,
-                _COM_Outptr_ void** ppvTexture);
+                _COM_Outptr_ void** ppvTexture_L,
+                _COM_Outptr_ void** ppvTexture_UV);
 
             STDMETHODIMP RTPlayerStart();
             STDMETHODIMP RTPlayerStop();

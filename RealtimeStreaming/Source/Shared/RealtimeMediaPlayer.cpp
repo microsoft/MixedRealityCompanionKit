@@ -40,10 +40,8 @@ void RealtimeMediaPlayer::Shutdown()
 IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     RealtimeStreaming::Network::Connection connection)
 {
-    if (m_mediaPlayer == nullptr)
-    {
-        IFT(CreateMediaPlayer());
-    }
+
+    IFT(CreateMediaPlayer());
 
     m_RealtimeMediaSource = winrt::make<Media::implementation::RealtimeMediaSource>();
 
@@ -77,16 +75,19 @@ _Use_decl_annotations_
 HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
     UINT32 width,
     UINT32 height,
-    void** ppvTexture)
+    void** ppvTexture_L,
+    void** ppvTexture_UV)
 {
-    NULL_CHK_HR(ppvTexture, E_INVALIDARG);
+    NULL_CHK_HR(ppvTexture_L, E_INVALIDARG);
+    NULL_CHK_HR(ppvTexture_UV, E_INVALIDARG);
 
     if (width < 1 || height < 1)
     {
         IFR(E_INVALIDARG);
     }
 
-    *ppvTexture = nullptr;
+    *ppvTexture_L = nullptr;
+    *ppvTexture_UV = nullptr;
 
     m_primaryBuffer->Reset();
 
@@ -107,10 +108,14 @@ HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
         height,
         m_primaryBuffer));
 
-    com_ptr<ID3D11ShaderResourceView> spSRV = nullptr;
-    m_primaryBuffer->frameTextureSRV.copy_to(spSRV.put());
+    com_ptr<ID3D11ShaderResourceView> spSRV_L = nullptr;
+    m_primaryBuffer->frameTextureSRV_Luma.copy_to(spSRV_L.put());
 
-    *ppvTexture = spSRV.detach();
+    com_ptr<ID3D11ShaderResourceView> spSRV_UV = nullptr;
+    m_primaryBuffer->frameTextureSRV_Chroma.copy_to(spSRV_UV.put());
+
+    *ppvTexture_L = spSRV_L.detach();
+    *ppvTexture_UV = spSRV_UV.detach();
 
     return S_OK;
 }
@@ -181,8 +186,6 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     }
 
     m_mediaPlayer = Windows::Media::Playback::MediaPlayer();
-
-    // TODO: Check this property
     m_mediaPlayer.IsVideoFrameServerEnabled(true);
 
     m_endedToken = m_mediaPlayer.MediaEnded([=](Windows::Media::Playback::MediaPlayer const& sender, 

@@ -87,7 +87,11 @@ namespace winrt::RealtimeStreaming::Media::implementation
         void Closed(event_token const& token);
 
         // IPlaybackManagerPriv
-        STDOVERRIDEMETHODIMP CreateStreamingTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture);
+        STDOVERRIDEMETHODIMP CreateStreamingTexture(
+            _In_ UINT32 width, 
+            _In_ UINT32 height, 
+            _COM_Outptr_ void** ppvTexture_L,
+            _COM_Outptr_ void** ppvTexture_UV);
 
     private:
         HRESULT CreateMediaPlayer();

@@ -648,20 +648,23 @@ HRESULT PluginManager::RTPlayerRelease()
 }
 
 _Use_decl_annotations_
-HRESULT PluginManager::RTPlayerCreateTexture(_In_ UINT32 width, 
+HRESULT PluginManager::RTPlayerCreateTexture(
+    _In_ UINT32 width, 
     _In_ UINT32 height,
-    _COM_Outptr_ void** ppvTexture)
+    _COM_Outptr_ void** ppvTexture_L,
+    _COM_Outptr_ void** ppvTexture_UV)
 {
     Log(Log_Level_Info, L"PluginManager::RTPlayerCreateTexture(%d, %d) -Tid:%d \n", width, height, GetCurrentThreadId());
 
-    NULL_CHK(ppvTexture);
+    NULL_CHK(ppvTexture_L);
+    NULL_CHK(ppvTexture_UV);
     NULL_CHK(s_spStreamingPlayer);
 
     auto rtPlayerImpl = s_spStreamingPlayer.as<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
 
     NULL_CHK(rtPlayerImpl);
 
-    return rtPlayerImpl->CreateStreamingTexture(width, height, ppvTexture);
+    return rtPlayerImpl->CreateStreamingTexture(width, height, ppvTexture_L, ppvTexture_UV);
 }
 
 _Use_decl_annotations_
