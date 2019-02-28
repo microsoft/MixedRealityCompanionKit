@@ -396,17 +396,7 @@ namespace RealtimeStreaming
                     out nativeTexture_UV), 
                     "RealtimeVideoPlayer::exCreateExternalTexture");
 
-                /*
-                this.streamingTexture_Luma =
-                    Texture2D.CreateExternalTexture((int)this.textureWidth,
-                    (int)this.textureHeight,
-                    TextureFormat.BGRA32,
-                    false,
-                    true,
-                    nativeTexture_L);
-                */
-                // Create the unity texture2d 
-                
+                // Create the unity texture2ds 
                 this.streamingTexture_Luma =
                     Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
@@ -427,8 +417,6 @@ namespace RealtimeStreaming
                 // TODO: Check that shader is expected
                 if (this.target != null)
                 {
-                    //this.target.material.mainTexture = this.streamingTexture_Luma;
-                    
                     this.target.material.SetTexture("_MainTex_Luma", this.streamingTexture_Luma);
                     this.target.material.SetTexture("_MainTex_Chroma", this.streamingTexture_Chroma);
                 }
