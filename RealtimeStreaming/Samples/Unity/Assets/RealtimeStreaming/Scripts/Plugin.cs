@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -10,13 +9,8 @@ using UnityEngine;
 
 namespace RealtimeStreaming
 {
-
-    public enum NetworkMode { Listener, Connector }
-
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, long result);
-        // TODO: Troy investigate failure of c++ to instantiate message and marshall to C#
-        //[MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
 
     public class FailedEventArgs : EventArgs
     {
@@ -40,13 +34,6 @@ namespace RealtimeStreaming
 
         public const string DataUrlFormat = "data://{0}:{1}";
 
-        public static bool IsHoloLens
-        {
-            get { return SystemInfo.deviceModel.ToUpperInvariant().Contains("HOLOLENS"); }
-        }
-
-        private enum PluginEvent { Update = 1, Render, Flush }
-
         private static readonly object eventLock = new object();
         private static readonly List<Action> actionQueue = new List<Action>();
         private readonly List<Action> actionsToProcess = new List<Action>();
@@ -63,17 +50,6 @@ namespace RealtimeStreaming
             }
         }
         
-        private void OnEnable()
-        {
-            //this.StartCoroutine("ProcessPluginEvents");
-        }
-
-        private void OnDisable()
-        {
-            //GL.IssuePluginEvent(Wrapper.exGetPluginEventFunction(), (int)PluginEvent.Flush);
-        }
-
-        // TODO: Deprecate this in favor of execute on other thread
         private void Update()
         {
             this.GetActionsToProcess();
@@ -92,21 +68,6 @@ namespace RealtimeStreaming
             }
 
             this.actionsToProcess.Clear();
-        }
-
-        private IEnumerator ProcessPluginEvents()
-        {
-            while (this.enabled)
-            {
-                // wait until update stage
-                yield return new WaitForFixedUpdate();
-
-                // Set time for the plugin
-                Wrapper.exSetTime(Time.timeSinceLevelLoad);
-
-                // issue end of frame update
-                GL.IssuePluginEvent(Wrapper.exGetPluginEventFunction(), (int)PluginEvent.Update);
-            }
         }
 
         private void GetActionsToProcess()
@@ -130,13 +91,10 @@ namespace RealtimeStreaming
             }
         }
 
-
         public static T GetSenderObject<T>(IntPtr senderPtr) where T : class
         {
             if (senderPtr == IntPtr.Zero)
             {
-                // TODO: Fix debugging
-                //Debug.LogError("Plugin_Callback: requires thisObjectPtr.");
                 return null;
             }
 
@@ -145,8 +103,6 @@ namespace RealtimeStreaming
             var thisObject = handle.Target as T;
             if (thisObject == null)
             {
-                // TODO: Fix debugging
-                //Debug.LogError("Plugin_Callback: thisObjectPtr is not null, but seems invalid.");
                 return null;
             }
 
@@ -172,15 +128,6 @@ namespace RealtimeStreaming
                 // this will process the callback on AppThread on a FixedUpdate
                 exec.Invoke();
 #endif
-        }
-
-        private static class Wrapper
-        {
-            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "SetTime")]
-            public static extern void exSetTime(float t);
-
-            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "GetPluginEventFunc")]
-            public static extern IntPtr exGetPluginEventFunction();
         }
     }
 }

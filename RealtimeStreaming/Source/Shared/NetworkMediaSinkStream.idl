@@ -31,12 +31,6 @@ namespace RealtimeStreaming.Media
         Count   // Number of operations
     };
 
-    /*
-    [activatable(1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    */
     runtimeclass NetworkMediaSinkStream : Windows.Media.IMediaExtension
     {
         NetworkMediaSinkStream();

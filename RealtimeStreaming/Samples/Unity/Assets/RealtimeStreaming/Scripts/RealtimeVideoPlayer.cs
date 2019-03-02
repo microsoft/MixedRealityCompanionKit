@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace RealtimeStreaming
 {
@@ -91,29 +93,15 @@ namespace RealtimeStreaming
         private PlayerPlugin.PlayerCreatedCallbackHandler createdHandler;
 
         private bool isPaused = false;
-        private bool isStarted = false;
         private bool isPlayerCreated = false;
-        private bool isConnectorActive = false;
 
         private void Awake()
         {
             this.plugin = this.GetComponent<Plugin>();
 
-            thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
-        }
-
-        private void Start()
-        {
-            this.isStarted = true;
-
-            this.ConnectionState = ConnectionState.Idle;
             this.PlayerState = PlaybackState.None;
-        }
 
-        private void OnDisable()
-        {
-            // TODO: Too aggressive? Maybe stop connection & playback only?
-            this.Shutdown();
+            thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
         }
 
         private void OnDestroy()
@@ -132,7 +120,7 @@ namespace RealtimeStreaming
         {
             this.isPaused = pauseStatus;
 
-            if (!this.isStarted || !this.StopOnPaused)
+            if (!this.StopOnPaused)
             {
                 return;
             }
@@ -181,8 +169,6 @@ namespace RealtimeStreaming
                 this.connector.Connected += this.OnConnectorConnected;
                 this.connector.Failed += this.OnConnectorFailed;
                 this.connector.StartAsync();
-
-                this.isConnectorActive = true;
             }
         }
 
@@ -192,8 +178,6 @@ namespace RealtimeStreaming
             {
                 return;
             }
-
-            this.isConnectorActive = false;
 
             this.connector.Started -= this.OnConnectorStarted;
             this.connector.Connected -= this.OnConnectorConnected;
@@ -224,8 +208,7 @@ namespace RealtimeStreaming
             this.plugin.QueueAction(() =>
             {
                 Debug.Log("RealtimeVideoPlayer::OnConnectorStarted");
-
-                //this.ConnectionState = ConnectionState.Connecting;
+                this.ConnectionState = ConnectionState.Connecting;
             });
         }
 
@@ -233,10 +216,11 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
-                // TODO: need action plan here
                 Debug.Log("RealtimeVideoPlayer::OnConnectorFailed");
 
                 this.ConnectionState = ConnectionState.Failed;
+
+                StopConnector();
             });
         }
 

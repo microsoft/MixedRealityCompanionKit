@@ -6,16 +6,6 @@ using System.Runtime.InteropServices;
 
 namespace RealtimeStreaming
 {
-    public class ConnectionCallbackArgs : EventArgs
-    {
-        public Connection Connection { get; private set; }
-
-        public ConnectionCallbackArgs(Connection connection)
-        {
-            this.Connection = connection;
-        }
-    }
-
     public enum ConnectionState
     {
         Idle,
