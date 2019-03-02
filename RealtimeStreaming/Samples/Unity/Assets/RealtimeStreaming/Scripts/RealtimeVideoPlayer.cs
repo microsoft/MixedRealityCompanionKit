@@ -19,13 +19,12 @@ namespace RealtimeStreaming
             Ended
         };
 
-        public Text ipAddressInput;
-        public MeshRenderer target;
         public string ConnectTo;
         public ushort Port = 27772;
 
         public bool StopOnPaused = false;
-        public Action<object, StateChangedEventArgs<PlaybackState>> PlayerStateChanged;
+
+        public event EventHandler<StateChangedEventArgs<PlaybackState>> PlayerStateChanged;
 
         // TODO: move into Connection class?
         public ConnectionState ConnectionState
@@ -45,7 +44,7 @@ namespace RealtimeStreaming
                                 this.currentState, this.previousConnectionState, 
                                 this.connectionState);
 
-                            this.PlayerStateChanged(this, args);
+                            this.PlayerStateChanged?.Invoke(this, args);
                         }
                     });
                 }
@@ -83,8 +82,8 @@ namespace RealtimeStreaming
         private Connection networkConnection = null;
 
         private uint textureWidth, textureHeight;
-        private Texture2D streamingTexture_Luma;
-        private Texture2D streamingTexture_Chroma;
+        public Texture2D Texture_Luma { get; private set; }
+        public Texture2D Texture_Chroma { get; private set; }
 
         private PlayerPlugin.StateChangedCallback stateCallback;
         private GCHandle thisObject = default(GCHandle);
@@ -110,16 +109,6 @@ namespace RealtimeStreaming
             this.ConnectionState = ConnectionState.Idle;
             this.PlayerState = PlaybackState.None;
         }
-
-#if UNITY_EDITOR
-        private void Update()
-        {
-            if (Input.GetKey(KeyCode.P))
-            {
-                ConnectPlayer();
-            }
-        }
-#endif
 
         private void OnDisable()
         {
@@ -174,7 +163,7 @@ namespace RealtimeStreaming
             if (isPlayerCreated)
             {
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(), "RealtimeVideoPlayer::exReleasePlayer()");
-                this.streamingTexture_Luma = this.streamingTexture_Chroma = null;
+                this.Texture_Luma = this.Texture_Chroma = null;
                 isPlayerCreated = false;
             }
         }
@@ -184,8 +173,6 @@ namespace RealtimeStreaming
         {
             // we own the connection so we can just stop if if needed
             StopConnector();
-
-            this.ConnectTo = this.ipAddressInput.text;
 
             this.connector = new Connector { ConnectionUrl = string.Format(Plugin.MediaUrlFormat, this.ConnectTo, this.Port) };
             if (this.connector != null)
@@ -384,7 +371,7 @@ namespace RealtimeStreaming
 
                 Debug.Log("RealTimePlayer::OnCreated - " + width + " by " + height);
 
-                // TODO: Add information here for YUV work
+                // TODO: Add documentation information here for YUV work
 
                 // create native texture for playback
                 IntPtr nativeTexture_L = IntPtr.Zero;
@@ -397,7 +384,7 @@ namespace RealtimeStreaming
                     "RealtimeVideoPlayer::exCreateExternalTexture");
 
                 // Create the unity texture2ds 
-                this.streamingTexture_Luma =
+                this.Texture_Luma =
                     Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
                     TextureFormat.RG16,
@@ -405,21 +392,13 @@ namespace RealtimeStreaming
                     true,
                     nativeTexture_L);
 
-                this.streamingTexture_Chroma =
+                this.Texture_Chroma =
                     Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
                     TextureFormat.R8,
                     false,
                     true,
                     nativeTexture_UV);
-
-                // set texture for the shader
-                // TODO: Check that shader is expected
-                if (this.target != null)
-                {
-                    this.target.material.SetTexture("_MainTex_Luma", this.streamingTexture_Luma);
-                    this.target.material.SetTexture("_MainTex_Chroma", this.streamingTexture_Chroma);
-                }
 
                 this.Play();
             });
@@ -429,18 +408,24 @@ namespace RealtimeStreaming
         {
             Debug.Log("RealTimePlayer::Play");
             Plugin.CheckHResult(PlayerPlugin.exPlay(), "RealTimePlayer::exPlay");
+
+            this.PlayerState = PlaybackState.Playing;
         }
 
         public void Pause()
         {
             Debug.Log("RealTimePlayer::Pause");
             Plugin.CheckHResult(PlayerPlugin.exPause(), "RealTimePlayer::exPause");
+
+            this.PlayerState = PlaybackState.Paused;
         }
 
         public void Stop()
         {
             Debug.Log("RealTimePlayer::Stop");
             Plugin.CheckHResult(PlayerPlugin.exStop(), "RealTimePlayer::exStop");
+
+            this.PlayerState = PlaybackState.Ended;
         }
 
         private void MediaPlayback_Changed(PlayerPlugin.PLAYBACK_STATE args)

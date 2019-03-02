@@ -664,7 +664,7 @@ GameObject:
   - component: {fileID: 1214978307}
   - component: {fileID: 1214978306}
   m_Layer: 0
-  m_Name: Quad
+  m_Name: Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -962,6 +962,7 @@ GameObject:
   - component: {fileID: 1487948639}
   - component: {fileID: 1487948638}
   - component: {fileID: 1487948637}
+  - component: {fileID: 1487948640}
   m_Layer: 0
   m_Name: RemotePlayer
   m_TagString: Untagged
@@ -981,8 +982,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f15a133f2942b418b5b14d00a60eb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ipAddressInput: {fileID: 1627653655}
-  target: {fileID: 1214978307}
   ConnectTo: 10.89.206.24
   Port: 27772
   StopOnPaused: 0
@@ -1014,6 +1013,21 @@ Transform:
   m_Father: {fileID: 543280460}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1487948640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487948636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60d3aeeab3f9a6446af51ea03110d4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ipAddressInput: {fileID: 1627653655}
+  rtPlayer: {fileID: 1487948637}
+  target: {fileID: 1214978307}
 --- !u!1 &1501918897
 GameObject:
   m_ObjectHideFlags: 0

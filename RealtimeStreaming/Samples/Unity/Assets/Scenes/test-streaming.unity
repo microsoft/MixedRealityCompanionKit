@@ -975,6 +975,7 @@ GameObject:
   - component: {fileID: 1728835099}
   - component: {fileID: 1728835098}
   - component: {fileID: 1728835097}
+  - component: {fileID: 1728835100}
   m_Layer: 0
   m_Name: LocalPlayer
   m_TagString: Untagged
@@ -994,8 +995,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f15a133f2942b418b5b14d00a60eb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ipAddressInput: {fileID: 2030909694}
-  target: {fileID: 1238950224}
   ConnectTo: localhost
   Port: 27772
   StopOnPaused: 0
@@ -1027,6 +1026,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1728835100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1728835096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60d3aeeab3f9a6446af51ea03110d4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ipAddressInput: {fileID: 2030909694}
+  rtPlayer: {fileID: 1728835097}
+  target: {fileID: 1238950224}
 --- !u!1 &1761843478
 GameObject:
   m_ObjectHideFlags: 0
