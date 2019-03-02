@@ -18,9 +18,9 @@ void ModuleManager::ClearModules()
 {
     slim_lock_guard guard(m_lock);
 
-    _moduleHandleMap.clear();
+    m_moduleHandleMap.clear();
 
-    _lastModuleHandleIndex = MODULE_HANDLE_INVALID;
+    m_lastModuleHandleIndex = MODULE_HANDLE_INVALID;
 }
 
 _Use_decl_annotations_
@@ -30,12 +30,12 @@ ModuleHandle ModuleManager::AddModule(
     slim_lock_guard guard(m_lock);
 
     // get the last index value;
-    ModuleHandle handle = _lastModuleHandleIndex;
+    ModuleHandle handle = m_lastModuleHandleIndex;
     ModuleHandle returnHandle = MODULE_HANDLE_INVALID;
 
     // create a pair for the insert success
     //std::pair<std::map<ModuleHandle, IRTModule> >::iterator, bool> pairReturn;
-    auto pairReturn = _moduleHandleMap.insert(std::make_pair(handle, newModule));
+    auto pairReturn = m_moduleHandleMap.insert(std::make_pair(handle, newModule));
 
     // make sure pair was added
     if (pairReturn.second)
@@ -44,7 +44,7 @@ ModuleHandle ModuleManager::AddModule(
         returnHandle = handle++;
 
         // assign the new value
-        _lastModuleHandleIndex = handle;
+        m_lastModuleHandleIndex = handle;
     }
 
     return returnHandle;
@@ -60,8 +60,8 @@ RealtimeStreaming::Plugin::IRTModule ModuleManager::GetModule(ModuleHandle modul
 
     slim_lock_guard guard(m_lock);
 
-    auto iter = _moduleHandleMap.find(moduleHandle);
-    if (iter == _moduleHandleMap.end())
+    auto iter = m_moduleHandleMap.find(moduleHandle);
+    if (iter == m_moduleHandleMap.end())
     {
         IFT(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
     }
@@ -80,11 +80,79 @@ void ModuleManager::ReleaseModule(
 
     slim_lock_guard guard(m_lock);
 
-    auto iter = _moduleHandleMap.find(moduleHandle);
-    if (iter == _moduleHandleMap.end())
+    auto iter = m_moduleHandleMap.find(moduleHandle);
+    if (iter == m_moduleHandleMap.end())
     {
         IFT(HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
     }
 
-    _moduleHandleMap.erase(iter);
+    m_moduleHandleMap.erase(iter);
+}
+
+void ModuleManager::StoreToken(
+    ModuleHandle handle,
+    winrt::event_token const& newToken)
+{
+    // get the list of tokens for connection
+    auto iter = m_eventTokens.find(handle);
+    if (iter == m_eventTokens.end())
+    {
+        // if none exist, create then list
+        m_eventTokens.insert(std::move(std::make_pair(handle, std::vector<winrt::event_token>())));
+
+        // it should be in the list now
+        iter = m_eventTokens.find(handle);
+    }
+
+    // set eventList
+    std::vector<winrt::event_token> &eventList = iter->second;
+
+    // register callback and track token
+    eventList.emplace_back(std::move(newToken));
+}
+
+winrt::event_token ModuleManager::RemoveToken(
+    ModuleHandle handle,
+    INT64 tokenValue)
+{
+    winrt::event_token returnToken;
+
+    // get the list of tokens for connection
+    auto mapIt = m_eventTokens.find(handle);
+    if (mapIt != m_eventTokens.end())
+    {
+        // iterate tokens to match value
+        std::vector<winrt::event_token> &eventList = mapIt->second;
+        auto vectorIt = std::find_if(
+            eventList.begin(),
+            eventList.end(),
+            [&tv = tokenValue](const winrt::event_token& t) -> bool
+        {
+            return (tv == t.value);
+        });
+
+        if (vectorIt != eventList.end())
+        {
+            returnToken = *vectorIt;
+
+            eventList.erase(vectorIt);
+        }
+    }
+
+    return returnToken;
+}
+
+std::vector<winrt::event_token> ModuleManager::RemoveTokens(
+    _In_ ModuleHandle handle)
+{
+    std::vector<winrt::event_token> eventList;
+    auto mapIt = m_eventTokens.find(handle);
+    if (mapIt != m_eventTokens.end())
+    {
+        eventList = mapIt->second;
+
+        m_eventTokens.erase(handle);
+    }
+
+    return eventList;
 }

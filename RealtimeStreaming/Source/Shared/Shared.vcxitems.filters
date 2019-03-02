@@ -100,9 +100,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ModuleManager.h">
       <Filter>Plugin</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)PluginManager.h">
-      <Filter>Plugin</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
@@ -154,13 +151,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ModuleManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)PluginManager.cpp">
-      <Filter>Plugin</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
@@ -200,15 +196,14 @@
     <Midl Include="$(MSBuildThisFileDirectory)ModuleManager.idl">
       <Filter>Plugin</Filter>
     </Midl>
-    <Midl Include="$(MSBuildThisFileDirectory)PluginManager.idl">
-      <Filter>Plugin</Filter>
-    </Midl>
     <Midl Include="$(MSBuildThisFileDirectory)RTSchemeHandler.idl">
       <Filter>Media</Filter>
     </Midl>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)packages.config" />
-    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
+    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def">
+      <Filter>Plugin</Filter>
+    </None>
   </ItemGroup>
 </Project>

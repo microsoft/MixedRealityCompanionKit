@@ -145,17 +145,16 @@ namespace RealtimeStreaming
             {
                 this.StopConnector();
             }
-            else
+
+            if (this.isPlayerCreated)
             {
                 this.Stop();
 
                 this.CloseNetworkConnection();
-            }
 
-            if (isPlayerCreated)
-            {
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(this.playerHandle), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.Texture_Luma = this.Texture_Chroma = null;
+
                 isPlayerCreated = false;
             }
         }

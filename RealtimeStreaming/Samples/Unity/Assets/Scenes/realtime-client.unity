@@ -234,7 +234,7 @@ GameObject:
   - component: {fileID: 367725512}
   - component: {fileID: 367725511}
   - component: {fileID: 367725510}
-  - component: {fileID: 367725514}
+  - component: {fileID: 367725515}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -323,7 +323,7 @@ RectTransform:
   m_AnchoredPosition: {x: -0.17738135, y: -0.449}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &367725514
+--- !u!114 &367725515
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -332,10 +332,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 367725509}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2aebab3047f2113489ca3eb8423228b6, type: 3}
+  m_Script: {fileID: 11500000, guid: ff4e3b9019304b5aaec5664de0778d21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Canvas: {fileID: 367725512}
 --- !u!1 &378076458
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,7 +428,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 543280459}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 6}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1487948639}
@@ -610,7 +609,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 10.91.186.104
+  m_Text: 10.89.205.249
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -822,8 +821,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1487948637}
-        m_MethodName: ConnectPlayer
+      - m_Target: {fileID: 1487948640}
+        m_MethodName: StartPlayer
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -982,7 +981,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f15a133f2942b418b5b14d00a60eb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ConnectTo: 10.89.206.24
+  ConnectTo: 10.89
   Port: 27772
   StopOnPaused: 0
 --- !u!114 &1487948638
@@ -1175,7 +1174,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 10.91.186.104
+  m_Text: 10.89.205.249
 --- !u!222 &1627653656
 CanvasRenderer:
   m_ObjectHideFlags: 0

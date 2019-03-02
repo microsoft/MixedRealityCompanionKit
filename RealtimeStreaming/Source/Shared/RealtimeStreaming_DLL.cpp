@@ -58,7 +58,6 @@ static IUnityInterfaces* s_unityInterfaces = nullptr;
 static IUnityGraphics* s_unityGraphics = nullptr;
 
 static ModuleManager  s_moduleManager{ nullptr };
-std::map<ModuleHandle, std::vector<winrt::event_token>> s_eventTokens;
 
 static std::vector<byte> s_bundleData;
 
@@ -71,60 +70,6 @@ static T GetModule(_In_ ModuleHandle handle)
     }
 
     return nullptr;
-}
-
-// TODO: Move store/remove token to module manager?
-static void StoreToken(
-    ModuleHandle handle,
-    winrt::event_token const& newToken)
-{
-    // get the list of tokens for connection
-    auto iter = s_eventTokens.find(handle);
-    if (iter == s_eventTokens.end())
-    {
-        // if none exist, create then list
-        s_eventTokens.insert(std::move(std::make_pair(handle, std::vector<winrt::event_token>())));
-
-        // it should be in the list now
-        iter = s_eventTokens.find(handle);
-    }
-
-    // set eventList
-    std::vector<winrt::event_token> &eventList = iter->second;
-
-    // register callback and track token
-    eventList.emplace_back(std::move(newToken));
-}
-
-static winrt::event_token RemoveToken(
-    ModuleHandle handle,
-    INT64 tokenValue)
-{
-    winrt::event_token returnToken;
-
-    // get the list of tokens for connection
-    auto mapIt = s_eventTokens.find(handle);
-    if (mapIt != s_eventTokens.end())
-    {
-        // iterate tokens to match value
-        std::vector<winrt::event_token> &eventList = mapIt->second;
-        auto vectorIt = std::find_if(
-            eventList.begin(),
-            eventList.end(),
-            [&tv = tokenValue](const winrt::event_token& t) -> bool
-        {
-            return (tv == t.value);
-        });
-
-        if (vectorIt != eventList.end())
-        {
-            returnToken = *vectorIt;
-
-            eventList.erase(vectorIt);
-        }
-    }
-
-    return returnToken;
 }
 
 static void CompletePluginCallback(
@@ -142,7 +87,7 @@ static void CompletePluginCallback(
 
 static void UNITY_INTERFACE_API  OnDeviceEvent(UnityGfxDeviceEventType eventType)
 {
-    Log(Log_Level_Info, L"PluginManager::OnDeviceEvent ");
+    Log(Log_Level_Info, L"Plugin::OnDeviceEvent ");
 
     UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
 
@@ -173,7 +118,7 @@ static void UNITY_INTERFACE_API  OnDeviceEvent(UnityGfxDeviceEventType eventType
 
 RTDLL_(void) UnityPluginLoad(_In_ IUnityInterfaces* unityInterfaces)
 {
-    Log(Log_Level_Info, L"PluginManager::Load()\n");
+    Log(Log_Level_Info, L"Plugin::Load()\n");
 
     NULL_THROW(unityInterfaces);
 
@@ -196,7 +141,7 @@ RTDLL_(void) UnityPluginLoad(_In_ IUnityInterfaces* unityInterfaces)
 
 RTDLL_(void) UnityPluginUnload()
 {
-    Log(Log_Level_Info, L"PluginManager::UnLoad()\n");
+    Log(Log_Level_Info, L"Plugin::UnLoad()\n");
 
     if (s_unityGraphics == nullptr)
     {
@@ -232,7 +177,7 @@ void ListenAsync(Listener listener,
     auto listenAsync = listener.ListenAsync();
     listenAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
-        Log(Log_Level_Info, L"PluginManager::StartListener() - ListenAsync() Completed - Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"Plugin::StartListener() - ListenAsync() Completed - Tid:%d \n", GetCurrentThreadId());
 
         auto connection = asyncOp.GetResults();
 
@@ -252,36 +197,27 @@ RTDLL ListenerCreateAndStart(
     _In_ PluginCallback callback,
     _In_ void* pManagedCallbackObject)
 {
-    Log(Log_Level_Info, L"PluginManager::StartListener() - Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::StartListener() - Tid:%d \n", GetCurrentThreadId());
 
     *listenerHandle = MODULE_HANDLE_INVALID;
     NULL_CHK(pManagedCallbackObject);
     NULL_CHK(listenerHandle);
     NULL_CHK(callback);
 
-    // Create a new listener
-    Listener listener = winrt::make<winrt::RealtimeStreaming::Network::implementation::Listener>(port);
-
-    // Save handle of newly created listener to output
-    *listenerHandle = s_moduleManager.AddModule(listener);
-
-    ListenAsync(listener, callback, pManagedCallbackObject);
-    /*
-    auto listenAsync = listener.ListenAsync();
-    listenAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
+    try
     {
-        Log(Log_Level_Info, L"PluginManager::StartListener() - ListenAsync() Completed - Tid:%d \n", GetCurrentThreadId());
+        // Create a new listener
+        Listener listener = winrt::make<winrt::RealtimeStreaming::Network::implementation::Listener>(port);
 
-        auto connection = asyncOp.GetResults();
+        // Save handle of newly created listener to output
+        *listenerHandle = s_moduleManager.AddModule(listener);
 
-        if (s_moduleManager == nullptr)
-        {
-            CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
-        }
-
-        ModuleHandle handle = s_moduleManager.AddModule(connection);
-        CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
-    });*/
+        ListenAsync(listener, callback, pManagedCallbackObject);
+    }
+    catch (winrt::hresult_error const& ex)
+    {
+        return ex.to_abi();
+    }
 
     return S_OK;
 }
@@ -289,7 +225,7 @@ RTDLL ListenerCreateAndStart(
 RTDLL ListenerStopAndClose(
     _In_ UINT32 handle)
 {
-    Log(Log_Level_Info, L"PluginManager::StopListener()\n");
+    Log(Log_Level_Info, L"Plugin::StopListener()\n");
 
     NULL_CHK(s_moduleManager);
 
@@ -305,7 +241,7 @@ void ConnectAsync(_In_ Connector connector,
     auto connectAsync = connector.ConnectAsync(); // TODO: need to save reference outside of function call?
     connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
-        Log(Log_Level_Info, L"PluginManager::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"Plugin::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
 
         auto connection = asyncOp.GetResults();
 
@@ -325,7 +261,7 @@ RTDLL ConnectorCreateAndStart(
     _In_ PluginCallback callback,
     _In_ void* pManagedCallbackObject)
 {
-    Log(Log_Level_Info, L"PluginManager::ConnectorCreateAndStart() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::ConnectorCreateAndStart() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(pManagedCallbackObject);
     NULL_CHK(connectorHandle);
@@ -333,38 +269,28 @@ RTDLL ConnectorCreateAndStart(
 
     *connectorHandle = MODULE_HANDLE_INVALID;
 
-    std::wstring wsUri = address;
-    Uri uri{ wsUri };
-    HostName hostName = HostName(uri.Host());
+    try
+    { 
+        std::wstring wsUri = address;
+        Uri uri{ wsUri };
+        HostName hostName = HostName(uri.Host());
 
-    Connector connector = winrt::make<RealtimeStreaming::Network::implementation::Connector>(hostName, uri.Port());
-    *connectorHandle = s_moduleManager.AddModule(connector);
+        Connector connector = winrt::make<RealtimeStreaming::Network::implementation::Connector>(hostName, uri.Port());
+        *connectorHandle = s_moduleManager.AddModule(connector);
 
-    ConnectAsync(connector, callback, pManagedCallbackObject);
-    /*
-    auto connectAsync = connector.ConnectAsync(); // TODO: need to save reference outside of function call?
-    connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
+        ConnectAsync(connector, callback, pManagedCallbackObject);
+    }
+    catch (winrt::hresult_error const& ex)
     {
-        Log(Log_Level_Info, L"PluginManager::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
-
-        auto connection = asyncOp.GetResults();
-
-        if (s_moduleManager == nullptr)
-        {
-            CompletePluginCallback(callback, pCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
-        }
-
-        ModuleHandle handle = s_moduleManager.AddModule(connection);
-        CompletePluginCallback(callback, pCallbackObject, handle, S_OK);
-    });
-    */
+        return ex.to_abi();
+    }
 
     return S_OK;
 }
 RTDLL ConnectorStopAndClose(
     _In_ UINT32 handle)
 {
-    Log(Log_Level_Info, L"PluginManager::CloseConnector()\n");
+    Log(Log_Level_Info, L"Plugin::CloseConnector()\n");
 
     NULL_CHK(s_moduleManager);
 
@@ -377,7 +303,7 @@ RTDLL ConnectionAddDisconnected(
     _In_ void* pManagedCallbackObject,
     _Out_ INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManager::ConnectionAddDisconnected() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::ConnectionAddDisconnected() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(pManagedCallbackObject);
     NULL_CHK(callback);
@@ -393,7 +319,7 @@ RTDLL ConnectionAddDisconnected(
     *tokenValue = disconnectedToken.value;
 
     // track the token
-    StoreToken(handle, disconnectedToken);
+    s_moduleManager.StoreToken(handle, disconnectedToken);
 
     return S_OK;
 }
@@ -402,10 +328,10 @@ RTDLL ConnectionRemoveDisconnected(
     _In_ UINT32 handle,
     _In_ INT64 tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManager::ConnectionRemoveReceived()\n");
+    Log(Log_Level_Info, L"Plugin::ConnectionRemoveReceived()\n");
 
     // get the token stored in the event list
-    winrt::event_token removeToken = RemoveToken(handle, tokenValue);
+    winrt::event_token removeToken = s_moduleManager.RemoveToken(handle, tokenValue);
 
     // unsubscribe from the event
     Connection connection = GetModule<Connection>(handle);
@@ -420,7 +346,7 @@ RTDLL ConnectionAddReceived(
     _In_ void* pManagedCallbackObject,
     _Out_ INT64* tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManager::ConnectionAddReceived() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::ConnectionAddReceived() -Tid:%d \n", GetCurrentThreadId());
     NULL_CHK(pManagedCallbackObject);
     NULL_CHK(callback);
     NULL_CHK(tokenValue);
@@ -434,7 +360,7 @@ RTDLL ConnectionAddReceived(
             _In_ IInspectable const& /* sender */,
             _In_ DataBundleArgs const& args)
     {
-        Log(Log_Level_Info, L"PluginManager::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
+        Log(Log_Level_Info, L"Plugin::bundleReceivedCallback() -Tid:%d \n", GetCurrentThreadId());
 
         HRESULT hr = S_OK;
 
@@ -476,7 +402,7 @@ RTDLL ConnectionAddReceived(
     *tokenValue = evtReceivedToken.value;
 
     // track the token
-    StoreToken(handle, evtReceivedToken);
+    s_moduleManager.StoreToken(handle, evtReceivedToken);
 
     return S_OK;
 }
@@ -485,10 +411,10 @@ RTDLL ConnectionRemoveReceived(
     _In_ UINT32 handle,
     _In_ INT64 tokenValue)
 {
-    Log(Log_Level_Info, L"PluginManager::ConnectionRemoveReceived()\n");
+    Log(Log_Level_Info, L"Plugin::ConnectionRemoveReceived()\n");
 
     // get the token stored in the event list
-    winrt::event_token removeToken = RemoveToken(handle, tokenValue);
+    winrt::event_token removeToken = s_moduleManager.RemoveToken(handle, tokenValue);
 
     // unsubscribe from the event
     Connection connection = GetModule<Connection>(handle);
@@ -498,28 +424,31 @@ RTDLL ConnectionRemoveReceived(
 }
 
 RTDLL ConnectionClose(
-    _In_ UINT32 handle)
+    _In_ UINT32 connectionHandle)
 {
-    Log(Log_Level_Info, L"PluginManager::ConnectionClose()\n");
+    Log(Log_Level_Info, L"Plugin::ConnectionClose()\n");
 
-    Connection connection = GetModule<Connection>(handle);
-
-    // find any tokens register to this handle
-    auto iter = s_eventTokens.find(handle);
-    if (iter != s_eventTokens.end())
+    try
     {
-        for each (auto token in (*iter).second)
+        Connection connection = GetModule<Connection>(connectionHandle);
+
+        auto moduleManagerImpl = s_moduleManager.as<RealtimeStreaming::Plugin::implementation::ModuleManager>();
+
+        // find any tokens register to this handle
+        auto eventTokens = moduleManagerImpl->RemoveTokens(connectionHandle);
+        for each (auto token in eventTokens)
         {
             connection.Disconnected(token);
             connection.Received(token);
         }
-        (*iter).second.clear();
 
-        s_eventTokens.erase(iter);
+        // unregister from the connection
+        s_moduleManager.ReleaseModule(connectionHandle);
     }
-
-    // unregister from the connection
-    s_moduleManager.ReleaseModule(handle);
+    catch (winrt::hresult_error const& ex)
+    {
+        return ex.to_abi();
+    }
 
     return S_OK;
 }
@@ -536,7 +465,7 @@ RTDLL CreateRealtimeStreamingServer(
 {
     NULL_CHK(serverHandle);
 
-    Log(Log_Level_Info, L"PluginManager::RTServerCreate() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::CreateRealtimeStreamingServer() -Tid:%d \n", GetCurrentThreadId());
 
     Connection connection = GetModule<Connection>(connectionHandle);
 
@@ -566,7 +495,7 @@ RTDLL RealtimeStreamingWrite(
 {
     NULL_CHK(pBuffer);
 
-    Log(Log_Level_Info, L"PluginManager::RTServerWriteFrame()\n");
+    Log(Log_Level_Info, L"Plugin::RealtimeStreamingWrite()\n");
 
     array_view<byte const> bufferArrayView{ pBuffer, pBuffer + bufferSize };
 
@@ -579,7 +508,7 @@ RTDLL RealtimeStreamingWrite(
 RTDLL RealtimeStreamingShutdown(
     _In_ UINT32 serverHandle)
 {
-    Log(Log_Level_Info, L"PluginManager::RTServerShutdown()\n");
+    Log(Log_Level_Info, L"Plugin::RTServerShutdown()\n");
 
     auto rtServer = GetModule<RealtimeServer>(serverHandle);
     rtServer.Shutdown();
@@ -595,6 +524,7 @@ RTDLL RealtimeStreamingShutdown(
 //
 //
 
+// Lambdas cannot be in extern C method
 void InitPlayerAsync(RealtimeMediaPlayer rtPlayer,
     Connection connection,
     _In_ PlayerCreatedCallback callback,
@@ -609,7 +539,7 @@ void InitPlayerAsync(RealtimeMediaPlayer rtPlayer,
         auto videoProps = asyncOp.GetResults();
         UINT32 width = videoProps.Width(), height = videoProps.Height();
 
-        Log(Log_Level_Info, L"PluginManager::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
+        Log(Log_Level_Info, L"Plugin::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
 
         callback(pManagedCallbackObject, S_OK, width, height);
     });
@@ -627,7 +557,7 @@ RTDLL CreateRealtimePlayer(
         return E_INVALIDARG;
     }
 
-    Log(Log_Level_Info, L"PluginManager::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
 
     NULL_CHK(callback);
     NULL_CHK(pManagedCallbackObject);
@@ -643,29 +573,14 @@ RTDLL CreateRealtimePlayer(
     *serverHandle = handle;
 
     InitPlayerAsync(rtPlayer, connection, callback, pManagedCallbackObject);
-    /*
-    auto rtPlayerImpl = rtPlayer.as<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
-    rtPlayerImpl->Initialize(s_deviceResource);
 
-
-    auto initAsync = rtPlayer.InitAsync(connection);
-    initAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
-    {
-        auto videoProps = asyncOp.GetResults();
-        UINT32 width = videoProps.Width(), height = videoProps.Height();
-
-        Log(Log_Level_Info, L"PluginManager::RTPlayerCreate() [InitAsync()] w:%d - h:%d \n", width, height);
-
-        callback(pCallbackObject, S_OK, width, height);
-    });
-    */
     return S_OK;
 }
 
 RTDLL ReleaseRealtimePlayer(
     _In_ UINT32 playerHandle)
 {
-    Log(Log_Level_Info, L"PluginManager::RTPlayerRelease() -Tid:%d \n", GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::ReleaseRealtimePlayer() -Tid:%d \n", GetCurrentThreadId());
 
     auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
     rtPlayer.Shutdown();
@@ -682,7 +597,7 @@ RTDLL CreateRealtimePlayerTexture(
     _COM_Outptr_ void** ppvTexture_L,
     _COM_Outptr_ void** ppvTexture_UV)
 {
-    Log(Log_Level_Info, L"PluginManager::RTPlayerCreateTexture(%d, %d) -Tid:%d \n", width, height, GetCurrentThreadId());
+    Log(Log_Level_Info, L"Plugin::CreateRealtimePlayerTexture(%d, %d) -Tid:%d \n", width, height, GetCurrentThreadId());
 
     NULL_CHK(ppvTexture_L);
     NULL_CHK(ppvTexture_UV);
@@ -699,7 +614,7 @@ RTDLL CreateRealtimePlayerTexture(
 RTDLL RealtimePlayerPlay(
     _In_ UINT32 playerHandle)
 {
-    Log(Log_Level_Info, L"PluginManager::RTPlayerStart()\n");
+    Log(Log_Level_Info, L"Plugin::RTPlayerStart()\n");
 
     auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
     NULL_CHK(rtPlayer);
@@ -712,7 +627,7 @@ RTDLL RealtimePlayerPlay(
 RTDLL RealtimePlayerPause(
     _In_ UINT32 playerHandle)
 {
-    Log(Log_Level_Info, L"PluginManager::RTPlayerPause()\n");
+    Log(Log_Level_Info, L"Plugin::RTPlayerPause()\n");
 
     auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
     NULL_CHK(rtPlayer);
@@ -725,7 +640,7 @@ RTDLL RealtimePlayerPause(
 RTDLL RealtimePlayerStop(
     _In_ UINT32 playerHandle)
 {
-    Log(Log_Level_Info, L"PluginManager::RTPlayerStop()\n");
+    Log(Log_Level_Info, L"Plugin::RTPlayerStop()\n");
 
     auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
     NULL_CHK(rtPlayer);

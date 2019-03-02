@@ -7,7 +7,7 @@
 
 namespace winrt::RealtimeStreaming::Plugin::implementation
 {
-    typedef UINT32 ModuleHandle;
+    typedef uint32_t ModuleHandle;
 
     struct ModuleManager : ModuleManagerT<ModuleManager>
     {
@@ -24,12 +24,26 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
 
         void ClearModules();
 
+        void StoreToken(
+            _In_ ModuleHandle handle,
+            _In_ winrt::event_token const& newToken);
+
+        winrt::event_token RemoveToken(
+            _In_ ModuleHandle handle,
+            _In_ INT64 tokenValue);
+
+        // Impl
+        // TODO: Clean this up with better design
+        std::vector<winrt::event_token> RemoveTokens(_In_ ModuleHandle handle);
+
     private:
         slim_mutex m_lock;
 
-        ModuleHandle _lastModuleHandleIndex = MODULE_HANDLE_START;
+        ModuleHandle m_lastModuleHandleIndex = MODULE_HANDLE_START;
 
-        std::map<ModuleHandle, IRTModule> _moduleHandleMap;
+        std::map<ModuleHandle, IRTModule> m_moduleHandleMap;
+
+        std::map<ModuleHandle, std::vector<winrt::event_token>> m_eventTokens;
     };
 }
 

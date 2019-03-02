@@ -30,7 +30,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)OpQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)PluginManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeServer.h" />
@@ -59,9 +58,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSink.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
-        <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)PluginManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeServer.cpp" />
@@ -78,7 +76,6 @@
     <Midl Include="$(MSBuildThisFileDirectory)ModuleManager.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl" />
-    <Midl Include="$(MSBuildThisFileDirectory)PluginManager.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeServer.idl" />

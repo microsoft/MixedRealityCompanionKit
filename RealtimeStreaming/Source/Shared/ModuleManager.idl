@@ -25,5 +25,13 @@ namespace RealtimeStreaming.Plugin
         void ReleaseModule(UInt32 moduleHandle);
 
         void ClearModules();
+
+        void StoreToken(
+            UInt32 handle,
+            EventRegistrationToken newToken);
+
+        EventRegistrationToken RemoveToken(
+            UInt32 handle,
+            Int64 tokenValue);
     };
 }
