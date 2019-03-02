@@ -4,7 +4,6 @@
 
 namespace RealtimeStreaming.Plugin
 {
-
     [version(1.0), uuid(2edeb3fb-8008-4a13-b8d3-7081fd11443f)]
     interface IRTModule : IInspectable
     {
@@ -24,5 +23,7 @@ namespace RealtimeStreaming.Plugin
         IRTModule GetModule(UInt32 moduleHandle);
 
         void ReleaseModule(UInt32 moduleHandle);
+
+        void ClearModules();
     };
 }

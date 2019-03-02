@@ -79,9 +79,6 @@ winrt::fire_and_forget Connection::RunSocketLoop()
 {
     Log(Log_Level_All, L"Connection::RunSocketLoop - Tid: %d \n", GetCurrentThreadId());
 
-    //co_await winrt::resume_background();
-    //Log(Log_Level_All, L"Connection::RunSocketLoop - resume_background - Tid: %d \n", GetCurrentThreadId());
-
     try
     {
         IFT(CheckClosed());
@@ -114,18 +111,18 @@ winrt::fire_and_forget Connection::RunSocketLoop()
         // Reset header for next read
         ZeroMemory(&m_receivedHeader, sizeof(PayloadHeader));
         m_receivedHeader.ePayloadType = PayloadType::Unknown;
+
+        // Re-run loop to listen for next batch of data
+        RunSocketLoop();
     }
     catch (winrt::hresult_error const& ex)
     {
         Log(Log_Level_All, L"Connection::RunSocketLoop Exception Thrown - Tid: %d \n", GetCurrentThreadId());
         LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-        
+
         Close();
         return;
     }
-
-    // Re-run loop to listen for next batch of data
-    RunSocketLoop();
 }
 
 _Use_decl_annotations_

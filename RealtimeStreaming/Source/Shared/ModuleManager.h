@@ -16,15 +16,15 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
         ModuleManager() = default;
         ~ModuleManager();
 
-        // IRTModuleManager
         UINT32 AddModule(_In_ IRTModule newModule);
 
         IRTModule GetModule(_In_ ModuleHandle moduleHandle);
 
         void ReleaseModule(_In_ ModuleHandle moduleHandle);
 
+        void ClearModules();
+
     private:
-        //Wrappers::CriticalSection _lock;
         slim_mutex m_lock;
 
         ModuleHandle _lastModuleHandleIndex = MODULE_HANDLE_START;

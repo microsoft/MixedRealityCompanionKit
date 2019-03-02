@@ -158,9 +158,7 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             IUnityGraphics*                     m_unityGraphics;
             IUnityGraphicsDeviceEventCallback   m_unityCallback;
 
-            std::wstring    m_streamingAssetsPath;
-
-            std::map<ModuleHandle, std::vector<winrt::event_token>> m_eventTokens;
+            std::map<ModuleHandle, std::vector<winrt::event_token>> s_eventTokens;
 
             std::vector<byte> _bundleData;
     };

@@ -95,9 +95,13 @@ namespace RealtimeStreaming
         private bool isPaused = false;
         private bool isPlayerCreated = false;
 
+        private uint playerHandle = Plugin.InvalidHandle;
+
         private void Awake()
         {
             this.plugin = this.GetComponent<Plugin>();
+
+            this.playerHandle = Plugin.InvalidHandle;
 
             this.PlayerState = PlaybackState.None;
 
@@ -150,7 +154,7 @@ namespace RealtimeStreaming
 
             if (isPlayerCreated)
             {
-                Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(), "RealtimeVideoPlayer::exReleasePlayer()");
+                Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(this.playerHandle), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.Texture_Luma = this.Texture_Chroma = null;
                 isPlayerCreated = false;
             }
@@ -321,16 +325,24 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
             // Create our RealtimePlayer at the Plugin C++ layer
-            Plugin.CheckHResult(PlayerPlugin.exCreatePlayer(this.networkConnection.Handle,
+            Plugin.CheckHResult(PlayerPlugin.exCreatePlayer(
+                this.networkConnection.Handle,
                 this.stateCallback,
                 this.createdHandler,
-                thisObjectPtr
+                thisObjectPtr,
+                ref this.playerHandle
                 ), "RealtimeVideoPlayer::exCreatePlayer()");
+
+            if (playerHandle == Plugin.InvalidHandle)
+            {
+                Shutdown();
+                return;
+            }
 
             isPlayerCreated = true;
         }
 
-        private void OnCreated(long result, UInt32 width, UInt32 height)
+        private void OnCreated(long result, int width, int height)
         {
             this.plugin.QueueAction(() =>
             {
@@ -350,8 +362,8 @@ namespace RealtimeStreaming
                     height = 720;
                 }
 
-                this.textureWidth = width;
-                this.textureHeight = height;
+                this.textureWidth = (uint)width;
+                this.textureHeight = (uint)height;
 
                 Debug.Log("RealTimePlayer::OnCreated - " + width + " by " + height);
 
@@ -361,7 +373,8 @@ namespace RealtimeStreaming
                 IntPtr nativeTexture_L = IntPtr.Zero;
                 IntPtr nativeTexture_UV = IntPtr.Zero;
 
-                Plugin.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.textureWidth,
+                Plugin.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.playerHandle,
+                    this.textureWidth,
                     this.textureHeight,
                     out nativeTexture_L,
                     out nativeTexture_UV), 
@@ -391,7 +404,7 @@ namespace RealtimeStreaming
         public void Play()
         {
             Debug.Log("RealTimePlayer::Play");
-            Plugin.CheckHResult(PlayerPlugin.exPlay(), "RealTimePlayer::exPlay");
+            Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
 
             this.PlayerState = PlaybackState.Playing;
         }
@@ -399,7 +412,7 @@ namespace RealtimeStreaming
         public void Pause()
         {
             Debug.Log("RealTimePlayer::Pause");
-            Plugin.CheckHResult(PlayerPlugin.exPause(), "RealTimePlayer::exPause");
+            Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
 
             this.PlayerState = PlaybackState.Paused;
         }
@@ -407,7 +420,7 @@ namespace RealtimeStreaming
         public void Stop()
         {
             Debug.Log("RealTimePlayer::Stop");
-            Plugin.CheckHResult(PlayerPlugin.exStop(), "RealTimePlayer::exStop");
+            Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
 
             this.PlayerState = PlaybackState.Ended;
         }
@@ -445,7 +458,6 @@ namespace RealtimeStreaming
         #endregion
 
         #region Realtime Player Plugin
-
         internal static class PlayerPlugin
         {
             public enum StateType
@@ -495,34 +507,35 @@ namespace RealtimeStreaming
             public delegate void StateChangedCallback(PLAYBACK_STATE args);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            public delegate void PlayerCreatedCallbackHandler(IntPtr senderPtr, long result, UInt32 width, UInt32 height);
+            public delegate void PlayerCreatedCallbackHandler(IntPtr senderPtr, long result, int width, int height);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayer")]
             internal static extern long exCreatePlayer(uint connectionHandle,
                 [MarshalAs(UnmanagedType.FunctionPtr)]StateChangedCallback callback, 
                 [MarshalAs(UnmanagedType.FunctionPtr)]PlayerCreatedCallbackHandler createdCallback, 
-                IntPtr objectPtr);
+                IntPtr objectPtr,
+                ref uint playerHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ReleaseRealtimePlayer")]
-            internal static extern long exReleasePlayer();
+            internal static extern long exReleasePlayer(uint playerHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayerTexture")]
-            internal static extern long exCreateExternalTexture(UInt32 width, UInt32 height, out System.IntPtr texture_L, out System.IntPtr texture_UV);
+            internal static extern long exCreateExternalTexture(uint playerHandle, uint width, uint height, out System.IntPtr texture_L, out System.IntPtr texture_UV);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimePlayerPlay")]
-            internal static extern long exPlay();
+            internal static extern long exPlay(uint playerHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimePlayerPause")]
-            internal static extern long exPause();
+            internal static extern long exPause(uint playerHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimePlayerStop")]
-            internal static extern long exStop();
+            internal static extern long exStop(uint playerHandle);
         }
 
         internal static class Player_PluginCallbackWrapper
         {
             [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.PlayerCreatedCallbackHandler))]
-            internal static void OnCreated_Callback(IntPtr senderPtr, long result, UInt32 width, UInt32 height)
+            internal static void OnCreated_Callback(IntPtr senderPtr, long result, int width, int height)
             {
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
                 

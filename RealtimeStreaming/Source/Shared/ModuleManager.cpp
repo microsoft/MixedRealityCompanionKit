@@ -10,6 +10,12 @@ using namespace RealtimeStreaming::Plugin::implementation;
 _Use_decl_annotations_
 ModuleManager::~ModuleManager() 
 {
+    ClearModules();
+}
+
+_Use_decl_annotations_
+void ModuleManager::ClearModules()
+{
     slim_lock_guard guard(m_lock);
 
     _moduleHandleMap.clear();

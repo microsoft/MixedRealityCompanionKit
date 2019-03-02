@@ -56,10 +56,8 @@ void PluginManager::Uninitialize()
 
     slim_lock_guard guard(m_lock);
 
-    m_streamingAssetsPath.clear();
-
-    assert(0 == m_eventTokens.size());
-    m_eventTokens.clear();
+    assert(0 == s_eventTokens.size());
+    s_eventTokens.clear();
     m_moduleManager = nullptr;
 }
 
@@ -80,7 +78,6 @@ bool PluginManager::IsOnThread()
 {
     return (s_threadId == GetCurrentThreadId());
 }
-
 
 /* static */
 _Use_decl_annotations_
@@ -495,8 +492,8 @@ HRESULT PluginManager::ConnectionClose(
     Network::Connection connection = GetModule<Network::Connection>(handle);
 
     // find any tokens register to this handle
-    auto iter = m_eventTokens.find(handle);
-    if (iter != m_eventTokens.end())
+    auto iter = s_eventTokens.find(handle);
+    if (iter != s_eventTokens.end())
     {
         for each (auto token in (*iter).second)
         {
@@ -505,7 +502,7 @@ HRESULT PluginManager::ConnectionClose(
         }
         (*iter).second.clear();
 
-        m_eventTokens.erase(iter);
+        s_eventTokens.erase(iter);
     }
 
     // unregister from the connection
@@ -733,14 +730,14 @@ void PluginManager::StoreToken(
     winrt::event_token const& newToken)
 {
     // get the list of tokens for connection
-    auto iter = m_eventTokens.find(handle);
-    if (iter == m_eventTokens.end())
+    auto iter = s_eventTokens.find(handle);
+    if (iter == s_eventTokens.end())
     {
         // if none exist, create then list
-        m_eventTokens.insert(std::move(std::make_pair(handle, std::vector<winrt::event_token>())));
+        s_eventTokens.insert(std::move(std::make_pair(handle, std::vector<winrt::event_token>())));
 
         // it should be in the list now
-        iter = m_eventTokens.find(handle);
+        iter = s_eventTokens.find(handle);
     }
 
     // set eventList
@@ -758,8 +755,8 @@ winrt::event_token PluginManager::RemoveToken(
     winrt::event_token returnToken;
 
     // get the list of tokens for connection
-    auto mapIt = m_eventTokens.find(handle);
-    if (mapIt != m_eventTokens.end())
+    auto mapIt = s_eventTokens.find(handle);
+    if (mapIt != s_eventTokens.end())
     {
         // iterate tokens to match value
         std::vector<winrt::event_token> &eventList = mapIt->second;
