@@ -70,8 +70,6 @@ Connection::Connection(_In_ winrt::Windows::Networking::Sockets::StreamSocket co
 _Use_decl_annotations_
 Connection::~Connection()
 {
-    slim_lock_guard guard(m_lock);
-
     Log(Log_Level_Warning, L"Connection::~Connection()\n");
 
     Close();

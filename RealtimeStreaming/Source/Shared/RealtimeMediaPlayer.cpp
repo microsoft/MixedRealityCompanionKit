@@ -52,11 +52,6 @@ IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     MediaSource source = MediaSource::CreateFromMediaStreamSource(mediaStreamSource);
     m_mediaPlayer.Source(source);
 
-    /*
-    MediaPlaybackItem item = MediaPlaybackItem(source);
-    m_mediaPlayer.Source(item);
-    */
-
     // TODO: Turn this into MediaEncodingProfile when supporting audio
     return m_RealtimeMediaSource.VideoProperties();
 }
@@ -323,10 +318,6 @@ _Use_decl_annotations_
 void RealtimeMediaPlayer::ReleaseMediaPlayer()
 {
     Log(Log_Level_Info, L"RealtimeMediaPlayer::ReleaseMediaPlayer()\n");
-
-    // TODO: Check if still hitting errors
-    // stop playback
-    //Stop();
 
     if (m_mediaPlaybackSession != nullptr)
     {
