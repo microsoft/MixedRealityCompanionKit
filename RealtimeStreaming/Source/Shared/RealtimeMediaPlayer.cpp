@@ -18,12 +18,15 @@ using namespace Windows::Media::Playback;
 using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
 
 //_In_ StateChangedCallback fnCallback)
+
+_Use_decl_annotations_
 void RealtimeMediaPlayer::Initialize(std::weak_ptr<IUnityDeviceResource> const& unityDevice)
 {
     m_primaryBuffer = std::make_shared<SharedTextureBuffer>();
     m_deviceResources = unityDevice;
 }
 
+_Use_decl_annotations_
 void RealtimeMediaPlayer::Shutdown()
 {
     m_primaryBuffer.reset();
@@ -37,10 +40,10 @@ void RealtimeMediaPlayer::Shutdown()
     m_deviceResources.reset();
 }
 
+_Use_decl_annotations_
 IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     RealtimeStreaming::Network::Connection connection)
 {
-
     IFT(CreateMediaPlayer());
 
     m_RealtimeMediaSource = winrt::make<Media::implementation::RealtimeMediaSource>();
@@ -56,12 +59,27 @@ IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     return m_RealtimeMediaSource.VideoProperties();
 }
 
-event_token RealtimeMediaPlayer::Closed(Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
+_Use_decl_annotations_
+VideoEncodingProperties RealtimeMediaPlayer::GetVideoProperties()
+{
+    if (m_RealtimeMediaSource != nullptr)
+    {
+        return m_RealtimeMediaSource.VideoProperties();
+    }
+
+    return nullptr;
+}
+
+_Use_decl_annotations_
+event_token RealtimeMediaPlayer::Closed(
+    Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
 {
     return m_closedEvent.add(handler);
 }
 
-void RealtimeMediaPlayer::Closed(event_token const& token)
+_Use_decl_annotations_
+void RealtimeMediaPlayer::Closed(
+    event_token const& token)
 {
     m_closedEvent.remove(token);
 }

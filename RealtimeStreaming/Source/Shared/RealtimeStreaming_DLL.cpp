@@ -39,8 +39,8 @@ namespace winrt::RealtimeStreaming::Plugin
     extern "C" typedef void(__stdcall *PlayerCreatedCallback)(
         _In_ void* pCallbackObject,
         _In_ HRESULT result,
-        _In_ int width,
-        _In_ int height);
+        _In_ unsigned int width,
+        _In_ unsigned int height);
 
     extern "C" typedef void(__stdcall *DataReceivedHandler)(
         _In_ ModuleHandle handle,
@@ -589,6 +589,26 @@ RTDLL ReleaseRealtimePlayer(
 
     return S_OK;
 }
+
+RTDLL GetPlayerStreamResolution(
+    _In_ UINT32 playerHandle,
+    _Inout_ UINT32* pWidth,
+    _Inout_ UINT32* pHeight)
+{
+    NULL_CHK(pWidth);
+    NULL_CHK(pHeight);
+
+    auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
+    VideoEncodingProperties videoProps = rtPlayer.GetVideoProperties();
+
+    NULL_CHK(videoProps);
+
+    *pWidth = videoProps.Width();
+    *pHeight = videoProps.Height();
+
+    return S_OK;
+}
+
 
 RTDLL CreateRealtimePlayerTexture(
     _In_ UINT32 playerHandle,

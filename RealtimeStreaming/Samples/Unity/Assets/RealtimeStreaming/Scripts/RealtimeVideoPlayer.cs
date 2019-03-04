@@ -341,7 +341,7 @@ namespace RealtimeStreaming
             isPlayerCreated = true;
         }
 
-        private void OnCreated(long result, int width, int height)
+        private void OnCreated(long result, uint width, uint height)
         {
             this.plugin.QueueAction(() =>
             {
@@ -355,16 +355,21 @@ namespace RealtimeStreaming
                 }
 
                 // TODO: This is hardcoded for weird bug on ARM
-                if (width > 16384 || height == 1)
+                if (!IsValidResolution(width, height))
                 {
-                    width = 1280;
-                    height = 720;
+                    Debug.Log("RealTimePlayer::OnCreated width/height invalid");
+
+                    Plugin.CheckHResult(PlayerPlugin.exGetStreamResolution(this.playerHandle, 
+                        ref this.textureWidth, ref this.textureHeight),
+                        "RealtimeVideoPlayer::exGetStreamResolution");
+                }
+                else
+                {
+                    this.textureWidth = width;
+                    this.textureHeight = height;
                 }
 
-                this.textureWidth = (uint)width;
-                this.textureHeight = (uint)height;
-
-                Debug.Log("RealTimePlayer::OnCreated - " + width + " by " + height);
+                Debug.Log("RealTimePlayer::OnCreated - " + this.textureWidth + " by " + this.textureHeight);
 
                 // TODO: Add documentation information here for YUV work
 
@@ -454,6 +459,14 @@ namespace RealtimeStreaming
             }
         }
 
+        private const uint MIN_D3D_RESOLUTION = 1;
+        private const uint MAX_D3D_RESOLUTION = 16384;
+        private bool IsValidResolution(uint width, uint height)
+        {
+            return width >= MIN_D3D_RESOLUTION && width <= MAX_D3D_RESOLUTION
+                && height >= MIN_D3D_RESOLUTION && height <= MAX_D3D_RESOLUTION;
+        }
+
         #endregion
 
         #region Realtime Player Plugin
@@ -506,7 +519,7 @@ namespace RealtimeStreaming
             public delegate void StateChangedCallback(PLAYBACK_STATE args);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            public delegate void PlayerCreatedCallbackHandler(IntPtr senderPtr, long result, int width, int height);
+            public delegate void PlayerCreatedCallbackHandler(IntPtr senderPtr, long result, uint width, uint height);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayer")]
             internal static extern long exCreatePlayer(uint connectionHandle,
@@ -518,6 +531,9 @@ namespace RealtimeStreaming
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ReleaseRealtimePlayer")]
             internal static extern long exReleasePlayer(uint playerHandle);
 
+            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "GetPlayerStreamResolution")]
+            internal static extern long exGetStreamResolution(uint playerHandle, ref uint width, ref uint height);
+           
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayerTexture")]
             internal static extern long exCreateExternalTexture(uint playerHandle, uint width, uint height, out System.IntPtr texture_L, out System.IntPtr texture_UV);
 
@@ -534,7 +550,7 @@ namespace RealtimeStreaming
         internal static class Player_PluginCallbackWrapper
         {
             [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.PlayerCreatedCallbackHandler))]
-            internal static void OnCreated_Callback(IntPtr senderPtr, long result, int width, int height)
+            internal static void OnCreated_Callback(IntPtr senderPtr, long result, uint width, uint height)
             {
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
                 

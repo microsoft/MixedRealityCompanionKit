@@ -66,16 +66,12 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
     struct RealtimeMediaPlayer : RealtimeMediaPlayerT<RealtimeMediaPlayer>
     {
-        /*
-        static Plugin::IRTModule Create(
-            _In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
-            //_In_ StateChangedCallback fnCallback);
-        */
-
         RealtimeMediaPlayer() = default;
         void Initialize(_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
 
         Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> InitAsync(_In_ Network::Connection connection);
+
+        Windows::Media::MediaProperties::VideoEncodingProperties GetVideoProperties();
 
         void Shutdown();
 

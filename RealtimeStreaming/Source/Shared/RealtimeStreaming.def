@@ -18,6 +18,7 @@ DllGetActivationFactory = WINRT_GetActivationFactory    PRIVATE
     RealtimeStreamingShutdown
 	CreateRealtimePlayer
 	ReleaseRealtimePlayer
+    GetPlayerStreamResolution
 	CreateRealtimePlayerTexture
 	RealtimePlayerPlay
 	RealtimePlayerPause

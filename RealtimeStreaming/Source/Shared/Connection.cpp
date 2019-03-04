@@ -234,15 +234,11 @@ IAsyncAction Connection::SendBundleAsync(
 
     Log(Log_Level_Info, L"Connection::SendBundleAsync() - Tid: %d \n", GetCurrentThreadId());
     
-    /*
+    if (m_streamSocket == nullptr)
     {
-        // Check that we still have an active socket
-        slim_lock_guard guard(m_lock);
-        IFT(CheckClosed());
+        return;
     }
-    */
 
-    // TODO: remove try/catch?
     try
     {
         DataWriter dataWriter{ m_streamSocket.OutputStream() };
