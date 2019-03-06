@@ -162,6 +162,8 @@ namespace RealtimeStreaming
 #region Control Network 
         public void ConnectPlayer()
         {
+            if (this.connector != null || this.isPlayerCreated) return;
+            
             // we own the connection so we can just stop if if needed
             StopConnector();
 
