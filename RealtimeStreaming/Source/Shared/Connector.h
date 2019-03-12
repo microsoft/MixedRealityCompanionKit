@@ -16,6 +16,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
             // IConnector
             Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> ConnectAsync();
+            Windows::Foundation::IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::AutoConnectAsync();
+
             event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void Connector::Closed(winrt::event_token const& token);
 
@@ -23,14 +25,19 @@ namespace winrt::RealtimeStreaming::Network::implementation
         private:
             void Close();
 
+            Windows::Foundation::IAsyncAction ClientDatagramSocket_MessageReceived(
+                Windows::Networking::Sockets::DatagramSocket const& sender,
+                Windows::Networking::Sockets::DatagramSocketMessageReceivedEventArgs const& args);
+
         private:
-            //Wrappers::CriticalSec\tion _lock;
             slim_mutex m_lock;
+            handle m_signal{ nullptr };
 
             Windows::Networking::HostName m_hostName{ nullptr };
             UINT16 m_port;
      
             Windows::Networking::Sockets::StreamSocket m_streamSocket;
+            Windows::Networking::Sockets::DatagramSocket m_clientDatagramSocket;
 
             winrt::event<Windows::Foundation::EventHandler<bool> > m_evtClosed;
     };

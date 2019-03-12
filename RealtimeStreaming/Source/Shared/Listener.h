@@ -16,6 +16,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
             // IListener
             Windows::Foundation::IAsyncOperation<Network::Connection> ListenAsync();
+            Windows::Foundation::IAsyncAction Listener::DiscoveryListenAsync();
 
             event_token Listener::Closed(Windows::Foundation::EventHandler<bool> const& handler);
                 void Listener::Closed(winrt::event_token const& token);
@@ -27,6 +28,10 @@ namespace winrt::RealtimeStreaming::Network::implementation
             void OnConnectionReceived(
                 Windows::Networking::Sockets::StreamSocketListener /* sender */,
                 Windows::Networking::Sockets::StreamSocketListenerConnectionReceivedEventArgs args);
+
+            Windows::Foundation::IAsyncAction ServerDatagramSocket_MessageReceived(
+                Windows::Networking::Sockets::DatagramSocket sender,
+                Windows::Networking::Sockets::DatagramSocketMessageReceivedEventArgs args);
             
         private:
             slim_mutex m_lock;
@@ -38,6 +43,8 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
             Windows::Networking::Sockets::StreamSocket           m_streamSocket;
             Windows::Networking::Sockets::StreamSocketListener   m_socketListener;
+            Windows::Networking::Sockets::DatagramSocket m_serverDatagramSocket;
+
             winrt::event_token m_connectionReceivedEventToken;
             Network::Connection m_connection{ nullptr };
         };
