@@ -8,13 +8,6 @@
 
 #include <winrt/Windows.Media.Playback.h>
 
-/*
-struct __declspec(uuid("2d67f54a-2f43-11e9-b210-d663bd873d93")) IPlaybackManagerPriv : ::IUnknown
-{
-    STDMETHOD(CreatePlaybackTexture)(_In_ uint32_t width, _In_ uint32_t height, _COM_Outptr_ void** ppvTexture) PURE;
-};
-*/
-
 namespace winrt::RealtimeStreaming::Media
 {
     enum class StateType : UINT16
@@ -67,11 +60,13 @@ namespace winrt::RealtimeStreaming::Media::implementation
     struct RealtimeMediaPlayer : RealtimeMediaPlayerT<RealtimeMediaPlayer>
     {
         RealtimeMediaPlayer() = default;
+        ~RealtimeMediaPlayer();
+
         void Initialize(_In_ std::weak_ptr<IUnityDeviceResource> const& unityDevice);
 
         Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> InitAsync(_In_ Network::Connection connection);
 
-        Windows::Media::MediaProperties::VideoEncodingProperties GetVideoProperties();
+		Windows::Media::MediaProperties::VideoEncodingProperties GetVideoProperties();
 
         void Shutdown();
 

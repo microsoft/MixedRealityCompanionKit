@@ -9,9 +9,11 @@ namespace RealtimeStreaming.Network
     [default_interface]
     runtimeclass Connector : RealtimeStreaming.Plugin.IRTModule
     {
-        //[default] interface IConnector;
-        Connector(Windows.Networking.HostName hostAddress, UInt16 port);
-        Windows.Foundation.IAsyncOperation<Connection> ConnectAsync();
+        //Connector(Windows.Networking.HostName hostAddress, UInt16 port);
+
+        Windows.Foundation.IAsyncOperation<Connection> ConnectAsync(Windows.Networking.HostName hostAddress, UInt16 port);
+        
+        Windows.Foundation.IAsyncOperation<Connection> DiscoverAsync();
 
         event Windows.Foundation.EventHandler<Boolean> Closed;
     };

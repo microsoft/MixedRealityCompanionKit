@@ -46,14 +46,20 @@ namespace RealtimeStreaming
 
         private void OnConnected(uint handle, long result, string message)
         {
-            // create Connection and pass ownership to it
-            var connection = Connection.CreateConnection(handle);
-
-            if (connection != null)
+            bool failed = true;
+            if (handle != Plugin.InvalidHandle)
             {
-                this.Connected?.Invoke(this, connection);
+                // create Connection and pass ownership to it
+                var connection = Connection.CreateConnection(handle);
+
+                if (connection != null)
+                {
+                    failed = false;
+                    this.Connected?.Invoke(this, connection);
+                }
             }
-            else
+
+            if (failed)
             {
                 if (this.Failed != null)
                 {

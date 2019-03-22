@@ -52,6 +52,9 @@ extern wchar_t const __declspec(selectany)c_szNetworkSchemeWithColon[] = L"mrvc:
 const winrt::hstring c_UDP_Communication_Port = L"56788";
 const winrt::hstring c_UDP_Multicast_IP = L"237.1.3.37";
 
+const unsigned int CONNECTOR_UDP_SOURCE = 0;
+const unsigned int LISTENER_UDP_SOURCE = 1;
+
 #ifndef INSTANCE_HANDLE_INVALID
 #define INSTANCE_HANDLE_INVALID static_cast<INSTANCE_HANDLE>(0x0bad)
 #define INSTANCE_HANDLE_START static_cast<INSTANCE_HANDLE>(0x0bae)

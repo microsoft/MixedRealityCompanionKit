@@ -94,11 +94,12 @@ inline HRESULT __stdcall ExceptionBoundary(_In_ TLambda&& lambda, _In_ boolean f
 
 typedef enum Log_Level
 {
-    Log_Level_Any,
+    Log_Level_Any = 0,
     Log_Level_Critical,
     Log_Level_Error,
     Log_Level_Warning,
     Log_Level_Info,
+    Log_Level_Verbose,
     Log_Level_All
 } Log_Level;
 
@@ -106,7 +107,7 @@ typedef enum Log_Level
 #if _DEBUG
 #define LOG_LEVEL Log_Level_Warning
 #else
-#define LOG_LEVEL Log_Level_Error
+#define LOG_LEVEL Log_Level_Warning
 #endif
 #endif
 
@@ -117,8 +118,7 @@ inline void __stdcall Log(
 {
     if (LOG_LEVEL < level)
     {
-		// TODO: Uncomment this
-        //return;
+        return;
     }
 
     wchar_t szTextBuf[2048];

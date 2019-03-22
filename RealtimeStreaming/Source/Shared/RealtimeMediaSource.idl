@@ -17,12 +17,6 @@ namespace RealtimeStreaming.Media
         Count
     };
 
-    /*
-    [activatable(1.0)]
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    */
     [default_interface]
     runtimeclass RealtimeMediaSource : Windows.Media.IMediaExtension
     {
@@ -33,5 +27,7 @@ namespace RealtimeStreaming.Media
         Windows.Media.Core.MediaStreamSource MediaStreamSource{ get; };
 
         Windows.Media.MediaProperties.VideoEncodingProperties VideoProperties{ get; };
+
+        SourceStreamState CurrentState{ get; };
     };
 }

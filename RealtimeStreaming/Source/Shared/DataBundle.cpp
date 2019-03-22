@@ -13,7 +13,7 @@ using namespace winrt::Windows::Networking::Sockets;
 _Use_decl_annotations_
 DataBundle::DataBundle()
 {
-    Log(Log_Level_All, L"DataBundleImpl::DataBundle()\n");
+    Log(Log_Level_Verbose, L"DataBundleImpl::DataBundle()\n");
 
     m_buffers.clear();
 }
@@ -21,7 +21,7 @@ DataBundle::DataBundle()
 DataBundle::DataBundle(
     RealtimeStreaming::Network::DataBuffer dataBuffer)
 {
-    Log(Log_Level_All, L"DataBundleImpl::DataBundle()\n");
+    Log(Log_Level_Verbose, L"DataBundleImpl::DataBundle()\n");
 
     m_buffers.clear();
 
@@ -32,7 +32,7 @@ _Use_decl_annotations_
 DataBundle::DataBundle(
     IMFSample* mediaSample)
 {
-    Log(Log_Level_All, L"DataBundleImpl::DataBundle(imfsample)\n");
+    Log(Log_Level_Verbose, L"DataBundleImpl::DataBundle(imfsample)\n");
 
     NULL_THROW(mediaSample);
 
@@ -58,7 +58,7 @@ DataBundle::DataBundle(
 
 DataBundle::~DataBundle()
 {
-    Log(Log_Level_All, L"DataBundleImpl::~DataBundleImpl()\n");
+    Log(Log_Level_Verbose, L"DataBundleImpl::~DataBundleImpl()\n");
 
     Reset();
 }

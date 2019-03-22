@@ -27,6 +27,10 @@ public class PlayerControl : MonoBehaviour
         {
             StartPlayer();
         }
+        else if (Input.GetKey(KeyCode.Q))
+        {
+            rtPlayer.Shutdown();
+        }
     }
 #endif
 

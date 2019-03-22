@@ -55,16 +55,15 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
     private:
         slim_mutex m_lock;
+		slim_mutex m_eventLock;
 
         UINT16      m_concurrentFailedBuffers;
         UINT16      m_concurrentFailedBundles;
 
+		void CloseOnDisconnectedSocketError(HRESULT hResult);
+
         Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
-
         Common::PayloadHeader m_receivedHeader;
-
-        Windows::Storage::Streams::DataReader m_dataReader{ nullptr };
-
         winrt::event<RealtimeStreaming::Network::DisconnectedDelegate> m_evtDisconnected;
         winrt::event<Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs>> m_evtBundleReceived;
     };

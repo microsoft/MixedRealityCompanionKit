@@ -12,15 +12,7 @@ using namespace Windows::Foundation;
 using namespace Windows::Networking;
 using namespace Windows::Networking::Sockets;
 using namespace Windows::Storage::Streams;
-
-_Use_decl_annotations_
-Connector::Connector(_In_ Windows::Networking::HostName hostName,
-    _In_ UINT16 port)
-    : m_hostName(hostName)
-    , m_port(port)
-{
-    Log(Log_Level_Info, L"Connector::Connector()\n");
-}
+using namespace Windows::System::Threading;
 
 _Use_decl_annotations_
 Connector::~Connector()
@@ -32,69 +24,176 @@ Connector::~Connector()
 
 // IConnector
 _Use_decl_annotations_
-IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync()
+IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(_In_ Windows::Networking::HostName hostName,
+    _In_ UINT16 port)
 {
     Log(Log_Level_Info, L"Connector::ConnectAsync()\n");
 
-    // activate a stream socket
-    m_streamSocket.Control().KeepAlive(true);
-    m_streamSocket.Control().NoDelay(true);
-    m_streamSocket.Control().QualityOfService(SocketQualityOfService::LowLatency);
+    if (!m_isConnecting)
+    {
+        try
+        {
+            m_hostName = hostName;
+            m_port = port;
+            m_isConnecting = true;
 
-    std::string port = std::to_string(m_port);
+            // activate a stream socket
+            m_streamSocket.Control().KeepAlive(true);
+            m_streamSocket.Control().NoDelay(true);
+            m_streamSocket.Control().QualityOfService(SocketQualityOfService::LowLatency);
 
-    co_await m_streamSocket.ConnectAsync(m_hostName, winrt::to_hstring(port));
+            std::string port = std::to_string(m_port);
 
-    return winrt::make<Network::implementation::Connection>(m_streamSocket);
+            co_await m_streamSocket.ConnectAsync(m_hostName, winrt::to_hstring(port));
+
+            auto connection = winrt::make<Network::implementation::Connection>(m_streamSocket);
+            m_isConnecting = false;
+            return connection;
+        }
+        catch (winrt::hresult_error const& ex)
+        {
+            Log(Log_Level_Error, L"Connector::ConnectAsync Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+            LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+
+            m_isConnecting = false;
+        }
+    }
+
+	return nullptr;
 }
 
-IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::AutoConnectAsync()
+_Use_decl_annotations_
+IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::DiscoverAsync()
 {
-    // TODO: check state we are not already connecting, don't call twice etc
-    try
+    Log(Log_Level_Info, L"Connector::DiscoverAsync()\n");
+
+    // TODO: Consider using locks for isConnecting from multiple threads?
+    if (!m_isConnecting)
     {
-        m_clientDatagramSocket.MessageReceived({ this, &Connector::ClientDatagramSocket_MessageReceived });
+        try
+        {
+            // Initialize variables for UDP Discovery
+            m_isConnecting = true;
+            m_didUDPDiscoverySucceed = false;
+            m_discoveryAttempts = 0;
+            m_signal = handle(::CreateEvent(nullptr, true, false, nullptr));
+            m_udpMulticastGroup = HostName{ c_UDP_Multicast_IP };
+            m_clientDatagramSocket = DatagramSocket();
+            m_clientDatagramSocket.Control().MulticastOnly(true);
+            m_udpMessageReceivedEventToken = m_clientDatagramSocket.MessageReceived({ this, &Connector::ClientDatagramSocket_MessageReceived });
 
-        // Establish a connection to the echo server.
-        // The server hostname that we will be establishing a connection to. In this example, the server and client are in the same process.
-        HostName hostName{ c_UDP_Multicast_IP };
+            co_await m_clientDatagramSocket.BindServiceNameAsync(c_UDP_Communication_Port);
 
-        co_await m_clientDatagramSocket.BindServiceNameAsync(c_UDP_Communication_Port);
+            m_clientDatagramSocket.JoinMulticastGroup(m_udpMulticastGroup);
+            
+            m_udpMulticastSignalTimer = ThreadPoolTimer::CreatePeriodicTimer({ this, &Connector::OnTimer }, m_udpSignalPeriod);
+            
+            co_await SendUDPDiscovery();
 
-        auto outputStream = co_await m_clientDatagramSocket.GetOutputStreamAsync(hostName, c_UDP_Communication_Port);
+            // Wait for server to be discovered
+            co_await winrt::resume_on_signal(m_signal.get());
+            
+            m_isConnecting = false;
 
-        winrt::hstring request{ L"Hello, World!" };
-        DataWriter dataWriter{ outputStream };
-        dataWriter.WriteString(request);
+            // If we timed out on UDP attempts, then cancel discovery
+            if (!m_didUDPDiscoverySucceed) return nullptr;
 
-        co_await dataWriter.StoreAsync();
-        dataWriter.DetachStream();
-
-        m_signal = handle(::CreateEvent(nullptr, true, false, nullptr));
-
-        // Wait for server to be discovered
-        co_await winrt::resume_on_signal(m_signal.get());
-
-        // TODO: need to check this if we are closing down connector? this thread will hang?
-
-        auto connection = co_await ConnectAsync();
-        return connection;
+            RealtimeStreaming::Network::Connection connection = co_await ConnectAsync(m_hostName, m_port);
+            return connection;
+        }
+        catch (winrt::hresult_error const& ex)
+        {
+            SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
+            
+            Log(Log_Level_Error, L"Connector::AutoConnectAsync Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+            LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+            
+            m_isConnecting = false;
+        }
     }
-    catch (winrt::hresult_error const& ex)
+
+    Log(Log_Level_Info, L"Connector::AutoConnectAsync() - Can't Connect \n");
+    return nullptr;
+}
+
+_Use_decl_annotations_
+void Connector::OnTimer(ThreadPoolTimer const& timer)
+{
+    m_discoveryAttempts++;
+    if (m_discoveryAttempts >= c_MaxDiscoveryAttempts)
     {
-        Windows::Networking::Sockets::SocketErrorStatus webErrorStatus{ Windows::Networking::Sockets::SocketError::GetStatus(ex.to_abi()) };
+        OnDiscoveryFinished(false);
+    }
+    else
+    {
+        SendUDPDiscovery();
     }
 }
 
-IAsyncAction Connector::ClientDatagramSocket_MessageReceived(
-    DatagramSocket const& sender, 
+_Use_decl_annotations_
+void Connector::ClientDatagramSocket_MessageReceived(
+    DatagramSocket const& sender,
     DatagramSocketMessageReceivedEventArgs const& args)
 {
-    DataReader dataReader{ args.GetDataReader() };
-    m_port = dataReader.ReadUInt16();
-    m_hostName = args.RemoteAddress();
+    Log(Log_Level_Info, L"Connector::ClientDatagramSocket_MessageReceived() - %s \n", args.RemoteAddress().ToString().c_str());
 
-    // need to clean up and remove message received reference?
+    slim_lock_guard guard(m_lock);
+
+    if (m_clientDatagramSocket == nullptr) return;
+
+    DataReader dataReader{ args.GetDataReader() };
+    UINT32 source = dataReader.ReadUInt32();
+
+    Log(Log_Level_Info, L"Connector::ClientDatagramSocket_MessageReceived() - source=%d \n", source);
+
+    if (source == LISTENER_UDP_SOURCE)
+    {
+        m_port = dataReader.ReadUInt16();
+        m_hostName = args.RemoteAddress();
+
+        Log(Log_Level_Info, L"Connector::ClientDatagramSocket_MessageReceived() Port=%d - read\n", m_port);
+
+        OnDiscoveryFinished(true);
+    }
+}
+
+_Use_decl_annotations_
+IAsyncAction Connector::SendUDPDiscovery()
+{
+	try
+	{
+		Log(Log_Level_Info, L"Connector::SendUDPDiscovery()\n");
+
+		auto outputStream = co_await m_clientDatagramSocket.GetOutputStreamAsync(m_udpMulticastGroup, c_UDP_Communication_Port);
+
+		DataWriter dataWriter{ outputStream };
+		dataWriter.WriteUInt32(CONNECTOR_UDP_SOURCE);
+
+		co_await dataWriter.StoreAsync();
+        co_await dataWriter.FlushAsync();
+		dataWriter.DetachStream();
+	}
+	catch (winrt::hresult_error const& ex)
+	{
+		SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
+		Log(Log_Level_Error, L"Connector::SendUDPDiscoverResponse UDP Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+
+		LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+	}
+}
+
+void Connector::OnDiscoveryFinished(bool succeeded)
+{
+    if (m_clientDatagramSocket == nullptr);
+
+    m_didUDPDiscoverySucceed = succeeded;
+
+    // Cancel our timer
+    m_udpMulticastSignalTimer.Cancel();
+    m_udpMulticastSignalTimer = nullptr;
+
+    // Clean up our UDP socket
+    m_clientDatagramSocket.MessageReceived(m_udpMessageReceivedEventToken);
     m_clientDatagramSocket = nullptr;
 
     // Signal completion of UDP Multicast for server discovery()
@@ -105,7 +204,7 @@ IAsyncAction Connector::ClientDatagramSocket_MessageReceived(
 _Use_decl_annotations_
 event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler)
 {
-    Log(Log_Level_All, L"Connector::add_Closed() - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_Verbose, L"Connector::add_Closed() - Tid: %d \n", GetCurrentThreadId());
 
     slim_lock_guard guard(m_lock);
 
@@ -115,9 +214,8 @@ event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& han
 _Use_decl_annotations_
 void Connector::Closed(winrt::event_token const& token)
 {
-    Log(Log_Level_Info, L"Connector::remove_Closed()\n");
+    Log(Log_Level_Verbose, L"Connector::remove_Closed()\n");
 
-    //auto lock = _lock.Lock();
     slim_lock_guard guard(m_lock);
 
     m_evtClosed.remove(token);
@@ -128,19 +226,21 @@ void Connector::Close()
 {
     Log(Log_Level_Info, L"Connector::Close()\n");
 
-    /*
-    com_ptr<Windows::Foundation::IClosable> closeable;
-    if (nullptr != m_streamSocketResult)
+    if (m_udpMulticastSignalTimer != nullptr)
     {
-        if SUCCEEDED(m_streamSocketResult.As(&closeable))
-        {
-            LOG_RESULT(closeable->Close());
-        }
-
-        com_ptr<IConnector> spThis(this);
-        LOG_RESULT(_evtClosed.InvokeAll(spThis.get()));
+        m_udpMulticastSignalTimer.Cancel();
+        m_udpMulticastSignalTimer = nullptr;
     }
-    m_streamSocketResult.Reset();
-    m_streamSocketResult = nullptr;
-    */
+
+    if (m_isConnecting)
+    {
+        // If we are in the middle of an attempted connection via discovery, then auto-finish and fail
+        m_didUDPDiscoverySucceed = false;
+        SetEvent(m_signal.get());
+    }
+
+    m_streamSocket = nullptr;
+    m_clientDatagramSocket = nullptr;
+
+    m_evtClosed(*this, true);
 }

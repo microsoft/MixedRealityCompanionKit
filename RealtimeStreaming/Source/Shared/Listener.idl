@@ -11,7 +11,7 @@ namespace RealtimeStreaming.Network
     {
         Listener(UInt16 port);
 
-        Windows.Foundation.IAsyncOperation<Connection> ListenAsync();
+        Windows.Foundation.IAsyncOperation<Connection> ListenAsync(Boolean listenForMulticast);
 
         event Windows.Foundation.EventHandler<Boolean> Closed;
     };

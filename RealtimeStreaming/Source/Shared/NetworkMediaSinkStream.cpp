@@ -104,6 +104,7 @@ NetworkMediaSinkStream::NetworkMediaSinkStream(uint32_t streamId,
     , m_state(SinkStreamState::NotSet)
     , m_isShutdown(false)
     , m_isPlayerConnected(false)
+    , m_pingPlayerAttempts(0)
     , m_fIsVideo(false)
     , m_fGetFirstSampleTime(false)
     , m_adjustedStartTime(0)
@@ -134,7 +135,7 @@ HRESULT NetworkMediaSinkStream::BeginGetEvent(
     IMFAsyncCallback* pCallback, 
     IUnknown* punkState)
 {
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -148,7 +149,7 @@ HRESULT NetworkMediaSinkStream::EndGetEvent(
 {
     NULL_CHK(ppEvent);
 
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -169,7 +170,7 @@ HRESULT NetworkMediaSinkStream::GetEvent(
 
     com_ptr<IMFMediaEventQueue> spQueue;
     {
-        slim_shared_lock_guard const guard(m_lock);
+        slim_lock_guard guard(m_lock);
 
         // Check shutdown
         IFR(CheckShutdown());
@@ -189,7 +190,7 @@ HRESULT NetworkMediaSinkStream::QueueEvent(
     HRESULT hrStatus, 
     PROPVARIANT const* pvValue)
 {
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     // Call internal method wrapped with lock
     return _QueueEvent(met, guidExtendedType, hrStatus, pvValue);
@@ -236,7 +237,7 @@ HRESULT NetworkMediaSinkStream::GetMediaTypeHandler(
 {
     NULL_CHK(ppHandler);
 
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -269,8 +270,12 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
 
         if (nullptr != m_connection)
         {
-            // TODO: Switch back to sync
-            m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureReady);//.get();
+            m_pingPlayerAttempts++;
+            if (m_pingPlayerAttempts > c_PingAttemptsRequired)
+            {
+                m_pingPlayerAttempts = 0;
+                m_connection.SendPayloadTypeAsync(PayloadType::State_CaptureReady);
+            }
         }
 
         IFC(_QueueEvent(MEStreamSinkRequestSample, GUID_NULL, hr, nullptr));
@@ -291,10 +296,9 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
         spSample.copy_from(pSample);
 
         m_sampleQueue.push_back(spSample);
-        //IFC(m_sampleQueue.InsertBack(pSample));
 
         // Unless we are paused, start an async operation to dispatch the next sample.
-        if (SinkStreamState::Paused != m_state)
+        if (m_state != SinkStreamState::Paused)
         {
             // Queue the operation.
             IFC(QueueAsyncOperation(SinkStreamOp::ProcessSample));
@@ -306,7 +310,7 @@ HRESULT NetworkMediaSinkStream::ProcessSample(
     //    //_spParentMediaSink->OnSampleUpdated(pSample);
     //}
 
-done:
+done:	
     return hr;
 }
 
@@ -324,9 +328,8 @@ HRESULT NetworkMediaSinkStream::PlaceMarker(
     IFR(MarkerImpl::Create(eMarkerType, pvarMarkerValue, pvarContextValue, spMarker.put()));
 
     m_sampleQueue.push_back(spMarker);
-    //m_sampleQueue.InsertBack(spMarker.get());
 
-    if (SinkStreamState::Paused == m_state)
+    if (m_state == SinkStreamState::Paused)
     {
         return S_OK;
     }
@@ -356,7 +359,7 @@ HRESULT NetworkMediaSinkStream::IsMediaTypeSupported(
 {
     NULL_CHK(pMediaType);
 
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -391,7 +394,7 @@ HRESULT NetworkMediaSinkStream::GetMediaTypeCount(
 {
     NULL_CHK(pdwTypeCount);
 
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -409,7 +412,7 @@ HRESULT NetworkMediaSinkStream::GetMediaTypeByIndex(
 {
     NULL_CHK(ppType);
 
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -457,6 +460,7 @@ HRESULT NetworkMediaSinkStream::SetCurrentMediaType(
     IFR(MFCreateMediaType(m_currentType.put()));
     IFR(pMediaType->CopyAllItems(m_currentType.get()));
     IFR(m_currentType->GetGUID(MF_MT_SUBTYPE, &m_currentSubtype));
+
     if (m_state < SinkStreamState::Ready)
     {
         m_state = SinkStreamState::Ready;
@@ -501,7 +505,7 @@ HRESULT NetworkMediaSinkStream::GetMajorType(
 {
     NULL_CHK(pguidMajorType);
 
-    slim_shared_lock_guard const guard(m_lock);
+    slim_lock_guard guard(m_lock);
 
     IFR(CheckShutdown());
 
@@ -904,7 +908,8 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
             try
             {
                 // Block thread until bundle is sent
-                 m_connection.SendBundleAsync(dataBundle).get();
+                m_connection.SendBundleAsync(dataBundle).get();
+				//m_connection.SendBundleAsync(dataBundle);
             }
             catch (hresult_error const & e)
             {
@@ -926,7 +931,6 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
         {
 
             if (m_sampleQueue.empty())
-            //if (FAILED(m_sampleQueue.RemoveFront(spUnknown.put())))
             {
                 fRequestSamples = true;
                 fSendSamples = false;

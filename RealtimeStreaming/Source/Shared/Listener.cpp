@@ -15,13 +15,14 @@ using namespace winrt::Windows::Storage::Streams;
 Listener::Listener(UINT16 port)
     : m_port(port)
     , m_streamSocket(nullptr)
+    , m_isListening(false)
 {
-    Log(Log_Level_Info, L"Listener::Listener()\n");
+    Log(Log_Level_Info, L"Listener::Listener() - Port=%d\n", m_port);
 }
 
 Listener::~Listener()
 {
-    Log(Log_Level_Info, L"Listener::~Listener()\n");
+    Log(Log_Level_Info, L"Listener::~Listener() - Port=%d\n", m_port);
 
     // TODO: Close like original?
     // Close();
@@ -29,9 +30,36 @@ Listener::~Listener()
 
 // IListener
 _Use_decl_annotations_
-IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
+IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync(bool listenForMulticast)
 {
-    Log(Log_Level_Info, L"Listener::ListenAsync()\n");
+    Log(Log_Level_Info, L"Listener::ListenAsync(%d) - Port=%d \n", listenForMulticast, m_port);
+
+    if (m_isListening) return nullptr;
+
+    m_isListening = true;
+
+    // TODO: make this separate async command so we can immediately start listening on TCP connections?
+    if (listenForMulticast)
+    {
+        try
+        {
+            m_udpMulticastGroup = HostName{ c_UDP_Multicast_IP };
+            m_serverDatagramSocket.Control().MulticastOnly(true);
+
+            m_udpMessageReceivedEventToken = m_serverDatagramSocket.MessageReceived({ this, &Listener::ServerDatagramSocket_OnMessageReceived });
+
+            co_await m_serverDatagramSocket.BindServiceNameAsync(c_UDP_Communication_Port);
+
+            m_serverDatagramSocket.JoinMulticastGroup(m_udpMulticastGroup);
+        }
+        catch (winrt::hresult_error const& ex)
+        {
+            SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
+            Log(Log_Level_Error, L"Listener::ListenAsync UDP Exception Thrown - Port=%d \n", m_port);
+
+            LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+        }
+    }
 
     // create a listener
     m_connectionReceivedEventToken = m_socketListener.ConnectionReceived({ this, &Listener::OnConnectionReceived });
@@ -48,54 +76,70 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync()
     co_await m_socketListener.BindServiceNameAsync(winrt::to_hstring(port));
 
     co_await winrt::resume_on_signal(m_signal.get());
+    
+    m_isListening = false;
 
     return m_connection;
 }
 
-IAsyncAction Listener::DiscoveryListenAsync()
+_Use_decl_annotations_
+IAsyncAction Listener::ServerDatagramSocket_OnMessageReceived(
+    DatagramSocket sender,
+    DatagramSocketMessageReceivedEventArgs args)
+{
+    Log(Log_Level_Verbose, L"Listener::ServerDatagramSocket_MessageReceived() - - Port=%d , Remote=%s \n", m_port, args.RemoteAddress().ToString().c_str());
+
+    if (m_serverDatagramSocket == nullptr) return;
+
+    DataReader dataReader{ args.GetDataReader() };
+    UINT32 source = dataReader.ReadUInt32();
+    
+    if (source == CONNECTOR_UDP_SOURCE)
+    {
+        Log(Log_Level_Verbose, L"Listener::ServerDatagramSocket_MessageReceived() - CONNECTOR - Port=%d \n", m_port);
+
+        co_await SendUDPDiscoverResponse();
+    }
+    else if (source == LISTENER_UDP_SOURCE)
+    {
+        Log(Log_Level_Verbose, L"Listener::ServerDatagramSocket_MessageReceived() - LISTENER - Port=%d \n", m_port);
+        
+        // Read out rest of buffer on reader since we are multicast
+        dataReader.ReadUInt16();
+    }
+}
+
+_Use_decl_annotations_
+IAsyncAction Listener::SendUDPDiscoverResponse()
 {
     try
     {
-        m_serverDatagramSocket.MessageReceived({ this, &Listener::ServerDatagramSocket_MessageReceived });
+        Log(Log_Level_Verbose, L"Listener::SendUDPDiscoverResponse() - Port=%d\n", m_port);
 
-        co_await m_serverDatagramSocket.BindServiceNameAsync(c_UDP_Communication_Port);
-        
-        HostName multicastGroupHostName{ c_UDP_Multicast_IP };
+        IOutputStream outputStream = co_await m_serverDatagramSocket.GetOutputStreamAsync(m_udpMulticastGroup, c_UDP_Communication_Port);
 
-        m_serverDatagramSocket.JoinMulticastGroup(multicastGroupHostName);
+        DataWriter dataWriter{ outputStream };
+        dataWriter.WriteUInt32(LISTENER_UDP_SOURCE);
+        dataWriter.WriteUInt16(m_port);
+
+        co_await dataWriter.StoreAsync();
+		co_await dataWriter.FlushAsync();
+        dataWriter.DetachStream();
     }
     catch (winrt::hresult_error const& ex)
     {
         SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
-        // TODO: log error
+        Log(Log_Level_Error, L"Listener::SendUDPDiscoverResponse UDP Exception Thrown - Port=%d \n", m_port);
+
+        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
     }
-}
-
-IAsyncAction Listener::ServerDatagramSocket_MessageReceived(
-    DatagramSocket sender, 
-    DatagramSocketMessageReceivedEventArgs args)
-{
-    //DataReader dataReader{ args.GetDataReader() };
-    //winrt::hstring request{ dataReader.ReadString(dataReader.UnconsumedBufferLength()) };
-
-    // TODO: Should we select random port?
-    // TODO: check that we can use args.remoteaddress isntead of multicast IP
-    IOutputStream outputStream = co_await sender.GetOutputStreamAsync(args.RemoteAddress(), c_UDP_Communication_Port);
-    DataWriter dataWriter{ outputStream };
-    dataWriter.WriteUInt16(m_port);
-
-    co_await dataWriter.StoreAsync();
-    dataWriter.DetachStream();
-
-    // We need to shut down properly
-    m_serverDatagramSocket = nullptr;
 }
 
 /* Event Handlers */
 _Use_decl_annotations_
 event_token Listener::Closed(Windows::Foundation::EventHandler<bool> const& handler)
 {
-    Log(Log_Level_All, L"Listener::add_Closed() - Tid: %d \n", GetCurrentThreadId());
+    Log(Log_Level_Verbose, L"Listener::add_Closed() - Port=%d \n", m_port);
 
     slim_lock_guard guard(m_lock);
 
@@ -105,7 +149,7 @@ event_token Listener::Closed(Windows::Foundation::EventHandler<bool> const& hand
 _Use_decl_annotations_
 void Listener::Closed(winrt::event_token const& token)
 {
-    Log(Log_Level_Info, L"Listener::remove_Closed()\n");
+    Log(Log_Level_Verbose, L"Listener::remove_Closed()\n");
 
     slim_lock_guard guard(m_lock);
 
@@ -116,7 +160,7 @@ _Use_decl_annotations_
 void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
     StreamSocketListenerConnectionReceivedEventArgs args)
 {
-    Log(Log_Level_Info, L"Listener::OnConnectionReceived()\n");
+    Log(Log_Level_Info, L"Listener::OnConnectionReceived() - Port=%d \n", m_port);
 
     slim_lock_guard guard(m_lock);
 
@@ -132,7 +176,16 @@ void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
 _Use_decl_annotations_
 void Listener::Close()
 {
+	Log(Log_Level_Info, L"Listener::Close() - Port=%d\n", m_port);
+
+    if (m_socketListener == nullptr) return;
+
+	// MikeT: Added explicit closes here and called them from Shutdown.
+	m_socketListener.Close();
     m_socketListener = nullptr;
+
+    //m_streamSocket.Close();
     m_streamSocket = nullptr;
+
     m_serverDatagramSocket = nullptr;
 }

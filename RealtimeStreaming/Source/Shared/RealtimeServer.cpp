@@ -93,7 +93,7 @@ _Use_decl_annotations_
 void RealtimeServer::WriteFrame(uint32_t bufferSize, 
     array_view<uint8_t const> bufferArrayView)
 {
-    HRESULT hr = S_OK;
+	Log(Log_Level_Verbose, L"RealtimeServer::WriteFrame() - BufferSize=%d \n", bufferSize);
 
     const byte* pBuffer = bufferArrayView.data();
     NULL_THROW(pBuffer);
@@ -102,6 +102,13 @@ void RealtimeServer::WriteFrame(uint32_t bufferSize,
     com_ptr<IMFMediaBuffer> spBuffer;
 
     auto videoProps = m_spMediaEncodingProfile.Video();
+
+	// TODO: check width & height and bpp for length bufferSize?
+	// TODO: Determine true bpp based on subtype guid?
+	if (videoProps.Width() * videoProps.Height() * 4 != bufferSize)
+	{
+		Log(Log_Level_Verbose, L"RealtimeServer::WriteFrame() - Invalid buffer size w=%d - h=%d \n", videoProps.Width(), videoProps.Height());
+	}
 
     IFT(CreateIMFMediaBuffer(videoProps.Width(),
         videoProps.Height(),
@@ -124,9 +131,6 @@ void RealtimeServer::WriteFrame(uint32_t bufferSize,
     IFT(m_spSinkWriter->WriteSample(m_sinkWriterStream, spSample.get()));
 
     rtStart += VIDEO_FRAME_DURATION;
-
-done:
-    IFT(hr);
 }
 
 _Use_decl_annotations_

@@ -18,8 +18,6 @@ using namespace Windows::Media::Playback;
 using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
 
 //_In_ StateChangedCallback fnCallback)
-
-_Use_decl_annotations_
 void RealtimeMediaPlayer::Initialize(std::weak_ptr<IUnityDeviceResource> const& unityDevice)
 {
     m_primaryBuffer = std::make_shared<SharedTextureBuffer>();
@@ -27,8 +25,24 @@ void RealtimeMediaPlayer::Initialize(std::weak_ptr<IUnityDeviceResource> const& 
 }
 
 _Use_decl_annotations_
+RealtimeMediaPlayer::~RealtimeMediaPlayer()
+{
+    Log(Log_Level_Info, L"RealtimeMediaPlayer::~RealtimeMediaPlayer()\n");
+
+    Shutdown();
+    //Close();
+}
+
 void RealtimeMediaPlayer::Shutdown()
 {
+    Log(Log_Level_Info, L"RealtimeMediaPlayer::Shutdown()\n");
+
+    if (m_mediaPlayer == nullptr)
+    {
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::Shutdown() - Already shutdown\n");
+        return;
+    }
+
     m_primaryBuffer.reset();
 
     ReleaseMediaPlayer();
@@ -38,9 +52,13 @@ void RealtimeMediaPlayer::Shutdown()
     m_RealtimeMediaSource = nullptr;
 
     m_deviceResources.reset();
+
+    if (m_closedEvent)
+    {
+        m_closedEvent(nullptr, *this);
+    }
 }
 
-_Use_decl_annotations_
 IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     RealtimeStreaming::Network::Connection connection)
 {
@@ -51,7 +69,6 @@ IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
     co_await m_RealtimeMediaSource.InitAsync(connection);
 
     MediaStreamSource mediaStreamSource = m_RealtimeMediaSource.MediaStreamSource();
-
     MediaSource source = MediaSource::CreateFromMediaStreamSource(mediaStreamSource);
     m_mediaPlayer.Source(source);
 
@@ -62,24 +79,20 @@ IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
 _Use_decl_annotations_
 VideoEncodingProperties RealtimeMediaPlayer::GetVideoProperties()
 {
-    if (m_RealtimeMediaSource != nullptr)
-    {
-        return m_RealtimeMediaSource.VideoProperties();
-    }
+	if (m_RealtimeMediaSource != nullptr)
+	{
+		return m_RealtimeMediaSource.VideoProperties();
+	}
 
-    return nullptr;
+	return nullptr;
 }
 
-_Use_decl_annotations_
-event_token RealtimeMediaPlayer::Closed(
-    Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
+event_token RealtimeMediaPlayer::Closed(Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
 {
     return m_closedEvent.add(handler);
 }
 
-_Use_decl_annotations_
-void RealtimeMediaPlayer::Closed(
-    event_token const& token)
+void RealtimeMediaPlayer::Closed(event_token const& token)
 {
     m_closedEvent.remove(token);
 }
@@ -181,6 +194,8 @@ winrt::hresult RealtimeMediaPlayer::Stop()
     try
     {
         m_mediaPlayer.Source(nullptr);
+
+        //m_RealtimeMediaSource = nullptr;
     }
     catch (hresult_error const & e)
     {
@@ -280,13 +295,12 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, 
         Windows::Foundation::IInspectable const& args)
     {
-        Log(Log_Level_Info, L"RealtimeMediaPlayer::RealtimeMediaPlayer()\n");
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::VideoFrameAvailable()\n");
 
         try
         {
             UNREFERENCED_PARAMETER(sender);
             UNREFERENCED_PARAMETER(args);
-
 
             if (nullptr != m_primaryBuffer->mediaSurface)
             {
@@ -295,7 +309,7 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
         }
         catch (winrt::hresult_error const& ex)
         {
-            Log(Log_Level_All, L"RealtimeMediaPlayer::RealtimeMediaPlayer Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+            Log(Log_Level_Error, L"RealtimeMediaPlayer::VideoFrameAvailable Exception Thrown - Tid: %d \n", GetCurrentThreadId());
             LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
         }
     });
@@ -395,6 +409,8 @@ HRESULT RealtimeMediaPlayer::CreateResources(com_ptr<ID3D11Device> const& unityD
 _Use_decl_annotations_
 void RealtimeMediaPlayer::ReleaseResources()
 {
+    Log(Log_Level_Info, L"RealtimeMediaPlayer::ReleaseResources()\n");
+
     if (m_dxgiDeviceManager != nullptr)
     {
         m_dxgiDeviceManager->ResetDevice(m_d3dDevice.get(), m_resetToken);
@@ -408,10 +424,5 @@ void RealtimeMediaPlayer::ReleaseResources()
     if (m_d3dDevice != nullptr)
     {
         m_d3dDevice = nullptr;
-    }
-
-    if (m_closedEvent)
-    {
-        m_closedEvent(nullptr, *this);
     }
 }

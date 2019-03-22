@@ -163,7 +163,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
         }
 
     private:
-        //Wrappers::CriticalSection _lock;
         slim_mutex m_lock;
 
         DWORD m_dwStreamId;          // streamId
@@ -173,6 +172,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
         SinkStreamState m_state;         // current state of the sink
         bool m_isShutdown;           // Flag to indicate if Shutdown() method was called.
         bool m_isPlayerConnected;    // Flag to indicate we have a connected player and should send data
+        UINT32 m_pingPlayerAttempts;
+        const UINT32 c_PingAttemptsRequired = 30;
 
         LONGLONG m_adjustedStartTime;    // Presentation time when the clock started.
 

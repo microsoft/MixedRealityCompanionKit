@@ -3,13 +3,13 @@
 
 #include "pch.h"
 #include "DataBuffer.h"
-#include <robuffer.h>
+// #include <robuffer.h>
 
 using namespace winrt;
 using namespace winrt::RealtimeStreaming::Network::implementation;
 using namespace winrt::Windows::Storage::Streams;
 
-using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess;
+// using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess;
 
 /* static */
 BYTE* DataBuffer::GetBufferPointer(
@@ -32,7 +32,7 @@ DataBuffer::DataBuffer(
     : _bufferOffset(0)
     , _byteBuffer(nullptr)
 {
-    Log(Log_Level_All, L"DataBufferImpl::DataBuffer(DWORD)\n");
+    Log(Log_Level_Verbose, L"DataBufferImpl::DataBuffer(DWORD)\n");
 
     com_ptr<IMFMediaBuffer> spMediaBuffer;
     IFT(MFCreateMemoryBuffer(maxLength, spMediaBuffer.put()));
@@ -46,7 +46,7 @@ DataBuffer::DataBuffer(
     : _bufferOffset(0)
     , _byteBuffer(nullptr)
 {
-    Log(Log_Level_All, L"DataBufferImpl::DataBuffer(IMFMediaBuffer)\n");
+    Log(Log_Level_Verbose, L"DataBufferImpl::DataBuffer(IMFMediaBuffer)\n");
 
     Initialize(pMediaBuffer);
 }
@@ -57,7 +57,7 @@ DataBuffer::DataBuffer(
     : _bufferOffset(0)
     , _byteBuffer(nullptr)
 {
-    Log(Log_Level_All, L"DataBufferImpl::DataBuffer(IBuffer)\n");
+    Log(Log_Level_Verbose, L"DataBufferImpl::DataBuffer(IBuffer)\n");
 
     UINT32 bufferLen = copyFromBuffer.Length();
 
@@ -77,7 +77,7 @@ DataBuffer::DataBuffer(
 
 DataBuffer::~DataBuffer()
 {
-    Log(Log_Level_All, L"DataBufferImpl::~DataBufferImpl()\n");
+    Log(Log_Level_Verbose, L"DataBufferImpl::~DataBufferImpl()\n");
 
     if (nullptr != _mfMediaBuffer)
     {

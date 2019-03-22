@@ -34,7 +34,6 @@ ModuleHandle ModuleManager::AddModule(
     ModuleHandle returnHandle = MODULE_HANDLE_INVALID;
 
     // create a pair for the insert success
-    //std::pair<std::map<ModuleHandle, IRTModule> >::iterator, bool> pairReturn;
     auto pairReturn = m_moduleHandleMap.insert(std::make_pair(handle, newModule));
 
     // make sure pair was added

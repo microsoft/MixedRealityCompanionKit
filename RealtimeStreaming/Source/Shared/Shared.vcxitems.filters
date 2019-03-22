@@ -151,11 +151,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ModuleManager.cpp">
       <Filter>Plugin</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.cpp">
       <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp">
+      <Filter>Unity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

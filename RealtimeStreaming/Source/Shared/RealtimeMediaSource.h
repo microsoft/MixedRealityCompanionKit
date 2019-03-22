@@ -27,6 +27,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
         Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
 
         void SetProperties(Windows::Foundation::Collections::IPropertySet const& configuration) {};
+        
+        RealtimeStreaming::Media::SourceStreamState CurrentState();
 
     protected:
         void OnDataReceived(
@@ -41,6 +43,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
         void OnSampleRequested(_In_ Windows::Media::Core::MediaStreamSource const& sender,
             _In_ Windows::Media::Core::MediaStreamSourceSampleRequestedEventArgs const& args);
 
+        void OnPaused(_In_ Windows::Media::Core::MediaStreamSource const& sender,
+            _In_ IInspectable const args);
+
         void OnClosed(_In_ Windows::Media::Core::MediaStreamSource const& sender,
             _In_ Windows::Media::Core::MediaStreamSourceClosedEventArgs const& args);
 
@@ -53,6 +58,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
         winrt::fire_and_forget SendStopRequest();
 
         // Network handlers
+        Windows::Foundation::IAsyncAction ProcessNetworkRequestAsync(_In_ RealtimeStreaming::Common::PayloadType type,
+            _In_ RealtimeStreaming::Network::DataBundle data);
         HRESULT ProcessCaptureReady();
         HRESULT ProcessMediaDescription(_In_ Network::DataBundle const& dataBundle);
         HRESULT ProcessMediaSample(_In_ Network::DataBundle const& dataBundle);
@@ -68,7 +75,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         inline HRESULT CheckShutdown() const
         {
-            if (m_eSourceState == SourceStreamState::Shutdown)
+            if (m_SourceState == SourceStreamState::Shutdown)
             {
                 return MF_E_SHUTDOWN;
             }
@@ -79,13 +86,13 @@ namespace winrt::RealtimeStreaming::Media::implementation
         }
 
     private:
-        //Wrappers::CriticalSection _lock;
         slim_mutex m_lock;
         handle m_signal{ nullptr };
 
         Windows::Media::Core::MediaStreamSource m_mediaStreamSource{ nullptr };
         winrt::event_token m_startingRequestedToken;
         winrt::event_token m_sampleRequestedToken;
+        winrt::event_token m_pausedToken;
         winrt::event_token m_closeRequestedToken;
 
         com_ptr<IMFSample> m_latestSample;
@@ -99,7 +106,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         Windows::Media::Core::MediaStreamSourceSampleRequest m_spRequest{ nullptr };
         Windows::Media::Core::MediaStreamSourceSampleRequestDeferral m_deferral{ nullptr };
-        SourceStreamState m_eSourceState; // Flag to indicate if Shutdown() method was called.
+        SourceStreamState m_SourceState; // Flag to indicate if Shutdown() method was called.
     };
 }
 

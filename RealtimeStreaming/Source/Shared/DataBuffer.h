@@ -19,9 +19,14 @@ DECLARE_INTERFACE_IID_(IDataBufferPriv, ::IUnknown, "297dd8ca-2fbe-11e9-b210-d66
         _Out_ UINT *uiViewIndex) PURE;
 };
 
+struct __declspec(uuid("905a0fef-bc53-11df-8c49-001e4fc686da")) IBufferByteAccess : ::IUnknown
+{
+	virtual HRESULT __stdcall Buffer(uint8_t** value) = 0;
+};
+
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct DataBuffer : DataBufferT<DataBuffer, IDataBufferPriv>
+    struct DataBuffer : DataBufferT<DataBuffer, IDataBufferPriv, IBufferByteAccess>
     {
         public:
             DataBuffer() = default;

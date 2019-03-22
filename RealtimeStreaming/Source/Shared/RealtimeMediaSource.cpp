@@ -50,8 +50,11 @@ if ((static_cast<DWORD>(SampleFlags::SampleFlag_##flagName) & mask) == static_ca
 _Use_decl_annotations_
 RealtimeMediaSource::~RealtimeMediaSource()
 {
-    //auto lock = _lock.Lock();
+    Log(Log_Level_Info, L"RealtimeMediaSource::~RealtimeMediaSource()\n");
+
     slim_lock_guard guard(m_lock);
+
+    m_SourceState = SourceStreamState::Shutdown;
 
     if (m_deferral != nullptr)
     {
@@ -59,19 +62,20 @@ RealtimeMediaSource::~RealtimeMediaSource()
         m_deferral = nullptr;
     }
 
+    if (m_connection != nullptr)
+    {
+        m_connection.Received(m_evtReceivedToken);
+        m_connection = nullptr;
+    }
+
     // Remove event handlers
     if (m_mediaStreamSource != nullptr)
     {
         m_mediaStreamSource.Starting(m_startingRequestedToken);
         m_mediaStreamSource.SampleRequested(m_sampleRequestedToken);
+        m_mediaStreamSource.Paused(m_pausedToken);
         m_mediaStreamSource.Closed(m_closeRequestedToken);
         m_mediaStreamSource = nullptr;
-    }
-
-    if (m_connection != nullptr)
-    {
-        m_connection.Received(m_evtReceivedToken);
-        m_connection = nullptr;
     }
 
     m_spRequest = nullptr;
@@ -94,7 +98,7 @@ IAsyncAction RealtimeMediaSource::InitAsync(
         m_evtReceivedToken = m_connection.Received({ this, &RealtimeMediaSource::OnDataReceived });
 
         // client is connected we need to send the Describe request
-        m_eSourceState = SourceStreamState::Opening;
+        m_SourceState = SourceStreamState::Opening;
         m_lastTimeStamp = 0;
         m_signal = handle(::CreateEvent(nullptr, true, false, nullptr));
     }
@@ -104,6 +108,13 @@ IAsyncAction RealtimeMediaSource::InitAsync(
 
     // Don't return initialization until we receive a describe request
     co_await winrt::resume_on_signal(m_signal.get());
+
+    m_SourceState = SourceStreamState::Starting;
+
+    // Ask the server to start sending media samples to process
+    SendStartRequest();
+
+    m_SourceState = SourceStreamState::Started;
 }
 
 _Use_decl_annotations_
@@ -118,9 +129,13 @@ _Use_decl_annotations_
 VideoEncodingProperties RealtimeMediaSource::VideoProperties()
 {
     slim_shared_lock_guard const guard(m_lock);
-    //auto lock = _lock.Lock();
 
     return m_spVideoEncoding;
+}
+
+RealtimeStreaming::Media::SourceStreamState RealtimeMediaSource::CurrentState()
+{
+    return m_SourceState;
 }
 
 _Use_decl_annotations_
@@ -128,18 +143,14 @@ void RealtimeMediaSource::OnStarting(Windows::Media::Core::MediaStreamSource con
     MediaStreamSourceStartingEventArgs const& args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnStarting()\n");
-    // TODO: revisit nullable stuff
+
     /*
-    MediaStreamSourceStartingRequest request = args.Request;
+    m_SourceState = SourceStreamState::Starting;
 
-    IReference<TimeSpan> startPosition = request.StartPosition;
+    // Ask the server to start sending media samples to process
+    SendStartRequest();
 
-    Windows::Foundation::TimeSpan value;
-    if (startPosition != nullptr)
-    {
-        startPosition.get_Value
-      spRequest->SetActualStartPosition(value));
-    }
+    m_SourceState = SourceStreamState::Started;
     */
 }
 
@@ -174,33 +185,48 @@ void RealtimeMediaSource::OnSampleRequested(Windows::Media::Core::MediaStreamSou
         m_spRequest = nullptr;
     }
 }
+_Use_decl_annotations_
+void RealtimeMediaSource::OnPaused(Windows::Media::Core::MediaStreamSource const& sender,
+    IInspectable const args)
+{
+    Log(Log_Level_Info, L"RealtimeMediaSource::OnPaused()\n");
+
+    // Ask the server to stop sending media samples to process
+    //SendStopRequest();
+
+    m_SourceState = SourceStreamState::Stopped;
+}
 
 _Use_decl_annotations_
-void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const& sender, 
+void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const& sender,
     MediaStreamSourceClosedEventArgs const& args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnClosed()\n");
 
+    // Ask the server to stop sending media samples to process
+    SendStopRequest();
+
     //auto lock = _lock.Lock();
+    m_SourceState = SourceStreamState::Stopped;
 
     switch (args.Request().Reason())
     {
-    case MediaStreamSourceClosedReason::UnknownError:
-        LOG_RESULT(E_UNEXPECTED)
-        break;
-    case MediaStreamSourceClosedReason::AppReportedError:
-        LOG_RESULT(E_ABORT);
-        break;
-    case MediaStreamSourceClosedReason::UnsupportedProtectionSystem:
-    case MediaStreamSourceClosedReason::ProtectionSystemFailure:
-        LOG_RESULT(MF_E_DRM_UNSUPPORTED);
-        break;
-    case MediaStreamSourceClosedReason::UnsupportedEncodingFormat:
-        LOG_RESULT(MF_E_UNSUPPORTED_FORMAT);
-        break;
-    case MediaStreamSourceClosedReason::MissingSampleRequestedEventHandler:
-        LOG_RESULT(HRESULT_FROM_WIN32(ERROR_NO_CALLBACK_ACTIVE));
-        break;
+        case MediaStreamSourceClosedReason::UnknownError:
+            LOG_RESULT(E_UNEXPECTED)
+            break;
+        case MediaStreamSourceClosedReason::AppReportedError:
+            LOG_RESULT(E_ABORT);
+            break;
+        case MediaStreamSourceClosedReason::UnsupportedProtectionSystem:
+        case MediaStreamSourceClosedReason::ProtectionSystemFailure:
+            LOG_RESULT(MF_E_DRM_UNSUPPORTED);
+            break;
+        case MediaStreamSourceClosedReason::UnsupportedEncodingFormat:
+            LOG_RESULT(MF_E_UNSUPPORTED_FORMAT);
+            break;
+        case MediaStreamSourceClosedReason::MissingSampleRequestedEventHandler:
+            LOG_RESULT(HRESULT_FROM_WIN32(ERROR_NO_CALLBACK_ACTIVE));
+            break;
     }
 }
 
@@ -245,37 +271,43 @@ void RealtimeMediaSource::OnDataReceived(
     IInspectable const& sender,
     RealtimeStreaming::Network::DataBundleArgs const& args)
 {
-    // TODO: Troy figure out right lock
-    //auto lock = m_lock.LockExclusive();
+    Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived()\n");
 
-    PayloadType type = args.PayloadType();
+    Network::DataBundle data = args.Bundle();
+    // Handle request on background thread so connection event handler can return
+    ProcessNetworkRequestAsync(args.PayloadType(), data);
+}
+
+_Use_decl_annotations_
+IAsyncAction RealtimeMediaSource::ProcessNetworkRequestAsync(PayloadType type,
+    RealtimeStreaming::Network::DataBundle dataBundle)
+{
+    co_await winrt::resume_background();
 
     IFT(CheckShutdown());
 
     Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived(%d)\n", type);
 
-    Network::DataBundle data = args.Bundle();
-
     switch (type)
     {
-    case PayloadType::State_CaptureReady:
-        ProcessCaptureReady();
-        break;
-    case PayloadType::SendMediaDescription:
-        //IFT(ProcessMediaDescription(data));
-        ProcessMediaDescription(data);
-        break;
-    case PayloadType::SendMediaSample:
-        IFT(ProcessMediaSample(data));
-        break;
-    case PayloadType::SendFormatChange:
-        IFT(ProcessMediaFormatChange(data));
-        break;
-    case PayloadType::SendMediaStreamTick:
-        Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived() - PayloadType::SendMediaStreamTick\n");
-        // TODO: Troy how to turn on without IMFMediaSource
-        //IFC(ProcessMediaTick(spDataBundle.get()));
-        break;
+        case PayloadType::State_CaptureReady:
+            ProcessCaptureReady();
+            break;
+        case PayloadType::SendMediaDescription:
+            //IFT(ProcessMediaDescription(data));
+            ProcessMediaDescription(dataBundle);
+            break;
+        case PayloadType::SendMediaSample:
+            IFT(ProcessMediaSample(dataBundle));
+            break;
+        case PayloadType::SendFormatChange:
+            IFT(ProcessMediaFormatChange(dataBundle));
+            break;
+        case PayloadType::SendMediaStreamTick:
+            Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived() - PayloadType::SendMediaStreamTick\n");
+            // TODO: Troy how to turn on without IMFMediaSource
+            //IFC(ProcessMediaTick(spDataBundle.get()));
+            break;
     };
 }
 
@@ -287,7 +319,13 @@ HRESULT RealtimeMediaSource::ProcessCaptureReady()
 
     slim_lock_guard guard(m_lock);
 
-    if (m_eSourceState == SourceStreamState::Started || m_eSourceState == SourceStreamState::Stopped)
+    if (m_SourceState == SourceStreamState::Started || m_SourceState == SourceStreamState::Stopped)
+    {
+        return S_OK;
+    }
+
+    // If we have already process a media description then ignore server is ready
+    if (m_mediaStreamSource != nullptr)
     {
         return S_OK;
     }
@@ -305,16 +343,16 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
 
     slim_lock_guard guard(m_lock);
 
-    if (m_eSourceState == SourceStreamState::Started 
-        || m_eSourceState == SourceStreamState::Stopped)
+    if (m_SourceState == SourceStreamState::Started 
+        || m_SourceState == SourceStreamState::Stopped)
         //&& _streams.GetCount() > 0)
     {
         IFR(MF_E_UNEXPECTED);
     }
 
-    if (m_eSourceState != SourceStreamState::Opening)
+    if (m_SourceState != SourceStreamState::Opening)
     {
-        if (m_eSourceState != SourceStreamState::Stopped)
+        if (m_SourceState != SourceStreamState::Stopped)
         {
             // TODO: What to do here
             //Shutdown();
@@ -409,36 +447,26 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     TimeSpan span{ 0 };
     m_mediaStreamSource.BufferTime(span);
     m_mediaStreamSource.IsLive(true);
+    m_mediaStreamSource.CanSeek(false);
 
     m_mediaStreamSource.SampleRendered({ this, &RealtimeMediaSource::OnSampleRendered });
 
     m_startingRequestedToken = m_mediaStreamSource.Starting({ this, &RealtimeMediaSource::OnStarting });
     m_sampleRequestedToken = m_mediaStreamSource.SampleRequested({ this, &RealtimeMediaSource::OnSampleRequested });
+    m_pausedToken = m_mediaStreamSource.SampleRequested({ this, &RealtimeMediaSource::OnSampleRequested });
     m_closeRequestedToken = m_mediaStreamSource.Closed({ this, &RealtimeMediaSource::OnClosed });
-
-    // Signal completion of InitAsync()
-    SetEvent(m_signal.get());
-
-    m_eSourceState = SourceStreamState::Starting;
-
-    // Ask the server to start sending media samples to process
-    SendStartRequest();
-
-    m_eSourceState = SourceStreamState::Started;
-
-    // Signal completion of InitAsync()
-    SetEvent(m_signal.get());
 
 done:
     delete[] pPtr;
 
-    // TODO: signal async method from initasync*
+    // Signal completion of InitAsync()
+    SetEvent(m_signal.get());
+
     return hr;
-    //return CompleteAsyncAction(hr);
 }
 
-void RealtimeMediaSource::OnSampleRendered(Windows::Media::Core::MediaStreamSource sender, 
-    Windows::Media::Core::MediaStreamSourceSampleRenderedEventArgs args)
+void RealtimeMediaSource::OnSampleRendered(Windows::Media::Core::MediaStreamSource const sender, 
+    MediaStreamSourceSampleRenderedEventArgs const args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRendered() - %d \n", args.SampleLag().count());
 }
@@ -519,7 +547,6 @@ done:
 _Use_decl_annotations_
 HRESULT RealtimeMediaSource::ProcessMediaSample(
     RealtimeStreaming::Network::DataBundle const& dataBundle)
-    //Network::DataBundle const& dataBundle)
 {
     slim_lock_guard guard(m_lock);
 
@@ -530,8 +557,10 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     com_ptr<IMFSample> spSample;
 
     // Only process samples when we are in started state
-    if (m_eSourceState != SourceStreamState::Started && m_eSourceState != SourceStreamState::Shutdown)
+    if (m_SourceState != SourceStreamState::Started)
     {
+        return S_OK;
+        /*
         if (FAILED(ProcessCaptureReady()))
         {
             IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSource::ProcessMediaSample() - not in a state to receive data.");
@@ -539,7 +568,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
         else
         {
             return S_OK;
-        }
+        }*/
     }
 
     MediaSampleHeader sampleHead = {};
@@ -629,12 +658,14 @@ HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
         return S_OK;
     }
 
-    if (m_eSourceState != SourceStreamState::Started && m_eSourceState != SourceStreamState::Shutdown)
+    if (m_SourceState != SourceStreamState::Started)
     {
+        return S_OK;
+        /*
         if (FAILED(ProcessCaptureReady()))
         {
             IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSource::ProcessMediaFormatChange() - not in a state to receive data.");
-        }
+        }*/
     }
 
     DWORD cbTotalLen = dataBundle.TotalSize();
