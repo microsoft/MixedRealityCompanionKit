@@ -24,7 +24,7 @@ namespace RealtimeStreaming
             };
         }
 
-        public override void StartAsync()
+        public void StartAsync()
         {
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
             var result = Wrapper.exStartListener(this.Port, ref this.handle, this.connectedHandler, thisObjectPtr);

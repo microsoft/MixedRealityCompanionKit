@@ -75,8 +75,6 @@ namespace RealtimeStreaming
             }
         }
 
-        public abstract void StartAsync();
-
         public virtual void Close()
         {
             if (this.Closed != null)

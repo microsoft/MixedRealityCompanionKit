@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace RealtimeStreaming
@@ -23,9 +24,7 @@ namespace RealtimeStreaming
 
         public string ConnectTo;
         public ushort Port = 27772;
-        private BeaconLib.Probe _probe;
-
-        public bool StopOnPaused = false;
+        private bool alreadyConnecting;
 
         public event EventHandler<StateChangedEventArgs<PlaybackState>> PlayerStateChanged;
 
@@ -93,15 +92,12 @@ namespace RealtimeStreaming
 
         private PlayerPlugin.PlayerCreatedCallbackHandler createdHandler;
 
-        private bool isPaused = false;
         private bool isPlayerCreated = false;
 
         private uint playerHandle = Plugin.InvalidHandle;
 
         private void Awake()
         {
-            _probe = new BeaconLib.Probe("streamingServer");
-
             this.plugin = this.GetComponent<Plugin>();
 
             this.playerHandle = Plugin.InvalidHandle;
@@ -123,27 +119,10 @@ namespace RealtimeStreaming
             }
         }
 
-        private void OnApplicationPause(bool pauseStatus)
-        {
-            this.isPaused = pauseStatus;
-
-            if (!this.StopOnPaused)
-            {
-                return;
-            }
-
-            if (this.isPaused)
-            {
-                this.Pause();
-            }
-            else
-            {
-                this.Play();
-            }
-        }
-
         public void Shutdown()
         {
+            Debug.Log("RealtimeVideoPlayer::Shutdown");
+
             if (this.connector != null)
             {
                 this.StopConnector();
@@ -151,54 +130,59 @@ namespace RealtimeStreaming
 
             if (this.isPlayerCreated)
             {
+                Debug.Log("RealtimeVideoPlayer::Shutdown - Destroying Player");
+
                 this.Stop();
 
                 this.CloseNetworkConnection();
 
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(this.playerHandle), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.Texture_Luma = this.Texture_Chroma = null;
+                this.createdHandler = null;
+                this.stateCallback = null;
+                this.playerHandle = Plugin.InvalidHandle;
 
+                PlayerState = PlaybackState.None;
                 isPlayerCreated = false;
             }
+
+            Debug.Log("RealtimeVideoPlayer::Shutdown Complete");
         }
 
 #region Control Network 
-        public async void ConnectPlayer()
+        public void ConnectPlayer(bool useDiscovery)
         {
-            if (this.connector != null || this.isPlayerCreated) return;
-
-            // we own the connection so we can just stop if if needed
-            //StopConnector();
-
-            string address;
-            int port;
-
-            var serverLocation = await _probe.GetBeacon(2000);
-            if (serverLocation == null)
+            if (!this.alreadyConnecting && (this.connector == null)
+                && !this.isPlayerCreated)
             {
-                address = "192.168.1.192";
-                port    = 27772;
-            }
-            else
-            {
-                address = serverLocation.Address.Address.ToString();
-                port    = serverLocation.Address.Port;
-                Debug.Log("Caught beacon");
-            }
-            Debug.Log("Server location" + address+" port:"+ port);
+                this.alreadyConnecting = true;
 
-            connector = new Connector { ConnectionUrl = string.Format(Plugin.MediaUrlFormat, address, port) };
-            if (this.connector != null)
-            {
-                this.connector.Started += this.OnConnectorStarted;
-                this.connector.Connected += this.OnConnectorConnected;
-                this.connector.Failed += this.OnConnectorFailed;
-                this.connector.StartAsync();
+                connector = new Connector();
+
+                if (this.connector != null)
+                {
+                    this.connector.Started += this.OnConnectorStarted;
+                    this.connector.Connected += this.OnConnectorConnected;
+                    this.connector.Failed += this.OnConnectorFailed;
+
+                    if (useDiscovery)
+                    {
+                        this.connector.DiscoverAsync();
+                    }
+                    else
+                    {
+                        this.connector.ConnectAsync(string.Format(Plugin.MediaUrlFormat, this.ConnectTo, this.Port));
+                    }
+                }
+
+                this.alreadyConnecting = false;
             }
         }
 
         private void StopConnector()
         {
+            Debug.Log("RealtimeVideoPlayer::StopConnector");
+
             if (this.connector == null)
             {
                 return;
@@ -213,6 +197,8 @@ namespace RealtimeStreaming
 
         private void CloseNetworkConnection()
         {
+            Debug.Log("RealtimeVideoPlayer::CloseNetworkConnection");
+
             if (this.networkConnection == null)
             {
                 return;
@@ -334,9 +320,12 @@ namespace RealtimeStreaming
 
         private void CreateRealTimePlayer()
         {
+            Debug.Log("RealtimeVideoPlayer::CreateRealTimePlayer");
+
             // Only initialize if we have a connection 
             if (this.networkConnection == null || isPlayerCreated)
             {
+                Debug.Log("RealtimeVideoPlayer::CreateRealTimePlayer - Connection=null or isPlayerCreated");
                 return;
             }
 
@@ -360,6 +349,7 @@ namespace RealtimeStreaming
                 return;
             }
 
+            Debug.Log("RealtimeVideoPlayer::CreateRealTimePlayer - Player Created");
             isPlayerCreated = true;
         }
 
@@ -367,6 +357,7 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealtimeVideoPlayer::OnCreated");
                 Plugin.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
 
                 if (width <= 0 || height <= 0)
@@ -376,17 +367,24 @@ namespace RealtimeStreaming
                     return;
                 }
 
+                uint w = (uint)width, h = (uint)height;
+
                 // TODO: This is hardcoded for weird bug on ARM
-                if (width > 16384 || height == 1)
+                if (!IsValidResolution(w, h))
                 {
-                    width = 1280;
-                    height = 720;
+                    Debug.Log("RealTimePlayer::OnCreated width/height invalid");
+
+                    Plugin.CheckHResult(PlayerPlugin.exGetStreamResolution(this.playerHandle,
+                            ref this.textureWidth, ref this.textureHeight),
+                        "RealtimeVideoPlayer::exGetStreamResolution");
+                }
+                else
+                {
+                    this.textureWidth = w;
+                    this.textureHeight = h;
                 }
 
-                this.textureWidth = (uint)width;
-                this.textureHeight = (uint)height;
-
-                Debug.Log("RealTimePlayer::OnCreated - " + width + " by " + height);
+                Debug.Log("RealTimePlayer::OnCreated - " + this.textureWidth + " by " + this.textureHeight);
 
                 // TODO: Add documentation information here for YUV work
 
@@ -424,24 +422,49 @@ namespace RealtimeStreaming
 
         public void Play()
         {
+            if (!this.isPlayerCreated) return;
+
             Debug.Log("RealTimePlayer::Play");
-            Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
+
+            // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
+            Task task = new Task(() =>
+            {
+                Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
+            });
+            task.Start();
+            //Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
 
             this.PlayerState = PlaybackState.Playing;
         }
 
         public void Pause()
         {
+            if (!this.isPlayerCreated) return;
+
             Debug.Log("RealTimePlayer::Pause");
-            Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
+
+            Task task = new Task(() =>
+            {
+                Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
+            });
+            task.Start();
+            //Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
 
             this.PlayerState = PlaybackState.Paused;
         }
 
         public void Stop()
         {
+            if (!this.isPlayerCreated) return;
+
             Debug.Log("RealTimePlayer::Stop");
-            Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
+            // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
+            Task task = new Task(() =>
+            {
+                Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
+            });
+            task.Start();
+            //Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
 
             this.PlayerState = PlaybackState.Ended;
         }
@@ -450,6 +473,7 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
+                Debug.Log("RealTimePlayer::MediaPlayback_Changed");
                 OnStateChanged(args);
             });
         }
@@ -474,6 +498,14 @@ namespace RealtimeStreaming
                 default:
                     break;
             }
+        }
+
+        private const uint MIN_D3D_RESOLUTION = 1;
+        private const uint MAX_D3D_RESOLUTION = 16384;
+        private bool IsValidResolution(uint width, uint height)
+        {
+            return width >= MIN_D3D_RESOLUTION && width <= MAX_D3D_RESOLUTION
+                                               && height >= MIN_D3D_RESOLUTION && height <= MAX_D3D_RESOLUTION;
         }
 
         #endregion
@@ -539,6 +571,9 @@ namespace RealtimeStreaming
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ReleaseRealtimePlayer")]
             internal static extern long exReleasePlayer(uint playerHandle);
+
+            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "GetPlayerStreamResolution")]
+            internal static extern long exGetStreamResolution(uint playerHandle, ref uint width, ref uint height);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayerTexture")]
             internal static extern long exCreateExternalTexture(uint playerHandle, uint width, uint height, out System.IntPtr texture_L, out System.IntPtr texture_UV);

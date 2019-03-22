@@ -2,18 +2,13 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using UnityEngine;
 
 namespace RealtimeStreaming
 {
     public class Connector : NetworkComponent
     {
-        public string ConnectionUrl { get; set; }
-
         public Connector()
         {
             this.handle = Plugin.InvalidHandle;
@@ -24,12 +19,22 @@ namespace RealtimeStreaming
             };
         }
 
-        public override void StartAsync()
+        public void ConnectAsync(string connectionUrl)
         {
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
-            var result = Wrapper.exOpenConnection(this.ConnectionUrl, ref this.handle, this.connectedHandler, thisObjectPtr);
+            var result = Wrapper.exOpenConnection(connectionUrl, ref this.handle, this.connectedHandler, thisObjectPtr);
 
-            Plugin.CheckHResult(result, "Connector.StartAsync()");
+            Plugin.CheckHResult(result, "Connector.ConnectAsync()");
+
+            base.OnStarted(result);
+        }
+
+        public void DiscoverAsync()
+        {
+            IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
+            var result = Wrapper.exDiscoverConnection(ref this.handle, this.connectedHandler, thisObjectPtr);
+
+            Plugin.CheckHResult(result, "Connector.DiscoverAsync()");
 
             base.OnStarted(result);
         }
@@ -48,6 +53,11 @@ namespace RealtimeStreaming
                 ref uint handle, 
                 [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler ConnectionOpenedCallback, 
                 IntPtr senderObject);
+
+            [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectorCreateAndDiscover")]
+            internal static extern int exDiscoverConnection(ref uint handle,
+                            [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler ConnectionOpenedCallback,
+                            IntPtr senderObject);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "ConnectorStopAndClose")]
             internal static extern int exCloseConnector(uint handle);
