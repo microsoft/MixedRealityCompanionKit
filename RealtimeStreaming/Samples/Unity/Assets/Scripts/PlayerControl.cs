@@ -25,7 +25,7 @@ public class PlayerControl : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.P))
         {
-            StartPlayer();
+            DiscoverPlayer();
         }
         else if (Input.GetKey(KeyCode.Q))
         {
@@ -34,7 +34,12 @@ public class PlayerControl : MonoBehaviour
     }
 #endif
 
-    public void StartPlayer()
+    public void DiscoverPlayer()
+    {
+        rtPlayer.ConnectPlayer(true);
+    }
+
+    public void ConnectPlayer()
     {
         rtPlayer.ConnectTo = this.ipAddressInput.text;
         rtPlayer.ConnectPlayer(true);
