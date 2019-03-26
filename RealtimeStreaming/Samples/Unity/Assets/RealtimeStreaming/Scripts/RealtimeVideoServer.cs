@@ -25,6 +25,8 @@ namespace RealtimeStreaming
 
         public string ConnectTo;
         public ushort Port = 27772;
+        public uint Width = 1280;
+        public uint Height = 720;
 
         public Action<object, StateChangedEventArgs<ServerState>> ServerStateChanged { get; internal set; }
 
@@ -173,7 +175,7 @@ namespace RealtimeStreaming
             this.listenerConnection.Closed += this.OnConnectionClosed;
 
             uint handle = Plugin.InvalidHandle;
-            var hr = VideoServerWrapper.exCreate(this.listenerConnection.Handle, ref handle);
+            var hr = VideoServerWrapper.exCreate(this.listenerConnection.Handle, this.Width, this.Height, ref handle);
             Plugin.CheckHResult(hr, "RealtimeVideoServer::exCreate");
 
             if (handle == Plugin.InvalidHandle || hr != Plugin.S_OK)
@@ -290,7 +292,9 @@ namespace RealtimeStreaming
         private static class VideoServerWrapper
         {
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimeStreamingServer")]
-            internal static extern int exCreate(uint connectionHandle, 
+            internal static extern int exCreate(uint connectionHandle,
+                uint width,
+                uint height,
                 ref uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingShutdown")]

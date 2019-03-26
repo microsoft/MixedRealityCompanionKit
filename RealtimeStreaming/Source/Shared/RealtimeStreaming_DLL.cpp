@@ -519,6 +519,8 @@ RTDLL ConnectionClose(
 
 RTDLL CreateRealtimeStreamingServer(
     _In_ UINT32 connectionHandle,
+    _In_ UINT32 width,
+    _In_ UINT32 height,
     _Inout_ UINT32* serverHandle)
 {
     NULL_CHK(serverHandle);
@@ -529,6 +531,8 @@ RTDLL CreateRealtimeStreamingServer(
 
     // Default encoding activation
     auto mediaProfile = MediaEncodingProfile::CreateHevc(VideoEncodingQuality::HD720p);
+    mediaProfile.Video().Width(width);
+    mediaProfile.Video().Height(height);
     GUID videoFormat = MFVideoFormat_RGB32;
 
     RealtimeServer rtServer = winrt::make<RealtimeStreaming::Media::implementation::RealtimeServer>(

@@ -1,0 +1,92 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v3.0",
+    "signature": "7f17ea49223c60b034c975c4ffe33c7c596dc67c"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v3.0": {
+      "WriteableBitmapEx.Wpf/1.0.0": {
+        "dependencies": {
+          "Microsoft.NETCore.App": "3.0.0-preview-27122-01"
+        },
+        "runtime": {
+          "WriteableBitmapEx.Wpf.dll": {}
+        }
+      },
+      "Microsoft.NETCore.App/3.0.0-preview-27122-01": {
+        "dependencies": {
+          "Microsoft.NETCore.DotNetHostPolicy": "3.0.0-preview-27122-01",
+          "Microsoft.NETCore.Platforms": "3.0.0-preview.18571.3",
+          "NETStandard.Library": "2.0.3"
+        }
+      },
+      "Microsoft.NETCore.DotNetAppHost/3.0.0-preview-27122-01": {},
+      "Microsoft.NETCore.DotNetHostPolicy/3.0.0-preview-27122-01": {
+        "dependencies": {
+          "Microsoft.NETCore.DotNetHostResolver": "3.0.0-preview-27122-01"
+        }
+      },
+      "Microsoft.NETCore.DotNetHostResolver/3.0.0-preview-27122-01": {
+        "dependencies": {
+          "Microsoft.NETCore.DotNetAppHost": "3.0.0-preview-27122-01"
+        }
+      },
+      "Microsoft.NETCore.Platforms/3.0.0-preview.18571.3": {},
+      "NETStandard.Library/2.0.3": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "3.0.0-preview.18571.3"
+        }
+      }
+    }
+  },
+  "libraries": {
+    "WriteableBitmapEx.Wpf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.NETCore.App/3.0.0-preview-27122-01": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZXfgdIgXv1G4OlSJq+xTAK2J1Yo3B+z7+gGZQzoyxKoB5bR267GCj+2203v6AU4ghaFLBkQh6F1kLioIs2SAIw==",
+      "path": "microsoft.netcore.app/3.0.0-preview-27122-01",
+      "hashPath": "microsoft.netcore.app.3.0.0-preview-27122-01.nupkg.sha512"
+    },
+    "Microsoft.NETCore.DotNetAppHost/3.0.0-preview-27122-01": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kWeTxxiUu1R2ZehAfb2gd/vUAhgxlmXHEluH3/CkYdOwV5bvxLcZchlNU0xAAk3Pb6uLUl1E6bf6th+yp1qrCw==",
+      "path": "microsoft.netcore.dotnetapphost/3.0.0-preview-27122-01",
+      "hashPath": "microsoft.netcore.dotnetapphost.3.0.0-preview-27122-01.nupkg.sha512"
+    },
+    "Microsoft.NETCore.DotNetHostPolicy/3.0.0-preview-27122-01": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VE8It8hciRG6crKnN5zZJQsBlPhKCQ0QgolqLTu4mlCl1FL72a8grsYfy6tusXqQ8h4QJ25MkUkz+LUlCvPU+Q==",
+      "path": "microsoft.netcore.dotnethostpolicy/3.0.0-preview-27122-01",
+      "hashPath": "microsoft.netcore.dotnethostpolicy.3.0.0-preview-27122-01.nupkg.sha512"
+    },
+    "Microsoft.NETCore.DotNetHostResolver/3.0.0-preview-27122-01": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LJGENrcxKnWtVWRw/HzsrSGO3Rur7xsWDQwB+WFF3MW6ov5D/DIlfZYY2cjgQP9IXOCD544AUqwvOQOH9r5Jxg==",
+      "path": "microsoft.netcore.dotnethostresolver/3.0.0-preview-27122-01",
+      "hashPath": "microsoft.netcore.dotnethostresolver.3.0.0-preview-27122-01.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Platforms/3.0.0-preview.18571.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4HusYLmBT+3cIaHb7Nx+RL2CHGWIG15oFwrHW7hszMzvQNJU4zHoeonn50pRcaqv+SYt8SnQl0+vyUSkwBcmRA==",
+      "path": "microsoft.netcore.platforms/3.0.0-preview.18571.3",
+      "hashPath": "microsoft.netcore.platforms.3.0.0-preview.18571.3.nupkg.sha512"
+    },
+    "NETStandard.Library/2.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+      "path": "netstandard.library/2.0.3",
+      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+    }
+  }
+}

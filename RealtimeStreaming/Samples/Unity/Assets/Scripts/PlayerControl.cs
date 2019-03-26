@@ -37,7 +37,7 @@ public class PlayerControl : MonoBehaviour
     public void StartPlayer()
     {
         rtPlayer.ConnectTo = this.ipAddressInput.text;
-        rtPlayer.ConnectPlayer();
+        rtPlayer.ConnectPlayer(true);
     }
 
     private void RtPlayer_PlayerStateChanged(object sender, StateChangedEventArgs<RealtimeVideoPlayer.PlaybackState> e)

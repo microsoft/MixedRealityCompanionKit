@@ -65,10 +65,12 @@ public class WebcamServerSource : MonoBehaviour
             return;
         }
 
-        webcam = new WebCamTexture(1280, 720);
+        webcam = new WebCamTexture(3840, 2160);
         debugImg.texture = webcam;
         debugImg.material.mainTexture = webcam;
         webcam.Play();
+
+        UnityEngine.Debug.Log(webcam.width + " - " + webcam.height);
 
         webcam_interop = new Color32[webcam.width * webcam.height];
         frameBuffer = new byte[webcam.width * webcam.height * 4];
