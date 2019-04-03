@@ -170,7 +170,7 @@ void RealtimeMediaSource::OnSampleRequested(Windows::Media::Core::MediaStreamSou
         Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRequested() - No latest sample, taking deferral \n");
 
         if (m_deferral != nullptr) {
-            Log(Log_Level_Error, L"RealtimeMediaSource::OnSampleRequested() - Got deferral when another has not completed\n");
+            Log(Log_Level_Info, L"RealtimeMediaSource::OnSampleRequested() - Got deferral when another has not completed\n");
         }
 
         m_deferral = m_spRequest.GetDeferral();
@@ -381,6 +381,7 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
     // + one mediaType description
     if (dataBundle.TotalSize() < (c_cbMediaDescriptionSize + c_cbMediaTypeDescriptionSize))
     {
+        Log(Log_Level_Error, L"RealtimeMediaSource::ProcessMediaDescription() Failure - DataBundle.TotalSize=%d \n", dataBundle.TotalSize());
         IFC(MF_E_UNSUPPORTED_FORMAT);
     }
 
@@ -560,15 +561,6 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     if (m_SourceState != SourceStreamState::Started)
     {
         return S_OK;
-        /*
-        if (FAILED(ProcessCaptureReady()))
-        {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSource::ProcessMediaSample() - not in a state to receive data.");
-        }
-        else
-        {
-            return S_OK;
-        }*/
     }
 
     MediaSampleHeader sampleHead = {};
@@ -608,7 +600,7 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
         {
             Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaSample - Fire Deferral()\n");
 
-            com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest = m_spRequest.as< IMFMediaStreamSourceSampleRequest>();
+            com_ptr<IMFMediaStreamSourceSampleRequest> spIMFRequest = m_spRequest.as<IMFMediaStreamSourceSampleRequest>();
 
             IFR(spIMFRequest->SetSample(m_latestSample.get()));
 

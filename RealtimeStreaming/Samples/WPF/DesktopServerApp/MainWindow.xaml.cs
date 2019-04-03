@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Input;
 
 namespace DesktopServerApp
 {
@@ -8,12 +10,12 @@ namespace DesktopServerApp
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ServerManager ServerManager
+        public SampleManager Manager
         {
-            get => _serverManager;
-            set => this.SetProperty(ref this._serverManager, value);
+            get => _Manager;
+            set => this.SetProperty(ref this._Manager, value);
         }
-        private ServerManager _serverManager;
+        private SampleManager _Manager;
 
         public MainWindow()
         {
@@ -21,16 +23,19 @@ namespace DesktopServerApp
 
             this.Loaded += this.OnLoaded;
         }
+
         void OnLoaded(object sender, RoutedEventArgs e)
         {
             this.DataContext = this;
-            this.ServerManager = new ServerManager(this.Dispatcher);
-            this.ServerManager.InitializeGrabberAndBuffers();
+
+            this._Manager = new SampleManager(this.Dispatcher);
         }
-        void OnListenButtonClick(object sender, RoutedEventArgs e)
+
+        void OnStartButtonClick(object sender, RoutedEventArgs e)
         {
-             _serverManager.StartListening();
+            _Manager.Start();
         }
+
         void FirePropertyChanged(
             [CallerMemberName] string propertyName = null)
         {
@@ -39,6 +44,7 @@ namespace DesktopServerApp
                 new PropertyChangedEventArgs(propertyName)
             );
         }
+
         bool SetProperty<T>(
             ref T storage,
             T value,
@@ -49,6 +55,12 @@ namespace DesktopServerApp
             storage = value;
             this.FirePropertyChanged(propertyName);
             return true;
+        }
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
         }
     }
 }

@@ -90,6 +90,13 @@ winrt::fire_and_forget Connection::RunSocketLoop()
 		// Read size of next batch of data to process
 		UINT32 cbData = *(UINT32*)sizeBuffer.data();
 
+        // TODO: Need to remove or utilize the cbData 
+        /*
+        if (cbData < sizeof(PayloadHeader))
+        {
+            
+        }*/
+
 		// Read in the batch of data (header & payload)
 		Buffer headerBuffer(sizeof(PayloadHeader));
 		co_await inputStream.ReadAsync(headerBuffer, headerBuffer.Capacity(), InputStreamOptions::None);
@@ -269,9 +276,6 @@ IAsyncAction Connection::SendBundleAsync(
 		}
 
 		Log(Log_Level_Info, L"Connection::SendBundleAsync() wrote - Buffers: %d - TotalLength: %d - TID: %d\n", bufferCount, totalLength, GetCurrentThreadId());
-
-		//co_await outStream.FlushAsync();
-		//Log(Log_Level_Info, L"Connection::SendBundleAsync() stored - Buffers: %d - TotalLength: %d - TID: %d\n", bufferCount, totalLength, GetCurrentThreadId());
 	}
 	catch (winrt::hresult_error const& ex)
 	{

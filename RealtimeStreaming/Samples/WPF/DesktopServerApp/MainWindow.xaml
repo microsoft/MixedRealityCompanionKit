@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DesktopServerApp"
         mc:Ignorable="d"
         Title="Imaging Server" Height="480" Width="640">
     <Grid Margin="10">
@@ -14,30 +13,26 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="1" Orientation="Vertical">
             <TextBlock Text="Server" FontSize="16"/>
-            <TextBlock Text="Number of Listeners"/>
-            <TextBox Text="{Binding ServerManager.MaxListenerCount,Mode=TwoWay,FallbackValue=2}"/>
             <TextBlock Text="Starting Port Number"/>
-            <TextBox Text="{Binding ServerManager.ListeningPort,Mode=TwoWay,FallbackValue=27772}"/>
+            <TextBox Text="{Binding Manager.Port,Mode=TwoWay,FallbackValue=27772}"/>
             <TextBlock Text="Delay between frames (ms)"/>
-            <TextBox Text="{Binding ServerManager.FrameDelayMs,Mode=TwoWay,FallbackValue=100}"/>
-            <Button Content="Listen" Click="OnListenButtonClick" IsEnabled="{Binding ServerManager.IsIdle,Mode=OneWay}"/>
+            <TextBox Text="{Binding Manager.FrameDelayMs,Mode=TwoWay,FallbackValue=100}"/>
+            <UniformGrid Rows="1" Columns="3">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Multicast Discovery Enabled: "/>
+                    <CheckBox IsChecked="{Binding Manager.MulticastDiscoveryEnabled, Mode=TwoWay, FallbackValue=true}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Width: "/>
+                    <TextBox Text="{Binding Manager.OutputWidth,Mode=TwoWay,FallbackValue=1270}" Width="75" PreviewTextInput="NumberValidationTextBox" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Height: "/>
+                    <TextBox Text="{Binding Manager.OutputHeight,Mode=TwoWay,FallbackValue=720}" Width="75" PreviewTextInput="NumberValidationTextBox" />
+                </StackPanel>
+            </UniformGrid>
+            <Button Content="Start" Click="OnStartButtonClick" IsEnabled="{Binding Manager.IsIdle, Mode=OneWay}"/>
         </StackPanel>
-        <TextBlock FontSize="16" Text="Running Servers" Margin="0,10,0,0" Grid.Row="2"/>
-        <ListBox Grid.Row="3" ItemsSource="{Binding ServerManager.RealtimeServers.Servers,Mode=OneWay}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Grid.Row="2" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
-                            <Run>Server is at status </Run>
-                            <Run Foreground="red" Text="{Binding ConnectionStatus,Mode=OneWay,FallbackValue=0}"/>
-                            <Run> Server has sent</Run>
-                            <Run Text="{Binding FrameSentCount,Mode=OneWay,FallbackValue=0}"/>
-                            <Run>frames</Run>
-                            <Run> sending at </Run>
-                            <Run Text="{Binding Fps,Mode=OneWay,FallbackValue=0}"/>
-                            <Run> fps</Run>
-                    </TextBlock>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <Rectangle Grid.Row="2" Fill="{Binding Manager.FrameColor}" Margin="15" Stroke="Black" />
     </Grid>
 </Window>

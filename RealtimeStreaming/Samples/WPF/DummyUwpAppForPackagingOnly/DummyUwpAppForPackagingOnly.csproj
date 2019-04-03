@@ -156,10 +156,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\UWP\UWP.vcxproj">
-      <Project>{c379eadf-ec52-4c6d-a12d-8101dc27939b}</Project>
-      <Name>UWP</Name>
-    </ProjectReference>
+    <Reference Include="RealtimeStreaming, Version=255.255.255.255, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Plugin\UWP\x64\RealtimeStreaming.winmd</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
