@@ -945,19 +945,6 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
 
     if (fSendEOS)
     {
-        /* TODO: Look at this if acting up
-        com_ptr<implementation::NetworkMediaSinkStream> spThis(*this);
-        com_ptr<NetworkMediaSink> spParent(m_parentMediaSink.get());
-        concurrency::create_task([this, spThis, spParent]()
-        {
-            spParent->OnEndOfStream(m_dwStreamId);
-        });*/
-
-        concurrency::create_task([this]()
-        {
-            m_parentMediaSink.OnEndOfStream(m_dwStreamId);
-        }); 
-
         fSendSamples = false;
     }
 

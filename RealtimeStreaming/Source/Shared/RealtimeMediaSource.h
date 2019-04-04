@@ -53,9 +53,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
             Windows::Media::Core::MediaStreamSourceSampleRenderedEventArgs args);
 
         // Network calls
-        winrt::fire_and_forget SendDescribeRequest();
-        winrt::fire_and_forget SendStartRequest();
-        winrt::fire_and_forget SendStopRequest();
+        winrt::fire_and_forget RealtimeMediaSource::SendNetworkRequest(_In_ RealtimeStreaming::Common::PayloadType type);
 
         // Network handlers
         Windows::Foundation::IAsyncAction ProcessNetworkRequestAsync(_In_ RealtimeStreaming::Common::PayloadType type,

@@ -4,16 +4,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Imaging Server" Height="480" Width="640">
+        Title="Example Realtime Server" Height="480" Width="640">
     <Grid Margin="10">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="1" Orientation="Vertical">
-            <TextBlock Text="Server" FontSize="16"/>
-            <TextBlock Text="Starting Port Number"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Server Status: " FontSize="16"/>
+                <TextBlock Foreground="red" FontSize="16" Text="{Binding Manager.Status,Mode=OneWay,FallbackValue=0}"/>
+            </StackPanel>
+            <TextBlock Text="Port Number"/>
             <TextBox Text="{Binding Manager.Port,Mode=TwoWay,FallbackValue=27772}"/>
             <TextBlock Text="Delay between frames (ms)"/>
             <TextBox Text="{Binding Manager.FrameDelayMs,Mode=TwoWay,FallbackValue=100}"/>
@@ -33,6 +37,10 @@
             </UniformGrid>
             <Button Content="Start" Click="OnStartButtonClick" IsEnabled="{Binding Manager.IsIdle, Mode=OneWay}"/>
         </StackPanel>
-        <Rectangle Grid.Row="2" Fill="{Binding Manager.FrameColor}" Margin="15" Stroke="Black" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <TextBlock Text="Running FPS: " FontSize="14"/>
+            <TextBlock  FontSize="14" Text="{Binding Manager.RunningFPS,Mode=OneWay,FallbackValue=0, StringFormat=N2}"/>
+        </StackPanel>
+        <Rectangle Grid.Row="3" Fill="{Binding Manager.FrameColor}" Margin="15" Stroke="Black" />
     </Grid>
 </Window>

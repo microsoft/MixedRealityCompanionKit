@@ -105,9 +105,9 @@ typedef enum Log_Level
 
 #ifndef LOG_LEVEL
 #if _DEBUG
-#define LOG_LEVEL Log_Level_Warning
+#define LOG_LEVEL Log_Level_Verbose
 #else
-#define LOG_LEVEL Log_Level_Warning
+#define LOG_LEVEL Log_Level_Verbose
 #endif
 #endif
 
@@ -116,10 +116,11 @@ inline void __stdcall Log(
     _In_ _Printf_format_string_ STRSAFE_LPCWSTR pszFormat,
     ...)
 {
+    /*
     if (LOG_LEVEL < level)
     {
         return;
-    }
+    }*/
 
     wchar_t szTextBuf[2048];
 

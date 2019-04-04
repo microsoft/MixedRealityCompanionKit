@@ -173,16 +173,11 @@ inline HRESULT ExecutePerStream(std::vector<com_ptr<IMFStreamSink>> &list, TFunc
 
 NetworkMediaSink::NetworkMediaSink(Connection connection)
     : m_llStartTime(0)
-    , _cStreamsEnded(0)
     , m_presentationClock(nullptr)
     , m_connection(connection)
 {
     // Subscribe to connection data received event
     m_bundleReceivedEventToken = m_connection.Received({ this, &NetworkMediaSink::OnDataReceived });
-
-    // TODO: Consider making separate function call for server to indicate when it is ready
-    // instead of auto-ready
-    SendStreamReady();
 }
 
 NetworkMediaSink::~NetworkMediaSink()
@@ -228,7 +223,6 @@ HRESULT NetworkMediaSink::AddStreamSink(
         IFT(MF_E_STREAMSINK_EXISTS);
     }
 
-    //NetworkMediaSinkStream networkSinkStream = NetworkMediaSinkStream(dwStreamSinkIdentifier, m_connection, *this);
     auto networkSinkStream = winrt::make<NetworkMediaSinkStream>(dwStreamSinkIdentifier, m_connection, *this);
     
     spMFStream = networkSinkStream.as<IMFStreamSink>();
@@ -253,7 +247,6 @@ HRESULT NetworkMediaSink::AddStreamSink(
         }
 
         m_streams.insert(it, spMFStream);
-        //IFR(m_streams.InsertPos(pos, spMFStream.get()));
     }
 
     spMFStream.copy_to(ppStreamSink);
@@ -435,8 +428,6 @@ HRESULT NetworkMediaSink::Shutdown()
 
     m_presentationClock = nullptr;
 
-    _cStreamsEnded = 0;
-
     m_evtClosed(*this, true);
 }
 
@@ -500,14 +491,15 @@ void NetworkMediaSink::Closed(winrt::event_token const& token)
 
     m_evtClosed.remove(token);
 }
-
-winrt::hresult NetworkMediaSink::OnEndOfStream(uint32_t streamId)
+_Use_decl_annotations_
+void NetworkMediaSink::StartNetwork()
 {
-    slim_lock_guard guard(m_lock);
+    SendStreamReady();
+}
 
-    _cStreamsEnded++;
-
-    return S_OK;
+void NetworkMediaSink::StopNetwork()
+{
+    SendStreamStopped();
 }
 
 _Use_decl_annotations_
@@ -568,9 +560,15 @@ winrt::fire_and_forget NetworkMediaSink::SendStreamStopped()
 }
 
 _Use_decl_annotations_
-winrt::fire_and_forget NetworkMediaSink::SendDescription(void)
+winrt::fire_and_forget NetworkMediaSink::SendDescription()
 {
     Log(Log_Level_Info, L"NetworkSinkImpl::SendDescription() begin...\n");
+
+    if (m_streams.empty())
+    {
+        Log(Log_Level_Warning, L"NetworkSinkImpl::SendDescription() no streams added yet...\n");
+        return;
+    }
 
     // Size of the constant buffer header
     const UINT32 c_cStreams = m_streams.size();
@@ -638,68 +636,4 @@ winrt::fire_and_forget NetworkMediaSink::SendDescription(void)
 
     Log(Log_Level_Info, L"NetworkMediaSink::SendDescription finished()\n");
 }
-
-/*
-_Use_decl_annotations_
-HRESULT NetworkMediaSink::SetMediaStreamProperties(
-    Windows::Media::Capture::MediaStreamType mediaStreamType,
-    Windows::Media::MediaProperties::IMediaEncodingProperties mediaEncodingProperties)
-{
-    // We only support Video Record & Audio
-    if (mediaStreamType != MediaStreamType::VideoRecord && mediaStreamType != MediaStreamType::Audio)
-    {
-        IFR(E_INVALIDARG);
-    }
-
-    DWORD streamId;
-    IFR(GetStreamId(mediaStreamType, &streamId));
-
-    RemoveStreamSink(streamId);
-
-    if (nullptr != mediaEncodingProperties)
-    {
-        com_ptr<IMFStreamSink> spStreamSink;
-        com_ptr<IMFMediaType> spMediaType;
-        ConvertPropertiesToMediaType(mediaEncodingProperties, spMediaType.put());
-        IFR(AddStreamSink(streamId, spMediaType.get(), spStreamSink.put()));
-    }
-
-    return S_OK;
-}
-
-
-HRESULT NetworkMediaSink::ConvertPropertiesToMediaType(
-    IMediaEncodingProperties const& mediaEncodingProp,
-    IMFMediaType** ppMediaType)
-{
-    NULL_CHK(ppMediaType);
-
-    *ppMediaType = nullptr;
-
-    // get Iterator
-    MediaPropertySet propSet = mediaEncodingProp.Properties();
-
-    com_ptr<IMFMediaType> spMediaType;
-    IFR(MFCreateMediaType(spMediaType.put()));
-
-    for (auto& keyValuePair : propSet)
-    {
-        IPropertyValue value = keyValuePair.Value().as<IPropertyValue>();
-        IFR(AddAttribute(keyValuePair.Key(), value, spMediaType.get()));
-    }
-
-    IPropertyValue propValue = propSet.Lookup(MF_MT_MAJOR_TYPE).as<IPropertyValue>();
-    GUID guiMajorType = propValue.GetGuid();
-
-    if (guiMajorType != MFMediaType_Video && guiMajorType != MFMediaType_Audio)
-    {
-        IFR(E_UNEXPECTED);
-    }
-
-    NULL_CHK_HR(spMediaType, E_NOT_SET);
-
-    spMediaType.copy_to(ppMediaType);
-
-    return S_OK;
-}*/
 

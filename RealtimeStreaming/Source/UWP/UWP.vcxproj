@@ -122,17 +122,12 @@
 mkdir "$(SolutionDir)..\Samples\Unity\Assets\$(SolutionName)\Plugins\WSA\$(PlatformShortName)"
 copy /Y "$(TargetPath)" "$(SolutionDir)..\Samples\Unity\Assets\$(SolutionName)\Plugins\WSA\$(PlatformShortName)"
 copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Assets\$(SolutionName)\Plugins\WSA\$(PlatformShortName)"
-      </Command>
-      <Message>Copying binaries to UnitySample\Unity\Plugins folder</Message>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Command>
       mkdir "$(SolutionDir)..\Samples\WPF\Plugin\UWP\$(PlatformShortName)"
       copy /Y "$(TargetPath)" "$(SolutionDir)..\Samples\WPF\Plugin\UWP\$(PlatformShortName)"
       copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\WPF\Plugin\UWP\$(PlatformShortName)"
       copy /Y "$(TargetDir)$(TargetName).winmd" "$(SolutionDir)..\Samples\WPF\Plugin\UWP\$(PlatformShortName)"
       </Command>
-      <Message>Copying binaries to WPF Sample Plugins folder</Message>
+      <Message>Copying binaries to UnitySample\Unity\Plugins folder</Message>
     </PostBuildEvent>
     <ClCompile>
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StdCall</CallingConvention>

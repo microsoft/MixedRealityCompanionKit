@@ -12,12 +12,23 @@ namespace DesktopServerApp
 {
     public class SampleManager : PropertyChangeBase
     {
+
+        public enum ManagerStatus
+        {
+            Idle,
+            Listening,
+            Sending
+        };
+
         private ushort port = 27772;
         private bool multicastDiscoveryEnabled = true;
         private int frameDelayMs = 15;
         private uint width = 1280;
         private uint height = 720;
         private uint bpp = 4;
+        private float fps = 0.0f;
+
+        private ManagerStatus status = ManagerStatus.Idle;
 
         private SolidColorBrush frameColor = new SolidColorBrush(Colors.White);
         private Color startColor = Colors.Red;
@@ -28,7 +39,7 @@ namespace DesktopServerApp
         private readonly Dispatcher _dispatcher;
         private byte[] imageData;
         private Random rand = new Random();
-        private bool isIdle = true;
+        private Stopwatch stopwatch = new Stopwatch();
 
         private CancellationTokenSource _cts;
         private DisconnectedDelegate _handler;
@@ -42,10 +53,22 @@ namespace DesktopServerApp
             set => SetProperty(ref port, value);
         }
 
+        public ManagerStatus Status
+        {
+            get => status;
+            set
+            {
+                SetProperty(ref status, value);
+                FirePropertyChanged("IsIdle");
+            }
+        }
+
         public bool IsIdle
         {
-            get => isIdle;
-            set => SetProperty(ref isIdle, value);
+            get
+            {
+                return status == ManagerStatus.Idle;
+            }
         }
 
         public bool MulticastDiscoveryEnabled
@@ -58,6 +81,12 @@ namespace DesktopServerApp
         {
             get => frameDelayMs;
             set => SetProperty(ref frameDelayMs, value);
+        }
+
+        public float RunningFPS
+        {
+            get => fps;
+            set => SetProperty(ref fps, value);
         }
 
         public SolidColorBrush FrameColor
@@ -81,13 +110,13 @@ namespace DesktopServerApp
         public SampleManager(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
+            this.Status = ManagerStatus.Idle;
         }
 
         public void Start()
         {
             if (!this.IsIdle) return;
 
-            this.IsIdle = false;
             Task.Factory.StartNew(() => RunLoop());
         }
 
@@ -125,7 +154,8 @@ namespace DesktopServerApp
 
             this.startColor = Colors.Red;
             this.endColor = Colors.Blue;
-            UpdateFrameColorOnUIThread(Colors.White);
+
+            UpdateUIThread(() => this.FrameColor = new SolidColorBrush(Colors.White));
         }
 
         private async void RunLoop()
@@ -134,6 +164,7 @@ namespace DesktopServerApp
             {
                 _cts = new CancellationTokenSource();
 
+                this.Status = ManagerStatus.Listening;
                 this.listener = new Listener(this.Port);
                 this.connection = await listener.ListenAsync(this.MulticastDiscoveryEnabled);
 
@@ -147,7 +178,8 @@ namespace DesktopServerApp
                 };
 
                 this.connection.Disconnected += _handler;
-                //ConnectionStatus = ConnectionStatus.Connected;
+
+                this.Status = ManagerStatus.Sending;
 
                 await Task.Run(() => { RunServer(); });
 
@@ -177,6 +209,8 @@ namespace DesktopServerApp
                         this.InitServer();
                     }
 
+                    stopwatch.Start();
+
                     // If we run into error, then cancel this execution and reloop for new connection/setup
                     try
                     {
@@ -189,9 +223,8 @@ namespace DesktopServerApp
                         }
 
                         var c = GetColor((float)frameColorCount / numOfFramesForColorChange);
-                        //var c = GetColor(0.0f);
 
-                        UpdateFrameColorOnUIThread(c);
+                        UpdateUIThread(() => this.FrameColor = new SolidColorBrush(c));
 
                         Parallel.For(0, this.imageData.Length / bpp, index =>
                         {
@@ -212,6 +245,13 @@ namespace DesktopServerApp
 
                     // Send over first images without delay to fill buffer
                     if (imageCount < delayAfterImage) { imageCount++; } else { Task.Delay(waitDelay).Wait(); }
+
+                    stopwatch.Stop();
+
+                    float period = stopwatch.ElapsedMilliseconds;
+                    UpdateUIThread(() => this.RunningFPS = 1000.0f / period);
+
+                    stopwatch.Reset();
                 }
                 catch (OperationCanceledException)
                 {
@@ -228,9 +268,9 @@ namespace DesktopServerApp
                 (byte)Math.Round(startColor.B * (1 - weight) + endColor.B * weight));
         }
 
-        private async void UpdateFrameColorOnUIThread(Color c)
+        private async void UpdateUIThread(Action a)
         {
-            await _dispatcher.InvokeAsync(() => this.FrameColor = new SolidColorBrush(c));
+            await _dispatcher.InvokeAsync(a);
         }
     }
 }

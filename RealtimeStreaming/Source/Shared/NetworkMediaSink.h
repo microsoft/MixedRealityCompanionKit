@@ -14,7 +14,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, IMFMediaSink, IMFClockStateSink>
         {
         public:
-            NetworkMediaSink() = default;
+            //NetworkMediaSink() = default;
             NetworkMediaSink(_In_ RealtimeStreaming::Network::Connection connection);
 
             virtual ~NetworkMediaSink();
@@ -60,10 +60,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
                 _In_ float flRate);
 
             // NetworkMediaSink
+            void StartNetwork();
+            void StopNetwork();
             winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void NetworkMediaSink::Closed(winrt::event_token const& token);
-
-            winrt::hresult OnEndOfStream(_In_ uint32_t streamId);
         private:
             winrt::fire_and_forget SendStreamReady();
             winrt::fire_and_forget SendStreamStopped();
@@ -80,7 +80,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
             {
                 NULL_CHK_HR(m_connection, MF_E_SHUTDOWN);
 
-                IFT(_cStreamsEnded == 0 ? S_OK : MF_E_SHUTDOWN);
+                //IFT(_cStreamsEnded == 0 ? S_OK : MF_E_SHUTDOWN);
 
                 return S_OK;
             }
@@ -92,8 +92,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
             winrt::com_ptr<IMFPresentationClock> m_presentationClock;  // Presentation clock.
 
             std::vector<winrt::com_ptr<IMFStreamSink> > m_streams;
-
-            long _cStreamsEnded;
 
             RealtimeStreaming::Network::Connection m_connection{ nullptr };
             winrt::event_token m_bundleReceivedEventToken;

@@ -104,7 +104,7 @@ IAsyncAction RealtimeMediaSource::InitAsync(
     }
 
     // Send request to our server to send a Media Description with properties of live stream media data
-    SendDescribeRequest();
+    SendNetworkRequest(PayloadType::RequestMediaDescription);
 
     // Don't return initialization until we receive a describe request
     co_await winrt::resume_on_signal(m_signal.get());
@@ -112,7 +112,7 @@ IAsyncAction RealtimeMediaSource::InitAsync(
     m_SourceState = SourceStreamState::Starting;
 
     // Ask the server to start sending media samples to process
-    SendStartRequest();
+    SendNetworkRequest(PayloadType::RequestMediaStart);
 
     m_SourceState = SourceStreamState::Started;
 }
@@ -143,15 +143,6 @@ void RealtimeMediaSource::OnStarting(Windows::Media::Core::MediaStreamSource con
     MediaStreamSourceStartingEventArgs const& args)
 {
     Log(Log_Level_Info, L"RealtimeMediaSource::OnStarting()\n");
-
-    /*
-    m_SourceState = SourceStreamState::Starting;
-
-    // Ask the server to start sending media samples to process
-    SendStartRequest();
-
-    m_SourceState = SourceStreamState::Started;
-    */
 }
 
 _Use_decl_annotations_
@@ -204,7 +195,7 @@ void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const
     Log(Log_Level_Info, L"RealtimeMediaSource::OnClosed()\n");
 
     // Ask the server to stop sending media samples to process
-    SendStopRequest();
+    SendNetworkRequest(PayloadType::RequestMediaStop);
 
     //auto lock = _lock.Lock();
     m_SourceState = SourceStreamState::Stopped;
@@ -236,33 +227,13 @@ void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const
 
 // Sending requests to network
 _Use_decl_annotations_
-winrt::fire_and_forget RealtimeMediaSource::SendDescribeRequest()
+winrt::fire_and_forget RealtimeMediaSource::SendNetworkRequest(PayloadType type)
 {
-    Log(Log_Level_Info, L"RealtimeMediaSource::SendDescribeRequest()\n");
+    Log(Log_Level_Info, L"RealtimeMediaSource::SendNetworkRequest(%d)\n", type);
 
     NULL_THROW(m_connection, E_POINTER);
 
-    co_await m_connection.SendPayloadTypeAsync(PayloadType::RequestMediaDescription);
-}
-
-_Use_decl_annotations_
-winrt::fire_and_forget RealtimeMediaSource::SendStartRequest()
-{
-    Log(Log_Level_Info, L"RealtimeMediaSource::SendStartRequest()\n");
-
-    NULL_THROW(m_connection, E_POINTER);
-
-    co_await m_connection.SendPayloadTypeAsync(PayloadType::RequestMediaStart);
-}
-
-_Use_decl_annotations_
-winrt::fire_and_forget RealtimeMediaSource::SendStopRequest()
-{
-    Log(Log_Level_Info, L"RealtimeMediaSource::SendStopRequest()\n");
-
-    NULL_THROW(m_connection, E_POINTER);
-
-    co_await m_connection.SendPayloadTypeAsync(PayloadType::RequestMediaStop);
+    co_await m_connection.SendPayloadTypeAsync(type);
 }
 
 _Use_decl_annotations_
@@ -330,7 +301,7 @@ HRESULT RealtimeMediaSource::ProcessCaptureReady()
         return S_OK;
     }
 
-    SendDescribeRequest();
+    SendNetworkRequest(PayloadType::RequestMediaDescription);
 
     return S_OK;
 }
@@ -345,7 +316,6 @@ HRESULT RealtimeMediaSource::ProcessMediaDescription(
 
     if (m_SourceState == SourceStreamState::Started 
         || m_SourceState == SourceStreamState::Stopped)
-        //&& _streams.GetCount() > 0)
     {
         IFR(MF_E_UNEXPECTED);
     }

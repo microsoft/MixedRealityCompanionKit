@@ -12,11 +12,11 @@ namespace RealtimeStreaming.Media
     [default_interface]
     runtimeclass NetworkMediaSink : Windows.Media.IMediaExtension
     {
-        NetworkMediaSink();
+        //NetworkMediaSink();
         NetworkMediaSink(RealtimeStreaming.Network.Connection connection);
 
+        void StartNetwork();
+        void StopNetwork();
         event Windows.Foundation.EventHandler<Boolean> Closed;
-
-        HRESULT OnEndOfStream(UInt32 streamId);
     };
 }

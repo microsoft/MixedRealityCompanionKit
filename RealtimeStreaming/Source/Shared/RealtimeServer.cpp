@@ -67,6 +67,8 @@ RealtimeServer::RealtimeServer(
     m_mediaInputFormat = inputMediaType;
 
     m_spSinkWriter = spSinkWriter;
+
+    m_spNetworkMediaSink.StartNetwork();
 }
 
 RealtimeServer::~RealtimeServer()
@@ -79,7 +81,7 @@ void RealtimeServer::Shutdown()
 {
     //auto lock = _lock.Lock();
 
-    if (nullptr == m_spSinkWriter)
+    if (m_spSinkWriter == nullptr)
     {
         return;
     }
@@ -87,6 +89,7 @@ void RealtimeServer::Shutdown()
     IFT(m_spSinkWriter->Finalize()); // Close sinkwriter
 
     m_spSinkWriter = nullptr; // release sinkwriter
+    m_spNetworkMediaSink = nullptr;
 }
 
 _Use_decl_annotations_
