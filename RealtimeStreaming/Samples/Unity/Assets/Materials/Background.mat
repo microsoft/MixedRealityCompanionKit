@@ -9,8 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Background
   m_Shader: {fileID: 4800000, guid: 06c351985d364384e9fb1ae086848fbf, type: 3}
-  m_ShaderKeywords: _BORDER_LIGHT_USES_HOVER_COLOR _DIRECTIONAL_LIGHT _HOVER_LIGHT
-    _SPECULAR_HIGHLIGHTS
+  m_ShaderKeywords: _HOVER_LIGHT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -70,7 +69,7 @@ Material:
     - _BlendOp: 0
     - _BorderLight: 0
     - _BorderLightOpaque: 0
-    - _BorderLightUsesHoverColor: 1
+    - _BorderLightUsesHoverColor: 0
     - _BorderMinValue: 0.1
     - _BorderWidth: 0.1
     - _BumpScale: 1
@@ -84,7 +83,7 @@ Material:
     - _CustomMode: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DirectionalLight: 1
+    - _DirectionalLight: 0
     - _DstBlend: 0
     - _EdgeSmoothingValue: 0.002
     - _EnableChannelMap: 0
@@ -123,7 +122,7 @@ Material:
     - _RoundCorners: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _SpecularHighlights: 1
+    - _SpecularHighlights: 0
     - _SrcBlend: 1
     - _Stencil: 0
     - _StencilComparison: 0

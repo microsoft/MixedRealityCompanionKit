@@ -157,6 +157,8 @@ namespace RealtimeStreaming
             {
                 this.alreadyConnecting = true;
 
+                this.PlayerState = PlaybackState.Opening;
+
                 connector = new Connector();
 
                 if (this.connector != null)
@@ -220,6 +222,7 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoPlayer::OnConnectorStarted");
                 this.ConnectionState = ConnectionState.Connecting;
+                this.PlayerState = PlaybackState.None;
             });
         }
 
@@ -230,6 +233,7 @@ namespace RealtimeStreaming
                 Debug.Log("RealtimeVideoPlayer::OnConnectorFailed");
 
                 this.ConnectionState = ConnectionState.Failed;
+                this.PlayerState = PlaybackState.None;
 
                 StopConnector();
             });
