@@ -45,12 +45,6 @@
     <ClInclude Include="StringHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanonSDKManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DeckLinkAPI_h.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HologramQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -86,12 +80,6 @@
     <ClCompile Include="DirectoryHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CanonSDKManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DeckLinkAPI_i.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ElgatoFrameProvider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -101,10 +89,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Midl Include="DeckLinkAPI.idl">
-      <Filter>Source Files</Filter>
-    </Midl>
   </ItemGroup>
 </Project>

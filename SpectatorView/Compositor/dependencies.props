@@ -7,8 +7,6 @@
     <OpenCV_vc14>$(SolutionDir)Dependencies\opencv-3.2.0\build\x64\vc14</OpenCV_vc14>
     <!-- From: https://www.blackmagicdesign.com/support -->
     <DeckLink_inc>$(SolutionDir)Dependencies\BlackMagic DeckLink</DeckLink_inc>
-    <!-- From: https://www.usa.canon.com/internet/portal/us/home/explore/solutions-services/digital-camera-sdk-information -->
-    <Canon_SDK Condition="$(Canon_SDK) == ''">C:\CanonSDK\Windows</Canon_SDK>
     <!-- From: https://github.com/elgatosf/gamecapture -->
     <Elgato_Filter Condition="$(Elgato_Filter) == ''">$(SolutionDir)Dependencies\Elgato\gamecapture-master\VideoCaptureFilter</Elgato_Filter>
   </PropertyGroup>

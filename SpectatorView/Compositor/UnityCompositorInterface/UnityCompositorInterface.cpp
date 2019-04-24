@@ -23,9 +23,6 @@ static bool videoInitialized = false;
 
 static BYTE* colorBytes = new BYTE[FRAME_BUFSIZE];
 static BYTE* holoBytes = new BYTE[FRAME_BUFSIZE];
-#if USE_CANON_SDK
-static BYTE* hiResHoloBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
-#endif
 
 #define NUM_VIDEO_BUFFERS 10
 
@@ -64,9 +61,6 @@ void FreeVideoBuffers()
 
 
 static ID3D11Texture2D* g_holoRenderTexture = nullptr;
-#if USE_CANON_SDK
-static ID3D11Texture2D* g_hiResHoloRenderTexture = nullptr;
-#endif
 
 static ID3D11Texture2D* g_colorTexture = nullptr;
 static ID3D11Texture2D* g_compositeTexture = nullptr;
@@ -221,21 +215,6 @@ static void __stdcall OnRenderEvent(int eventID)
             UpdateVideoRecordingFrame();
         }
 
-        // Update hi res holo bytes
-#if USE_CANON_SDK
-        if (g_hiResHoloRenderTexture != nullptr)
-        {
-            if (ci != nullptr && takeHiResPicture)
-            {
-                takeHiResPicture = false;
-
-                DirectXHelper::GetBytesFromTexture(g_pD3D11Device, g_hiResHoloRenderTexture, FRAME_BPP, hiResHoloBytes);
-                DirectXHelper::FlipHorizontally(hiResHoloBytes, HOLOGRAM_HEIGHT_HIRES, HOLOGRAM_WIDTH_HIRES * FRAME_BPP);
-                ci->TakeCanonPicture(g_pD3D11Device, hiResHoloBytes);
-            }
-        }
-#endif
-
         if (takePicture && g_colorTexture != nullptr)
         {
             takePicture = false;
@@ -325,21 +304,6 @@ UNITYDLL int GetFrameHeight()
     return HOLOGRAM_HEIGHT;
 }
 
-UNITYDLL int GetFrameWidthHiRes()
-{
-    return HOLOGRAM_WIDTH_HIRES;
-}
-
-UNITYDLL int GetFrameHeightHiRes()
-{
-    return HOLOGRAM_HEIGHT_HIRES;
-}
-
-UNITYDLL bool CaptureHiResHolograms()
-{
-    return USE_CANON_SDK;
-}
-
 UNITYDLL bool InitializeFrameProviderOnDevice(int providerId)
 {
     if (g_outputTexture == nullptr ||
@@ -400,13 +364,6 @@ UNITYDLL void TakeRawPicture(LPCWSTR lpFilePath)
     rawPicturePath = lpFilePath;
 }
 
-UNITYDLL void TakeCanonPicture()
-{
-#if USE_CANON_SDK
-    takeHiResPicture = true;
-#endif
-}
-
 UNITYDLL void StartRecording()
 {
     if (videoInitialized && ci != nullptr)
@@ -459,9 +416,6 @@ UNITYDLL void Reset()
     g_outputTexture = nullptr;
 
     g_holoRenderTexture = nullptr;
-#if USE_CANON_SDK
-    g_hiResHoloRenderTexture = nullptr;
-#endif
 
     g_UnityColorSRV = nullptr;
 
@@ -507,27 +461,6 @@ UNITYDLL bool SetHoloTexture(ID3D11Texture2D* holoTexture)
     }
 
     return g_compositeTexture != nullptr;
-}
-
-UNITYDLL bool SetHoloTextureHiRes(ID3D11Texture2D* holoTexture)
-{
-#if USE_CANON_SDK
-    // We have already set a texture ptr.
-    if (g_hiResHoloRenderTexture != nullptr)
-    {
-        return true;
-    }
-
-    if (g_hiResHoloRenderTexture == nullptr)
-    {
-        g_hiResHoloRenderTexture = holoTexture;
-    }
-
-    return g_hiResHoloRenderTexture != nullptr;
-#else
-
-    return true;
-#endif
 }
 
 UNITYDLL bool SetVideoRenderTexture(ID3D11Texture2D* tex)

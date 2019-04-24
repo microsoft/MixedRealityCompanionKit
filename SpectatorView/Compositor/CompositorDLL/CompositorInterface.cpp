@@ -12,14 +12,7 @@ CompositorInterface::CompositorInterface()
     outputPath = std::wstring(myDocumentsPath) + L"\\HologramCapture\\";
 
     DirectoryHelper::CreateOutputDirectory(outputPath);
-#if USE_CANON_SDK
-    outputPathCanon = std::wstring(myDocumentsPath) + L"\\HologramCapture\\CanonChannels\\";
-    DirectoryHelper::CreateOutputDirectory(outputPathCanon);
-#endif
 
-#if USE_CANON_SDK
-    InitializeCriticalSection(&canonLock);
-#endif
     frameProvider = NULL;
 }
 
@@ -41,10 +34,6 @@ void CompositorInterface::SetFrameProvider(IFrameProvider::ProviderType type)
 #if USE_OPENCV
     if (type == IFrameProvider::ProviderType::OpenCV)
         frameProvider = new OpenCVFrameProvider();
-#endif
-
-#if USE_CANON_SDK
-    canonManager = new CanonSDKManager();
 #endif
 }
 
@@ -71,37 +60,6 @@ void CompositorInterface::UpdateFrameProvider()
     {
         frameProvider->Update(compositeFrameIndex);
     }
-
-#if USE_CANON_SDK
-    //Note: this is done on the UI thread.
-    if (takingCanonPicture &&
-        canonPictureDownloaded && 
-        canonPhotoPath != L"" && 
-        cachedHiResHoloBytes != nullptr &&
-        _device != nullptr)
-    {
-        EnterCriticalSection(&canonLock);
-        photoIndex++;
-        std::wstring photoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"Photo", L".png", photoIndex);
-
-        ID3D11DeviceContext* context;
-        _device->GetImmediateContext(&context);
-
-        ID3D11ShaderResourceView* srv;
-        ID3D11Texture2D* canonColorTexture;
-        DirectX::CreateWICTextureFromFile(_device, canonPhotoPath.c_str(), (ID3D11Resource**)&canonColorTexture, &srv);
-
-        DirectXHelper::GetBytesFromTexture(_device, canonColorTexture, FRAME_BPP, canonColorBytes);
-
-        DirectXHelper::AlphaBlend(canonColorBytes, cachedHiResHoloBytes, HOLOGRAM_BUFSIZE_HIRES, alpha);
-        ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, canonColorBytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES, FRAME_BPP);
-        DirectX::SaveWICTextureToFile(context, tex, GUID_ContainerFormatPng, photoPath.c_str());
-
-        canonPictureDownloaded = false;
-        takingCanonPicture = false;
-        LeaveCriticalSection(&canonLock);
-    }
-#endif
 }
 
 void CompositorInterface::Update()
@@ -110,13 +68,6 @@ void CompositorInterface::Update()
     {
         videoEncoder->Update();
     }
-
-#if USE_CANON_SDK
-    if (canonManager != nullptr)
-    {
-        canonManager->Update();
-    }
-#endif
 }
 
 void CompositorInterface::StopFrameProvider()
@@ -125,13 +76,6 @@ void CompositorInterface::StopFrameProvider()
     {
         frameProvider->Dispose();
     }
-
-#if USE_CANON_SDK
-    EnterCriticalSection(&canonLock);
-    canonPictureDownloaded = false;
-    takingCanonPicture = false;
-    LeaveCriticalSection(&canonLock);
-#endif
 }
 
 LONGLONG CompositorInterface::GetTimestamp(int frame)
@@ -206,54 +150,6 @@ void CompositorInterface::TakePicture(ID3D11Device* device, int width, int heigh
 
     ID3D11Texture2D* tex = DirectXHelper::CreateTexture(device, bytes, width, height, bpp);
     DirectX::SaveWICTextureToFile(context, tex, GUID_ContainerFormatPng, photoPath.c_str());
-}
-
-void CompositorInterface::TakeCanonPicture(ID3D11Device* device, BYTE* bytes)
-{
-#if USE_CANON_SDK
-    if (device == nullptr || takingCanonPicture)
-    {
-        return;
-    }
-
-    ID3D11DeviceContext* context;
-    device->GetImmediateContext(&context);
-
-    EnterCriticalSection(&canonLock);
-    takingCanonPicture = true;
-
-    canonPhotoIndex++;
-    canonPhotoPath = DirectoryHelper::FindUniqueFileName(outputPathCanon, L"Color", L".jpg", canonPhotoIndex);
-
-    memcpy(cachedHiResHoloBytes, bytes, HOLOGRAM_BUFSIZE_HIRES);
-
-    concurrency::create_task([=]
-    {
-        canonManager->TakePictureAsync(canonPhotoPath);
-
-        // Wait for picture to finish.
-        while (canonManager->CurrentlyDownloadingPicture(canonPhotoPath))
-        {
-            Sleep(10);
-        }
-
-        canonPictureDownloaded = true;
-    });
-
-    LeaveCriticalSection(&canonLock);
-
-    std::wstring holoPath = DirectoryHelper::FindUniqueFileName(outputPathCanon, L"holo", L".png", canonPhotoIndex);
-    std::wstring alphaPath = DirectoryHelper::FindUniqueFileName(outputPathCanon, L"alpha", L".png", canonPhotoIndex);
-
-    ID3D11Texture2D* holoTex = DirectXHelper::CreateTexture(device, bytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES, FRAME_BPP);
-    DirectX::SaveWICTextureToFile(context, holoTex, GUID_ContainerFormatPng, holoPath.c_str());
-
-    BYTE* alphaBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
-    DirectXHelper::AlphaAsRGBA(bytes, alphaBytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES);
-    ID3D11Texture2D* alphaTex = DirectXHelper::CreateTexture(device, alphaBytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES, FRAME_BPP);
-    DirectX::SaveWICTextureToFile(context, alphaTex, GUID_ContainerFormatPng, alphaPath.c_str());
-    delete[] alphaBytes;
-#endif
 }
 
 bool CompositorInterface::InitializeVideoEncoder(ID3D11Device* device)

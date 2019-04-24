@@ -9,11 +9,6 @@
 #include "ScreenGrab.h"
 #include "wincodec.h"
 
-#if USE_CANON_SDK
-#include "CanonSDKManager.h"
-#include "WICTextureLoader.h"
-#endif
-
 #define DLLEXPORT __declspec(dllexport)
 
 class CompositorInterface
@@ -27,26 +22,12 @@ private:
     LONGLONG videoRecordingStartTime;
     double audioRecordingStartTime;
     int photoIndex = -1;
-#if USE_CANON_SDK
-    int canonPhotoIndex = -1;
-    bool canonPictureDownloaded = false;
-    bool takingCanonPicture = false;
-    std::wstring canonPhotoPath = L"";
-    BYTE* cachedHiResHoloBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
-    BYTE* canonColorBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
 
-    CRITICAL_SECTION canonLock;
-#endif
-
-    std::wstring outputPath, outputPathCanon, channelPath;
+    std::wstring outputPath, channelPath;
 
     ID3D11Device* _device;
 
     LONGLONG stubVideoTime = 0;
-
-#if USE_CANON_SDK
-    CanonSDKManager* canonManager;
-#endif
 
 public:
     DLLEXPORT CompositorInterface();
@@ -68,7 +49,6 @@ public:
     DLLEXPORT void SetCompositeFrameIndex(int index);
 
     DLLEXPORT void TakePicture(ID3D11Device* device, int width, int height, int bpp, BYTE* bytes);
-    DLLEXPORT void TakeCanonPicture(ID3D11Device* device, BYTE* hiResHoloBytes);
 
     DLLEXPORT bool InitializeVideoEncoder(ID3D11Device* device);
     DLLEXPORT void StartRecording();
