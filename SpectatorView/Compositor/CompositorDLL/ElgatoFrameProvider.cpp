@@ -4,9 +4,8 @@
 #include "stdafx.h"
 #include "ElgatoFrameProvider.h"
 
-#if USE_ELGATO
-
-ElgatoFrameProvider::ElgatoFrameProvider()
+ElgatoFrameProvider::ElgatoFrameProvider(bool useCPU) :
+    _useCPU(useCPU)
 {
 }
 
@@ -14,20 +13,25 @@ ElgatoFrameProvider::~ElgatoFrameProvider()
 {
     DestroyGraph();
 
-    isEnabled = false;
-
-    if (frameCallback != NULL)
-    {
-        delete frameCallback;
-        frameCallback = NULL;
-    }
+    SafeRelease(frameCallback);
 }
 
-HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV)
+HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture)
 {
+    //If we failed once lets not keep trying since this hangs the machine
+    if (FAILED(errorCode))
+    {
+        return errorCode;
+    }
+
     if (IsEnabled())
     {
         return S_OK;
+    }
+
+    if (frameCallback)
+    {
+        return E_PENDING;
     }
 
     _colorSRV = colorSRV;
@@ -36,23 +40,23 @@ HRESULT ElgatoFrameProvider::Initialize(ID3D11ShaderResourceView* colorSRV)
         colorSRV->GetDevice(&_device);
     }
 
-    HRESULT hr = E_PENDING;
-
     frameCallback = new ElgatoSampleCallback(_device);
+    frameCallback->AddRef();
 
-    hr = InitGraph();
-    if (FAILED(hr))
+    errorCode= InitGraph();
+    if (FAILED(errorCode))
     {
         OutputDebugString(L"Failed on InitGraph.\n");
+        DestroyGraph();
+        return errorCode;
     }
 
-    if (IsEnabled())
+    if (!IsEnabled())
     {
-        isEnabled = true;
-        hr = S_OK;
+        return E_PENDING;
     }
 
-    return hr;
+    return S_OK;
 }
 
 void ElgatoFrameProvider::Update(int compositeFrameIndex)
@@ -65,7 +69,22 @@ void ElgatoFrameProvider::Update(int compositeFrameIndex)
         return;
     }
     
-    frameCallback->UpdateSRV(_colorSRV, compositeFrameIndex);
+    frameCallback->UpdateSRV(_colorSRV, _useCPU, compositeFrameIndex);
+}
+
+LONGLONG ElgatoFrameProvider::GetTimestamp(int frame)
+{
+    if (frameCallback != nullptr)
+    {
+        return frameCallback->GetTimestamp();
+    }
+
+    return -1;
+}
+
+LONGLONG ElgatoFrameProvider::GetDurationHNS()
+{
+    return (LONGLONG)((1.0f / 30.0f) * QPC_MULTIPLIER);
 }
 
 bool ElgatoFrameProvider::IsEnabled()
@@ -81,14 +100,6 @@ bool ElgatoFrameProvider::IsEnabled()
 void ElgatoFrameProvider::Dispose()
 {
     DestroyGraph();
-
-    isEnabled = false;
-
-    if (frameCallback != NULL)
-    {
-        delete frameCallback;
-        frameCallback = NULL;
-    }
 }
 
 HRESULT ElgatoFrameProvider::InitGraph()
@@ -102,18 +113,19 @@ HRESULT ElgatoFrameProvider::InitGraph()
     hr = pGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
     _ASSERT(SUCCEEDED(hr));
 
-
     // Add "Elgato Game Capture HD" filter which was registered when installing the elgato capture software.
     hr = CoCreateInstance(CLSID_ElgatoVideoCaptureFilter, NULL, CLSCTX_INPROC, IID_IBaseFilter, (void **)&pElgatoFilter);
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed creating elgato cap filter.\n");
+        return hr;
     }
 
     hr = pElgatoFilter->QueryInterface(IID_IElgatoVideoCaptureFilter6, (void**)&filter);
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed creating elgato filter 6.\n");
+        return hr;
     }
 
     // Set default resolution.
@@ -147,12 +159,13 @@ HRESULT ElgatoFrameProvider::InitGraph()
         settings.Settings.profile = VIDEO_CAPTURE_FILTER_VID_ENC_PROFILE_1080;
     }
     filter->SetSettingsEx(&settings);
-    SafeRelease(&filter);
+    SafeRelease(filter);
 
     hr = pGraph->AddFilter(pElgatoFilter, L"Elgato Game Capture HD");
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed adding elgato filter.\n");
+        return hr;
     }
 
     // Create the Sample Grabber filter.
@@ -161,12 +174,14 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed creating sample grabber.\n");
+        return hr;
     }
 
     hr = pGraph->AddFilter(pGrabberF, L"Sample Grabber");
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed adding grabber.\n");
+        return hr;
     }
 
     hr = pGrabberF->QueryInterface(IID_PPV_ARGS(&pGrabber));
@@ -174,6 +189,7 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed creating grabber 2.\n");
+        return hr;
     }
 
     // Set parameters to default resolution and UYVY frame format.
@@ -183,12 +199,13 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed enumerating pins.\n");
+        return hr;
     }
 
     while (S_OK == pEnum->Next(1, &pPin, NULL))
     {
         hr = ConnectFilters(pGraph, pPin, pGrabberF);
-        SafeRelease(&pPin);
+        SafeRelease(pPin);
         if (SUCCEEDED(hr))
         {
             break;
@@ -198,6 +215,7 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed connecting filters.\n");
+        return hr;
     }
 
     // Connect sample grabber to a null renderer.
@@ -206,12 +224,14 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed creating null renderer.\n");
+        return hr;
     }
 
     hr = pGraph->AddFilter(pNullF, L"Null Filter");
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed adding null renderer.\n");
+        return hr;
     }
 
     // Call frame buffer callback on the sample grabber.
@@ -219,12 +239,14 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed creating grabber.\n");
+        return hr;
     }
 
     hr = ConnectFilters(pGraph, pGrabberF, pNullF);
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed connecting grabber to null renderer.\n");
+        return hr;
     }
 
     // Start playback.
@@ -232,6 +254,7 @@ HRESULT ElgatoFrameProvider::InitGraph()
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed starting.\n");
+        return hr;
     }
 
     return hr;
@@ -252,7 +275,7 @@ HRESULT ElgatoFrameProvider::SetSampleGrabberParameters()
     ZeroMemory(&vih, sizeof(VIDEOINFOHEADER));
     vih.rcTarget.right = FRAME_WIDTH;
     vih.rcTarget.bottom = FRAME_HEIGHT;
-    vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 30.0f) * S2HNS);
+    vih.AvgTimePerFrame = (REFERENCE_TIME)((1.0f / 30.0f) * QPC_MULTIPLIER);
     vih.bmiHeader.biWidth = FRAME_WIDTH;
     vih.bmiHeader.biHeight = FRAME_HEIGHT;
     vih.bmiHeader.biSizeImage = FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP_RAW;
@@ -266,15 +289,15 @@ HRESULT ElgatoFrameProvider::DestroyGraph()
 {
     HRESULT hr = S_FALSE;
 
-    if (pGrabberF != nullptr)
+    if (pControl != nullptr)
     {
-        hr = pGrabberF->Stop();
+        hr = pControl->Stop();
         _ASSERT(SUCCEEDED(hr));
     }
 
-    if (pGraph != nullptr)
+    if (pGrabberF != nullptr)
     {
-        hr = pGraph->RemoveFilter(pGrabberF);
+        hr = pGrabberF->Stop();
         _ASSERT(SUCCEEDED(hr));
     }
 
@@ -286,26 +309,27 @@ HRESULT ElgatoFrameProvider::DestroyGraph()
 
     if (pGraph != nullptr)
     {
+        hr = pGraph->RemoveFilter(pGrabberF);
+        _ASSERT(SUCCEEDED(hr));
+    }
+
+    if (pGraph != nullptr)
+    {
         hr = pGraph->RemoveFilter(pElgatoFilter);
         _ASSERT(SUCCEEDED(hr));
     }
 
-    if (pControl != nullptr)
-    {
-        hr = pControl->Stop();
-        _ASSERT(SUCCEEDED(hr));
-    }
 
-    SafeRelease(&pPin);
-    SafeRelease(&pEnum);
-    SafeRelease(&pNullF);
-    SafeRelease(&pGrabber);
-    SafeRelease(&pGrabberF);
-    SafeRelease(&pControl);
-    SafeRelease(&pElgatoFilter);
-    SafeRelease(&filter);
-    SafeRelease(&pGraph);
-    SafeRelease(&frameCallback);
+    SafeRelease(pPin);
+    SafeRelease(pEnum);
+    SafeRelease(pNullF);
+    SafeRelease(pGrabber);
+    SafeRelease(pGrabberF);
+    SafeRelease(pControl);
+    SafeRelease(pElgatoFilter);
+    SafeRelease(filter);
+    SafeRelease(pGraph);
+    SafeRelease(frameCallback);
 
     return hr;
 }
@@ -465,4 +489,3 @@ HRESULT ElgatoFrameProvider::IsPinDirection(IPin *pPin, PIN_DIRECTION dir, BOOL 
 }
 #pragma endregion
 
-#endif

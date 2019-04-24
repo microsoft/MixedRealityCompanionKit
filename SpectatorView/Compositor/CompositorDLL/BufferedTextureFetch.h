@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-
 #pragma once
 
 class BufferedTextureFetch
@@ -26,7 +25,7 @@ public:
 
     void PrepareTextureFetch(ID3D11Device* device, ID3D11Texture2D* texture)
     {
-        if (!CreateTextureBuffers(device, texture))
+        if(!CreateTextureBuffers(device, texture))
             return;
 
         ID3D11DeviceContext* d3d11DevCon;
@@ -73,7 +72,7 @@ public:
 
 private:
 
-    ID3D11Texture2D * textures[2];
+    ID3D11Texture2D* textures[2];
     int textureIndex;
     size_t dataSize;
     bool dataAvailable;

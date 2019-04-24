@@ -28,7 +28,7 @@ class VideoEncoder
 {
 public:
     VideoEncoder(UINT frameWidth, UINT frameHeight, UINT frameStride, UINT fps,
-        UINT32 audioBufferSize, UINT32 audioSampleRate, UINT32 audioChannels, UINT32 audioBPS);
+        UINT32 audioSampleRate, UINT32 audioChannels, UINT32 audioBPS);
     ~VideoEncoder();
 
     bool Initialize(ID3D11Device* device);
@@ -39,29 +39,29 @@ public:
 
     // Used for recording video from a background thread.
     void QueueVideoFrame(byte* buffer, LONGLONG timestamp, LONGLONG duration);
-    void QueueAudioFrame(byte* buffer);
+    void QueueAudioFrame(byte* buffer, int bufferSize, LONGLONG timestamp);
 
     // Do not call this from a background thread.
     void Update();
 
 private:
-    void WriteVideo(byte* buffer, LONGLONG duration);
-    void WriteAudio(byte* buffer);
+    void WriteVideo(byte* buffer, LONGLONG timestamp, LONGLONG duration);
+    void WriteAudio(byte* buffer, int bufferSize, LONGLONG timestamp);
 
     LARGE_INTEGER freq;
-
-    LONGLONG numFramesRecorded = 0;
-    LONGLONG numAudioFramesRecorded = 0;
 
     class VideoInput
     {
     public:
-        byte* sharedBuffer;
+        byte * sharedBuffer;
+
+        LONGLONG timestamp;
         LONGLONG duration;
 
-        VideoInput(byte* buffer, LONGLONG duration)
+        VideoInput(byte* buffer, LONGLONG timestamp, LONGLONG duration)
         {
             this->sharedBuffer = buffer;
+            this->timestamp = timestamp;
             this->duration = duration;
         }
     };
@@ -69,19 +69,22 @@ private:
     class AudioInput
     {
     public:
-        byte* buffer = new byte[AUDIO_BUFSIZE];
+        byte* buffer;
+        LONGLONG timestamp;
+        int bufferSize;
 
-        AudioInput(byte* buffer)
+        AudioInput(byte* buffer, int buffSize, LONGLONG timestamp)
         {
-            memcpy(this->buffer, buffer, AUDIO_BUFSIZE);
+            bufferSize = buffSize;
+            this->buffer = new byte[buffSize];
+            memcpy(this->buffer, buffer, buffSize);
+            this->timestamp = timestamp;
         }
     };
 
     IMFSinkWriter* sinkWriter;
     DWORD videoStreamIndex;
     DWORD audioStreamIndex;
-
-    byte* nullAudioBuffer = new byte[AUDIO_BUFSIZE];
 
     bool isRecording = false;
     bool acceptQueuedFrames = false;
@@ -94,19 +97,24 @@ private:
     UINT32 bitRate;
     GUID videoEncodingFormat;
     GUID inputFormat;
+    LONGLONG prevVideoTime = INVALID_TIMESTAMP;
 
     // Audio Parameters.
-    UINT32 audioBufferSize;
     UINT32 audioSampleRate;
     UINT32 audioChannels;
     UINT32 audioBPS;
+    LONGLONG prevAudioTime = INVALID_TIMESTAMP;
+
+    LONGLONG startTime = INVALID_TIMESTAMP;
 
     std::queue<VideoInput> videoQueue;
     std::queue<AudioInput> audioQueue;
 
     std::shared_mutex videoStateLock;
 
+#if HARDWARE_ENCODE_VIDEO
     IMFDXGIDeviceManager* deviceManager = NULL;
     UINT resetToken = 0;
+#endif
 };
 

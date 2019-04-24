@@ -12,21 +12,40 @@ CompositorInterface::CompositorInterface()
     outputPath = std::wstring(myDocumentsPath) + L"\\HologramCapture\\";
 
     DirectoryHelper::CreateOutputDirectory(outputPath);
+#if USE_CANON_SDK
+    outputPathCanon = std::wstring(myDocumentsPath) + L"\\HologramCapture\\CanonChannels\\";
+    DirectoryHelper::CreateOutputDirectory(outputPathCanon);
+#endif
 
-#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
-    frameProvider = new DeckLinkManager();
+#if USE_CANON_SDK
+    InitializeCriticalSection(&canonLock);
 #endif
-#if USE_ELGATO
-    frameProvider = new ElgatoFrameProvider();
-#endif
-#if USE_OPENCV
-    frameProvider = new OpenCVFrameProvider();
-#endif
+    frameProvider = NULL;
 }
 
-CompositorInterface::~CompositorInterface()
+void CompositorInterface::SetFrameProvider(IFrameProvider::ProviderType type)
 {
-    delete[] photoBytes;
+    if (frameProvider)
+    {
+        if (frameProvider->GetProviderType() == type)
+            return;
+        frameProvider->Dispose();
+        delete frameProvider;
+        frameProvider = NULL;
+    }
+
+    if(type == IFrameProvider::ProviderType::Elgato)
+        frameProvider = new ElgatoFrameProvider();
+    if (type == IFrameProvider::ProviderType::BlackMagic)
+        frameProvider = new DeckLinkManager();
+#if USE_OPENCV
+    if (type == IFrameProvider::ProviderType::OpenCV)
+        frameProvider = new OpenCVFrameProvider();
+#endif
+
+#if USE_CANON_SDK
+    canonManager = new CanonSDKManager();
+#endif
 }
 
 bool CompositorInterface::Initialize(ID3D11Device* device, ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture)
@@ -43,26 +62,46 @@ bool CompositorInterface::Initialize(ID3D11Device* device, ID3D11ShaderResourceV
 
     _device = device;
 
-    HRESULT hr = frameProvider->Initialize(colorSRV);
-    if (SUCCEEDED(hr))
-    {
-        frameProvider->SetOutputTexture(outputTexture);
-        timeSynchronizer.Reset();
-        poseCache.Reset();
-        CurrentCompositeFrame = 0;
-
-        AllocateVideoBuffers();
-    }
-    return SUCCEEDED(hr);
+    return SUCCEEDED(frameProvider->Initialize(colorSRV, outputTexture));
 }
 
-// Call from render thread.
 void CompositorInterface::UpdateFrameProvider()
 {
     if (frameProvider != nullptr)
     {
-        frameProvider->Update(CurrentCompositeFrame);
+        frameProvider->Update(compositeFrameIndex);
     }
+
+#if USE_CANON_SDK
+    //Note: this is done on the UI thread.
+    if (takingCanonPicture &&
+        canonPictureDownloaded && 
+        canonPhotoPath != L"" && 
+        cachedHiResHoloBytes != nullptr &&
+        _device != nullptr)
+    {
+        EnterCriticalSection(&canonLock);
+        photoIndex++;
+        std::wstring photoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"Photo", L".png", photoIndex);
+
+        ID3D11DeviceContext* context;
+        _device->GetImmediateContext(&context);
+
+        ID3D11ShaderResourceView* srv;
+        ID3D11Texture2D* canonColorTexture;
+        DirectX::CreateWICTextureFromFile(_device, canonPhotoPath.c_str(), (ID3D11Resource**)&canonColorTexture, &srv);
+
+        DirectXHelper::GetBytesFromTexture(_device, canonColorTexture, FRAME_BPP, canonColorBytes);
+
+        DirectXHelper::AlphaBlend(canonColorBytes, cachedHiResHoloBytes, HOLOGRAM_BUFSIZE_HIRES, alpha);
+        ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, canonColorBytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES, FRAME_BPP);
+        DirectX::SaveWICTextureToFile(context, tex, GUID_ContainerFormatPng, photoPath.c_str());
+
+        canonPictureDownloaded = false;
+        takingCanonPicture = false;
+        LeaveCriticalSection(&canonLock);
+    }
+#endif
 }
 
 void CompositorInterface::Update()
@@ -71,6 +110,13 @@ void CompositorInterface::Update()
     {
         videoEncoder->Update();
     }
+
+#if USE_CANON_SDK
+    if (canonManager != nullptr)
+    {
+        canonManager->Update();
+    }
+#endif
 }
 
 void CompositorInterface::StopFrameProvider()
@@ -80,11 +126,12 @@ void CompositorInterface::StopFrameProvider()
         frameProvider->Dispose();
     }
 
-    poseCache.Reset();
-    timeSynchronizer.Reset();
-    CurrentCompositeFrame = 0;
-    VideoTextureBuffer.ReleaseTextures();
-    FreeVideoBuffers();
+#if USE_CANON_SDK
+    EnterCriticalSection(&canonLock);
+    canonPictureDownloaded = false;
+    takingCanonPicture = false;
+    LeaveCriticalSection(&canonLock);
+#endif
 }
 
 LONGLONG CompositorInterface::GetTimestamp(int frame)
@@ -104,87 +151,115 @@ LONGLONG CompositorInterface::GetColorDuration()
         return frameProvider->GetDurationHNS();
     }
 
-    return (LONGLONG)((1.0f / 30.0f) * S2HNS);
+    return (LONGLONG)((1.0f / 30.0f) * QPC_MULTIPLIER);
 }
 
-void CompositorInterface::GetPose(XMFLOAT3& position, XMFLOAT4& rotation, int frameOffset)
+int CompositorInterface::GetCaptureFrameIndex()
 {
-    int captureFrameIndex = GetCaptureFrameIndex();
-
-    // Assume 60Hz camera.
-    int minStep = 8;
-    int maxStep = 16;
-
-    if (frameProvider != nullptr &&
-        frameProvider->GetDurationHNS() > 20 * MS2HNS)
-    {
-        // Compensate for 30Hz camera.
-        minStep *= 2;
-        maxStep *= 2;
-    }
-
-    // Set our current frame towards the latest captured frame. 
-    // Don't get too close to it, and dont fall too far behind.
-    int step = (captureFrameIndex - CurrentCompositeFrame);
-    if (step < minStep) { step = 0; }
-    else if (step > maxStep) { step -= maxStep; }
-    else { step = 1; }
-
-    CurrentCompositeFrame += step;
-
-    // Update time synchronizer.
-    float captureTime = GetTimeFromFrame(captureFrameIndex);
-
-    PoseData* poseData = poseCache.GetLatestPose();
-    if (poseData != nullptr)
-    {
-        timeSynchronizer.Update(GetCaptureFrameIndex(), captureTime, poseData->Index, poseData->TimeStamp);
-    }
-
-    // Set camera transform for the currently composited frame.
-    float cameraTime = GetTimeFromFrame(CurrentCompositeFrame);
-
-    float poseTime = timeSynchronizer.GetPoseTimeFromCameraTime(cameraTime);
     if (frameProvider != nullptr)
     {
-        // Compensate for camera capture latency in seconds.
-        poseTime -= (float)(0.0001f * (frameOffset * (float)frameProvider->GetDurationHNS()) / 1000.0f);
+        return frameProvider->GetCaptureFrameIndex();
     }
 
-    if (captureFrameIndex <= 0) // No frames captured yet, let's use the very latest camera transform.
-    {
-        poseTime = std::numeric_limits<float>::max();
-    }
-
-    poseCache.GetPose(position, rotation, poseTime);
+    return 0;
 }
 
-#pragma region
-void CompositorInterface::TakePicture(ID3D11Texture2D* outputTexture)
+int CompositorInterface::GetPixelChange(int frame)
 {
-    if (outputTexture == nullptr || _device == nullptr)
+    if (frameProvider != nullptr)
+    {
+        return frameProvider->GetPixelChange(frame);
+    }
+
+    return 0;
+}
+
+int CompositorInterface::GetNumQueuedOutputFrames()
+{
+    if (frameProvider != nullptr)
+    {
+        return frameProvider->GetNumQueuedOutputFrames();
+    }
+
+    return 0;
+}
+
+
+
+void CompositorInterface::SetCompositeFrameIndex(int index)
+{
+    compositeFrameIndex = index;
+}
+
+void CompositorInterface::TakePicture(ID3D11Device* device, int width, int height, int bpp, BYTE* bytes)
+{
+    if (device == nullptr)
     {
         return;
     }
 
     ID3D11DeviceContext* context;
-    _device->GetImmediateContext(&context);
-
-    // Get bytes from texture because screengrab does not support texture format provided by Unity.
-    DirectXHelper::GetBytesFromTexture(_device, outputTexture, FRAME_BPP, photoBytes);
-    ID3D11Texture2D* tex = DirectXHelper::CreateTexture(_device, photoBytes, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BPP, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+    device->GetImmediateContext(&context);
 
     photoIndex++;
     std::wstring photoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"Photo", L".png", photoIndex);
 
-    //TODO: Save each channel?
+    ID3D11Texture2D* tex = DirectXHelper::CreateTexture(device, bytes, width, height, bpp);
     DirectX::SaveWICTextureToFile(context, tex, GUID_ContainerFormatPng, photoPath.c_str());
+}
+
+void CompositorInterface::TakeCanonPicture(ID3D11Device* device, BYTE* bytes)
+{
+#if USE_CANON_SDK
+    if (device == nullptr || takingCanonPicture)
+    {
+        return;
+    }
+
+    ID3D11DeviceContext* context;
+    device->GetImmediateContext(&context);
+
+    EnterCriticalSection(&canonLock);
+    takingCanonPicture = true;
+
+    canonPhotoIndex++;
+    canonPhotoPath = DirectoryHelper::FindUniqueFileName(outputPathCanon, L"Color", L".jpg", canonPhotoIndex);
+
+    memcpy(cachedHiResHoloBytes, bytes, HOLOGRAM_BUFSIZE_HIRES);
+
+    concurrency::create_task([=]
+    {
+        canonManager->TakePictureAsync(canonPhotoPath);
+
+        // Wait for picture to finish.
+        while (canonManager->CurrentlyDownloadingPicture(canonPhotoPath))
+        {
+            Sleep(10);
+        }
+
+        canonPictureDownloaded = true;
+    });
+
+    LeaveCriticalSection(&canonLock);
+
+    std::wstring holoPath = DirectoryHelper::FindUniqueFileName(outputPathCanon, L"holo", L".png", canonPhotoIndex);
+    std::wstring alphaPath = DirectoryHelper::FindUniqueFileName(outputPathCanon, L"alpha", L".png", canonPhotoIndex);
+
+    ID3D11Texture2D* holoTex = DirectXHelper::CreateTexture(device, bytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES, FRAME_BPP);
+    DirectX::SaveWICTextureToFile(context, holoTex, GUID_ContainerFormatPng, holoPath.c_str());
+
+    BYTE* alphaBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
+    DirectXHelper::AlphaAsRGBA(bytes, alphaBytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES);
+    ID3D11Texture2D* alphaTex = DirectXHelper::CreateTexture(device, alphaBytes, HOLOGRAM_WIDTH_HIRES, HOLOGRAM_HEIGHT_HIRES, FRAME_BPP);
+    DirectX::SaveWICTextureToFile(context, alphaTex, GUID_ContainerFormatPng, alphaPath.c_str());
+    delete[] alphaBytes;
+#endif
 }
 
 bool CompositorInterface::InitializeVideoEncoder(ID3D11Device* device)
 {
     videoEncoder = new VideoEncoder(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, VIDEO_FPS,
-        AUDIO_BUFSIZE, AUDIO_SAMPLE_RATE, AUDIO_CHANNELS, AUDIO_BPS);
+        AUDIO_SAMPLE_RATE, AUDIO_CHANNELS, AUDIO_BPS);
 
     return videoEncoder->Initialize(device);
 }
@@ -197,6 +272,9 @@ void CompositorInterface::StartRecording()
     }
 
     videoIndex++;
+    videoRecordingStartTime = compositeFrameIndex * GetColorDuration();
+    audioRecordingStartTime = -1.0;
+
     std::wstring videoPath = DirectoryHelper::FindUniqueFileName(outputPath, L"Video", L".mp4", videoIndex);
     videoEncoder->StartRecording(videoPath.c_str(), ENCODE_AUDIO);
 }
@@ -209,96 +287,43 @@ void CompositorInterface::StopRecording()
     }
 
     videoEncoder->StopRecording();
-    VideoTextureBuffer.Reset();
-    queuedVideoFrameCount = 0;
-    lastRecordedVideoFrame = -1;
-    lastVideoFrame = -1;
 }
 
-void CompositorInterface::UpdateVideoRecordingFrame(ID3D11Texture2D* videoTexture)
+void CompositorInterface::RecordFrameAsync(BYTE* videoFrame, LONGLONG frameTime, int numFrames)
 {
-    // We have an old frame, lets get the data and queue it now.
-    if (VideoTextureBuffer.IsDataAvailable())
-    {
-        videoBufferIndex = (videoBufferIndex + 1) % NUM_VIDEO_BUFFERS;
-        float bpp = 1.5f;
-
-        VideoTextureBuffer.FetchTextureData(_device, videoBytes[videoBufferIndex], bpp);
-        RecordFrameAsync(videoBytes[videoBufferIndex], queuedVideoFrameTime, queuedVideoFrameCount);
-    }
-
-    if (lastVideoFrame >= 0 && lastRecordedVideoFrame != lastVideoFrame)
-    {
-        queuedVideoFrameCount = GetCurrentCompositeFrame() - lastVideoFrame;
-        if (queuedVideoFrameCount <= 0)
-            queuedVideoFrameCount = lastVideoFrame - lastRecordedVideoFrame;
-        if (queuedVideoFrameCount <= 0)
-            queuedVideoFrameCount = 1;
-
-        lastRecordedVideoFrame = lastVideoFrame;
-        queuedVideoFrameTime = lastVideoFrame * GetColorDuration();
-        VideoTextureBuffer.PrepareTextureFetch(_device, videoTexture);
-    }
-
-    lastVideoFrame = GetCurrentCompositeFrame();
-}
-
-void CompositorInterface::AllocateVideoBuffers()
-{
-    if (videoBytes != nullptr)
+    if (frameProvider == nullptr || videoEncoder == nullptr)
     {
         return;
     }
-
-    videoBytes = new byte*[NUM_VIDEO_BUFFERS];
-
-    for (int i = 0; i < NUM_VIDEO_BUFFERS; i++)
-    {
-        videoBytes[i] = new byte[(int)(1.5f * FRAME_WIDTH * FRAME_HEIGHT)];
-    }
-}
-
-void CompositorInterface::FreeVideoBuffers()
-{
-    if (videoBytes == nullptr)
-    {
-        return;
-    }
-
-    for (int i = 0; i < NUM_VIDEO_BUFFERS; i++)
-    {
-        delete[] videoBytes[i];
-    }
-    delete[] videoBytes;
-    videoBytes = nullptr;
-}
-
-void CompositorInterface::RecordFrameAsync(byte* bytes, LONGLONG frameTime, int numFrames)
-{
-    if (frameProvider == nullptr || videoEncoder == nullptr || _device == nullptr)
-    {
-        return;
-    }
-
-    if (numFrames < 1)
-    {
+    if (numFrames < 1) 
         numFrames = 1;
-    }
-    else if (numFrames > 5)
-    {
+    else if (numFrames > 5) 
         numFrames = 5;
-    }
 
-    videoEncoder->QueueVideoFrame(bytes, frameTime, numFrames * frameProvider->GetDurationHNS());
+    videoEncoder->QueueVideoFrame(videoFrame, frameTime, numFrames * frameProvider->GetDurationHNS());
 }
 
-void CompositorInterface::RecordAudioFrameAsync(BYTE* audioFrame, LONGLONG frameTime)
+void CompositorInterface::RecordAudioFrameAsync(BYTE* audioFrame, int audioSize, double audioTime)
 {
     if (videoEncoder == nullptr)
     {
         return;
     }
 
-    videoEncoder->QueueAudioFrame(audioFrame);
+    if (audioRecordingStartTime < 0)
+        audioRecordingStartTime = audioTime;
+
+    LONGLONG frameTime = videoRecordingStartTime + (LONGLONG)((audioTime - audioRecordingStartTime) * QPC_MULTIPLIER);
+
+    videoEncoder->QueueAudioFrame(audioFrame, audioSize, frameTime);
 }
-#pragma endregion Recording
+
+bool CompositorInterface::OutputYUV()
+{
+    if (frameProvider == nullptr)
+    {
+        return false;
+    }
+
+    return frameProvider->OutputYUV();
+}

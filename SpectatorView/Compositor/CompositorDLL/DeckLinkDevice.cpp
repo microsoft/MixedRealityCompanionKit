@@ -26,12 +26,296 @@
 */
 #include "stdafx.h"
 
-#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
 
 #include <comutil.h>
 #include "DeckLinkDevice.h"
 
 using namespace std;
+
+
+//const INT32_UNSIGNED kFrameDuration = 1000;
+
+class OutputScheduler : public IDeckLinkVideoOutputCallback
+{
+public:
+
+    bool enabled;
+    bool started;
+    unsigned long framesQueued;
+    LONGLONG frameTime;
+
+    LONGLONG frameDuration;
+    LONGLONG timeScale;
+
+#define MAX_NUM_OUTPUT_FRAMES 20
+    IDeckLinkMutableVideoFrame* outputVideoFrames[MAX_NUM_OUTPUT_FRAMES];
+    int outputWriteIndex = 0;
+
+    OutputScheduler()
+    {
+        enabled = false;
+        started = false;
+        outputVideoFrames[0] = NULL;
+    }
+
+    void InitScaleAndDeltaFromDisplayMode(BMDDisplayMode videoDisplayMode)
+    {
+        timeScale = 60000;
+        frameDuration = 1001;
+
+        switch (videoDisplayMode)
+        {
+        case bmdModeNTSC:
+        case bmdModeHD1080p2997:
+        case bmdModeHD1080i5994:
+        case bmdMode4K2160p2997:
+            timeScale = 30000;
+            frameDuration = 1001;
+            break;
+        case bmdModeNTSC2398:
+        case bmdModeHD1080p2398:
+        case bmdMode2k2398:
+        case bmdMode2kDCI2398:
+        case bmdMode4K2160p2398:
+            timeScale = 24000;
+            frameDuration = 1001;
+            break;
+        case bmdModeNTSCp:
+        case bmdModeHD720p5994:
+        case bmdModeHD1080p5994:
+            timeScale = 60000;
+            frameDuration = 1001;
+            break;
+        case bmdModePAL:
+        case bmdModeHD1080p25:
+        case bmdModeHD1080i50:
+        case bmdMode2k25:
+        case bmdMode2kDCI25:
+        case bmdMode4K2160p25:
+            timeScale = 25000;
+            frameDuration = 1000;
+            break;
+        case bmdModePALp:
+        case bmdModeHD720p50:
+        case bmdModeHD1080p50:
+        case bmdMode4K2160p50:
+            timeScale = 50000;
+            frameDuration = 1000;
+            break;
+        case bmdModeHD720p60:
+        case bmdModeHD1080p6000:
+            timeScale = 60000;
+            frameDuration = 1000;
+            break;
+        case bmdModeHD1080p24:
+        case bmdMode2k24:
+        case bmdMode2kDCI24:
+        case bmdMode4K2160p24:
+            timeScale = 24000;
+            frameDuration = 1000;
+            break;
+        case bmdModeHD1080p30:
+        case bmdModeHD1080i6000:
+        case bmdMode4K2160p30:
+            timeScale = 30000;
+            frameDuration = 1000;
+            break;
+        }
+
+       /*    Mode Width Height Frames per Second Fields per Frame Suggested Time Scale Display Duration
+            bmdModeNTSC 720 486 30 / 1.001 2 30000 1001
+            bmdModeNTSC2398 720 486 30 / 1.001 * 2 24000 * 1001
+            bmdModeNTSCp 720 486 60 / 1.001 1 60000 1001
+            bmdModePAL 720 576 25 2 25000 1000
+            bmdModePALp 720 576 50 1 50000 1000
+            bmdModeHD720p50 1280 720 50 1 50000 1000
+            bmdModeHD720p5994 1280 720 60 / 1.001 1 60000 1001
+            bmdModeHD720p60 1280 720 60 1 60000 1000
+            bmdModeHD1080p2398 1920 1080 24 / 1.001 1 24000 1001
+            bmdModeHD1080p24 1920 1080 24 1 24000 1000
+            bmdModeHD1080p25 1920 1080 25 1 25000 1000
+            bmdModeHD1080p2997 1920 1080 30 / 1.001 1 30000 1001
+            bmdModeHD1080p30 1920 1080 30 1 30000 1000
+            bmdModeHD1080i50 1920 1080 25 2 25000 1000
+            bmdModeHD1080i5994 1920 1080 30 / 1.001 2 30000 1001
+            bmdModeHD1080i6000 1920 1080 30 2 30000 1000
+            bmdModeHD1080p50 1920 1080 50 1 50000 1000
+            bmdModeHD1080p5994 1920 1080 60 / 1.001 1 60000 1001
+            bmdModeHD1080p6000 1920 1080 60 1 60000 1000
+            bmdMode2k2398 2048 1556 24 / 1.001 1 24000 1001
+            bmdMode2k24 2048 1556 24 1 24000 1000
+            bmdMode2k25 2048 1556 25 1 25000 1000
+            bmdMode2kDCI2398 2048 1080 24 / 1.001 1 24000 1001
+            bmdMode2kDCI24 2048 1080 24 1 24000 1000
+            bmdMode2kDCI25 2048 1080 25 1 25000 1000
+            bmdMode4K2160p2398 3840 2160 24 / 1.001 1 24000 1001
+            bmdMode4K2160p24 3840 2160 24 1 24000 1000
+            bmdMode4K2160p25 3840 2160 25 1 25000 1000
+            bmdMode4K2160p2997 3840 2160 30 / 1.001 1 30000 1001
+            bmdMode4K2160p30 3840 2160 30 1 30000 1000
+            bmdMode4K2160p50 3840 2160 50 1 50000 1000
+            */
+    }
+
+    bool Init(IDeckLinkOutput* deckLinkOutput, BMDDisplayMode videoDisplayMode, BMDPixelFormat pixelFormat)
+    {
+        m_deckLinkOutput = deckLinkOutput;
+
+        for (int i = 0; i < MAX_NUM_OUTPUT_FRAMES; i++)
+        {
+            HRESULT result = m_deckLinkOutput->CreateVideoFrame(
+                FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * ((pixelFormat == BMDPixelFormat::bmdFormat8BitYUV) ? FRAME_BPP_RAW : FRAME_BPP),
+                pixelFormat, bmdVideoInputFlagDefault,
+                &outputVideoFrames[i]);
+        }
+        outputWriteIndex = 0;
+
+        InitScaleAndDeltaFromDisplayMode(videoDisplayMode);
+
+        framesQueued = 0;
+        frameTime = 0;
+
+        // Set the callback object to the DeckLink device's output interface
+        HRESULT result = m_deckLinkOutput->SetScheduledFrameCompletionCallback(this);
+        if (result != S_OK)
+        {
+            fprintf(stderr, "Could not set callback - result = %08x\n", result);
+            return false;
+        }
+
+        // Enable video output
+        BMDVideoOutputFlags videoOutputFlags = bmdVideoOutputFlagDefault;
+
+        result = m_deckLinkOutput->EnableVideoOutput(videoDisplayMode, videoOutputFlags);
+        if (result != S_OK)
+        {
+            fprintf(stderr, "Could not enable video output - result = %08x\n", result);
+            return false;
+        }
+        enabled = true;
+
+        return true;
+    }
+
+    IDeckLinkMutableVideoFrame* GetAvailableVideoFrame()
+    {
+        if (framesQueued >= MAX_NUM_OUTPUT_FRAMES)
+        {
+            return NULL;
+        }
+
+        return outputVideoFrames[(outputWriteIndex++) % MAX_NUM_OUTPUT_FRAMES];
+    }
+
+
+    void QueueFrame(IDeckLinkVideoFrame* newFrame)
+    {
+        if (!enabled)
+            return;
+
+        LONGLONG duration = frameDuration;
+
+        if (started)
+        {
+            //Try to fill the queue back up
+            if (framesQueued < MAX_NUM_OUTPUT_FRAMES - 5)
+                duration += 20;
+
+            //Make sure we dont fall behind on big hitches
+            BMDTimeValue streamTime;
+            double playbackSpeed;
+            m_deckLinkOutput->GetScheduledStreamTime(timeScale, &streamTime, &playbackSpeed);
+            if (streamTime > frameTime)
+                frameTime = streamTime;
+        }
+
+        HRESULT result = m_deckLinkOutput->ScheduleVideoFrame(newFrame, frameTime, duration, timeScale);
+        if (result != S_OK)
+        {
+            fprintf(stderr, "Could not schedule video frame - result = %08x\n", result);
+        }
+        else
+        {
+            frameTime += duration;
+            InterlockedIncrement(&framesQueued);
+
+            if (!started)
+            {
+                //Buffer frames, then start
+                if (framesQueued > MAX_NUM_OUTPUT_FRAMES - 4)
+                {
+                    // Start
+                    result = m_deckLinkOutput->StartScheduledPlayback(0, timeScale, 1.0);
+                    if (result == S_OK)
+                    {
+                        started = true;
+                    }
+                }
+            }
+        }
+    }
+
+    virtual ~OutputScheduler(void)
+    {
+    }
+
+    void Clear()
+    {
+        if (!enabled)
+            return;
+
+        // Stop capture
+        if(started)
+            m_deckLinkOutput->StopScheduledPlayback(0, NULL, 0);
+
+        // Disable the video input interface
+        m_deckLinkOutput->DisableVideoOutput();
+
+        enabled = false;
+        started = false;
+
+        for (int i = 0; i < MAX_NUM_OUTPUT_FRAMES; i++)
+        {
+            if (outputVideoFrames[i] != NULL)
+            {
+                outputVideoFrames[i]->Release();
+                outputVideoFrames[i] = NULL;
+            }
+        }
+
+    }
+
+    HRESULT	STDMETHODCALLTYPE ScheduledFrameCompleted(IDeckLinkVideoFrame* completedFrame, BMDOutputFrameCompletionResult result)
+    {
+        InterlockedDecrement(&framesQueued);
+        return S_OK;
+    }
+
+    HRESULT	STDMETHODCALLTYPE ScheduledPlaybackHasStopped(void)
+    {
+        return S_OK;
+    }
+    // IUnknown needs only a dummy implementation
+    HRESULT	STDMETHODCALLTYPE QueryInterface(REFIID iid, LPVOID *ppv)
+    {
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef()
+    {
+        return 1;
+    }
+
+    ULONG STDMETHODCALLTYPE Release()
+    {
+        return 1;
+    }
+private:
+    IDeckLinkOutput * m_deckLinkOutput;
+};
+
+static OutputScheduler s_outputScheduler;
+
 
 DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
     m_deckLink(device),
@@ -39,16 +323,14 @@ DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
     m_deckLinkOutput(NULL),
     m_supportsFormatDetection(false),
     m_refCount(1),
-    m_currentlyCapturing(false),
-    m_playbackTimeScale(600)
+    m_currentlyCapturing(false)
 {
+
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
         bufferCache[i].buffer = new BYTE[FRAME_BUFSIZE];
         bufferCache[i].timeStamp = 0;
     }
-
-    captureFrameIndex = 0;
 
     if (m_deckLink != NULL)
     {
@@ -56,13 +338,13 @@ DeckLinkDevice::DeckLinkDevice(IDeckLink* device) :
     }
 
     InitializeCriticalSection(&m_captureCardCriticalSection);
-    InitializeCriticalSection(&m_frameAccessCriticalSection);
     InitializeCriticalSection(&m_outputCriticalSection);
 }
 
 DeckLinkDevice::~DeckLinkDevice()
 {
     StopCapture();
+    s_outputScheduler.Clear();
 
     if (m_deckLinkInput != NULL)
     {
@@ -84,16 +366,22 @@ DeckLinkDevice::~DeckLinkDevice()
 
     DeleteCriticalSection(&m_captureCardCriticalSection);
     DeleteCriticalSection(&m_outputCriticalSection);
-    DeleteCriticalSection(&m_frameAccessCriticalSection);
 
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
     {
         delete[] bufferCache[i].buffer;
     }
 
-    delete[] latestBuffer;
+    delete[] stagingBuffer;
     delete[] outputBuffer;
+    delete[] outputBufferRaw;
 }
+
+DeckLinkDevice::BufferCache& DeckLinkDevice::GetOldestBuffer()
+{
+    return bufferCache[(captureFrameIndex + 1) % MAX_NUM_CACHED_BUFFERS];
+}
+
 
 HRESULT    STDMETHODCALLTYPE DeckLinkDevice::QueryInterface(REFIID iid, LPVOID *ppv)
 {
@@ -149,7 +437,7 @@ ULONG STDMETHODCALLTYPE DeckLinkDevice::Release(void)
     return newRefValue;
 }
 
-bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
+bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture, bool useCPU, bool passthroughOutput)
 {
     IDeckLinkAttributes*            deckLinkAttributes = NULL;
     IDeckLinkDisplayModeIterator*   displayModeIterator = NULL;
@@ -157,17 +445,19 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
     BSTR                            deviceNameBSTR = NULL;
 
     ZeroMemory(rawBuffer, FRAME_BUFSIZE_RAW);
-    ZeroMemory(latestBuffer, FRAME_BUFSIZE);
     ZeroMemory(outputBuffer, FRAME_BUFSIZE);
+    ZeroMemory(outputBufferRaw, FRAME_BUFSIZE_RAW);
 
     for (int i = 0; i < MAX_NUM_CACHED_BUFFERS; i++)
-    {
         ZeroMemory(bufferCache[i].buffer, FRAME_BUFSIZE);
-    }
 
     captureFrameIndex = 0;
 
+    _useCPU = useCPU;
+    _passthroughOutput = passthroughOutput;
+
     _colorSRV = colorSRV;
+    _outputTexture = outputTexture;
 
     if (colorSRV != nullptr)
     {
@@ -176,13 +466,13 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
 
     // Get input interface
     if (m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_deckLinkInput) != S_OK)
-    {
         return false;
-    }
 
     if (m_deckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&m_deckLinkOutput) != S_OK)
     {
         supportsOutput = false;
+        // Returning false here prevent the rest of the init function executing
+        // But we can still continue without an output interface
     }
 
     // Check if input mode detection is supported.
@@ -194,14 +484,6 @@ bool DeckLinkDevice::Init(ID3D11ShaderResourceView* colorSRV)
         }
 
         deckLinkAttributes->Release();
-    }
-
-    // Set your camera to output in 1080p (This may be 24Hz instead of 60, depending on your camera)
-    // 1080i output causes horizontal artifacts on screen.
-    if (m_deckLinkOutput != NULL)
-    {
-        m_deckLinkOutput->CreateVideoFrame(FRAME_WIDTH, FRAME_HEIGHT, FRAME_WIDTH * FRAME_BPP, bmdFormat8BitBGRA, bmdFrameFlagDefault, &outputFrame);
-        outputFrame->GetBytes((void**)&outputBuffer);
     }
 
     return true;
@@ -216,7 +498,6 @@ bool DeckLinkDevice::StartCapture(BMDDisplayMode videoDisplayMode)
 
     OutputDebugString(L"Start Capture.\n");
     BMDVideoInputFlags videoInputFlags = bmdVideoInputFlagDefault;
-    BMDVideoOutputFlags videoOutputFlags = bmdVideoOutputFlagDefault;
 
     // Enable input video mode detection if the device supports it
     if (m_supportsFormatDetection == TRUE)
@@ -234,18 +515,6 @@ bool DeckLinkDevice::StartCapture(BMDDisplayMode videoDisplayMode)
         return false;
     }
 
-    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->EnableVideoOutput(videoDisplayMode, videoOutputFlags) != S_OK)
-    {
-        OutputDebugString(L"Unable to set video output.\n");
-        supportsOutput = false;
-    }
-
-    if (supportsOutput && m_deckLinkOutput != NULL && m_deckLinkOutput->StartScheduledPlayback(0, m_playbackTimeScale, 1.0) != S_OK)
-    {
-        OutputDebugString(L"Unable to start output playback.\n");
-        supportsOutput = false;
-    }
-
     // Start the capture
     if (m_deckLinkInput->StartStreams() != S_OK)
     {
@@ -254,10 +523,23 @@ bool DeckLinkDevice::StartCapture(BMDDisplayMode videoDisplayMode)
     }
 
     m_currentlyCapturing = true;
-    captureFrameIndex = 0;
+
+    SetupVideoOutputFrame(videoDisplayMode);
 
     return true;
 }
+
+void DeckLinkDevice::SetupVideoOutputFrame(BMDDisplayMode videoDisplayMode)
+{
+    s_outputScheduler.Clear();
+
+    if (supportsOutput)
+    {
+        if(!s_outputScheduler.Init(m_deckLinkOutput, videoDisplayMode, (pixelFormat == PixelFormat::YUV) ? BMDPixelFormat::bmdFormat8BitYUV : BMDPixelFormat::bmdFormat8BitBGRA))
+            supportsOutput = false;
+    }
+}
+
 
 void DeckLinkDevice::StopCapture()
 {
@@ -283,6 +565,7 @@ void DeckLinkDevice::StopCapture()
     m_currentlyCapturing = false;
     LeaveCriticalSection(&m_captureCardCriticalSection);
 }
+
 
 HRESULT DeckLinkDevice::VideoInputFormatChanged(/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */ IDeckLinkDisplayMode *newMode, /* in */ BMDDetectedVideoInputFormatFlags detectedSignalFlags)
 {
@@ -360,6 +643,8 @@ HRESULT DeckLinkDevice::VideoInputFormatChanged(/* in */ BMDVideoInputFormatChan
 bail:
     OutputDebugString(L"Done changing formats.\n");
 
+    SetupVideoOutputFrame(newMode->GetDisplayMode());
+
     LeaveCriticalSection(&m_captureCardCriticalSection);
     LeaveCriticalSection(&m_outputCriticalSection);
     return S_OK;
@@ -367,41 +652,74 @@ bail:
 
 HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame* frame, /* in */ IDeckLinkAudioInputPacket* audioPacket)
 {
+    LARGE_INTEGER time;
+    QueryPerformanceCounter(&time);
+
     if (frame == nullptr)
     {
         return S_OK;
     }
 
-    LARGE_INTEGER time;
-    QueryPerformanceCounter(&time);
-
     BMDPixelFormat framePixelFormat = frame->GetPixelFormat();
 
     EnterCriticalSection(&m_captureCardCriticalSection);
 
-    if (frame->GetBytes((void**)&localFrameBuffer) == S_OK)
+    //TODO: Create conversion to RGBA for any other pixel format your camera outputs at.
+    if (framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV)
     {
-        captureFrameIndex++;
-        BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
-
-        memcpy(buffer, localFrameBuffer, frame->GetRowBytes() * frame->GetHeight());
+        if (frame->GetBytes((void**)&rawBuffer) == S_OK)
+        {
+            captureFrameIndex++;
+            BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
+            // Always return the latest buffer when using the CPU.
+            if (_useCPU)
+            {
+                DirectXHelper::ConvertYUVtoBGRA(rawBuffer, buffer, FRAME_WIDTH, FRAME_HEIGHT, true);
+            }
+            else
+            {
+                memcpy(buffer, rawBuffer, FRAME_BUFSIZE_RAW);
+            }
+        }
     }
-    
+    else if (framePixelFormat == BMDPixelFormat::bmdFormat8BitBGRA)
+    {
+        if (frame->GetBytes((void**)&localFrameBuffer) == S_OK)
+        {
+            captureFrameIndex++;
+            BYTE* buffer = bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].buffer;
+            if (_useCPU)
+            {
+                //TODO: Remove this block if R and B components are swapped in color feed.
+                memcpy(stagingBuffer, localFrameBuffer, FRAME_BUFSIZE);
+                DirectXHelper::ConvertBGRAtoRGBA(stagingBuffer, FRAME_WIDTH, FRAME_HEIGHT, true);
+                // Do not cache frames when using the CPU
+                memcpy(buffer, stagingBuffer, FRAME_BUFSIZE);
+            }
+            else
+            {
+                memcpy(buffer, localFrameBuffer, FRAME_BUFSIZE);
+            }
+        }
+    }
+
+    bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].ComputePixelChange(bufferCache[(captureFrameIndex-1) % MAX_NUM_CACHED_BUFFERS].buffer, framePixelFormat);
 
     LONGLONG t;
-    frame->GetStreamTime(&t, &frameDuration, S2HNS);
+    frame->GetStreamTime(&t, &frameDuration, QPC_MULTIPLIER);
 
-    
     // Get frame time.
-    bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = t;
+    bufferCache[captureFrameIndex % MAX_NUM_CACHED_BUFFERS].timeStamp = time.QuadPart;
 
-    dirtyFrame = false;
-
-    if (supportsOutput && m_deckLinkOutput != NULL && outputFrame != NULL)
+    if (supportsOutput && m_deckLinkOutput != NULL)
     {
-        EnterCriticalSection(&m_outputCriticalSection);
-        m_deckLinkOutput->DisplayVideoFrameSync(outputFrame);
-        LeaveCriticalSection(&m_outputCriticalSection);
+        if (_passthroughOutput)
+        {
+            if (supportsOutput && m_deckLinkOutput != NULL)
+            {
+                m_deckLinkOutput->DisplayVideoFrameSync(frame);
+            }
+        }
     }
 
     LeaveCriticalSection(&m_captureCardCriticalSection);
@@ -409,28 +727,52 @@ HRESULT DeckLinkDevice::VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame
     return S_OK;
 }
 
+int DeckLinkDevice::GetNumQueuedOutputFrames()
+{
+    return s_outputScheduler.framesQueued;
+}
+
+
 void DeckLinkDevice::Update(int compositeFrameIndex)
 {
     if (_colorSRV != nullptr &&
         device != nullptr)
     {
-        EnterCriticalSection(&m_captureCardCriticalSection);
         const BufferCache& buffer = bufferCache[compositeFrameIndex % MAX_NUM_CACHED_BUFFERS];
         if (buffer.buffer != nullptr)
         {
             DirectXHelper::UpdateSRV(device, _colorSRV, buffer.buffer, FRAME_WIDTH * FRAME_BPP);
         }
-        LeaveCriticalSection(&m_captureCardCriticalSection);
 
-        if (supportsOutput && device != nullptr && _outputTexture != nullptr)
+        if (!_passthroughOutput && compositeFrameIndex != lastCompositorFrameIndex)
         {
-            EnterCriticalSection(&m_outputCriticalSection);
-            if (outputTextureBuffer.IsDataAvailable())
+            lastCompositorFrameIndex = compositeFrameIndex;
+            //Output to video recording screen
+            if (supportsOutput && device != nullptr && _outputTexture != nullptr && s_outputScheduler.enabled)
             {
-                outputTextureBuffer.FetchTextureData(device, outputBuffer, FRAME_BPP);
+                unsigned char* outBytes = NULL;
+                EnterCriticalSection(&m_outputCriticalSection);
+
+                if (outputTextureBuffer.IsDataAvailable())
+                {
+                    IDeckLinkMutableVideoFrame* videoFrame = s_outputScheduler.GetAvailableVideoFrame();
+                    if (videoFrame)
+                    {
+                        /*result = */videoFrame->GetBytes((void**)&outBytes);
+                        if (pixelFormat == PixelFormat::YUV)
+                        {
+                            outputTextureBuffer.FetchTextureData(device, outBytes, FRAME_BPP_RAW);
+                        }
+                        else if (pixelFormat == PixelFormat::BGRA)
+                        {
+                            outputTextureBuffer.FetchTextureData(device, outBytes, FRAME_BPP);
+                        }
+                        s_outputScheduler.QueueFrame(videoFrame);
+                    }
+                }
+                outputTextureBuffer.PrepareTextureFetch(device, _outputTexture);
+                LeaveCriticalSection(&m_outputCriticalSection);
             }
-            outputTextureBuffer.PrepareTextureFetch(device, _outputTexture);
-            LeaveCriticalSection(&m_outputCriticalSection);
         }
     }
 }
@@ -439,6 +781,23 @@ bool DeckLinkDevice::OutputYUV()
 {
     return (pixelFormat == PixelFormat::YUV);
 }
+
+
+void DeckLinkDevice::BufferCache::ComputePixelChange(BYTE* prevBuffer, BMDPixelFormat framePixelFormat)
+{
+    pixelChange = 0;
+    int bpp = framePixelFormat == BMDPixelFormat::bmdFormat8BitYUV ? FRAME_BPP_RAW : FRAME_BPP;
+
+    for (int x = 50; x < FRAME_WIDTH - 50; x += 100)
+    {
+        for (int y = 50; y < FRAME_HEIGHT - 50; y += 100)
+        {
+            int i = (y * FRAME_WIDTH + x) * bpp;
+            pixelChange += abs(buffer[i + 1] - prevBuffer[i + 1]) + abs(buffer[i + 2] - prevBuffer[i + 2]);
+        } 
+    }
+}
+
 
 DeckLinkDeviceDiscovery::DeckLinkDeviceDiscovery()
     : m_deckLinkDiscovery(NULL), m_refCount(1)
@@ -554,4 +913,3 @@ ULONG STDMETHODCALLTYPE DeckLinkDeviceDiscovery::Release(void)
     return newRefValue;
 }
 
-#endif

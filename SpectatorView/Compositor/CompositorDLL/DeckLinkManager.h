@@ -3,37 +3,43 @@
 
 #pragma once
 
-#if USE_DECKLINK || USE_DECKLINK_SHUTTLE
-
 #include "IFrameProvider.h"
 #include "DeckLinkDevice.h"
 
 class DeckLinkManager : public IFrameProvider
 {
 public:
-    DeckLinkManager();
+    DeckLinkManager(bool useCPU = false, bool passthroughOutput = false);
     ~DeckLinkManager();
 
-    // Inherited via IFrameProvider
-    HRESULT Initialize(ID3D11ShaderResourceView* srv);
-    virtual LONGLONG GetTimestamp(int frame) override;
-    virtual LONGLONG GetDurationHNS() override;
+    HRESULT Initialize(ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture);
+    ProviderType GetProviderType() { return BlackMagic; }
 
-    virtual bool IsEnabled() override;
-    virtual void Update(int compositeFrameIndex) override;
-    virtual void Dispose() override;
+    // Get the timestamp of the earliest (and currently rendered) cached frame.
+    LONGLONG GetTimestamp(int frame);
 
-    virtual bool OutputYUV() override;
+    LONGLONG GetDurationHNS();
 
-    virtual void SetOutputTexture(ID3D11Texture2D* outputTexture) override;
+    int GetCaptureFrameIndex();
+    int GetPixelChange(int frame);
+    int GetNumQueuedOutputFrames();
 
-    virtual int GetCaptureFrameIndex() override;
+    void Update(int compositeFrameIndex);
+
+    bool IsEnabled();
+    bool SupportsOutput();
+
+    void Dispose();
+
+    bool OutputYUV();
 
 private:
     DeckLinkDeviceDiscovery* deckLinkDiscovery = nullptr;
     DeckLinkDevice* deckLinkDevice = nullptr;
     IDeckLink* deckLink = nullptr;
     bool supportsBlackMagic = true;
+
+    bool _useCPU;
+    bool _passthroughOutput;
 };
-#endif
 

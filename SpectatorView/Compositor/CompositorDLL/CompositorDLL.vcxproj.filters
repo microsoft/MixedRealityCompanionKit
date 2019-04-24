@@ -15,72 +15,81 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VideoEncoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CompositorInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ElgatoFrameProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenCVFrameProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DeckLinkManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ElgatoSampleCallback.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DeckLinkDevice.h">
+    <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IFrameProvider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenGrab.h">
+    <ClInclude Include="OpenCVFrameProvider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompositorInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeckLinkDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeckLinkManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoEncoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectoryHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="StringHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CanonSDKManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DeckLinkAPI_h.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PoseCache.h">
+    <ClInclude Include="HologramQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TimeSynchronizer.h">
+    <ClInclude Include="ElgatoFrameProvider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BufferedTextureFetch.h">
+    <ClInclude Include="ElgatoSampleCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CompositorDLL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VideoEncoder.cpp">
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenCVFrameProvider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CompositorInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenCVFrameProvider.cpp">
+    <ClCompile Include="DeckLinkDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeckLinkManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CanonSDKManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeckLinkAPI_i.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ElgatoFrameProvider.cpp">
@@ -89,18 +98,9 @@
     <ClCompile Include="ElgatoSampleCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeckLinkManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DeckLinkDevice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenGrab.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DeckLinkAPI_i.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="DeckLinkAPI.idl">

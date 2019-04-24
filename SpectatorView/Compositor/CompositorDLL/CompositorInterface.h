@@ -3,132 +3,92 @@
 
 #pragma once
 #include "stdafx.h"
+#include "VideoEncoder.h"
+#include "DirectoryHelper.h"
+#include "Shlobj.h" // To get MyDocuments path
+#include "ScreenGrab.h"
+#include "wincodec.h"
+
+#if USE_CANON_SDK
+#include "CanonSDKManager.h"
+#include "WICTextureLoader.h"
+#endif
 
 #define DLLEXPORT __declspec(dllexport)
 
-#include "IFrameProvider.h"
-#include "DeckLinkManager.h"
-#include "ElgatoFrameProvider.h"
-#include "OpenCVFrameProvider.h"
-
-#include "DirectXHelper.h"
-
-#include "DirectoryHelper.h"
-#include "Shlobj.h" // To get MyDocuments path
-
-#include "ScreenGrab.h"
-#include <wincodec.h>
-
-#include "VideoEncoder.h"
-
-#include "BufferedTextureFetch.h"
-#include "PoseCache.h"
-#include "TimeSynchronizer.h"
-
 class CompositorInterface
 {
-#define NUM_VIDEO_BUFFERS 10
+private:
+    IFrameProvider* frameProvider;
+    float alpha = 0.9f;
+
+    VideoEncoder* videoEncoder = nullptr;
+    int videoIndex = -1;
+    LONGLONG videoRecordingStartTime;
+    double audioRecordingStartTime;
+    int photoIndex = -1;
+#if USE_CANON_SDK
+    int canonPhotoIndex = -1;
+    bool canonPictureDownloaded = false;
+    bool takingCanonPicture = false;
+    std::wstring canonPhotoPath = L"";
+    BYTE* cachedHiResHoloBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
+    BYTE* canonColorBytes = new BYTE[HOLOGRAM_BUFSIZE_HIRES];
+
+    CRITICAL_SECTION canonLock;
+#endif
+
+    std::wstring outputPath, outputPathCanon, channelPath;
+
+    ID3D11Device* _device;
+
+    LONGLONG stubVideoTime = 0;
+
+#if USE_CANON_SDK
+    CanonSDKManager* canonManager;
+#endif
+
 public:
     DLLEXPORT CompositorInterface();
-    ~CompositorInterface();
+    DLLEXPORT void SetFrameProvider(IFrameProvider::ProviderType type);
 
     DLLEXPORT bool Initialize(ID3D11Device* device, ID3D11ShaderResourceView* colorSRV, ID3D11Texture2D* outputTexture);
+
     DLLEXPORT void UpdateFrameProvider();
     DLLEXPORT void Update();
     DLLEXPORT void StopFrameProvider();
 
     DLLEXPORT LONGLONG GetTimestamp(int frame);
+
     DLLEXPORT LONGLONG GetColorDuration();
+    DLLEXPORT int GetCaptureFrameIndex();
+    DLLEXPORT int GetPixelChange(int frame);
+    DLLEXPORT int GetNumQueuedOutputFrames();
 
-    DLLEXPORT bool OutputYUV()
-    {
-        if (frameProvider == nullptr)
-        {
-            return true;
-        }
+    DLLEXPORT void SetCompositeFrameIndex(int index);
 
-        return frameProvider->OutputYUV();
-    }
+    DLLEXPORT void TakePicture(ID3D11Device* device, int width, int height, int bpp, BYTE* bytes);
+    DLLEXPORT void TakeCanonPicture(ID3D11Device* device, BYTE* hiResHoloBytes);
 
-    // Recording
-    DLLEXPORT void TakePicture(ID3D11Texture2D* outputTexture);
     DLLEXPORT bool InitializeVideoEncoder(ID3D11Device* device);
     DLLEXPORT void StartRecording();
     DLLEXPORT void StopRecording();
-    DLLEXPORT void RecordFrameAsync(byte* bytes, LONGLONG frameTime, int numFrames);
-    DLLEXPORT void RecordAudioFrameAsync(BYTE* audioFrame, LONGLONG frameTime);
-    DLLEXPORT void UpdateVideoRecordingFrame(ID3D11Texture2D* videoTexture);
+    DLLEXPORT void RecordFrameAsync(BYTE* videoFrame, LONGLONG frameTime, int numFrames);
+    DLLEXPORT void RecordAudioFrameAsync(BYTE* audioFrame, int audioSize, double audioTime);
 
-    // Poses
-    DLLEXPORT void GetPose(XMFLOAT3& position, XMFLOAT4& rotation, int frameOffset);
-    DLLEXPORT void AddPoseToPoseCache(XMFLOAT3 position, XMFLOAT4 rotation, float time)
+    DLLEXPORT void SetAlpha(float newAlpha)
     {
-        poseCache.AddPose(position, rotation, time);
+        alpha = newAlpha;
     }
 
-    DLLEXPORT int GetCaptureFrameIndex()
+    DLLEXPORT float GetAlpha()
     {
-        if (frameProvider != nullptr)
-        {
-            return frameProvider->GetCaptureFrameIndex();
-        }
-
-        return 0;
+        return alpha;
     }
 
-    DLLEXPORT int GetCurrentCompositeFrame()
-    {
-        return CurrentCompositeFrame;
-    }
+    DLLEXPORT bool OutputYUV();
 
-    DLLEXPORT int LastPoseSelectedIndex()
-    {
-        return poseCache.LastSelectedIndex;
-    }
-
-    DLLEXPORT void ResetPoseCache()
-    {
-        poseCache.Reset();
-        timeSynchronizer.Reset();
-    }
-
-private:
-    IFrameProvider* frameProvider;
-    std::wstring outputPath;
-    ID3D11Device* _device;
-
-    // Recording
-    LONGLONG stubVideoTime = 0;
-    int photoIndex = -1;
-    int videoIndex = -1;
-    LONGLONG queuedVideoFrameTime;
-    int queuedVideoFrameCount = 0;
-    int lastRecordedVideoFrame = -1;
-    int lastVideoFrame = -1;
-    BufferedTextureFetch VideoTextureBuffer;
-    VideoEncoder* videoEncoder = nullptr;
-    byte* photoBytes = new byte[FRAME_BUFSIZE];
-    byte** videoBytes = nullptr;
-    int videoBufferIndex = 0;
-
-    void AllocateVideoBuffers();
-    void FreeVideoBuffers();
-
-    // Pose
-    PoseCache poseCache;
-    TimeSynchronizer timeSynchronizer;
-
-    int CurrentCompositeFrame = 0;
-
-    // Abstracts time in seconds from frame index based on known duration.
-    float GetTimeFromFrame(int frame)
-    {
-        if (frameProvider != nullptr)
-        {
-            return (float)(0.0001f * frameProvider->GetDurationHNS() / 1000.0f) * frame;
-        }
-
-        return (1.0f / 30) * frame;
-    }
+public:
+    int compositeFrameIndex;
 };
 
