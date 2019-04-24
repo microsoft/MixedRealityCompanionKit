@@ -191,7 +191,6 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CanonSDKManager.h" />
     <ClInclude Include="CompositorInterface.h" />
     <ClInclude Include="DeckLinkDevice.h" />
     <ClInclude Include="DeckLinkManager.h" />
@@ -212,7 +211,6 @@ if EXIST "$(Elgato_Filter)" xcopy /y "$(Elgato_Filter)"</Command>
     <ClInclude Include="qedit.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CanonSDKManager.cpp" />
     <ClCompile Include="CompositorInterface.cpp" />
     <ClCompile Include="DeckLinkDevice.cpp" />
     <ClCompile Include="DeckLinkManager.cpp" />

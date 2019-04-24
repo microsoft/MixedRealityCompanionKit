@@ -9,9 +9,6 @@
 // Performance flags, set these to FALSE to improve performance for lower end hardware.
 // Note setting these to false may reduce image quality or hologram stability.
 
-//TODO: Set this to true to use the Canon SDK to take a higher resolution tethered photos.
-#define USE_CANON_SDK  FALSE
-
 // FrameProvider type - Exactly 1 of these should be true:
 //TODO: Set this to true if using a USB 3 external BlackMagic Shuttle capture card.
 #define USE_DECKLINK_SHUTTLE    FALSE
@@ -52,11 +49,6 @@
 
 #define HOLOGRAM_WIDTH              FRAME_WIDTH
 #define HOLOGRAM_HEIGHT             FRAME_HEIGHT
-
-//TODO: If using the Canon SDK to take a higher resolution image, change these dimensions 
-//      to match the photo resolution from the camera.
-#define HOLOGRAM_WIDTH_HIRES        5760
-#define HOLOGRAM_HEIGHT_HIRES       3240
 
 // Color camera buffer size.
 #define FRAME_BUFSIZE               (FRAME_WIDTH * FRAME_HEIGHT * FRAME_BPP)
