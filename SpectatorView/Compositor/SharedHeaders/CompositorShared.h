@@ -57,8 +57,6 @@
 // Hologram buffer size.
 #define HOLOGRAM_BUFSIZE            (HOLOGRAM_WIDTH * HOLOGRAM_HEIGHT * FRAME_BPP)
 
-#define HOLOGRAM_BUFSIZE_HIRES      (HOLOGRAM_WIDTH_HIRES * HOLOGRAM_HEIGHT_HIRES * FRAME_BPP)
-
 // Return timestamps in HNS.  Do not change this value.
 #define QPC_MULTIPLIER 10000000
 

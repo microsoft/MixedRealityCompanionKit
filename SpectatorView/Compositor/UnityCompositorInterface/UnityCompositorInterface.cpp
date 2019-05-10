@@ -75,7 +75,6 @@ static LONGLONG colorTime = INVALID_TIMESTAMP;
 
 static bool takePicture = false;
 static bool takeRawPicture = false;
-static bool takeHiResPicture = false;
 static std::wstring rawPicturePath;
 
 static CRITICAL_SECTION lock;
