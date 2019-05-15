@@ -13,20 +13,21 @@ namespace RealtimeStreaming
         public enum ServerState
         {
             Idle,
-            ListenerStarting,
             Listening,
-            ListenerConnected,
-            ListenerFailed,
-            Closing,
-            Disconnected,
-            Failed,
             Ready,
+            Failed
         }
 
-        public string ConnectTo;
+        public enum Encoding
+        {
+            H264,
+            H265
+        }
+
         public ushort Port = 27772;
-        public uint Width = 1280;
-        public uint Height = 720;
+        public uint OutputWidth = 1280;
+        public uint OutputHeight = 720;
+        public Encoding OutputEncoding = Encoding.H264;
 
         public Action<object, StateChangedEventArgs<ServerState>> ServerStateChanged { get; internal set; }
 
@@ -37,25 +38,43 @@ namespace RealtimeStreaming
             {
                 if (this.serverState != value)
                 {
-                    this.previousServerState = this.serverState;
+                    var previousServerState = this.serverState;
                     this.serverState = value;
-                    
+
                     Plugin.ExecuteOnUnityThread(() =>
                     {
-                        this.ServerStateChanged?.Invoke(this,
-                            new StateChangedEventArgs<ServerState>(this.previousServerState, this.serverState));
+                        this.ServerStateChanged?.Invoke(this, new StateChangedEventArgs<ServerState>(previousServerState, this.serverState));
                     });
                 }
             }
         }
         private ServerState serverState = ServerState.Idle;
-        private ServerState previousServerState = ServerState.Idle;
 
-        private Plugin plugin = null;
-        private Listener listener;
-        private Connection listenerConnection;
+        public ConnectionState NetworkState
+        {
+            get
+            {
+                if (this.networkConnection != null)
+                {
+                    return this.networkConnection.State;
+                }
+                return ConnectionState.Idle;
+            }
+        }
+
+        protected Plugin plugin = null;
+        protected Listener listener;
+        protected Connection networkConnection;
 
         private uint serverHandle = Plugin.InvalidHandle;
+
+        protected bool isServerRunning
+        {
+            get
+            {
+                return this.serverHandle != Plugin.InvalidHandle;
+            }
+        }
 
         private void Awake()
         {
@@ -66,32 +85,23 @@ namespace RealtimeStreaming
             this.CurrentState = ServerState.Idle;
         }
 
-        private void OnDisable()
-        {
-            this.Teardown();
-        }
-
-        public void Teardown()
+        public void Shutdown()
         {
             if (this.listener != null)
             {
-                this.StopListener();
+                StopListening();
             }
             else
             {
-                this.ShutdownServer();
-
-                this.ConnectionClose();
+                CloseConnection();
+                DestroyServer();
             }
         }
 
-        #region Listener Control & Callback Handlers
-        public void StartListener()
+        public void StartListening()
         {
             // If listener is active, we will stop & re-create it
-            StopListener();
-
-            this.CurrentState = ServerState.ListenerStarting;
+            StopListening();
 
             // create listener
             this.listener = new Listener { Port = this.Port };
@@ -104,7 +114,7 @@ namespace RealtimeStreaming
             }
         }
 
-        public void StopListener()
+        public void StopListening()
         {
             if (this.listener == null)
             {
@@ -118,12 +128,33 @@ namespace RealtimeStreaming
             this.listener = null;
         }
 
+        public bool WriteFrame(byte[] data)
+        {
+            if (data == null || data.Length <= 0)
+            {
+                Debug.LogError("RealtimeVideoServer::WriteFrame - byte[] data cannot be null");
+                return false;
+            }
+
+            if (!isServerRunning)
+            {
+                Debug.LogError("Cannot WriteFrame() - server not active");
+                return false;
+            }
+
+            var hr = VideoServerWrapper.exWrite(this.serverHandle, data, (uint)data.Length);
+            Plugin.CheckHResult(hr, "RealtimeVideoServer::WriteFrame");
+
+            return hr == Plugin.S_OK;
+        }
+
+        #region Listener Callbacks
+
         private void OnListenerStarted(object sender, EventArgs e)
         {
             this.plugin.QueueAction(() =>
             {
-                Debug.Log("OnListenerStarted");
-
+                Debug.Log("RealtimeVideoServer::OnListenerStarted");
                 this.CurrentState = ServerState.Listening;
             });
         }
@@ -132,9 +163,8 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
-                Debug.Log("OnListenerFailed");
-
-                this.CurrentState = ServerState.ListenerFailed;
+                Debug.Log("RealtimeVideoServer::OnListenerFailed");
+                this.CurrentState = ServerState.Failed;
             });
         }
 
@@ -142,19 +172,20 @@ namespace RealtimeStreaming
         {
             this.plugin.QueueAction(() =>
             {
-                Debug.Log("OnListenerConnected");
+                Debug.Log("RealtimeVideoServer::OnListenerConnected");
 
-                this.CurrentState = ServerState.ListenerConnected;
+                this.StopListening();
 
-                this.CreateServerForConnection(connection);
+                this.CreateServer(connection);
 
-                this.StopListener();
+                // this.StopListening();
             });
         }
 
-    #endregion
+        #endregion
 
-        public bool CreateServerForConnection(Connection connection)
+        #region Server Control Helpers
+        private bool CreateServer(Connection connection)
         {
             Debug.Log("RealtimeVideoServer::InitializeServer()");
 
@@ -164,36 +195,37 @@ namespace RealtimeStreaming
                 return false;
             }
 
-            if (this.listenerConnection != null)
+            if (isServerRunning)
             {
                 Debug.LogError("RealtimeVideoServer.Initialize() - cannot start until previous instance is stopped.");
                 return false;
             }
 
-            this.listenerConnection = connection;
-            this.listenerConnection.Disconnected += this.OnDisconnected;
-            this.listenerConnection.Closed += this.OnConnectionClosed;
+            this.networkConnection = connection;
+            this.networkConnection.Disconnected += this.OnDisconnected;
+            this.networkConnection.Closed += this.OnConnectionClosed;
 
             uint handle = Plugin.InvalidHandle;
-            var hr = VideoServerWrapper.exCreate(this.listenerConnection.Handle, this.Width, this.Height, ref handle);
+            bool useHEVC = this.OutputEncoding == Encoding.H265;
+            var hr = VideoServerWrapper.exCreate(this.networkConnection.Handle, useHEVC, this.OutputWidth, this.OutputHeight, ref handle);
             Plugin.CheckHResult(hr, "RealtimeVideoServer::exCreate");
 
             if (handle == Plugin.InvalidHandle || hr != Plugin.S_OK)
             {
                 Debug.Log("VideoServerWrapper.exCreate - Failed");
-                this.Teardown();
+                Shutdown();
                 return false;
             }
-                
+
             this.serverHandle = handle;
             this.CurrentState = ServerState.Ready;
 
             return true;
         }
 
-        public bool ShutdownServer()
+        private bool DestroyServer()
         {
-            if (!IsServerRunning())
+            if (isServerRunning)
             {
                 Debug.Log("Cannot StopServer() - server not active");
                 return false;
@@ -205,47 +237,36 @@ namespace RealtimeStreaming
             // Invalidate our handle
             this.serverHandle = Plugin.InvalidHandle;
 
-            return hr == 0;
-        }
-
-        public bool WriteFrame(byte[] data)
-        {
-            if (data == null || data.Length <= 0)
-            {
-                Debug.LogError("RealtimeVideoServer::WriteFrame - byte[] data cannot be null");
-                return false;
-            }
-
-            if (!IsServerRunning())
-            {
-                Debug.Log("Cannot WriteFrame() - server not active");
-                return false;
-            }
-
-            var hr = VideoServerWrapper.exWrite(this.serverHandle, data, (uint)data.Length);
-            Plugin.CheckHResult(hr, "RealtimeVideoServer::WriteFrame");
-
             return hr == Plugin.S_OK;
         }
 
-        private bool IsServerRunning()
-        {
-            return this.listenerConnection != null && this.serverHandle != Plugin.InvalidHandle;
-        }
+        #endregion
 
-        private void ConnectionClose()
+        #region Connection Callbacks & Helpers
+
+        private void CloseConnection()
         {
-            if (this.listenerConnection == null)
+            if (this.networkConnection == null)
             {
                 return;
             }
 
-            this.CurrentState = ServerState.Closing;
-
             this.serverHandle = Plugin.InvalidHandle;
 
-            this.listenerConnection.Disconnected -= this.OnDisconnected;
-            this.listenerConnection.Close();
+            this.networkConnection.Disconnected -= this.OnDisconnected;
+            this.networkConnection.Close();
+        }
+
+        private void DisposeConnection()
+        {
+            if (this.networkConnection == null)
+            {
+                return;
+            }
+
+            this.networkConnection.Closed -= this.OnConnectionClosed;
+            this.networkConnection.Dispose();
+            this.networkConnection = null;
         }
 
         private void OnDisconnected(object sender, EventArgs e)
@@ -254,9 +275,7 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoServer::OnDisconnected");
 
-                this.CurrentState = ServerState.Disconnected;
-
-                this.Teardown();
+                Shutdown();
             });
         }
 
@@ -266,16 +285,7 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoServer::OnConnectionClosed");
 
-                this.CurrentState = ServerState.Idle;
-
-                if (this.listenerConnection == null)
-                {
-                    return;
-                }
-
-                this.listenerConnection.Closed -= this.OnConnectionClosed;
-                this.listenerConnection.Dispose();
-                this.listenerConnection = null;
+                Shutdown();
             });
         }
 
@@ -283,19 +293,16 @@ namespace RealtimeStreaming
         {
             Plugin.ExecuteOnUnityThread(() =>
             {
+                Shutdown();
                 this.CurrentState = ServerState.Failed;
-
-                this.Teardown();
             });
         }
+        #endregion
 
         private static class VideoServerWrapper
         {
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimeStreamingServer")]
-            internal static extern int exCreate(uint connectionHandle,
-                uint width,
-                uint height,
-                ref uint serverHandle);
+            internal static extern int exCreate(uint connectionHandle, bool useHEVC, uint width, uint height, ref uint serverHandle);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "RealtimeStreamingShutdown")]
             internal static extern int exShutdown(uint serverHandle);

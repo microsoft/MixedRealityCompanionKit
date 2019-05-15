@@ -1,5 +1,7 @@
-﻿using RealtimeStreaming;
-using System.Diagnostics;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using RealtimeStreaming;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,7 +28,7 @@ public class WebcamServerSource : MonoBehaviour
         }
 
         this.server.ServerStateChanged += this.OnServerStateChanged;
-        this.server.StartListener();
+        this.server.StartListening();
 
         StartWebCam();
     }
@@ -50,9 +52,9 @@ public class WebcamServerSource : MonoBehaviour
         // TODO: StartWebCam needs to occur on UnitymainThread, move to Update() method action like plugin.QueueAction()
         Plugin.ExecuteOnUnityThread(() =>
         {
-            if (e.CurrentState == RealtimeVideoServer.ServerState.ListenerConnected)
+            if (e.CurrentState == RealtimeVideoServer.ServerState.Ready)
             {
-                UnityEngine.Debug.Log("Server State changed to ListenerConnected - Starting WebCam");
+                Debug.Log("Server State changed to ListenerConnected - Starting WebCam");
                 //StartWebCam();
             }
         });
@@ -65,12 +67,12 @@ public class WebcamServerSource : MonoBehaviour
             return;
         }
 
-        webcam = new WebCamTexture(3840, 2160);
+        webcam = new WebCamTexture((int)server.OutputWidth, (int)server.OutputHeight);
         debugImg.texture = webcam;
         debugImg.material.mainTexture = webcam;
         webcam.Play();
 
-        UnityEngine.Debug.Log(webcam.width + " - " + webcam.height);
+        Debug.Log("Webcam Playing at " + webcam.width + " x " + webcam.height);
 
         webcam_interop = new Color32[webcam.width * webcam.height];
         frameBuffer = new byte[webcam.width * webcam.height * 4];

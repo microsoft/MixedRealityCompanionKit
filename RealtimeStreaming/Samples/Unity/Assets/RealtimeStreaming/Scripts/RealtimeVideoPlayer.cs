@@ -15,45 +15,30 @@ namespace RealtimeStreaming
         public enum PlaybackState
         {
             None = 0,
-            Opening,
-            Buffering,
+            Connecting,
             Playing,
             Paused,
             Ended
         };
 
-        public string ConnectTo;
+        public string RemoteAddress;
         public ushort Port = 27772;
-        private bool alreadyConnecting;
+        public bool AutoPlay = true;
 
         public event EventHandler<StateChangedEventArgs<PlaybackState>> PlayerStateChanged;
 
-        // TODO: move into Connection class?
-        public ConnectionState ConnectionState
+        public ConnectionState NetworkState
         {
-            get { return this.connectionState; }
-            private set
+            get
             {
-                if (this.connectionState != value)
+                if (this.networkConnection != null)
                 {
-                    this.previousConnectionState = this.connectionState;
-                    this.connectionState = value;
-                    this.plugin.QueueAction(() =>
-                    {
-                        if (this.PlayerStateChanged != null)
-                        {
-                            var args = new StateChangedEventArgs<PlaybackState>(this.previousState, 
-                                this.currentState, this.previousConnectionState, 
-                                this.connectionState);
-
-                            this.PlayerStateChanged?.Invoke(this, args);
-                        }
-                    });
+                    return this.networkConnection.State;
                 }
+
+                return ConnectionState.Idle;
             }
         }
-        private ConnectionState connectionState = ConnectionState.Idle;
-        private ConnectionState previousConnectionState = ConnectionState.Idle;
 
         public PlaybackState PlayerState
         {
@@ -62,39 +47,34 @@ namespace RealtimeStreaming
             {
                 if (this.currentState != value)
                 {
-                    this.previousState = this.currentState;
+                    var previousState = this.currentState;
                     this.currentState = value;
-                    if (this.PlayerStateChanged != null)
-                    {
-                        var args = new StateChangedEventArgs<PlaybackState>(this.previousState,
-                                this.currentState, this.previousConnectionState,
-                                this.connectionState);
-
-                        this.PlayerStateChanged(this, args);
-                    }
+                    this.PlayerStateChanged?.Invoke(this, new StateChangedEventArgs<PlaybackState>(previousState, this.currentState));
                 }
             }
         }
         private PlaybackState currentState = PlaybackState.None;
-        private PlaybackState previousState = PlaybackState.None;
 
         // Components needed to interact with Plugin
-        private Plugin plugin = null;
-        private Connector connector = null;
-        private Connection networkConnection = null;
+        protected Plugin plugin = null;
+        protected Connector connector = null;
+        protected Connection networkConnection = null;
 
-        private uint textureWidth, textureHeight;
+        // Texture variables
+        protected uint textureWidth, textureHeight;
         public Texture2D Texture_Luma { get; private set; }
         public Texture2D Texture_Chroma { get; private set; }
 
-        private PlayerPlugin.StateChangedCallback stateCallback;
+        // Plugin interop callbacks
+        private PlayerPlugin.PlayerCreatedCallback onCreatedCallback;
+        private PlayerPlugin.StateChangedCallback onStateChangedCallback;
         private GCHandle thisObject = default(GCHandle);
-
-        private PlayerPlugin.PlayerCreatedCallbackHandler createdHandler;
-
-        private bool isPlayerCreated = false;
-
         private uint playerHandle = Plugin.InvalidHandle;
+
+        protected bool isPlayerCreated
+        {
+            get { return playerHandle != Plugin.InvalidHandle; }
+        }
 
         private void Awake()
         {
@@ -109,7 +89,7 @@ namespace RealtimeStreaming
 
         private void OnDestroy()
         {
-            this.Shutdown();
+            Shutdown();
 
             // free unmanaged resources (unmanaged objects) and override a finalizer below.
             if (thisObject.IsAllocated)
@@ -130,34 +110,26 @@ namespace RealtimeStreaming
 
             if (this.isPlayerCreated)
             {
-                Debug.Log("RealtimeVideoPlayer::Shutdown - Destroying Player");
+                Stop();
 
-                this.Stop();
-
-                this.CloseNetworkConnection();
+                CloseNetworkConnection();
 
                 Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(this.playerHandle), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.Texture_Luma = this.Texture_Chroma = null;
-                this.createdHandler = null;
-                this.stateCallback = null;
+                this.onCreatedCallback = null;
+                this.onStateChangedCallback = null;
                 this.playerHandle = Plugin.InvalidHandle;
 
                 PlayerState = PlaybackState.None;
-                isPlayerCreated = false;
             }
-
-            Debug.Log("RealtimeVideoPlayer::Shutdown Complete");
         }
 
 #region Control Network 
         public void ConnectPlayer(bool useDiscovery)
         {
-            if (!this.alreadyConnecting && (this.connector == null)
-                && !this.isPlayerCreated)
+            if (this.connector == null && !this.isPlayerCreated)
             {
-                this.alreadyConnecting = true;
-
-                this.PlayerState = PlaybackState.Opening;
+                this.PlayerState = PlaybackState.Connecting;
 
                 connector = new Connector();
 
@@ -173,11 +145,9 @@ namespace RealtimeStreaming
                     }
                     else
                     {
-                        this.connector.ConnectAsync(string.Format(Plugin.MediaUrlFormat, this.ConnectTo, this.Port));
+                        this.connector.ConnectAsync(string.Format(Plugin.MediaUrlFormat, this.RemoteAddress, this.Port));
                     }
                 }
-
-                this.alreadyConnecting = false;
             }
         }
 
@@ -206,8 +176,6 @@ namespace RealtimeStreaming
                 return;
             }
 
-            this.ConnectionState = ConnectionState.Closing;
-
             this.networkConnection.Disconnected -= this.OnDisconnected;
             this.networkConnection.Close();
         }
@@ -221,7 +189,6 @@ namespace RealtimeStreaming
             this.plugin.QueueAction(() =>
             {
                 Debug.Log("RealtimeVideoPlayer::OnConnectorStarted");
-                this.ConnectionState = ConnectionState.Connecting;
                 this.PlayerState = PlaybackState.None;
             });
         }
@@ -232,7 +199,6 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoPlayer::OnConnectorFailed");
 
-                this.ConnectionState = ConnectionState.Failed;
                 this.PlayerState = PlaybackState.None;
 
                 StopConnector();
@@ -259,9 +225,7 @@ namespace RealtimeStreaming
                 Debug.Log("RealtimeVideoPlayer::OnConnectorConnected");
 
                 // We connected so stop the Connector
-                this.StopConnector();
-
-                this.ConnectionState = ConnectionState.Connected;
+                StopConnector();
 
                 this.networkConnection = connection;
                 this.networkConnection.Disconnected += this.OnDisconnected;
@@ -280,9 +244,6 @@ namespace RealtimeStreaming
             this.plugin.QueueAction(() =>
             {
                 Debug.Log("RealtimeVideoPlayer::OnDisconnected");
-
-                this.ConnectionState = ConnectionState.Disconnected;
-
                 this.Shutdown();
             });
         }
@@ -293,26 +254,10 @@ namespace RealtimeStreaming
             {
                 Debug.Log("RealtimeVideoPlayer::OnConnectionClosed");
 
-                this.ConnectionState = ConnectionState.Closed;
-
                 if (this.networkConnection == null)
                 {
                     return;
                 }
-
-                this.networkConnection.Closed -= this.OnConnectionClosed;
-                this.networkConnection.Dispose();
-                this.networkConnection = null;
-            });
-        }
-
-        private void OnConnectionFailed(object sender, EventArgs e)
-        {
-            this.plugin.QueueAction(() =>
-            {
-                Debug.Log("RealtimeVideoPlayer::OnConnectionFailed");
-
-                this.ConnectionState = ConnectionState.Failed;
 
                 Shutdown();
             });
@@ -326,101 +271,90 @@ namespace RealtimeStreaming
         {
             Debug.Log("RealtimeVideoPlayer::CreateRealTimePlayer");
 
-            // Only initialize if we have a connection 
+            // Only initialize if we have a connection and don't already have a player
             if (this.networkConnection == null || isPlayerCreated)
             {
                 Debug.Log("RealtimeVideoPlayer::CreateRealTimePlayer - Connection=null or isPlayerCreated");
                 return;
             }
 
-            this.createdHandler = new PlayerPlugin.PlayerCreatedCallbackHandler(Player_PluginCallbackWrapper.OnCreated_Callback);
-            this.stateCallback = new PlayerPlugin.StateChangedCallback(Player_PluginCallbackWrapper.OnStateChanged_Callback);
+            this.onCreatedCallback = new PlayerPlugin.PlayerCreatedCallback(Player_PluginCallbackWrapper.OnCreated_Callback);
+            this.onStateChangedCallback = new PlayerPlugin.StateChangedCallback(Player_PluginCallbackWrapper.OnStateChanged_Callback);
 
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
             // Create our RealtimePlayer at the Plugin C++ layer
             Plugin.CheckHResult(PlayerPlugin.exCreatePlayer(
                 this.networkConnection.Handle,
-                this.stateCallback,
-                this.createdHandler,
+                this.onStateChangedCallback,
+                this.onCreatedCallback,
                 thisObjectPtr,
                 ref this.playerHandle
                 ), "RealtimeVideoPlayer::exCreatePlayer()");
 
-            if (playerHandle == Plugin.InvalidHandle)
+            if (!isPlayerCreated)
             {
                 Shutdown();
                 return;
             }
-
-            Debug.Log("RealtimeVideoPlayer::CreateRealTimePlayer - Player Created");
-            isPlayerCreated = true;
         }
 
-        private void OnCreated(long result, int width, int height)
+        /// <summary>
+        /// Callback from the Native plugin when a realtime player has been created at the c++ level
+        /// </summary>
+        /// <param name="result">HRESULT from creation</param>
+        /// <param name="width">streaming texture width</param>
+        /// <param name="height">streaming texture height</param>
+        private void OnCreated(long result, uint width, uint height)
         {
             this.plugin.QueueAction(() =>
             {
                 Debug.Log("RealtimeVideoPlayer::OnCreated");
                 Plugin.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
 
-                if (width <= 0 || height <= 0)
+                // Weird bug seen on ARM. width/height parameters passed into this function are invalid values
+                Plugin.CheckHResult(PlayerPlugin.exGetStreamResolution(this.playerHandle, ref width, ref height),
+                        "RealtimeVideoPlayer::exGetStreamResolution");
+
+                if (!IsValidResolution(width, height))
                 {
-                    Debug.LogError("Width or height returned from RealtimeVideoPlayer::OnCreated were <= 0");
-                    this.Shutdown();
+                    Debug.LogError("RealtimeVideoPlayer::OnCreated() Invalid streaming resolution width=" + width + " - height=" + height);
+                    Shutdown();
                     return;
                 }
 
-                uint w = (uint)width, h = (uint)height;
+                this.textureWidth = width;
+                this.textureHeight = height;
+                IntPtr nativeTexturePtr_L = IntPtr.Zero;
+                IntPtr nativeTexturePtr_UV = IntPtr.Zero;
 
-                // TODO: This is hardcoded for weird bug on ARM
-                if (!IsValidResolution(w, h))
-                {
-                    Debug.Log("RealTimePlayer::OnCreated width/height invalid");
+                // It is more performant to utilize YUV texture for video streaming/rendering
+                // https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering
 
-                    Plugin.CheckHResult(PlayerPlugin.exGetStreamResolution(this.playerHandle,
-                            ref this.textureWidth, ref this.textureHeight),
-                        "RealtimeVideoPlayer::exGetStreamResolution");
-                }
-                else
-                {
-                    this.textureWidth = w;
-                    this.textureHeight = h;
-                }
-
-                Debug.Log("RealTimePlayer::OnCreated - " + this.textureWidth + " by " + this.textureHeight);
-
-                // TODO: Add documentation information here for YUV work
-
-                // create native texture for playback
-                IntPtr nativeTexture_L = IntPtr.Zero;
-                IntPtr nativeTexture_UV = IntPtr.Zero;
-
+                // Get pointers to the Luma/Chroma textures being used by MediaFoundation in the native plugin
                 Plugin.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.playerHandle,
-                    this.textureWidth,
-                    this.textureHeight,
-                    out nativeTexture_L,
-                    out nativeTexture_UV), 
+                    this.textureWidth, this.textureHeight,
+                    out nativeTexturePtr_L, out nativeTexturePtr_UV), 
                     "RealtimeVideoPlayer::exCreateExternalTexture");
 
-                // Create the unity texture2ds 
-                this.Texture_Luma =
-                    Texture2D.CreateExternalTexture((int)this.textureWidth,
+                this.Texture_Luma = Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
                     TextureFormat.RG16,
                     false, 
                     true,
-                    nativeTexture_L);
+                    nativeTexturePtr_L);
 
-                this.Texture_Chroma =
-                    Texture2D.CreateExternalTexture((int)this.textureWidth,
+                this.Texture_Chroma = Texture2D.CreateExternalTexture((int)this.textureWidth,
                     (int)this.textureHeight,
                     TextureFormat.R8,
                     false,
                     true,
-                    nativeTexture_UV);
+                    nativeTexturePtr_UV);
 
-                this.Play();
+                if (AutoPlay)
+                {
+                    Play();
+                }
             });
         }
 
@@ -434,11 +368,9 @@ namespace RealtimeStreaming
             Task task = new Task(() =>
             {
                 Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
+                this.plugin.QueueAction(() => this.PlayerState = PlaybackState.Playing);
             });
             task.Start();
-            //Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
-
-            this.PlayerState = PlaybackState.Playing;
         }
 
         public void Pause()
@@ -447,14 +379,13 @@ namespace RealtimeStreaming
 
             Debug.Log("RealTimePlayer::Pause");
 
+            // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
             Task task = new Task(() =>
             {
                 Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
+                this.plugin.QueueAction(() => this.PlayerState = PlaybackState.Paused);
             });
             task.Start();
-            //Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
-
-            this.PlayerState = PlaybackState.Paused;
         }
 
         public void Stop()
@@ -462,41 +393,33 @@ namespace RealtimeStreaming
             if (!this.isPlayerCreated) return;
 
             Debug.Log("RealTimePlayer::Stop");
+
             // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
             Task task = new Task(() =>
             {
                 Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
+                this.plugin.QueueAction(() => this.PlayerState = PlaybackState.Ended);
             });
             task.Start();
-            //Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
-
-            this.PlayerState = PlaybackState.Ended;
-        }
-
-        private void MediaPlayback_Changed(PlayerPlugin.PLAYBACK_STATE args)
-        {
-            this.plugin.QueueAction(() =>
-            {
-                Debug.Log("RealTimePlayer::MediaPlayback_Changed");
-                OnStateChanged(args);
-            });
         }
 
         private void OnStateChanged(PlayerPlugin.PLAYBACK_STATE args)
         {
             var stateType = (PlayerPlugin.StateType)Enum.ToObject(typeof(PlayerPlugin.StateType), args.type);
 
+            // TODO: Update player state based on this*
+
             switch (stateType)
             {
-                case PlayerPlugin.StateType.StateType_StateChanged:
+                case PlayerPlugin.StateType.StateChanged:
                     this.PlayerState = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
                     Debug.Log("Playback State: " + stateType.ToString() + " - " + this.PlayerState.ToString());
                     break;
-                case PlayerPlugin.StateType.StateType_Opened:
+                case PlayerPlugin.StateType.Opened:
                     PlayerPlugin.MEDIA_DESCRIPTION description = args.description;
                     Debug.Log("Media Opened: " + description.ToString());
                     break;
-                case PlayerPlugin.StateType.StateType_Failed:
+                case PlayerPlugin.StateType.Failed:
                     Plugin.CheckHResult(args.hresult, "RealtimeVideoPlayer::OnStateChanged");
                     break;
                 default:
@@ -517,12 +440,13 @@ namespace RealtimeStreaming
         #region Realtime Player Plugin
         internal static class PlayerPlugin
         {
+            // NOTE: Enums & structs must match values in RealtimeMediaPlayer.h in Native Plugin
             public enum StateType
             {
-                StateType_None = 0,
-                StateType_Opened,
-                StateType_StateChanged,
-                StateType_Failed,
+                None = 0,
+                Opened,
+                StateChanged,
+                Failed,
             };
 
             [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -530,17 +454,12 @@ namespace RealtimeStreaming
             {
                 public UInt32 width;
                 public UInt32 height;
-                public Int64 duration;
-                public byte isSeekable;
 
                 public override string ToString()
                 {
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine("width: " + width);
                     sb.AppendLine("height: " + height);
-                    sb.AppendLine("duration: " + duration);
-                    sb.AppendLine("canSeek: " + isSeekable);
-
                     return sb.ToString();
                 }
             };
@@ -561,15 +480,16 @@ namespace RealtimeStreaming
                 public MEDIA_DESCRIPTION description;
             };
 
-            public delegate void StateChangedCallback(PLAYBACK_STATE args);
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate void StateChangedCallback(IntPtr senderPtr, PLAYBACK_STATE args);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            public delegate void PlayerCreatedCallbackHandler(IntPtr senderPtr, long result, int width, int height);
+            public delegate void PlayerCreatedCallback(IntPtr senderPtr, long result, uint width, uint height);
 
             [DllImport("RealtimeStreaming", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateRealtimePlayer")]
             internal static extern long exCreatePlayer(uint connectionHandle,
                 [MarshalAs(UnmanagedType.FunctionPtr)]StateChangedCallback callback, 
-                [MarshalAs(UnmanagedType.FunctionPtr)]PlayerCreatedCallbackHandler createdCallback, 
+                [MarshalAs(UnmanagedType.FunctionPtr)]PlayerCreatedCallback createdCallback, 
                 IntPtr objectPtr,
                 ref uint playerHandle);
 
@@ -594,8 +514,8 @@ namespace RealtimeStreaming
 
         internal static class Player_PluginCallbackWrapper
         {
-            [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.PlayerCreatedCallbackHandler))]
-            internal static void OnCreated_Callback(IntPtr senderPtr, long result, int width, int height)
+            [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.PlayerCreatedCallback))]
+            internal static void OnCreated_Callback(IntPtr senderPtr, long result, uint width, uint height)
             {
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
                 
@@ -607,16 +527,13 @@ namespace RealtimeStreaming
             }
 
             [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.StateChangedCallback))]
-            internal static void OnStateChanged_Callback(PlayerPlugin.PLAYBACK_STATE args)
+            internal static void OnStateChanged_Callback(IntPtr senderPtr, PlayerPlugin.PLAYBACK_STATE args)
             {
-                // TODO: Troy to re-anble this code path
-                /*
                 var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
 
                 Plugin.ExecuteOnUnityThread(() => {
                     thisObj.OnStateChanged(args);
                 });
-                */
             }
         }
 #endregion

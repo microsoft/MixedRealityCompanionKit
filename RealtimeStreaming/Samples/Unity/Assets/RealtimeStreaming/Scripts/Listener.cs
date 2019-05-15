@@ -2,10 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using UnityEngine;
 
 namespace RealtimeStreaming
@@ -39,11 +36,6 @@ namespace RealtimeStreaming
             base.Close();
 
             Wrapper.exStopListener(this.handle);
-        }
-
-        private void OnStarted()
-        {
-
         }
 
         private static class Wrapper

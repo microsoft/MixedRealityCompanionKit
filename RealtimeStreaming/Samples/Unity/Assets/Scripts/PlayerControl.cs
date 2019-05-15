@@ -1,9 +1,9 @@
-﻿using RealtimeStreaming;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using RealtimeStreaming;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerControl : MonoBehaviour
 {
@@ -45,7 +45,7 @@ public class PlayerControl : MonoBehaviour
 
     public void ConnectPlayer()
     {
-        rtPlayer.ConnectTo = this.IPAddressInput.Value;
+        rtPlayer.RemoteAddress = this.IPAddressInput.Value;
         rtPlayer.Port = Convert.ToUInt16(this.PortInput.Value);
         rtPlayer.ConnectPlayer(false);
     }
@@ -57,7 +57,7 @@ public class PlayerControl : MonoBehaviour
             Color c = Color.red;
             switch (e.CurrentState)
             {
-                case RealtimeVideoPlayer.PlaybackState.Opening:
+                case RealtimeVideoPlayer.PlaybackState.Connecting:
                     c = Color.yellow;
                     break;
                 case RealtimeVideoPlayer.PlaybackState.Playing:

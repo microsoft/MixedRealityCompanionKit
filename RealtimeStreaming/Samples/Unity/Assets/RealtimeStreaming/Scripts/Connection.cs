@@ -9,12 +9,9 @@ namespace RealtimeStreaming
     public enum ConnectionState
     {
         Idle,
-        Connecting,
         Connected,
-        Closing,
         Closed,
         Disconnected,
-        Failed
     };
 
     public enum DataType
@@ -44,6 +41,8 @@ namespace RealtimeStreaming
     {
         public uint Handle { get; private set; }
 
+        public ConnectionState State { get; private set; }
+
         public Action<object, EventArgs> Disconnected;
         public Action<object, EventArgs> Closed;
         public Action<object, DataReceivedArgs> DataReceived;
@@ -72,6 +71,7 @@ namespace RealtimeStreaming
         private Connection()
         {
             this.Handle = Plugin.InvalidHandle;
+            this.State = ConnectionState.Idle;
 
             this.disconnectedToken = 0;
             this.disconnectedHandler = null;
@@ -119,6 +119,7 @@ namespace RealtimeStreaming
             if (connectionHandle != Plugin.InvalidHandle)
             {
                 this.Handle = connectionHandle;
+                this.State = ConnectionState.Connected;
 
                 thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
                 IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
@@ -162,8 +163,8 @@ namespace RealtimeStreaming
                 Plugin.CheckHResult(Wrapper.exClose(this.Handle), "Connection.Close() - CloseConnection - Handle= " + this.Handle);
             }
 
+            this.State = ConnectionState.Closed;
             this.Closed?.Invoke(this, EventArgs.Empty);
-
             this.Handle = Plugin.InvalidHandle;
         }
 
@@ -173,7 +174,8 @@ namespace RealtimeStreaming
             {
                 return;
             }
-            
+
+            this.State = ConnectionState.Disconnected;
             this.Disconnected?.Invoke(this, EventArgs.Empty);
         }
 

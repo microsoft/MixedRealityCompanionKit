@@ -8,24 +8,25 @@
 
 #include <winrt/Windows.Media.Playback.h>
 
+// TODO: Move this to RealtimeStreaming.idl
 namespace winrt::RealtimeStreaming::Media
 {
     enum class StateType : UINT16
     {
-        StateType_None = 0,
-        StateType_Opened,
-        StateType_StateChanged,
-        StateType_Failed,
+        None = 0,
+        Opened,
+        StateChanged,
+        Failed,
     };
 
+    // Matches Windows.Media.Playback.MediaPlaybackState enum
     enum class PlaybackState : UINT16
     {
-        PlaybackState_None = 0,
-        PlaybackState_Opening,
-        PlaybackState_Buffering,
-        PlaybackState_Playing,
-        PlaybackState_Paused,
-        PlaybackState_Ended
+        None = 0,
+        Opening,
+        Buffering,
+        Playing,
+        Paused,
     };
 
 #pragma pack(push, 4)
@@ -33,8 +34,6 @@ namespace winrt::RealtimeStreaming::Media
     {
         UINT32 width;
         UINT32 height;
-        INT64 duration;
-        byte canSeek;
     } MEDIA_DESCRIPTION;
 #pragma pack(pop)
 
@@ -51,12 +50,12 @@ namespace winrt::RealtimeStreaming::Media
 #pragma pack(pop)
 
     extern "C" typedef void(UNITY_INTERFACE_API *StateChangedCallback)(
+        _In_ void* pCallbackObject,
         _In_ PLAYBACK_STATE args);
 }
 
 namespace winrt::RealtimeStreaming::Media::implementation
 {
-
     struct RealtimeMediaPlayer : RealtimeMediaPlayerT<RealtimeMediaPlayer>
     {
         RealtimeMediaPlayer() = default;
@@ -66,7 +65,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         Windows::Foundation::IAsyncOperation<Windows::Media::MediaProperties::VideoEncodingProperties> InitAsync(_In_ Network::Connection connection);
 
-		Windows::Media::MediaProperties::VideoEncodingProperties GetVideoProperties();
+        Windows::Media::MediaProperties::VideoEncodingProperties GetVideoProperties();
 
         void Shutdown();
 
@@ -74,15 +73,19 @@ namespace winrt::RealtimeStreaming::Media::implementation
         winrt::hresult Pause();
         winrt::hresult Stop();
 
-        event_token Closed(Windows::Foundation::EventHandler<Media::RealtimeMediaPlayer> const& handler);
-        void Closed(event_token const& token);
+        event_token Closed(_In_ Windows::Foundation::EventHandler<Media::RealtimeMediaPlayer> const& handler);
+        void Closed(_In_ event_token const& token);
 
         // IPlaybackManagerPriv
         STDOVERRIDEMETHODIMP CreateStreamingTexture(
-            _In_ UINT32 width, 
-            _In_ UINT32 height, 
+            _In_ UINT32 width,
+            _In_ UINT32 height,
             _COM_Outptr_ void** ppvTexture_L,
             _COM_Outptr_ void** ppvTexture_UV);
+
+        void SetStateChangeCallback(
+            _In_ RealtimeStreaming::Media::StateChangedCallback callback, 
+            _In_ void* pManagedCallbackObject);
 
     private:
         HRESULT CreateMediaPlayer();
@@ -111,6 +114,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
         Media::RealtimeMediaSource m_RealtimeMediaSource{ nullptr };
 
         event<Windows::Foundation::EventHandler<Media::RealtimeMediaPlayer>> m_closedEvent;
+        StateChangedCallback m_stateChangedCallback;
+        void* m_pManagedCallbackObject;
     };
 }
 

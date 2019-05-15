@@ -22,6 +22,6 @@ namespace RealtimeStreaming.Media
 
         event Windows.Foundation.EventHandler<RealtimeMediaPlayer> Closed;
 
-		Windows.Media.MediaProperties.VideoEncodingProperties GetVideoProperties();
+        Windows.Media.MediaProperties.VideoEncodingProperties GetVideoProperties();
     };
 }

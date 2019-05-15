@@ -15,7 +15,7 @@ MonoBehaviour:
   Name: 
   Settings:
   - Name: InteractableColorTheme
-    AssemblyQualifiedName: Microsoft.MixedReality.Toolkit.UI.InteractableColorTheme,
+    AssemblyQualifiedName:  Microsoft.MixedReality.Toolkit.UI.InteractableColorTheme,
       Microsoft.MixedReality.Toolkit.SDK
     Properties:
     - Name: Color
@@ -32,7 +32,7 @@ MonoBehaviour:
         Vector2: {x: 0, y: 0}
         Vector3: {x: 0, y: 0, z: 0}
         Vector4: {x: 0, y: 0, z: 0, w: 0}
-        Color: {r: 0.3621687, g: 0, b: 0.8117647, a: 1}
+        Color: {r: 0, g: 0.59923285, b: 0.8113208, a: 1}
         Quaternion: {x: 0, y: 0, z: 0, w: 0}
         AudioClip: {fileID: 0}
         Animation: {fileID: 0}
@@ -47,7 +47,7 @@ MonoBehaviour:
         Vector2: {x: 0, y: 0}
         Vector3: {x: 0, y: 0, z: 0}
         Vector4: {x: 0, y: 0, z: 0, w: 0}
-        Color: {r: 0.61744475, g: 0.31305623, b: 0.990566, a: 1}
+        Color: {r: 0.08627451, g: 0.8470589, b: 1, a: 1}
         Quaternion: {x: 0, y: 0, z: 0, w: 0}
         AudioClip: {fileID: 0}
         Animation: {fileID: 0}

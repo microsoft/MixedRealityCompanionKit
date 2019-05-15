@@ -1,4 +1,7 @@
-﻿using RealtimeStreaming.Media;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using RealtimeStreaming.Media;
 using RealtimeStreaming.Network;
 using System;
 using System.Diagnostics;
@@ -12,40 +15,12 @@ namespace DesktopServerApp
 {
     public class SampleManager : PropertyChangeBase
     {
-
         public enum ManagerStatus
         {
             Idle,
             Listening,
             Sending
         };
-
-        private ushort port = 27772;
-        private bool multicastDiscoveryEnabled = true;
-        private int frameDelayMs = 15;
-        private uint width = 1280;
-        private uint height = 720;
-        private uint bpp = 4;
-        private float fps = 0.0f;
-
-        private ManagerStatus status = ManagerStatus.Idle;
-
-        private SolidColorBrush frameColor = new SolidColorBrush(Colors.White);
-        private Color startColor = Colors.Red;
-        private Color endColor = Colors.Blue;
-        private uint frameColorCount = 0;
-        private uint numOfFramesForColorChange = 120;
-
-        private readonly Dispatcher _dispatcher;
-        private byte[] imageData;
-        private Random rand = new Random();
-        private Stopwatch stopwatch = new Stopwatch();
-
-        private CancellationTokenSource _cts;
-        private DisconnectedDelegate _handler;
-        private Listener listener;
-        private Connection connection;
-        private RealtimeServer server;
 
         public ushort Port
         {
@@ -77,10 +52,10 @@ namespace DesktopServerApp
             set => SetProperty(ref multicastDiscoveryEnabled, value);
         }
 
-        public int FrameDelayMs
+        public int TargetFrameRate
         {
-            get => frameDelayMs;
-            set => SetProperty(ref frameDelayMs, value);
+            get => targetFrameRate;
+            set => SetProperty(ref targetFrameRate, value);
         }
 
         public float RunningFPS
@@ -107,9 +82,49 @@ namespace DesktopServerApp
             set => SetProperty(ref height, value);
         }
 
+        public string RemoteAddress
+        {
+            get
+            {
+                if (connection != null)
+                {
+                    return connection.ConnectionInfo.RemoteAddress.ToString();
+                }
+
+                return "No connection";
+            }
+        }
+
+        private ushort port = 27772;
+        private bool multicastDiscoveryEnabled = true;
+        private int targetFrameRate = 15;
+        private uint width = 1280;
+        private uint height = 720;
+        private uint bpp = 4;
+        private float fps = 0.0f;
+
+        private ManagerStatus status = ManagerStatus.Idle;
+
+        private SolidColorBrush frameColor = new SolidColorBrush(Colors.White);
+        private Color startColor = Colors.Red;
+        private Color endColor = Colors.Blue;
+        private uint frameColorCount = 0;
+        private uint numOfFramesForColorChange = 120;
+
+        private readonly Dispatcher appDispatcher;
+        private byte[] imageData;
+        private Random rand = new Random();
+        private Stopwatch stopwatch = new Stopwatch();
+
+        private CancellationTokenSource _cts;
+        private DisconnectedDelegate _handler;
+        private Listener listener;
+        private Connection connection;
+        private RealtimeServer server;
+
         public SampleManager(Dispatcher dispatcher)
         {
-            _dispatcher = dispatcher;
+            appDispatcher = dispatcher;
             this.Status = ManagerStatus.Idle;
         }
 
@@ -135,6 +150,7 @@ namespace DesktopServerApp
                 mfVideoFormatRgb32,
                 profile
             );
+
         }
 
         private void StopServer()
@@ -192,7 +208,7 @@ namespace DesktopServerApp
 
         private void RunServer()
         {
-            var waitDelay = TimeSpan.FromMilliseconds(frameDelayMs);
+            var waitDelay = TimeSpan.FromMilliseconds(1000.0f / TargetFrameRate);
             var delayAfterImage = 1;
             bool cancelled = false;
             var imageCount = 0;
@@ -270,7 +286,7 @@ namespace DesktopServerApp
 
         private async void UpdateUIThread(Action a)
         {
-            await _dispatcher.InvokeAsync(a);
+            await appDispatcher.InvokeAsync(a);
         }
     }
 }

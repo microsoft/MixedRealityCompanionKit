@@ -15,12 +15,12 @@ DllGetActivationFactory = WINRT_GetActivationFactory    PRIVATE
     ConnectionRemoveReceived
     ConnectionClose
     CreateRealtimeStreamingServer
-	RealtimeStreamingWrite
+    RealtimeStreamingWrite
     RealtimeStreamingShutdown
-	CreateRealtimePlayer
-	ReleaseRealtimePlayer
-	GetPlayerStreamResolution
-	CreateRealtimePlayerTexture
-	RealtimePlayerPlay
-	RealtimePlayerPause
-	RealtimePlayerStop
+    CreateRealtimePlayer
+    ReleaseRealtimePlayer
+    GetPlayerStreamResolution
+    CreateRealtimePlayerTexture
+    RealtimePlayerPlay
+    RealtimePlayerPause
+    RealtimePlayerStop

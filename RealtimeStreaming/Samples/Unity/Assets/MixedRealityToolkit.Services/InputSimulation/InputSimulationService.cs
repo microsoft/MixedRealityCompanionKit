@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.MixedReality.Toolkit.Utilities;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Input
@@ -13,15 +15,33 @@ namespace Microsoft.MixedReality.Toolkit.Input
         "Input Simulation Service",
         "Profiles/DefaultMixedRealityInputSimulationProfile.asset", 
         "MixedRealityToolkit.SDK")]
-    public class InputSimulationService : BaseInputDeviceManager
+    public class InputSimulationService : BaseInputDeviceManager, IInputSimulationService
     {
         private ManualCameraControl cameraControl = null;
         private SimulatedHandDataProvider handDataProvider = null;
+
+        public readonly SimulatedHandData HandDataLeft = new SimulatedHandData();
+        public readonly SimulatedHandData HandDataRight = new SimulatedHandData();
+
+        /// <summary>
+        /// If true then keyboard and mouse input are used to simulate hands.
+        /// </summary>
+        public bool UserInputEnabled = true;
 
         /// <summary>
         /// Dictionary to capture all active hands detected
         /// </summary>
         private readonly Dictionary<Handedness, SimulatedHand> trackedHands = new Dictionary<Handedness, SimulatedHand>();
+
+        /// <summary>
+        /// Active controllers
+        /// </summary>
+        private IMixedRealityController[] activeControllers = new IMixedRealityController[0];
+
+        /// <summary>
+        /// Timestamp of the last hand device update
+        /// </summary>
+        private long lastHandUpdateTimestamp = 0;
 
         #region BaseInputDeviceManager Implementation
 
@@ -34,6 +54,12 @@ namespace Microsoft.MixedReality.Toolkit.Input
             uint priority, 
             BaseMixedRealityProfile profile) : base(registrar, inputSystem, inputSystemProfile, playspace, name, priority, profile)
         {
+        }
+
+        /// <inheritdoc />
+        public override IMixedRealityController[] GetActiveControllers()
+        {
+            return activeControllers;
         }
 
         /// <inheritdoc />
@@ -56,7 +82,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// <inheritdoc />
         public override void Update()
         {
-            var profile = GetInputSimulationProfile();
+            var profile = InputSimulationProfile;
 
             if (profile.IsCameraControlEnabled)
             {
@@ -83,14 +109,42 @@ namespace Microsoft.MixedReality.Toolkit.Input
                     break;
 
                 case HandSimulationMode.Articulated:
-                    EnableHandSimulation();
-                    handDataProvider.Update();
-                    break;
-
                 case HandSimulationMode.Gestures:
                     EnableHandSimulation();
-                    handDataProvider.Update();
+
+                    if (UserInputEnabled)
+                    {
+                        handDataProvider.UpdateHandData(HandDataLeft, HandDataRight);
+                    }
                     break;
+            }
+        }
+
+        /// <inheritdoc />
+        public override void LateUpdate()
+        {
+            var profile = InputSimulationProfile;
+
+            // Apply hand data in LateUpdate to ensure external changes are applied.
+            // HandDataLeft/Right can be modified after the services Update() call.
+            if (profile.HandSimulationMode != HandSimulationMode.Disabled)
+            {
+                DateTime currentTime = DateTime.UtcNow;
+                double msSinceLastHandUpdate = currentTime.Subtract(new DateTime(lastHandUpdateTimestamp)).TotalMilliseconds;
+                // TODO implement custom hand device update frequency here, use 1000/fps instead of 0
+                if (msSinceLastHandUpdate > 0)
+                {
+                    if (HandDataLeft.Timestamp > lastHandUpdateTimestamp)
+                    {
+                        UpdateHandInputSource(Handedness.Left, HandDataLeft);
+                    }
+                    if (HandDataRight.Timestamp > lastHandUpdateTimestamp)
+                    {
+                        UpdateHandInputSource(Handedness.Right, HandDataRight);
+                    }
+
+                    lastHandUpdateTimestamp = currentTime.Ticks;
+                }
             }
         }
 
@@ -99,21 +153,24 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// <summary>
         /// Return the service profile and ensure that the type is correct
         /// </summary>
-        public MixedRealityInputSimulationProfile GetInputSimulationProfile()
+        public MixedRealityInputSimulationProfile InputSimulationProfile
         {
-            var profile = ConfigurationProfile as MixedRealityInputSimulationProfile;
-            if (!profile)
-            {
-                Debug.LogError("Profile for Input Simulation Service must be a MixedRealityInputSimulationProfile");
+            get
+                {
+                var profile = ConfigurationProfile as MixedRealityInputSimulationProfile;
+                if (!profile)
+                {
+                    Debug.LogError("Profile for Input Simulation Service must be a MixedRealityInputSimulationProfile");
+                }
+                return profile;
             }
-            return profile;
         }
 
         private void EnableCameraControl()
         {
             if (cameraControl == null)
             {
-                cameraControl = new ManualCameraControl(GetInputSimulationProfile());
+                cameraControl = new ManualCameraControl(InputSimulationProfile);
             }
         }
 
@@ -129,8 +186,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
         {
             if (handDataProvider == null)
             {
-                handDataProvider = new SimulatedHandDataProvider(GetInputSimulationProfile());
-                handDataProvider.OnHandDataChanged += OnHandDataChanged;
+                handDataProvider = new SimulatedHandDataProvider(InputSimulationProfile);
             }
         }
 
@@ -140,21 +196,14 @@ namespace Microsoft.MixedReality.Toolkit.Input
 
             if (handDataProvider != null)
             {
-                handDataProvider.OnHandDataChanged -= OnHandDataChanged;
                 handDataProvider = null;
             }
-        }
-
-        private void OnHandDataChanged()
-        {
-            UpdateHandInputSource(Handedness.Left, handDataProvider.CurrentFrameLeft);
-            UpdateHandInputSource(Handedness.Right, handDataProvider.CurrentFrameRight);
         }
 
         // Register input sources for hands based on changes of the data provider
         private void UpdateHandInputSource(Handedness handedness, SimulatedHandData handData)
         {
-            var profile = GetInputSimulationProfile();
+            var profile = InputSimulationProfile;
 
             if (profile.HandSimulationMode == HandSimulationMode.Disabled)
             {
@@ -239,6 +288,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             MixedRealityToolkit.InputSystem?.RaiseSourceDetected(controller.InputSource, controller);
 
             trackedHands.Add(handedness, controller);
+            UpdateActiveControllers();
 
             return controller;
         }
@@ -251,6 +301,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 MixedRealityToolkit.InputSystem?.RaiseSourceLost(controller.InputSource, controller);
 
                 trackedHands.Remove(handedness);
+                UpdateActiveControllers();
             }
         }
 
@@ -261,6 +312,12 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 MixedRealityToolkit.InputSystem?.RaiseSourceLost(controller.InputSource, controller);
             }
             trackedHands.Clear();
+            UpdateActiveControllers();
+        }
+
+        private void UpdateActiveControllers()
+        {
+            activeControllers = trackedHands.Values.ToArray<IMixedRealityController>();
         }
     }
 }

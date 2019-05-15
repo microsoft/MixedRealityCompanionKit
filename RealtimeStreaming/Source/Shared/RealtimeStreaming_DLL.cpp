@@ -236,15 +236,13 @@ RTDLL ListenerStopAndClose(
     return S_OK;
 }
 
-void ConnectAsync(_In_ Connector connector,
-    Uri uri,
+void OnConnectAsyncCompleted(_In_ Connector connector,
+    _In_ IAsyncOperation<Connection> connectAsyncOp,
     _In_ PluginCallback callback,
     _In_ void* pManagedCallbackObject)
 {
-    HostName hostName = HostName(uri.Host());
-
-    auto connectAsync = connector.ConnectAsync(hostName, uri.Port());
-    connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
+    //auto connectAsync = connector.ConnectAsync(hostName, uri.Port());
+    connectAsyncOp.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
         Log(Log_Level_Info, L"Plugin::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());
 
@@ -278,13 +276,14 @@ RTDLL ConnectorCreateAndStart(
 
     try
     {
-        std::wstring wsUri = address;
-        Uri uri{ wsUri };
-
         Connector connector = winrt::make<RealtimeStreaming::Network::implementation::Connector>();
         *connectorHandle = s_moduleManager.AddModule(connector);
 
-        ConnectAsync(connector, uri, callback, pManagedCallbackObject);
+        std::wstring wsUri = address;
+        Uri uri{ wsUri };
+        HostName hostName = HostName(uri.Host());
+        auto connectAsync = connector.ConnectAsync(hostName, uri.Port());
+        OnConnectAsyncCompleted(connector, connectAsync, callback, pManagedCallbackObject);
     }
     catch (winrt::hresult_error const& ex)
     {
@@ -292,29 +291,6 @@ RTDLL ConnectorCreateAndStart(
     }
 
     return S_OK;
-}
-
-void DiscoverAsync(_In_ Connector connector,
-    _In_ PluginCallback callback,
-    _In_ void* pManagedCallbackObject)
-{
-    auto connectAsync = connector.DiscoverAsync();
-    connectAsync.Completed([=](auto const asyncOp, AsyncStatus const status)
-    {
-        Log(Log_Level_Info, L"Plugin::ConnectorCreateAndDiscover() - DiscoverAsync() Completed -Tid:%d \n", GetCurrentThreadId());
-
-        auto connection = asyncOp.GetResults();
-
-        if (s_moduleManager == nullptr || connection == nullptr)
-        {
-            Log(Log_Level_Info, L"Plugin::ConnectorCreateAndDiscover() [DiscoverAsync()] FAILED connection = null \n");
-            CompletePluginCallback(callback, pManagedCallbackObject, MODULE_HANDLE_INVALID, E_INVALIDARG);
-            return;
-        }
-
-        ModuleHandle handle = s_moduleManager.AddModule(connection);
-        CompletePluginCallback(callback, pManagedCallbackObject, handle, S_OK);
-    });
 }
 
 RTDLL ConnectorCreateAndDiscover(
@@ -335,7 +311,8 @@ RTDLL ConnectorCreateAndDiscover(
         Connector connector = winrt::make<RealtimeStreaming::Network::implementation::Connector>();
         *connectorHandle = s_moduleManager.AddModule(connector);
 
-        DiscoverAsync(connector, callback, pManagedCallbackObject);
+        auto connectAsync = connector.DiscoverAsync();
+        OnConnectAsyncCompleted(connector, connectAsync, callback, pManagedCallbackObject);
     }
     catch (winrt::hresult_error const& ex)
     {
@@ -519,6 +496,7 @@ RTDLL ConnectionClose(
 
 RTDLL CreateRealtimeStreamingServer(
     _In_ UINT32 connectionHandle,
+    _In_ bool useHEVC,
     _In_ UINT32 width,
     _In_ UINT32 height,
     _Inout_ UINT32* serverHandle)
@@ -530,7 +508,7 @@ RTDLL CreateRealtimeStreamingServer(
     Connection connection = GetModule<Connection>(connectionHandle);
 
     // Default encoding activation
-    auto mediaProfile = MediaEncodingProfile::CreateHevc(VideoEncodingQuality::HD720p);
+    auto mediaProfile = useHEVC ? MediaEncodingProfile::CreateHevc(VideoEncodingQuality::HD720p) : MediaEncodingProfile::CreateMp4(VideoEncodingQuality::HD720p);
     mediaProfile.Video().Width(width);
     mediaProfile.Video().Height(height);
     GUID videoFormat = MFVideoFormat_RGB32;
@@ -541,9 +519,7 @@ RTDLL CreateRealtimeStreamingServer(
         mediaProfile);
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
-
     NULL_CHK(s_moduleManager);
-
     handle = s_moduleManager.AddModule(rtServer);
     *serverHandle = handle;
 
@@ -618,8 +594,8 @@ void InitPlayerAsync(RealtimeMediaPlayer rtPlayer,
 
 RTDLL CreateRealtimePlayer(
     _In_ ModuleHandle connectionHandle,
-    _In_ StateChangedCallback fnCallback,
-    _In_ PlayerCreatedCallback callback,
+    _In_ StateChangedCallback stateCallback,
+    _In_ PlayerCreatedCallback createdCallback,
     _In_ void* pManagedCallbackObject,
     _Inout_ UINT32* serverHandle)
 {
@@ -630,12 +606,17 @@ RTDLL CreateRealtimePlayer(
 
     Log(Log_Level_Info, L"Plugin::RTPlayerCreate() -Tid:%d \n", GetCurrentThreadId());
 
-    NULL_CHK(callback);
+    NULL_CHK(stateCallback);
+    NULL_CHK(createdCallback);
     NULL_CHK(pManagedCallbackObject);
 
     auto connection = GetModule<Connection>(connectionHandle);
 
     RealtimeMediaPlayer rtPlayer = winrt::make<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
+    auto rtPlayerImpl = rtPlayer.as<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
+    NULL_CHK(rtPlayerImpl);
+
+    rtPlayerImpl->SetStateChangeCallback(stateCallback, pManagedCallbackObject);
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
     NULL_CHK(s_moduleManager);
@@ -643,7 +624,7 @@ RTDLL CreateRealtimePlayer(
     handle = s_moduleManager.AddModule(rtPlayer);
     *serverHandle = handle;
 
-    InitPlayerAsync(rtPlayer, connection, callback, pManagedCallbackObject);
+    InitPlayerAsync(rtPlayer, connection, createdCallback, pManagedCallbackObject);
 
     return S_OK;
 }
@@ -693,9 +674,7 @@ RTDLL CreateRealtimePlayerTexture(
     NULL_CHK(ppvTexture_UV);
 
     auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
-
     auto rtPlayerImpl = rtPlayer.as<RealtimeStreaming::Media::implementation::RealtimeMediaPlayer>();
-
     NULL_CHK(rtPlayerImpl);
 
     return rtPlayerImpl->CreateStreamingTexture(width, height, ppvTexture_L, ppvTexture_UV);

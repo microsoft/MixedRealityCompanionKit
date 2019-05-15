@@ -79,22 +79,32 @@ IAsyncOperation<VideoEncodingProperties> RealtimeMediaPlayer::InitAsync(
 _Use_decl_annotations_
 VideoEncodingProperties RealtimeMediaPlayer::GetVideoProperties()
 {
-	if (m_RealtimeMediaSource != nullptr)
-	{
-		return m_RealtimeMediaSource.VideoProperties();
-	}
+    if (m_RealtimeMediaSource != nullptr)
+    {
+        return m_RealtimeMediaSource.VideoProperties();
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
+_Use_decl_annotations_
 event_token RealtimeMediaPlayer::Closed(Windows::Foundation::EventHandler<winrtPlaybackManager> const& handler)
 {
     return m_closedEvent.add(handler);
 }
 
+_Use_decl_annotations_
 void RealtimeMediaPlayer::Closed(event_token const& token)
 {
     m_closedEvent.remove(token);
+}
+
+_Use_decl_annotations_
+void RealtimeMediaPlayer::SetStateChangeCallback(RealtimeStreaming::Media::StateChangedCallback callback, 
+    void* pManagedCallbackObject)
+{
+    m_stateChangedCallback = callback;
+    m_pManagedCallbackObject = pManagedCallbackObject;
 }
 
 _Use_decl_annotations_
@@ -128,9 +138,9 @@ HRESULT RealtimeMediaPlayer::CreateStreamingTexture(
     // make sure we have created our own d3d device
     IFR(CreateResources(spD3D11Resources->GetDevice()));
 
-    IFR(SharedTextureBuffer::Create(spD3D11Resources->GetDevice().get(), 
-        m_dxgiDeviceManager.get(), 
-        width, 
+    IFR(SharedTextureBuffer::Create(spD3D11Resources->GetDevice().get(),
+        m_dxgiDeviceManager.get(),
+        width,
         height,
         m_primaryBuffer));
 
@@ -216,52 +226,45 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     m_mediaPlayer = Windows::Media::Playback::MediaPlayer();
     m_mediaPlayer.IsVideoFrameServerEnabled(true);
 
-    m_endedToken = m_mediaPlayer.MediaEnded([=](Windows::Media::Playback::MediaPlayer const& sender, 
+    m_endedToken = m_mediaPlayer.MediaEnded([=](Windows::Media::Playback::MediaPlayer const& sender,
         Windows::Foundation::IInspectable const& args)
     {
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
 
-        /*
-        TODO: Callback
-        CALLBACK_STATE state{};
-        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+        PLAYBACK_STATE state{};
+        ZeroMemory(&state, sizeof(PLAYBACK_STATE));
 
-        state.type = CallbackType::VideoPlayer;
+        state.type = StateType::Opened;
+        state.value.state = PlaybackState::None;
 
-        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
-        state.value.playbackState.state = MediaPlayerState::Ended;
-
-        Callback(state);
-        */
+        if (m_stateChangedCallback)
+        {
+            m_stateChangedCallback(m_pManagedCallbackObject, state);
+        }
     });
 
-    m_failedToken = m_mediaPlayer.MediaFailed([=](Windows::Media::Playback::MediaPlayer const& sender, 
+    m_failedToken = m_mediaPlayer.MediaFailed([=](Windows::Media::Playback::MediaPlayer const& sender,
         Windows::Media::Playback::MediaPlayerFailedEventArgs const& args)
     {
         Log(Log_Level_Info, L"RealtimeMediaPlayer::MediaFailed()\n");
 
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
-        
-        auto hresult = args.ExtendedErrorCode();
-        int a = 4;
-        /*
-        TODO: Callback
-        CALLBACK_STATE state{};
-        ZeroMemory(&state, sizeof(CALLBACK_STATE));
 
-        state.type = CallbackType::Failed;
+        PLAYBACK_STATE state{};
+        ZeroMemory(&state, sizeof(PLAYBACK_STATE));
 
-        ZeroMemory(&state.value.failedState, sizeof(FAILED_STATE));
+        state.type = StateType::Failed;
+        state.value.hresult = args.ExtendedErrorCode();
 
-        state.value.failedState.hresult = args.ExtendedErrorCode();
-
-        Callback(state);
-        */
+        if (m_stateChangedCallback)
+        {
+            m_stateChangedCallback(m_pManagedCallbackObject, state);
+        }
     });
 
-    m_openedToken = m_mediaPlayer.MediaOpened([=](Windows::Media::Playback::MediaPlayer const& sender, 
+    m_openedToken = m_mediaPlayer.MediaOpened([=](Windows::Media::Playback::MediaPlayer const& sender,
         Windows::Foundation::IInspectable const& args)
     {
         Log(Log_Level_Info, L"RealtimeMediaPlayer::MediaOpened()\n");
@@ -269,30 +272,26 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
         UNREFERENCED_PARAMETER(sender);
         UNREFERENCED_PARAMETER(args);
 
-        if (nullptr == m_mediaPlaybackSession)
+        if (m_mediaPlaybackSession == nullptr)
         {
             return;
         }
 
-        /*
-        TODO: Callback
-        CALLBACK_STATE state{};
-        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+        PLAYBACK_STATE state{};
+        ZeroMemory(&state, sizeof(PLAYBACK_STATE));
 
-        state.type = CallbackType::VideoPlayer;
+        state.type = StateType::Opened;
+        state.value.state = static_cast<PlaybackState>(m_mediaPlaybackSession.PlaybackState());
+        state.value.description.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
+        state.value.description.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
 
-        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
-        state.value.playbackState.state = MediaPlayerState::Opened;
-        state.value.playbackState.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
-        state.value.playbackState.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
-        state.value.playbackState.canSeek = static_cast<boolean>(m_mediaPlaybackSession.CanSeek());
-        state.value.playbackState.duration = m_mediaPlaybackSession.NaturalDuration().count();
-
-        Callback(state);
-        */
+        if (m_stateChangedCallback)
+        {
+            m_stateChangedCallback(m_pManagedCallbackObject, state);
+        }
     });
 
-    m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender, 
+    m_videoFrameAvailableToken = m_mediaPlayer.VideoFrameAvailable([=](Windows::Media::Playback::MediaPlayer const& sender,
         Windows::Foundation::IInspectable const& args)
     {
         Log(Log_Level_Info, L"RealtimeMediaPlayer::VideoFrameAvailable()\n");
@@ -315,7 +314,7 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
     });
 
     m_mediaPlaybackSession = m_mediaPlayer.PlaybackSession();
-    m_stateChangedEventToken = m_mediaPlaybackSession.PlaybackStateChanged([=](Windows::Media::Playback::MediaPlaybackSession const& sender, 
+    m_stateChangedEventToken = m_mediaPlaybackSession.PlaybackStateChanged([=](Windows::Media::Playback::MediaPlaybackSession const& sender,
         Windows::Foundation::IInspectable const& args)
     {
         Log(Log_Level_Info, L"RealtimeMediaPlayer::PlaybackStateChanged()\n");
@@ -328,19 +327,16 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
             return;
         }
 
-        /*
-        TODO: Callback
+        PLAYBACK_STATE state{};
+        ZeroMemory(&state, sizeof(PLAYBACK_STATE));
 
-        CALLBACK_STATE state{};
-        ZeroMemory(&state, sizeof(CALLBACK_STATE));
+        state.type = StateType::StateChanged;
+        state.value.state = static_cast<PlaybackState>(m_mediaPlaybackSession.PlaybackState());
 
-        state.type = CallbackType::VideoPlayer;
-
-        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
-        state.value.playbackState.state = static_cast<MediaPlayerState>(m_mediaPlaybackSession.PlaybackState());
-
-        Callback(state);
-        */
+        if (m_stateChangedCallback)
+        {
+            m_stateChangedCallback(m_pManagedCallbackObject, state);
+        }
     });
 
     return S_OK;
@@ -398,7 +394,7 @@ HRESULT RealtimeMediaPlayer::CreateResources(com_ptr<ID3D11Device> const& unityD
 
     // associtate the device with the manager
     IFR(dxgiDeviceManager->ResetDevice(d3dDevice.get(), resetToken));
-    
+
     m_d3dDevice.attach(d3dDevice.detach());
     m_resetToken = resetToken;
     m_dxgiDeviceManager = dxgiDeviceManager;

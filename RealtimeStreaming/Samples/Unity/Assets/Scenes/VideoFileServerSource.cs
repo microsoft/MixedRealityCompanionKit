@@ -13,7 +13,6 @@ public class VideoFileServerSource : MonoBehaviour
     private Color32[] webcam_interop;
     private byte[] frameBuffer;
 
-    // Start is called before the first frame update
     private void Start()
     {
         if (server == null)
@@ -21,7 +20,7 @@ public class VideoFileServerSource : MonoBehaviour
             server = GetComponent<RealtimeVideoServer>();
         }
         this.server.ServerStateChanged += this.OnServerStateChanged;
-        this.server.StartListener();
+        this.server.StartListening();
 
         if (videoPlayer == null)
         {
@@ -39,9 +38,9 @@ public class VideoFileServerSource : MonoBehaviour
     {
         Plugin.ExecuteOnUnityThread(() =>
         {
-            if (e.CurrentState == RealtimeVideoServer.ServerState.ListenerConnected)
+            if (e.CurrentState == RealtimeVideoServer.ServerState.Ready)
             {
-                UnityEngine.Debug.Log("Server State changed to ListenerConnected - Starting WebCam");
+                UnityEngine.Debug.Log("Server State changed to Ready - Starting WebCam");
 
                 videoPlayer.Play();
                 videoPlayer.Prepare();
@@ -55,8 +54,8 @@ public class VideoFileServerSource : MonoBehaviour
         frameBuffer = new byte[source.width * source.height * 4];
         videoFrame = new Texture2D((int)source.width, (int)source.height);
 
-        server.Width = source.width;
-        server.Height = source.height;
+        server.OutputWidth = source.width;
+        server.OutputHeight = source.height;
         debugImg.texture = videoFrame;
     }
 
