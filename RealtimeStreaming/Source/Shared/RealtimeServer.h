@@ -21,8 +21,8 @@ namespace winrt::RealtimeStreaming::Media::implementation
             virtual ~RealtimeServer();
 
             // IRTModule
-            void Shutdown();
-            
+            void Shutdown() { };
+
             void WriteFrame(_In_ uint32_t bufferSize,
                 __in_ecount(bufferSize) array_view<uint8_t const> bufferArrayView);
 

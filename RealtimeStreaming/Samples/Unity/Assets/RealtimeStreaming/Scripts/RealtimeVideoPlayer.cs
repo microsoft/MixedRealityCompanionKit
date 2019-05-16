@@ -414,7 +414,7 @@ namespace RealtimeStreaming
                 switch (stateType)
                 {
                     case PlayerPlugin.StateType.StateChanged:
-                        this.PlayerState = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
+                        //this.PlayerState = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
                         Debug.Log("Playback State: " + stateType.ToString() + " - " + this.PlayerState.ToString());
                         break;
                     case PlayerPlugin.StateType.Opened:

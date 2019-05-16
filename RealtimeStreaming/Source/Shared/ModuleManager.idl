@@ -8,7 +8,6 @@ namespace RealtimeStreaming.Plugin
     interface IRTModule : IInspectable
     {
         void Shutdown();
-
     };
 
     [version(1.0)]

@@ -22,6 +22,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
         void Close();
 
+        // IRTModule
         void Shutdown() { Close(); };
     protected:
         Windows::Foundation::IAsyncAction SendUDPDiscoverResponse();

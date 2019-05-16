@@ -326,6 +326,8 @@ HRESULT RealtimeMediaPlayer::CreateMediaPlayer()
         PLAYBACK_STATE state{};
         ZeroMemory(&state, sizeof(PLAYBACK_STATE));
 
+        Log(Log_Level_Info, L"RealtimeMediaPlayer::PlaybackStateChanged() %d  \n", m_mediaPlaybackSession.PlaybackState());
+
         state.type = StateType::StateChanged;
         state.value.state = static_cast<PlaybackState>(m_mediaPlaybackSession.PlaybackState());
 
