@@ -76,7 +76,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Listener::ListenAsync(bo
     co_await m_socketListener.BindServiceNameAsync(winrt::to_hstring(port));
 
     co_await winrt::resume_on_signal(m_signal.get());
-    
+
     m_isListening = false;
 
     return m_connection;
@@ -93,7 +93,7 @@ IAsyncAction Listener::ServerDatagramSocket_OnMessageReceived(
 
     DataReader dataReader{ args.GetDataReader() };
     UINT32 source = dataReader.ReadUInt32();
-    
+
     if (source == CONNECTOR_UDP_SOURCE)
     {
         Log(Log_Level_Verbose, L"Listener::ServerDatagramSocket_MessageReceived() - CONNECTOR - Port=%d \n", m_port);
@@ -103,7 +103,7 @@ IAsyncAction Listener::ServerDatagramSocket_OnMessageReceived(
     else if (source == LISTENER_UDP_SOURCE)
     {
         Log(Log_Level_Verbose, L"Listener::ServerDatagramSocket_MessageReceived() - LISTENER - Port=%d \n", m_port);
-        
+
         // Read out rest of buffer on reader since we are multicast
         dataReader.ReadUInt16();
     }
@@ -123,7 +123,7 @@ IAsyncAction Listener::SendUDPDiscoverResponse()
         dataWriter.WriteUInt16(m_port);
 
         co_await dataWriter.StoreAsync();
-		co_await dataWriter.FlushAsync();
+        co_await dataWriter.FlushAsync();
         dataWriter.DetachStream();
     }
     catch (winrt::hresult_error const& ex)
@@ -176,15 +176,13 @@ void  Listener::OnConnectionReceived(StreamSocketListener /* sender */,
 _Use_decl_annotations_
 void Listener::Close()
 {
-	Log(Log_Level_Info, L"Listener::Close() - Port=%d\n", m_port);
+    Log(Log_Level_Info, L"Listener::Close() - Port=%d\n", m_port);
 
     if (m_socketListener == nullptr) return;
 
-	// MikeT: Added explicit closes here and called them from Shutdown.
-	m_socketListener.Close();
+    m_socketListener.Close();
     m_socketListener = nullptr;
 
-    //m_streamSocket.Close();
     m_streamSocket = nullptr;
 
     m_serverDatagramSocket = nullptr;

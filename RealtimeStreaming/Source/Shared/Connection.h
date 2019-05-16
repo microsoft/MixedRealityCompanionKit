@@ -7,7 +7,7 @@
 
 namespace winrt::RealtimeStreaming::Network::implementation
 {
-    struct Connection : ConnectionT<Connection> //  ,Plugin::IRTModule
+    struct Connection : ConnectionT<Connection>
     {
     public:
         static RealtimeStreaming::Network::DataBuffer CreatePayloadHeaderBuffer(
@@ -55,12 +55,12 @@ namespace winrt::RealtimeStreaming::Network::implementation
 
     private:
         slim_mutex m_lock;
-		slim_mutex m_eventLock;
+        slim_mutex m_eventLock;
 
         UINT16      m_concurrentFailedBuffers;
         UINT16      m_concurrentFailedBundles;
 
-		void CloseOnDisconnectedSocketError(HRESULT hResult);
+        void CloseOnDisconnectedSocketError(HRESULT hResult);
 
         Windows::Networking::Sockets::StreamSocket    m_streamSocket{ nullptr };
         Common::PayloadHeader m_receivedHeader;

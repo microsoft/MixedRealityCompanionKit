@@ -59,7 +59,7 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::ConnectAsync(
         }
     }
 
-	return nullptr;
+    return nullptr;
 }
 
 _Use_decl_annotations_
@@ -67,7 +67,6 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::DiscoverAsync
 {
     Log(Log_Level_Info, L"Connector::DiscoverAsync()\n");
 
-    // TODO: Consider using locks for isConnecting from multiple threads?
     if (!m_isConnecting)
     {
         try
@@ -85,14 +84,14 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::DiscoverAsync
             co_await m_clientDatagramSocket.BindServiceNameAsync(c_UDP_Communication_Port);
 
             m_clientDatagramSocket.JoinMulticastGroup(m_udpMulticastGroup);
-            
+
             m_udpMulticastSignalTimer = ThreadPoolTimer::CreatePeriodicTimer({ this, &Connector::OnTimer }, m_udpSignalPeriod);
-            
+
             co_await SendUDPDiscovery();
 
             // Wait for server to be discovered
             co_await winrt::resume_on_signal(m_signal.get());
-            
+
             m_isConnecting = false;
 
             // If we timed out on UDP attempts, then cancel discovery
@@ -104,10 +103,10 @@ IAsyncOperation<RealtimeStreaming::Network::Connection> Connector::DiscoverAsync
         catch (winrt::hresult_error const& ex)
         {
             SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
-            
+
             Log(Log_Level_Error, L"Connector::AutoConnectAsync Exception Thrown - Tid: %d \n", GetCurrentThreadId());
             LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-            
+
             m_isConnecting = false;
         }
     }
@@ -160,26 +159,26 @@ void Connector::ClientDatagramSocket_MessageReceived(
 _Use_decl_annotations_
 IAsyncAction Connector::SendUDPDiscovery()
 {
-	try
-	{
-		Log(Log_Level_Info, L"Connector::SendUDPDiscovery()\n");
+    try
+    {
+        Log(Log_Level_Info, L"Connector::SendUDPDiscovery()\n");
 
-		auto outputStream = co_await m_clientDatagramSocket.GetOutputStreamAsync(m_udpMulticastGroup, c_UDP_Communication_Port);
+        auto outputStream = co_await m_clientDatagramSocket.GetOutputStreamAsync(m_udpMulticastGroup, c_UDP_Communication_Port);
 
-		DataWriter dataWriter{ outputStream };
-		dataWriter.WriteUInt32(CONNECTOR_UDP_SOURCE);
+        DataWriter dataWriter{ outputStream };
+        dataWriter.WriteUInt32(CONNECTOR_UDP_SOURCE);
 
-		co_await dataWriter.StoreAsync();
+        co_await dataWriter.StoreAsync();
         co_await dataWriter.FlushAsync();
-		dataWriter.DetachStream();
-	}
-	catch (winrt::hresult_error const& ex)
-	{
-		SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
-		Log(Log_Level_Error, L"Connector::SendUDPDiscoverResponse UDP Exception Thrown - Tid: %d \n", GetCurrentThreadId());
+        dataWriter.DetachStream();
+    }
+    catch (winrt::hresult_error const& ex)
+    {
+        SocketErrorStatus webErrorStatus{ SocketError::GetStatus(ex.to_abi()) };
+        Log(Log_Level_Error, L"Connector::SendUDPDiscoverResponse UDP Exception Thrown - Tid: %d \n", GetCurrentThreadId());
 
-		LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
-	}
+        LOG_RESULT_MSG(ex.to_abi(), ex.message().data());
+    }
 }
 
 void Connector::OnDiscoveryFinished(bool succeeded)

@@ -11,10 +11,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
     {
         public:
             Connector() = default;
-            /*
-            Connector(_In_ Windows::Networking::HostName hostName,
-                _In_ UINT16 port);
-                */
             ~Connector();
 
             // IConnector
@@ -44,10 +40,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
             handle m_signal{ nullptr };
 
             bool m_isConnecting;
-
             Windows::Networking::HostName m_hostName{ nullptr };
             UINT16 m_port;
-     
+
             Windows::Networking::Sockets::StreamSocket m_streamSocket;
 
             Windows::Networking::Sockets::DatagramSocket m_clientDatagramSocket{ nullptr };

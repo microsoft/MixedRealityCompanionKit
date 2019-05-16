@@ -146,11 +146,10 @@ _Use_decl_annotations_
 bool Connection::IsConnected()
 {
     Log(Log_Level_Info, L"Connection::get_IsConnected()\n");
-
     slim_shared_lock_guard const guard(m_lock);
-
     return nullptr != m_streamSocket;
 }
+
 _Use_decl_annotations_
 StreamSocketInformation Connection::ConnectionInfo()
 {
@@ -172,9 +171,7 @@ event_token Connection::Disconnected(
     RealtimeStreaming::Network::DisconnectedDelegate const& handler)
 {
     Log(Log_Level_Verbose, L"Connection::add_Disconnected() - Tid: %d \n", GetCurrentThreadId());
-
     slim_lock_guard guard(m_eventLock);
-
     return m_evtDisconnected.add(handler);
 }
 
@@ -182,9 +179,7 @@ _Use_decl_annotations_
 void Connection::Disconnected(winrt::event_token const& token) noexcept
 {
     Log(Log_Level_Info, L"Connection::remove_Disconnected()\n");
-
     slim_lock_guard guard(m_eventLock);
-
     m_evtDisconnected.remove(token);
 }
 
@@ -193,9 +188,7 @@ event_token Connection::Received(
     EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler)
 {
     Log(Log_Level_Info, L"Connection::add_Received()\n");
-
     slim_lock_guard guard(m_eventLock);
-
     return m_evtBundleReceived.add(handler);
 }
 
@@ -203,9 +196,7 @@ _Use_decl_annotations_
 void Connection::Received(winrt::event_token const& token) noexcept
 {
     Log(Log_Level_Info, L"Connection::remove_Received()\n");
-
     slim_lock_guard guard(m_eventLock);
-
     m_evtBundleReceived.remove(token);
 }
 

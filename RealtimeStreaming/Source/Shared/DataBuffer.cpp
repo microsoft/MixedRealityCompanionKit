@@ -3,13 +3,10 @@
 
 #include "pch.h"
 #include "DataBuffer.h"
-// #include <robuffer.h>
 
 using namespace winrt;
 using namespace winrt::RealtimeStreaming::Network::implementation;
 using namespace winrt::Windows::Storage::Streams;
-
-// using IBufferByteAccess = ::Windows::Storage::Streams::IBufferByteAccess;
 
 /* static */
 BYTE* DataBuffer::GetBufferPointer(

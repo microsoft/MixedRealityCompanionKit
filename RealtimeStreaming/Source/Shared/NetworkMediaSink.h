@@ -14,9 +14,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         struct NetworkMediaSink : NetworkMediaSinkT<NetworkMediaSink, IMFMediaSink, IMFClockStateSink>
         {
         public:
-            //NetworkMediaSink() = default;
             NetworkMediaSink(_In_ RealtimeStreaming::Network::Connection connection);
-
             virtual ~NetworkMediaSink();
 
             // IMediaExtension
@@ -62,8 +60,10 @@ namespace winrt::RealtimeStreaming::Media::implementation
             // NetworkMediaSink
             void StartNetwork();
             void StopNetwork();
+
             winrt::event_token NetworkMediaSink::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void NetworkMediaSink::Closed(winrt::event_token const& token);
+
         private:
             winrt::fire_and_forget SendStreamReady();
             winrt::fire_and_forget SendStreamStopped();
@@ -99,7 +99,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
             winrt::event<Windows::Foundation::EventHandler<bool>> m_evtClosed;
         };
 }
-
 
 namespace winrt::RealtimeStreaming::Media::factory_implementation
 {

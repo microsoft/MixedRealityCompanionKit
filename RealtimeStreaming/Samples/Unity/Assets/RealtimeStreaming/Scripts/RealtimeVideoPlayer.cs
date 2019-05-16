@@ -405,26 +405,29 @@ namespace RealtimeStreaming
 
         private void OnStateChanged(PlayerPlugin.PLAYBACK_STATE args)
         {
-            var stateType = (PlayerPlugin.StateType)Enum.ToObject(typeof(PlayerPlugin.StateType), args.type);
-
-            // TODO: Update player state based on this*
-
-            switch (stateType)
+            this.plugin.QueueAction(() =>
             {
-                case PlayerPlugin.StateType.StateChanged:
-                    this.PlayerState = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
-                    Debug.Log("Playback State: " + stateType.ToString() + " - " + this.PlayerState.ToString());
-                    break;
-                case PlayerPlugin.StateType.Opened:
-                    PlayerPlugin.MEDIA_DESCRIPTION description = args.description;
-                    Debug.Log("Media Opened: " + description.ToString());
-                    break;
-                case PlayerPlugin.StateType.Failed:
-                    Plugin.CheckHResult(args.hresult, "RealtimeVideoPlayer::OnStateChanged");
-                    break;
-                default:
-                    break;
-            }
+                var stateType = (PlayerPlugin.StateType)Enum.ToObject(typeof(PlayerPlugin.StateType), args.type);
+
+                // TODO: Update player state based on this*
+
+                switch (stateType)
+                {
+                    case PlayerPlugin.StateType.StateChanged:
+                        this.PlayerState = (PlaybackState)Enum.ToObject(typeof(PlaybackState), args.state);
+                        Debug.Log("Playback State: " + stateType.ToString() + " - " + this.PlayerState.ToString());
+                        break;
+                    case PlayerPlugin.StateType.Opened:
+                        PlayerPlugin.MEDIA_DESCRIPTION description = args.description;
+                        Debug.Log("Media Opened: " + description.ToString());
+                        break;
+                    case PlayerPlugin.StateType.Failed:
+                        Plugin.CheckHResult(args.hresult, "RealtimeVideoPlayer::OnStateChanged");
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
         private const uint MIN_D3D_RESOLUTION = 1;

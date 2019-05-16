@@ -15,8 +15,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         // Used to queue asynchronous operations. When we call MFPutWorkItem, we use this
         // object for the callback state (pState). Then, when the callback is invoked,
         // we can use the object to determine which asynchronous operation to perform.
-        class AsyncOperation 
-            : public IUnknown
+        class AsyncOperation : public IUnknown
         {
         public:
             AsyncOperation(SinkStreamOperation op);
@@ -32,7 +31,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
             long    _cRef;
             virtual ~AsyncOperation();
         };
-            
 
     public:
         NetworkMediaSinkStream() = default;
@@ -185,7 +183,6 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
         DWORD m_workQueueId;     // ID of the work queue for asynchronous operations.
 
-        //AsyncCallback<NetworkMediaSinkStream> m_workQueueCB;     // Callback for the work queue.
         AsyncCallback<NetworkMediaSinkStream> m_workQueueCB;     // Callback for the work queue.
 
         com_ptr<IMFMediaEventQueue>  m_eventQueue;    // Event queue
@@ -193,8 +190,7 @@ namespace winrt::RealtimeStreaming::Media::implementation
         std::vector<com_ptr<IUnknown>> m_sampleQueue;// Queue to hold samples and markers.
                                                     // Applies to: ProcessSample, PlaceMarker
 
-        // ValidStateMatrix: Defines a look-up table that says which operations
-        // are valid from which states.
+        // ValidStateMatrix: Defines a look-up table that says which operations are valid from which states.
         static bool ValidStateMatrix[(int)SinkStreamState::Count][(int)SinkStreamOperation::Count];
     };
 }

@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -24,31 +27,34 @@ namespace DesktopServerApp
             this.Loaded += this.OnLoaded;
         }
 
-        void OnLoaded(object sender, RoutedEventArgs e)
+        public void OnLoaded(object sender, RoutedEventArgs e)
         {
             this.DataContext = this;
 
             this._Manager = new SampleManager(this.Dispatcher);
         }
 
-        void OnStartButtonClick(object sender, RoutedEventArgs e)
+        public void OnStartButtonClick(object sender, RoutedEventArgs e)
         {
-            _Manager.Start();
+            _Manager.StartServer();
         }
 
-        void FirePropertyChanged(
-            [CallerMemberName] string propertyName = null)
+        public void OnStopButtonClick(object sender, RoutedEventArgs e)
         {
-            this.PropertyChanged?.Invoke(
-                this,
-                new PropertyChangedEventArgs(propertyName)
-            );
+            _Manager.StopServer();
         }
 
-        bool SetProperty<T>(
-            ref T storage,
-            T value,
-            [CallerMemberName] string propertyName = null)
+        public void OnCloseStreamButtonClick(object sender, RoutedEventArgs e)
+        {
+            _Manager.StopStreaming();
+        }
+
+        public void FirePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
             if (object.Equals(storage, value)) return false;
 

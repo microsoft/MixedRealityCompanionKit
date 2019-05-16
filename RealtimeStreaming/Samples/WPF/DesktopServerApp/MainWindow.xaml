@@ -21,7 +21,7 @@
 
             <StackPanel Orientation="Horizontal" Margin="5">
                 <TextBlock Text="Port Number: "/>
-                <TextBox Text="{Binding Manager.Port,Mode=TwoWay,FallbackValue=27772}" Width="60" Margin="0, 0, 30, 0"/>
+                <TextBox Text="{Binding Manager.Port,Mode=TwoWay,FallbackValue=27772}" Width="60" Margin="0, 0, 30, 0" IsEnabled="{Binding Manager.IsIdle}" />
 
                 <TextBlock Text="Target Frame Rate: "/>
                 <Slider Value="{Binding Manager.TargetFrameRate,Mode=TwoWay,FallbackValue=30}" Minimum="1" Maximum="60" TickPlacement="BottomRight" Width="200" />
@@ -31,18 +31,22 @@
             <UniformGrid Rows="1" Columns="3" Margin="5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Multicast Discovery Enabled: "/>
-                    <CheckBox IsChecked="{Binding Manager.MulticastDiscoveryEnabled, Mode=TwoWay, FallbackValue=true}" />
+                    <CheckBox IsChecked="{Binding Manager.MulticastDiscoveryEnabled, Mode=TwoWay, FallbackValue=true}" IsEnabled="{Binding Manager.IsIdle}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Width: "/>
-                    <TextBox Text="{Binding Manager.OutputWidth,Mode=TwoWay,FallbackValue=1270}" Width="75" PreviewTextInput="NumberValidationTextBox" />
+                    <TextBox Text="{Binding Manager.OutputWidth,Mode=TwoWay,FallbackValue=1270}" Width="75" IsEnabled="{Binding Manager.IsIdle}" PreviewTextInput="NumberValidationTextBox" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Height: "/>
-                    <TextBox Text="{Binding Manager.OutputHeight,Mode=TwoWay,FallbackValue=720}" Width="75" PreviewTextInput="NumberValidationTextBox" />
+                    <TextBox Text="{Binding Manager.OutputHeight,Mode=TwoWay,FallbackValue=720}" Width="75" IsEnabled="{Binding Manager.IsIdle}" PreviewTextInput="NumberValidationTextBox" />
                 </StackPanel>
             </UniformGrid>
-            <Button Content="Start" Click="OnStartButtonClick" IsEnabled="{Binding Manager.IsIdle, Mode=OneWay}"/>
+            <UniformGrid Rows="1" Columns="3" Margin="5">
+                <Button  Content="Start Server"  Click="OnStartButtonClick" IsEnabled="{Binding Manager.IsIdle, Mode=OneWay}"/>
+                <Button  Content="Stop Server"  Click="OnStopButtonClick" IsEnabled="{Binding Manager.IsRunning, Mode=OneWay}"/>
+                <Button Content="Stop Streaming" Click="OnCloseStreamButtonClick" IsEnabled="{Binding Manager.IsStreaming, Mode=OneWay}"/>
+            </UniformGrid>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">

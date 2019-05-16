@@ -1,20 +1,5 @@
-//*****************************************************************************
-//
-//	Copyright 2015 Microsoft Corporation
-//
-//	Licensed under the Apache License, Version 2.0 (the "License");
-//	you may not use this file except in compliance with the License.
-//	You may obtain a copy of the License at
-//
-//	http ://www.apache.org/licenses/LICENSE-2.0
-//
-//	Unless required by applicable law or agreed to in writing, software
-//	distributed under the License is distributed on an "AS IS" BASIS,
-//	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//	See the License for the specific language governing permissions and
-//	limitations under the License.
-//
-//*****************************************************************************
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 
 #include "pch.h"
 #include "MediaUtils.h"
@@ -197,7 +182,6 @@ void RealtimeMediaSource::OnClosed(Windows::Media::Core::MediaStreamSource const
     // Ask the server to stop sending media samples to process
     SendNetworkRequest(PayloadType::RequestMediaStop);
 
-    //auto lock = _lock.Lock();
     m_SourceState = SourceStreamState::Stopped;
 
     switch (args.Request().Reason())
@@ -276,7 +260,7 @@ IAsyncAction RealtimeMediaSource::ProcessNetworkRequestAsync(PayloadType type,
             break;
         case PayloadType::SendMediaStreamTick:
             Log(Log_Level_Info, L"RealtimeMediaSource::OnDataReceived() - PayloadType::SendMediaStreamTick\n");
-            // TODO: Troy how to turn on without IMFMediaSource
+            // TODO: how to turn on without IMFMediaSource
             //IFC(ProcessMediaTick(spDataBundle.get()));
             break;
     };
@@ -483,30 +467,10 @@ VideoEncodingProperties RealtimeMediaSource::CreatePropertiesFromMediaDescriptio
     IFC(spMediaType->SetGUID(MF_MT_MAJOR_TYPE, streamDescription.guiMajorType));
     IFC(spMediaType->SetGUID(MF_MT_SUBTYPE, streamDescription.guiSubType));
 
-
-    // TROY: TODO. Figure out CPP winrt for this?
-    /*
-    IFR(MFCreatePropertiesFromMediaType(spMediaType.get(),
-        guid_of<IMediaEncodingProperties>(), 
-        reinterpret_cast<void**>(put_abi(m_encodingProperties))));
-    */
     IFC(MFCreatePropertiesFromMediaType(spMediaType.get(),
         guid_of<IVideoEncodingProperties>(),
         reinterpret_cast<void**>(winrt::put_abi(videoProps))));
 
-    /*
-    TODO: See if I can return the streamdescriptor instead of IVideoEncodingProperties
-
-    com_ptr<IMFStreamDescriptor> spSD;
-    com_ptr<IMFMediaTypeHandler> spMediaTypeHandler;
-
-    // Now we can create MF stream descriptor.
-    IFC(MFCreateStreamDescriptor(pStreamDescription->dwStreamId, 1, spMediaType.GetAddressOf(), &spSD));
-    IFC(spSD->GetMediaTypeHandler(&spMediaTypeHandler));
-
-    // Set current media type
-    IFC(spMediaTypeHandler->SetCurrentMediaType(spMediaType.get()));
-    */
 done:
     delete[] pAttributes;
 
@@ -539,14 +503,11 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     IFR(dataBundleImpl->MoveLeft(sizeof(MediaSampleHeader), &sampleHead));
 
     {
-        //auto lock = _lock.Lock();
-
         Log(Log_Level_Info, L"RealtimeMediaSource::ProcessMediaSample() - CurrentTS: %d - Last TS:%d \n", sampleHead.hnsTimestamp, m_lastTimeStamp);
 
         // Drop sample if it's timestamp is in the past of what we have processed
         if (m_lastTimeStamp > sampleHead.hnsTimestamp)
         {
-            // TODO: Complete defferal????
             return S_OK;
         }
 
@@ -562,7 +523,6 @@ HRESULT RealtimeMediaSource::ProcessMediaSample(
     {
         // Save the recorded sample off the network to be given to OnSampleRequested called by the internal MediaStreamSource
         // Obtain lock since the OnSampleRequested could be reading this on another thread
-        //auto lock = _lock.Lock();
 
         m_latestSample = spSample;
 
@@ -590,7 +550,6 @@ HRESULT RealtimeMediaSource::SetSampleAttributes(
     MediaSampleHeader const& sampleHeader,
     IMFSample* pSample)
 {
-    // TODO: Confirm setsampletime 0 is good for live streaming with MediaStreamSource
     //IFR_MSG(pSample->SetSampleTime(pSampleHeader->hnsTimestamp), L"setting sample time");
     IFR_MSG(pSample->SetSampleTime(0), L"setting sample time");
     IFR_MSG(pSample->SetSampleDuration(sampleHeader.hnsDuration), L"setting sample duration");
@@ -623,11 +582,6 @@ HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
     if (m_SourceState != SourceStreamState::Started)
     {
         return S_OK;
-        /*
-        if (FAILED(ProcessCaptureReady()))
-        {
-            IFR_MSG(MF_E_INVALID_STATE_TRANSITION, L"RealtimeMediaSource::ProcessMediaFormatChange() - not in a state to receive data.");
-        }*/
     }
 
     DWORD cbTotalLen = dataBundle.TotalSize();
@@ -642,9 +596,8 @@ HRESULT RealtimeMediaSource::ProcessMediaFormatChange(
     MediaTypeDescription streamDesc;
     IFR(dataBundleImpl->MoveLeft(cbTypeDescSize, &streamDesc));
 
-    if (cbTotalLen != cbTypeDescSize + streamDesc.AttributesBlobSize
-        ||
-        streamDesc.AttributesBlobSize == 0)
+    if (cbTotalLen != cbTypeDescSize + streamDesc.AttributesBlobSize 
+        || streamDesc.AttributesBlobSize == 0)
     {
         IFR(MF_E_UNSUPPORTED_FORMAT);
     }

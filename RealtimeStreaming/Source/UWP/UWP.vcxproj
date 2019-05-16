@@ -127,7 +127,8 @@ copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\Unity\Assets\$
       copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)..\Samples\WPF\Plugin\UWP\$(PlatformShortName)"
       copy /Y "$(TargetDir)$(TargetName).winmd" "$(SolutionDir)..\Samples\WPF\Plugin\UWP\$(PlatformShortName)"
       </Command>
-      <Message>Copying binaries to UnitySample\Unity\Plugins folder</Message>
+      <Message>Copying binaries to \Samples\Unity\Assets\ folder</Message>
+      <Message>Copying binaries to \Samples\WPF\Plugin\UWP\ folder</Message>
     </PostBuildEvent>
     <ClCompile>
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StdCall</CallingConvention>

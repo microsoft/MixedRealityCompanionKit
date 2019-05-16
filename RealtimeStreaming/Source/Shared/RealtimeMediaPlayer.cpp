@@ -17,7 +17,6 @@ using namespace Windows::Media::Playback;
 
 using winrtPlaybackManager = RealtimeStreaming::Media::RealtimeMediaPlayer;
 
-//_In_ StateChangedCallback fnCallback)
 void RealtimeMediaPlayer::Initialize(std::weak_ptr<IUnityDeviceResource> const& unityDevice)
 {
     m_primaryBuffer = std::make_shared<SharedTextureBuffer>();
@@ -30,7 +29,6 @@ RealtimeMediaPlayer::~RealtimeMediaPlayer()
     Log(Log_Level_Info, L"RealtimeMediaPlayer::~RealtimeMediaPlayer()\n");
 
     Shutdown();
-    //Close();
 }
 
 void RealtimeMediaPlayer::Shutdown()
@@ -204,8 +202,6 @@ winrt::hresult RealtimeMediaPlayer::Stop()
     try
     {
         m_mediaPlayer.Source(nullptr);
-
-        //m_RealtimeMediaSource = nullptr;
     }
     catch (hresult_error const & e)
     {

@@ -203,7 +203,7 @@ HRESULT  DataBundle::CopyTo(
 
 _Use_decl_annotations_
 HRESULT  DataBundle::MoveLeft(
-    UINT32 cbSize, 
+    UINT32 cbSize,
     void* pDest)
 {
     UINT32 cbCopied;
@@ -238,7 +238,7 @@ HRESULT  DataBundle::TrimLeft(
         auto dataBuffer = (*it).as<implementation::DataBuffer>();
         ULONG cbLen = dataBuffer->CurrentLength();
         ULONG nStart = 0, cbCopy = 0;
-        
+
         if (cbSkipped + cbLen <= cbSize)
         {
             m_buffers.erase(m_buffers.begin());

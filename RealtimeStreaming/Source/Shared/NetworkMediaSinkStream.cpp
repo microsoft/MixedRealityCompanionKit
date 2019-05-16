@@ -163,8 +163,7 @@ HRESULT NetworkMediaSinkStream::GetEvent(
 {
     NULL_CHK(ppEvent);
 
-    // NOTE:
-    // GetEvent can block indefinitely, so we don't hold the lock.
+    // NOTE: GetEvent can block indefinitely, so we don't hold the lock.
     // This requires some juggling with the event queue pointer.
     HRESULT hr = S_OK;
 
@@ -221,12 +220,9 @@ HRESULT NetworkMediaSinkStream::GetIdentifier(
     DWORD* pdwIdentifier)
 {
     NULL_CHK(pdwIdentifier);
-
     slim_lock_guard guard(m_lock);
-
     IFR(CheckShutdown());
-
-   * pdwIdentifier = m_dwStreamId;
+   *pdwIdentifier = m_dwStreamId;
 
     return S_OK;
 }
@@ -236,9 +232,7 @@ HRESULT NetworkMediaSinkStream::GetMediaTypeHandler(
     IMFMediaTypeHandler** ppHandler)
 {
     NULL_CHK(ppHandler);
-
     slim_lock_guard guard(m_lock);
-
     IFR(CheckShutdown());
 
     // This stream object acts as its own type handler, so we QI ourselves.
@@ -342,7 +336,6 @@ _Use_decl_annotations_
 HRESULT NetworkMediaSinkStream::Flush()
 {
     slim_lock_guard guard(m_lock);
-
     IFR(CheckShutdown());
 
     // Note: Even though we are flushing data, we still need to send
@@ -393,14 +386,10 @@ HRESULT NetworkMediaSinkStream::GetMediaTypeCount(
     DWORD* pdwTypeCount)
 {
     NULL_CHK(pdwTypeCount);
-
     slim_lock_guard guard(m_lock);
-
     IFR(CheckShutdown());
-
     // We've have only one media type
-   * pdwTypeCount = 1;
-
+   *pdwTypeCount = 1;
     return S_OK;
 }
 
@@ -639,12 +628,6 @@ HRESULT NetworkMediaSinkStream::QueueAsyncOperation(
     spOp.attach(new (std::nothrow) AsyncOperation(op)); // Created with ref count = 1
     NULL_CHK_HR(spOp.get(), E_OUTOFMEMORY);
 
-    /*
-    IMFAsyncCallback* owning{ nullptr };
-    winrt::copy_to_abi(m_workQueueCB, *reinterpret_cast<void**>(&owning));
-
-    return MFPutWorkItem2(m_workQueueId, 0, owning, spOp.get());
-    */
     return MFPutWorkItem2(m_workQueueId, 0, &m_workQueueCB, spOp.get());
 }
 
@@ -909,7 +892,6 @@ HRESULT NetworkMediaSinkStream::ProcessSamplesFromQueue(
             {
                 // Block thread until bundle is sent
                 m_connection.SendBundleAsync(dataBundle).get();
-				//m_connection.SendBundleAsync(dataBundle);
             }
             catch (hresult_error const & e)
             {
@@ -1090,7 +1072,6 @@ RealtimeStreaming::Network::DataBundle NetworkMediaSinkStream::PrepareStreamTick
     LONGLONG llSampleTime;
     com_ptr<IMFSample> spSample;
     IFT(pAttributes->QueryInterface(__uuidof(IMFSample), spSample.put_void()));
-    //IFC(pAttributes->QueryInterface(__uuidof(IMFSample), static_cast<LPVOID*>(&spSample)));
     IFT(spSample->GetSampleTime(&llSampleTime));
 
     pSampleTick->hnsTimestamp = llSampleTime - m_adjustedStartTime;
@@ -1175,7 +1156,6 @@ DataBundle NetworkMediaSinkStream::PrepareFormatChange(
     */
     return make<Network::implementation::DataBundle>();
 }
-
 
 HRESULT NetworkMediaSinkStream::GetAttributesBlobSize(UINT32* ppAttributeSize)
 {

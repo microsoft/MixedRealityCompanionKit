@@ -1,39 +1,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #pragma once
+
 import "RealtimeStreaming.idl";
 import "Connection.idl";
 import "DataBundle.idl";
 
 namespace RealtimeStreaming.Network
 {
-    /*
-    [version(1.0), exclusiveto(DataBundleArgs), uuid(26a177fe-2e53-11e9-b210-d663bd873d93)]
-    interface IDataBundleArgs : IInspectable
-    {
-        RealtimeStreaming.Common.PayloadType PayloadType{ get; };
-        RealtimeStreaming.Network.Connection DataConnection{ get; };
-        RealtimeStreaming.Network.DataBundle Bundle{ get; };
-    };
-
-    
-    [version(1.0), exclusiveto(DataBundleArgs), uuid(9a172738-2e53-11e9-b210-d663bd873d93)]
-    interface IDataBundleArgsFactory : IInspectable
-    {
-
-    }
-    */
-
-    /*
-    [marshaling_behavior(agile)]
-    [threading(both)]
-    [version(1.0)]
-    */
     runtimeclass DataBundleArgs
     {
-        //[default] interface IDataBundleArgs;
-        //DataBundleArgs();
-
         DataBundleArgs(
             RealtimeStreaming.Common.PayloadType type,
             RealtimeStreaming.Network.Connection connection,

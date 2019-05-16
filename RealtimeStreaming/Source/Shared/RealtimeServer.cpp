@@ -79,8 +79,6 @@ RealtimeServer::~RealtimeServer()
 _Use_decl_annotations_
 void RealtimeServer::Shutdown()
 {
-    //auto lock = _lock.Lock();
-
     if (m_spSinkWriter == nullptr)
     {
         return;
@@ -106,12 +104,11 @@ void RealtimeServer::WriteFrame(uint32_t bufferSize,
 
     auto videoProps = m_spMediaEncodingProfile.Video();
 
-	// TODO: check width & height and bpp for length bufferSize?
-	// TODO: Determine true bpp based on subtype guid?
-	if (videoProps.Width() * videoProps.Height() * 4 != bufferSize)
-	{
-		Log(Log_Level_Verbose, L"RealtimeServer::WriteFrame() - Invalid buffer size w=%d - h=%d \n", videoProps.Width(), videoProps.Height());
-	}
+    int bpp = GetBytesPerPixel(m_mediaInputFormat);
+    if (bpp != -1 && (videoProps.Width() * videoProps.Height() * bpp != bufferSize))
+    {
+        Log(Log_Level_Verbose, L"RealtimeServer::WriteFrame() - Invalid buffer size w=%d - h=%d \n", videoProps.Width(), videoProps.Height());
+    }
 
     IFT(CreateIMFMediaBuffer(videoProps.Width(),
         videoProps.Height(),
@@ -122,12 +119,10 @@ void RealtimeServer::WriteFrame(uint32_t bufferSize,
     // Create a media sample and add the buffer to the sample.
     com_ptr<IMFSample> spSample;
     IFT(MFCreateSample(spSample.put()));
-
     IFT(spSample->AddBuffer(spBuffer.get()));
 
     // Set the time stamp and the duration.
     IFT(spSample->SetSampleTime(rtStart));
-
     IFT(spSample->SetSampleDuration(VIDEO_FRAME_DURATION));
 
     // Send the sample to the Sink Writer.
@@ -140,4 +135,16 @@ _Use_decl_annotations_
 VideoEncodingProperties RealtimeServer::VideoProperties()
 {
     return m_spMediaEncodingProfile.Video();
+}
+
+_Use_decl_annotations_
+int RealtimeServer::GetBytesPerPixel(GUID inputMediaType)
+{
+    auto index = MF_GUIDs_to_BPP.find(inputMediaType);
+    if (index != MF_GUIDs_to_BPP.end())
+    {
+        return index->second;
+    }
+
+    return - 1;
 }

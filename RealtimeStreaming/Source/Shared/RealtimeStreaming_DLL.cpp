@@ -87,8 +87,6 @@ static void UNITY_INTERFACE_API  OnDeviceEvent(UnityGfxDeviceEventType eventType
 {
     Log(Log_Level_Info, L"Plugin::OnDeviceEvent ");
 
-    UnityGfxRenderer currentDeviceType = UnityGfxRenderer::kUnityGfxRendererNull;
-
     // Create graphics API implementation upon initialization
     if (eventType == kUnityGfxDeviceEventInitialize)
     {
@@ -241,7 +239,6 @@ void OnConnectAsyncCompleted(_In_ Connector connector,
     _In_ PluginCallback callback,
     _In_ void* pManagedCallbackObject)
 {
-    //auto connectAsync = connector.ConnectAsync(hostName, uri.Port());
     connectAsyncOp.Completed([=](auto const asyncOp, AsyncStatus const status)
     {
         Log(Log_Level_Info, L"Plugin::ConnectorCreateAndStart() - ConnectAsync() Completed -Tid:%d \n", GetCurrentThreadId());

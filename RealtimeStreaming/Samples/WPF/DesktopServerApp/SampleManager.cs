@@ -19,7 +19,7 @@ namespace DesktopServerApp
         {
             Idle,
             Listening,
-            Sending
+            Streaming
         };
 
         public ushort Port
@@ -35,15 +35,24 @@ namespace DesktopServerApp
             {
                 SetProperty(ref status, value);
                 FirePropertyChanged("IsIdle");
+                FirePropertyChanged("IsStreaming");
+                FirePropertyChanged("IsRunning");
             }
         }
 
         public bool IsIdle
         {
-            get
-            {
-                return status == ManagerStatus.Idle;
-            }
+            get { return status == ManagerStatus.Idle; }
+        }
+
+        public bool IsStreaming
+        {
+            get { return status == ManagerStatus.Streaming; }
+        }
+
+        public bool IsRunning
+        {
+            get { return status != ManagerStatus.Idle; }
         }
 
         public bool MulticastDiscoveryEnabled
@@ -60,8 +69,8 @@ namespace DesktopServerApp
 
         public float RunningFPS
         {
-            get => fps;
-            set => SetProperty(ref fps, value);
+            get => runningFps;
+            set => SetProperty(ref runningFps, value);
         }
 
         public SolidColorBrush FrameColor
@@ -95,13 +104,23 @@ namespace DesktopServerApp
             }
         }
 
+        protected Connection NetworkConnection
+        {
+            get => connection;
+            private set
+            {
+                connection = value;
+                this.FirePropertyChanged("RemoteAddress");
+            }
+        }
+
         private ushort port = 27772;
         private bool multicastDiscoveryEnabled = true;
         private int targetFrameRate = 15;
         private uint width = 1280;
         private uint height = 720;
-        private uint bpp = 4;
-        private float fps = 0.0f;
+        private uint bpp = 4; // bytes per pixel
+        private float runningFps = 0.0f;
 
         private ManagerStatus status = ManagerStatus.Idle;
 
@@ -116,11 +135,13 @@ namespace DesktopServerApp
         private Random rand = new Random();
         private Stopwatch stopwatch = new Stopwatch();
 
-        private CancellationTokenSource _cts;
-        private DisconnectedDelegate _handler;
+        private CancellationTokenSource serverStreamCts;
+        private DisconnectedDelegate disconnectHandler;
         private Listener listener;
         private Connection connection;
         private RealtimeServer server;
+
+        private readonly Guid MF_VideoFormatRgb32 = new Guid("{00000016-0000-0010-8000-00AA00389B71}");
 
         public SampleManager(Dispatcher dispatcher)
         {
@@ -128,98 +149,72 @@ namespace DesktopServerApp
             this.Status = ManagerStatus.Idle;
         }
 
-        public void Start()
+        public void StartServer()
         {
             if (!this.IsIdle) return;
 
-            Task.Factory.StartNew(() => RunLoop());
+            Task.Factory.StartNew(() => RunServer());
         }
 
-        private void InitServer()
+        public void StopServer()
         {
-            var profile = MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p);
-
-            profile.Video.Width = width;
-            profile.Video.Height = height;
-
-            imageData = new byte[width * height * bpp];
-
-            Guid mfVideoFormatRgb32 = new Guid("{00000016-0000-0010-8000-00AA00389B71}");
-
-            this.server = new RealtimeServer(this.connection,
-                mfVideoFormatRgb32,
-                profile
-            );
-
-        }
-
-        private void StopServer()
-        {
-            Debug.WriteLine("Destroying connection & server");
-            if (this.connection != null)
+            if (this.Status == ManagerStatus.Streaming)
             {
-                //this.connection.Shutdown();
-                this.connection = null;
+                StopStreaming();
             }
 
-            if (this.server != null)
-            {
-                this.server.Shutdown();
-                this.server = null;
-            }
-
-            this.startColor = Colors.Red;
-            this.endColor = Colors.Blue;
-
-            UpdateUIThread(() => this.FrameColor = new SolidColorBrush(Colors.White));
+            this.Status = ManagerStatus.Idle;
         }
 
-        private async void RunLoop()
+        public void StopStreaming()
         {
-            while (true)
-            {
-                _cts = new CancellationTokenSource();
+            serverStreamCts.Cancel();
+        }
 
+        private async void RunServer()
+        {
+            do
+            {
                 this.Status = ManagerStatus.Listening;
                 this.listener = new Listener(this.Port);
-                this.connection = await listener.ListenAsync(this.MulticastDiscoveryEnabled);
+                this.NetworkConnection = await listener.ListenAsync(this.MulticastDiscoveryEnabled);
 
                 listener.Shutdown();
                 listener = null;
 
-                _handler = () =>
+                disconnectHandler = () =>
                 {
-                    this.connection.Disconnected -= _handler;
-                    _cts.Cancel();
+                    this.NetworkConnection.Disconnected -= disconnectHandler;
+                    this.serverStreamCts.Cancel();
                 };
 
-                this.connection.Disconnected += _handler;
+                this.NetworkConnection.Disconnected += disconnectHandler;
 
-                this.Status = ManagerStatus.Sending;
-
-                await Task.Run(() => { RunServer(); });
+                await Task.Run(() => { Stream(); });
 
                 // sender quit, so close connection and retry
                 Thread.Sleep(1000);
-
-                StopServer();
             }
+            while (!IsIdle);
         }
 
-        private void RunServer()
+        private void Stream()
         {
-            var waitDelay = TimeSpan.FromMilliseconds(1000.0f / TargetFrameRate);
             var delayAfterImage = 1;
             bool cancelled = false;
             var imageCount = 0;
 
+            this.Status = ManagerStatus.Streaming;
+            this.serverStreamCts = new CancellationTokenSource();
+
             while (!cancelled)
             {
+                var waitDelay = TimeSpan.FromMilliseconds(1000.0f / TargetFrameRate);
+
                 try
                 {
-                    _cts.Token.ThrowIfCancellationRequested();
+                    serverStreamCts.Token.ThrowIfCancellationRequested();
 
-                    // Send Image
                     if (this.server == null)
                     {
                         this.InitServer();
@@ -230,33 +225,13 @@ namespace DesktopServerApp
                     // If we run into error, then cancel this execution and reloop for new connection/setup
                     try
                     {
-                        frameColorCount++;
-                        if (frameColorCount >= numOfFramesForColorChange)
-                        {
-                            frameColorCount = 0;
-                            startColor = endColor;
-                            endColor = Color.FromRgb((byte)rand.Next(1, 255), (byte)rand.Next(1, 255), (byte)rand.Next(1, 255));
-                        }
-
-                        var c = GetColor((float)frameColorCount / numOfFramesForColorChange);
-
-                        UpdateUIThread(() => this.FrameColor = new SolidColorBrush(c));
-
-                        Parallel.For(0, this.imageData.Length / bpp, index =>
-                        {
-                            long byteIdx = index << 2; // multiply by 4
-
-                            imageData[byteIdx] = c.B;
-                            imageData[byteIdx + 1] = c.G;
-                            imageData[byteIdx + 2] = c.R;
-                            imageData[byteIdx + 3] = c.A;
-                        });
+                        UpdateImageData();
 
                         this.server.WriteFrame((uint)this.imageData.Length, this.imageData);
                     }
                     catch (Exception ex)
                     {
-                        _cts.Cancel();
+                        serverStreamCts.Cancel();
                     }
 
                     // Send over first images without delay to fill buffer
@@ -274,6 +249,69 @@ namespace DesktopServerApp
                     cancelled = true;
                 }
             }
+
+            ShutdownStream();
+        }
+
+        private void UpdateImageData()
+        {
+            frameColorCount++;
+            if (frameColorCount >= numOfFramesForColorChange)
+            {
+                frameColorCount = 0;
+                startColor = endColor;
+                endColor = Color.FromRgb((byte)rand.Next(1, 255), (byte)rand.Next(1, 255), (byte)rand.Next(1, 255));
+            }
+
+            var c = GetColor((float)frameColorCount / numOfFramesForColorChange);
+
+            UpdateUIThread(() => this.FrameColor = new SolidColorBrush(c));
+
+            Parallel.For(0, this.imageData.Length / bpp, index =>
+            {
+                long byteIdx = index << 2; // multiply by 4
+
+                imageData[byteIdx] = c.B;
+                imageData[byteIdx + 1] = c.G;
+                imageData[byteIdx + 2] = c.R;
+                imageData[byteIdx + 3] = c.A;
+            });
+        }
+
+        private void InitServer()
+        {
+            var profile = MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p);
+
+            profile.Video.Width = width;
+            profile.Video.Height = height;
+
+            imageData = new byte[width * height * bpp];
+
+            this.server = new RealtimeServer(this.NetworkConnection,
+                MF_VideoFormatRgb32,
+                profile
+            );
+        }
+
+        private void ShutdownStream()
+        {
+            Debug.WriteLine("Destroying connection & server");
+            if (this.NetworkConnection != null)
+            {
+                this.NetworkConnection.Shutdown();
+                this.NetworkConnection = null;
+            }
+
+            if (this.server != null)
+            {
+                this.server.Shutdown();
+                this.server = null;
+            }
+
+            this.startColor = Colors.Red;
+            this.endColor = Colors.Blue;
+
+            UpdateUIThread(() => this.FrameColor = new SolidColorBrush(Colors.White));
         }
 
         public Color GetColor(float weight)

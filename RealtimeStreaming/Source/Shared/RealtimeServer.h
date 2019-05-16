@@ -29,7 +29,9 @@ namespace winrt::RealtimeStreaming::Media::implementation
             Windows::Media::MediaProperties::VideoEncodingProperties VideoProperties();
 
         private:
-            //Wrappers::CriticalSection _lock;
+            int GetBytesPerPixel(_In_ GUID inputMediaType);
+
+        private:
             slim_mutex m_lock;
 
             Windows::Media::MediaProperties::MediaEncodingProfile m_spMediaEncodingProfile;
@@ -44,6 +46,18 @@ namespace winrt::RealtimeStreaming::Media::implementation
 
             static const UINT32 VIDEO_FPS = 30;
             static const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
+
+            struct GUIDComparer
+            {
+                bool operator()(const GUID & Left, const GUID & Right) const
+                {
+                    return memcmp(&Left, &Right, sizeof(Right)) < 0;
+                }
+            };
+            const std::map<GUID, int, GUIDComparer> MF_GUIDs_to_BPP = {
+                {MFVideoFormat_RGB8, 1}, {MFVideoFormat_RGB555, 2}, {MFVideoFormat_RGB565, 2},
+                {MFVideoFormat_RGB24, 3}, {MFVideoFormat_RGB32, 4}, {MFVideoFormat_ARGB32, 4},
+                {MFVideoFormat_A16B16G16R16F, 2} };
     };
 }
 

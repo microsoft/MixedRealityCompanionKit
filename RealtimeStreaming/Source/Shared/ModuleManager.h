@@ -32,8 +32,6 @@ namespace winrt::RealtimeStreaming::Plugin::implementation
             _In_ ModuleHandle handle,
             _In_ INT64 tokenValue);
 
-        // Impl
-        // TODO: Clean this up with better design
         std::vector<winrt::event_token> RemoveTokens(_In_ ModuleHandle handle);
 
     private:

@@ -34,9 +34,7 @@ class ConnectedFunc
 public:
     ConnectedFunc(bool fConnected, LONGLONG llStartTime)
         : _fConnected(fConnected)
-        , m_llStartTime(llStartTime)
-    {
-    }
+        , m_llStartTime(llStartTime) {}
 
     HRESULT operator()(_In_ IMFStreamSink* pStream) const
     {
@@ -51,9 +49,7 @@ class StartFunc
 {
 public:
     StartFunc(LONGLONG llStartTime)
-        : m_llStartTime(llStartTime)
-    {
-    }
+        : m_llStartTime(llStartTime) {}
 
     HRESULT operator()(_In_ IMFStreamSink* pStream) const
     {
@@ -106,7 +102,6 @@ static HRESULT AddAttribute(
     case PropertyType::String:
     {
         winrt::hstring value = propValue.GetString();
-
         IFT(mfAttributes->SetString(guidKey, value.c_str()));
     }
     break;
@@ -141,14 +136,14 @@ inline HRESULT GetStreamId(
 
     switch (mediaStreamType)
     {
-    case Windows::Media::Capture::MediaStreamType::VideoRecord:
-        *streamId = 0;
-        break;
-    case Windows::Media::Capture::MediaStreamType::Audio:
-        *streamId = 1;
-        break;
-    default:
-        return E_INVALIDARG;
+        case Windows::Media::Capture::MediaStreamType::VideoRecord:
+            *streamId = 0;
+            break;
+        case Windows::Media::Capture::MediaStreamType::Audio:
+            *streamId = 1;
+            break;
+        default:
+            return E_INVALIDARG;
     };
 
     return S_OK;

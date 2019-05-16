@@ -116,11 +116,10 @@ inline void __stdcall Log(
     _In_ _Printf_format_string_ STRSAFE_LPCWSTR pszFormat,
     ...)
 {
-    /*
     if (LOG_LEVEL < level)
     {
         return;
-    }*/
+    }
 
     wchar_t szTextBuf[2048];
 
