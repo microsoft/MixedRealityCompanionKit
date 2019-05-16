@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>Microsoft.SpectatorView.Compositor.Unity</id>
+    <version>0.0.1</version>
+    <description>This is a test NuGet package definition for distributing the Spectator View compositor binaries and their dependencies. Binaries will be output into the proper Unity Plugins special folder.</description>
+    <authors>Unknown</authors>
+    <projectUrl>https://https://aka.ms/mrtk</projectUrl>
+    <iconUrl>https://www.nuget.org/Content/Images/packageDefaultIcon-50x50.png</iconUrl>
+    <releaseNotes>This is a test release</releaseNotes>
+    <copyright>Copyright 2019</copyright>
+    <tags>MRTK SpectatorView SpectatorViewDependencies Compositor SpectatorViewCompositor</tags>
+  </metadata>
+
+  <files>
+    <file src="Compositor\x64\Release\*.dll" target="lib\unity\Plugins\x64" />
+    <file src="Compositor\x64\Release\*.pdb" target="lib\unity\Plugins\x64" />
+    <file src="MetaFiles\*.meta" target="lib\unity\Plugins\x64" />
+  </files>
+</package>

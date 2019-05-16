@@ -12,7 +12,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedHeaders", "SharedHead
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{03B970BA-D5F4-4C36-B0B4-F5E4AB44D574}"
 	ProjectSection(SolutionItems) = preProject
-		..\dependencies.props = ..\dependencies.props
+		dependencies.props = dependencies.props
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CompositorDLL", "CompositorDLL\CompositorDLL.vcxproj", "{D390EF5F-0771-4FCD-876A-542EB8DBEAC3}"
