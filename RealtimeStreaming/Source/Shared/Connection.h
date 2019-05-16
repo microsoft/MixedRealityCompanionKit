@@ -36,8 +36,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
         event_token Received(Windows::Foundation::EventHandler<RealtimeStreaming::Network::DataBundleArgs> const& handler);
         void Received(event_token const& token) noexcept;
 
-        // IRTModule
-        void Shutdown() { Close(); };
     protected:
         // IConnectionInternal
         inline IFACEMETHOD(CheckClosed)()

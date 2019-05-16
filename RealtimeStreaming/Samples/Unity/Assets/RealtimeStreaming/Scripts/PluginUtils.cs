@@ -24,7 +24,7 @@ namespace RealtimeStreaming
         }
     }
 
-    public class Plugin : MonoBehaviour
+    public class PluginUtils : MonoBehaviour
     {
         public const uint InvalidHandle = 0x00000bad;
 

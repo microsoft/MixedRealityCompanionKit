@@ -33,6 +33,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RTSchemeHandler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h" />
@@ -73,7 +74,6 @@
     <Midl Include="$(MSBuildThisFileDirectory)DataBundle.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)DataBundleArgs.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)Listener.idl" />
-    <Midl Include="$(MSBuildThisFileDirectory)ModuleManager.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl" />
     <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.idl" />

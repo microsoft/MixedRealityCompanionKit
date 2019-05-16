@@ -2,40 +2,39 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using RealtimeStreaming;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WebcamServerSource : MonoBehaviour
+public class WebcamServerSource : RealtimeServerSource
 {
-    public RealtimeVideoServer server;
-
     public RawImage debugImg;
 
     private WebCamTexture webcam;
 
     private Color32[] webcam_interop;
     private byte[] frameBuffer;
-    
+
     private float timer = 0.0f;
     private float WRITE_FPS = 1.0f / 30.0f;
+    private Stopwatch stopwatch = new Stopwatch();
 
     private void Start()
     {
-        if (server == null)
+        if (Server == null)
         {
-            server = GetComponent<RealtimeVideoServer>();
+            Server = GetComponent<RealtimeVideoServer>();
         }
 
-        this.server.ServerStateChanged += this.OnServerStateChanged;
-        this.server.StartListening();
+        this.Server.StartListening();
 
         StartWebCam();
     }
 
     private void Update()
     {
-        if (this.server.CurrentState == RealtimeVideoServer.ServerState.Ready)
+        if (this.Server.CurrentState == RealtimeVideoServer.ServerState.Ready)
         {
             timer += Time.deltaTime;
 
@@ -47,19 +46,6 @@ public class WebcamServerSource : MonoBehaviour
         }
     }
 
-    private void OnServerStateChanged(object sender, StateChangedEventArgs<RealtimeVideoServer.ServerState> e)
-    {
-        // TODO: StartWebCam needs to occur on UnitymainThread, move to Update() method action like plugin.QueueAction()
-        Plugin.ExecuteOnUnityThread(() =>
-        {
-            if (e.CurrentState == RealtimeVideoServer.ServerState.Ready)
-            {
-                Debug.Log("Server State changed to ListenerConnected - Starting WebCam");
-                //StartWebCam();
-            }
-        });
-    }
-
     private void StartWebCam()
     {
         if (webcam != null)
@@ -67,15 +53,17 @@ public class WebcamServerSource : MonoBehaviour
             return;
         }
 
-        webcam = new WebCamTexture((int)server.OutputWidth, (int)server.OutputHeight);
+        webcam = new WebCamTexture((int)Server.OutputWidth, (int)Server.OutputHeight);
         debugImg.texture = webcam;
         debugImg.material.mainTexture = webcam;
         webcam.Play();
 
-        Debug.Log("Webcam Playing at " + webcam.width + " x " + webcam.height);
+        UnityEngine.Debug.Log("Webcam Playing at " + webcam.width + " x " + webcam.height);
 
         webcam_interop = new Color32[webcam.width * webcam.height];
         frameBuffer = new byte[webcam.width * webcam.height * 4];
+
+        stopwatch.Start();
     }
 
     private void CaptureWebcam()
@@ -87,7 +75,7 @@ public class WebcamServerSource : MonoBehaviour
 
         webcam.GetPixels32(webcam_interop);
 
-        // Parraelize copy of Colo32 webcam data into framebuffer
+        // Parrelize copy of Colo32 webcam data into framebuffer
         Parallel.For(0, webcam_interop.Length,
             index =>
             {
@@ -100,6 +88,11 @@ public class WebcamServerSource : MonoBehaviour
                 frameBuffer[byteIdx + 3] = c.a;
             });
 
-        this.server.WriteFrame(this.frameBuffer);
+        this.Server.WriteFrame(this.frameBuffer);
+
+        stopwatch.Stop();
+        this.FrameRate = 1000.0f / stopwatch.ElapsedMilliseconds;
+        stopwatch.Reset();
+        stopwatch.Start();
     }
 }

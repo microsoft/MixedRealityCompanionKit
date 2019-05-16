@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #pragma once
 
-import "ModuleManager.idl";
 import "Connection.idl";
 
 namespace RealtimeStreaming.Media
@@ -10,7 +9,7 @@ namespace RealtimeStreaming.Media
     [version(1.0)]
     [marshaling_behavior(agile)]
     [threading(both)]
-    runtimeclass RealtimeMediaPlayer : RealtimeStreaming.Plugin.IRTModule
+    runtimeclass RealtimeMediaPlayer
     {
         RealtimeMediaPlayer();
 
@@ -23,5 +22,7 @@ namespace RealtimeStreaming.Media
         event Windows.Foundation.EventHandler<RealtimeMediaPlayer> Closed;
 
         Windows.Media.MediaProperties.VideoEncodingProperties GetVideoProperties();
+
+        void Shutdown();
     };
 }

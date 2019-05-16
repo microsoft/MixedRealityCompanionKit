@@ -70,7 +70,7 @@ namespace RealtimeStreaming
 
         private Connection()
         {
-            this.Handle = Plugin.InvalidHandle;
+            this.Handle = PluginUtils.InvalidHandle;
             this.State = ConnectionState.Idle;
 
             this.disconnectedToken = 0;
@@ -116,7 +116,7 @@ namespace RealtimeStreaming
         {
             bool returnResult = false;
 
-            if (connectionHandle != Plugin.InvalidHandle)
+            if (connectionHandle != PluginUtils.InvalidHandle)
             {
                 this.Handle = connectionHandle;
                 this.State = ConnectionState.Connected;
@@ -125,12 +125,12 @@ namespace RealtimeStreaming
                 IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
                 this.disconnectedHandler = new PluginCallbackHandler(Connection_PluginCallbackWrapper.OnDisconnected_Callback);
-                Plugin.CheckHResult(
+                PluginUtils.CheckHResult(
                     Wrapper.exAddDisconnected(this.Handle, this.disconnectedHandler, thisObjectPtr, ref this.disconnectedToken),
                     "Connection.AddDisconnected");
 
                 this.dataReceivedHandler = new Wrapper.DataReceivedHandler(Connection_PluginCallbackWrapper.OnDataReceived_Callback);
-                Plugin.CheckHResult(
+                PluginUtils.CheckHResult(
                     Wrapper.exAddReceived(this.Handle, this.dataReceivedHandler, thisObjectPtr, ref this.dataReceivedToken),
                     "Connection.AddRecevied");
 
@@ -142,30 +142,30 @@ namespace RealtimeStreaming
 
         public void SendData(DataType messageType, byte[] buf, int length)
         {
-            if (this.Handle == Plugin.InvalidHandle)
+            if (this.Handle == PluginUtils.InvalidHandle)
             {
                 return;
             }
 
-            Plugin.CheckHResult(
+            PluginUtils.CheckHResult(
                 Wrapper.exSendRawMessage(this.Handle, messageType, buf, length),
                 "Connection.SendNetworkMessage");
         }
 
         public void Close()
         {
-            if (this.Handle != Plugin.InvalidHandle)
+            if (this.Handle != PluginUtils.InvalidHandle)
             {
-                Plugin.CheckHResult(Wrapper.exRemoveDisconnected(this.Handle, this.disconnectedToken), "Connection.Close() - RemoveDisconnected - Handle= " + this.Handle);
+                PluginUtils.CheckHResult(Wrapper.exRemoveDisconnected(this.Handle, this.disconnectedToken), "Connection.Close() - RemoveDisconnected - Handle= " + this.Handle);
 
-                Plugin.CheckHResult(Wrapper.exRemoveReceived(this.Handle, this.dataReceivedToken), "Connection.Close() - RemoveReceived - Handle= " + this.Handle);
+                PluginUtils.CheckHResult(Wrapper.exRemoveReceived(this.Handle, this.dataReceivedToken), "Connection.Close() - RemoveReceived - Handle= " + this.Handle);
 
-                Plugin.CheckHResult(Wrapper.exClose(this.Handle), "Connection.Close() - CloseConnection - Handle= " + this.Handle);
+                PluginUtils.CheckHResult(Wrapper.exClose(this.Handle), "Connection.Close() - CloseConnection - Handle= " + this.Handle);
             }
 
             this.State = ConnectionState.Closed;
             this.Closed?.Invoke(this, EventArgs.Empty);
-            this.Handle = Plugin.InvalidHandle;
+            this.Handle = PluginUtils.InvalidHandle;
         }
 
         private void OnDisconnected(uint handle, long result, string message)
@@ -222,9 +222,9 @@ namespace RealtimeStreaming
             [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
             internal static void OnDisconnected_Callback(uint handle, IntPtr senderPtr, long result)
             {
-                var thisObj = Plugin.GetSenderObject<Connection>(senderPtr);
+                var thisObj = PluginUtils.GetSenderObject<Connection>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {
+                PluginUtils.ExecuteOnUnityThread(() => {
                     thisObj.OnDisconnected(handle, result, string.Empty);
                 });
             }
@@ -232,9 +232,9 @@ namespace RealtimeStreaming
             [AOT.MonoPInvokeCallback(typeof(Wrapper.DataReceivedHandler))]
             internal static void OnDataReceived_Callback(uint msgHandle, IntPtr senderPtr, ushort messageType, int length, IntPtr buffer)
             {
-                var thisObj = Plugin.GetSenderObject<Connection>(senderPtr);
+                var thisObj = PluginUtils.GetSenderObject<Connection>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {
+                PluginUtils.ExecuteOnUnityThread(() => {
                     thisObj.OnDataReceived(msgHandle, messageType, length, buffer);
                 });
             }

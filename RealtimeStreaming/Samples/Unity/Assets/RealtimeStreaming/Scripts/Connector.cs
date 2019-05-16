@@ -11,7 +11,7 @@ namespace RealtimeStreaming
     {
         public Connector()
         {
-            this.handle = Plugin.InvalidHandle;
+            this.handle = PluginUtils.InvalidHandle;
 
             if (!this.Initialize())
             {
@@ -24,7 +24,7 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
             var result = Wrapper.exOpenConnection(connectionUrl, ref this.handle, this.connectedHandler, thisObjectPtr);
 
-            Plugin.CheckHResult(result, "Connector.ConnectAsync()");
+            PluginUtils.CheckHResult(result, "Connector.ConnectAsync()");
 
             base.OnStarted(result);
         }
@@ -34,7 +34,7 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
             var result = Wrapper.exDiscoverConnection(ref this.handle, this.connectedHandler, thisObjectPtr);
 
-            Plugin.CheckHResult(result, "Connector.DiscoverAsync()");
+            PluginUtils.CheckHResult(result, "Connector.DiscoverAsync()");
 
             base.OnStarted(result);
         }

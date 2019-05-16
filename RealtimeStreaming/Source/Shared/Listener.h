@@ -21,9 +21,6 @@ namespace winrt::RealtimeStreaming::Network::implementation
         void Listener::Closed(winrt::event_token const& token);
 
         void Close();
-
-        // IRTModule
-        void Shutdown() { Close(); };
     protected:
         Windows::Foundation::IAsyncAction SendUDPDiscoverResponse();
 

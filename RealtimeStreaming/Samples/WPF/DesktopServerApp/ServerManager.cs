@@ -13,7 +13,7 @@ using Windows.Media.MediaProperties;
 
 namespace DesktopServerApp
 {
-    public class SampleManager : PropertyChangeBase
+    public class ServerManager : PropertyChangeBase
     {
         public enum ManagerStatus
         {
@@ -116,7 +116,7 @@ namespace DesktopServerApp
 
         private ushort port = 27772;
         private bool multicastDiscoveryEnabled = true;
-        private int targetFrameRate = 15;
+        private int targetFrameRate = 30;
         private uint width = 1280;
         private uint height = 720;
         private uint bpp = 4; // bytes per pixel
@@ -135,6 +135,7 @@ namespace DesktopServerApp
         private Random rand = new Random();
         private Stopwatch stopwatch = new Stopwatch();
 
+        private CancellationTokenSource engineCts;
         private CancellationTokenSource serverStreamCts;
         private DisconnectedDelegate disconnectHandler;
         private Listener listener;
@@ -143,7 +144,7 @@ namespace DesktopServerApp
 
         private readonly Guid MF_VideoFormatRgb32 = new Guid("{00000016-0000-0010-8000-00AA00389B71}");
 
-        public SampleManager(Dispatcher dispatcher)
+        public ServerManager(Dispatcher dispatcher)
         {
             appDispatcher = dispatcher;
             this.Status = ManagerStatus.Idle;
@@ -153,7 +154,8 @@ namespace DesktopServerApp
         {
             if (!this.IsIdle) return;
 
-            Task.Factory.StartNew(() => RunServer());
+            engineCts = new CancellationTokenSource();
+            Task.Factory.StartNew(() => RunServer(), engineCts.Token);
         }
 
         public void StopServer()
@@ -164,11 +166,16 @@ namespace DesktopServerApp
             }
 
             this.Status = ManagerStatus.Idle;
+            engineCts.Cancel();
+
+            ShutdownListener();
         }
 
         public void StopStreaming()
         {
             serverStreamCts.Cancel();
+
+            ShutdownStream();
         }
 
         private async void RunServer()
@@ -179,7 +186,7 @@ namespace DesktopServerApp
                 this.listener = new Listener(this.Port);
                 this.NetworkConnection = await listener.ListenAsync(this.MulticastDiscoveryEnabled);
 
-                listener.Shutdown();
+                listener.Close();
                 listener = null;
 
                 disconnectHandler = () =>
@@ -190,10 +197,10 @@ namespace DesktopServerApp
 
                 this.NetworkConnection.Disconnected += disconnectHandler;
 
-                await Task.Run(() => { Stream(); });
+                await Task.Run(() => { Stream(); }, engineCts.Token);
 
                 // sender quit, so close connection and retry
-                Thread.Sleep(1000);
+                Thread.Sleep(1);
             }
             while (!IsIdle);
         }
@@ -249,8 +256,6 @@ namespace DesktopServerApp
                     cancelled = true;
                 }
             }
-
-            ShutdownStream();
         }
 
         private void UpdateImageData()
@@ -280,6 +285,7 @@ namespace DesktopServerApp
 
         private void InitServer()
         {
+            // Use H.265 with raw RGB32 texture inputs
             var profile = MediaEncodingProfile.CreateHevc(VideoEncodingQuality.HD720p);
 
             profile.Video.Width = width;
@@ -293,12 +299,21 @@ namespace DesktopServerApp
             );
         }
 
+        private void ShutdownListener()
+        {
+            if (this.listener != null)
+            {
+                this.listener.Close();
+                this.listener = null;
+            }
+        }
+
         private void ShutdownStream()
         {
             Debug.WriteLine("Destroying connection & server");
             if (this.NetworkConnection != null)
             {
-                this.NetworkConnection.Shutdown();
+                this.NetworkConnection.Close();
                 this.NetworkConnection = null;
             }
 

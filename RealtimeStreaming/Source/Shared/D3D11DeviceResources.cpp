@@ -41,7 +41,6 @@ void D3D11DeviceResources::ProcessDeviceEvent(
             {
                 if (FAILED(InitializeResources(device)))
                     return;
-                //IFV(InitializeResources(device));
             }
         }
 

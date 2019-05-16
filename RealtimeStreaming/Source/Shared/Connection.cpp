@@ -335,7 +335,7 @@ done:
     if (m_concurrentFailedBuffers > c_cbMaxBufferFailures)
     {
         // Throw HRESULT so we can close socket due to multiple failed buffers
-        IFT(hr);
+        IFT(HRESULT_FROM_WIN32(ERROR_CONNECTION_UNAVAIL));
     }
 
     return hr;
@@ -385,7 +385,10 @@ void Connection::CloseOnDisconnectedSocketError(HRESULT hResult)
 {
     auto code = HRESULT_CODE(hResult);
 
-    if ((code == WSAECONNABORTED) || (code == WSAECONNRESET) || (hResult == MF_E_SHUTDOWN))
+    if ((code == WSAECONNABORTED)
+        || (code == WSAECONNRESET)
+        || (code == ERROR_CONNECTION_UNAVAIL)
+        || (hResult == MF_E_SHUTDOWN))
     {
         // The connection has gone, we need to tidy ourselves up.
         Close();

@@ -13,7 +13,7 @@ namespace RealtimeStreaming
 
         public Listener()
         {
-            this.handle = Plugin.InvalidHandle;
+            this.handle = PluginUtils.InvalidHandle;
 
             if (!this.Initialize())
             {
@@ -26,7 +26,7 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
             var result = Wrapper.exStartListener(this.Port, ref this.handle, this.connectedHandler, thisObjectPtr);
 
-            Plugin.CheckHResult(result, "Listener.StartAsync()");
+            PluginUtils.CheckHResult(result, "Listener.StartAsync()");
 
             base.OnStarted(result);
         }

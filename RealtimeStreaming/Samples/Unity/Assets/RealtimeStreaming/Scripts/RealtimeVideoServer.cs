@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RealtimeStreaming
 {
-    [RequireComponent(typeof(Plugin))]
+    [RequireComponent(typeof(PluginUtils))]
     public class RealtimeVideoServer : MonoBehaviour
     {
         public enum ServerState
@@ -41,7 +41,7 @@ namespace RealtimeStreaming
                     var previousServerState = this.serverState;
                     this.serverState = value;
 
-                    Plugin.ExecuteOnUnityThread(() =>
+                    PluginUtils.ExecuteOnUnityThread(() =>
                     {
                         this.ServerStateChanged?.Invoke(this, new StateChangedEventArgs<ServerState>(previousServerState, this.serverState));
                     });
@@ -62,25 +62,25 @@ namespace RealtimeStreaming
             }
         }
 
-        protected Plugin plugin = null;
+        protected PluginUtils plugin = null;
         protected Listener listener;
         protected Connection networkConnection;
 
-        private uint serverHandle = Plugin.InvalidHandle;
+        private uint serverHandle = PluginUtils.InvalidHandle;
 
         protected bool isServerRunning
         {
             get
             {
-                return this.serverHandle != Plugin.InvalidHandle;
+                return this.serverHandle != PluginUtils.InvalidHandle;
             }
         }
 
         private void Awake()
         {
-            this.serverHandle = Plugin.InvalidHandle;
+            this.serverHandle = PluginUtils.InvalidHandle;
 
-            this.plugin = this.GetComponent<Plugin>();
+            this.plugin = this.GetComponent<PluginUtils>();
 
             this.CurrentState = ServerState.Idle;
         }
@@ -143,9 +143,9 @@ namespace RealtimeStreaming
             }
 
             var hr = VideoServerWrapper.exWrite(this.serverHandle, data, (uint)data.Length);
-            Plugin.CheckHResult(hr, "RealtimeVideoServer::WriteFrame");
+            PluginUtils.CheckHResult(hr, "RealtimeVideoServer::WriteFrame");
 
-            return hr == Plugin.S_OK;
+            return hr == PluginUtils.S_OK;
         }
 
         #region Listener Callbacks
@@ -205,12 +205,12 @@ namespace RealtimeStreaming
             this.networkConnection.Disconnected += this.OnDisconnected;
             this.networkConnection.Closed += this.OnConnectionClosed;
 
-            uint handle = Plugin.InvalidHandle;
+            uint handle = PluginUtils.InvalidHandle;
             bool useHEVC = this.OutputEncoding == Encoding.H265;
             var hr = VideoServerWrapper.exCreate(this.networkConnection.Handle, useHEVC, this.OutputWidth, this.OutputHeight, ref handle);
-            Plugin.CheckHResult(hr, "RealtimeVideoServer::exCreate");
+            PluginUtils.CheckHResult(hr, "RealtimeVideoServer::exCreate");
 
-            if (handle == Plugin.InvalidHandle || hr != Plugin.S_OK)
+            if (handle == PluginUtils.InvalidHandle || hr != PluginUtils.S_OK)
             {
                 Debug.Log("VideoServerWrapper.exCreate - Failed");
                 Shutdown();
@@ -232,12 +232,12 @@ namespace RealtimeStreaming
             }
 
             var hr = VideoServerWrapper.exShutdown(this.serverHandle);
-            Plugin.CheckHResult(hr, "RealtimeVideoServer::StopServer");
+            PluginUtils.CheckHResult(hr, "RealtimeVideoServer::StopServer");
 
             // Invalidate our handle
-            this.serverHandle = Plugin.InvalidHandle;
+            this.serverHandle = PluginUtils.InvalidHandle;
 
-            return hr == Plugin.S_OK;
+            return hr == PluginUtils.S_OK;
         }
 
         #endregion
@@ -251,7 +251,7 @@ namespace RealtimeStreaming
                 return;
             }
 
-            this.serverHandle = Plugin.InvalidHandle;
+            this.serverHandle = PluginUtils.InvalidHandle;
 
             this.networkConnection.Disconnected -= this.OnDisconnected;
             this.networkConnection.Close();
@@ -291,7 +291,7 @@ namespace RealtimeStreaming
 
         private void OnConnectionFailed(object sender, EventArgs e)
         {
-            Plugin.ExecuteOnUnityThread(() =>
+            PluginUtils.ExecuteOnUnityThread(() =>
             {
                 Shutdown();
                 this.CurrentState = ServerState.Failed;

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RealtimeStreaming
 {
-    [RequireComponent(typeof(Plugin))]
+    [RequireComponent(typeof(PluginUtils))]
     public class RealtimeVideoPlayer : MonoBehaviour
     {
         public enum PlaybackState
@@ -56,12 +56,13 @@ namespace RealtimeStreaming
         private PlaybackState currentState = PlaybackState.None;
 
         // Components needed to interact with Plugin
-        protected Plugin plugin = null;
+        protected PluginUtils plugin = null;
         protected Connector connector = null;
         protected Connection networkConnection = null;
 
         // Texture variables
-        protected uint textureWidth, textureHeight;
+        public uint TextureWidth { get; private set; }
+        public uint TextureHeight { get; private set; }
         public Texture2D Texture_Luma { get; private set; }
         public Texture2D Texture_Chroma { get; private set; }
 
@@ -69,18 +70,18 @@ namespace RealtimeStreaming
         private PlayerPlugin.PlayerCreatedCallback onCreatedCallback;
         private PlayerPlugin.StateChangedCallback onStateChangedCallback;
         private GCHandle thisObject = default(GCHandle);
-        private uint playerHandle = Plugin.InvalidHandle;
+        private uint playerHandle = PluginUtils.InvalidHandle;
 
         protected bool isPlayerCreated
         {
-            get { return playerHandle != Plugin.InvalidHandle; }
+            get { return playerHandle != PluginUtils.InvalidHandle; }
         }
 
         private void Awake()
         {
-            this.plugin = this.GetComponent<Plugin>();
+            this.plugin = this.GetComponent<PluginUtils>();
 
-            this.playerHandle = Plugin.InvalidHandle;
+            this.playerHandle = PluginUtils.InvalidHandle;
 
             this.PlayerState = PlaybackState.None;
 
@@ -114,11 +115,11 @@ namespace RealtimeStreaming
 
                 CloseNetworkConnection();
 
-                Plugin.CheckHResult(PlayerPlugin.exReleasePlayer(this.playerHandle), "RealtimeVideoPlayer::exReleasePlayer()");
+                PluginUtils.CheckHResult(PlayerPlugin.exReleasePlayer(this.playerHandle), "RealtimeVideoPlayer::exReleasePlayer()");
                 this.Texture_Luma = this.Texture_Chroma = null;
                 this.onCreatedCallback = null;
                 this.onStateChangedCallback = null;
-                this.playerHandle = Plugin.InvalidHandle;
+                this.playerHandle = PluginUtils.InvalidHandle;
 
                 PlayerState = PlaybackState.None;
             }
@@ -145,7 +146,7 @@ namespace RealtimeStreaming
                     }
                     else
                     {
-                        this.connector.ConnectAsync(string.Format(Plugin.MediaUrlFormat, this.RemoteAddress, this.Port));
+                        this.connector.ConnectAsync(string.Format(PluginUtils.MediaUrlFormat, this.RemoteAddress, this.Port));
                     }
                 }
             }
@@ -284,7 +285,7 @@ namespace RealtimeStreaming
             IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
 
             // Create our RealtimePlayer at the Plugin C++ layer
-            Plugin.CheckHResult(PlayerPlugin.exCreatePlayer(
+            PluginUtils.CheckHResult(PlayerPlugin.exCreatePlayer(
                 this.networkConnection.Handle,
                 this.onStateChangedCallback,
                 this.onCreatedCallback,
@@ -310,10 +311,10 @@ namespace RealtimeStreaming
             this.plugin.QueueAction(() =>
             {
                 Debug.Log("RealtimeVideoPlayer::OnCreated");
-                Plugin.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
+                PluginUtils.CheckHResult(result, "RealtimeVideoPlayer::OnCreated");
 
                 // Weird bug seen on ARM. width/height parameters passed into this function are invalid values
-                Plugin.CheckHResult(PlayerPlugin.exGetStreamResolution(this.playerHandle, ref width, ref height),
+                PluginUtils.CheckHResult(PlayerPlugin.exGetStreamResolution(this.playerHandle, ref width, ref height),
                         "RealtimeVideoPlayer::exGetStreamResolution");
 
                 if (!IsValidResolution(width, height))
@@ -323,8 +324,8 @@ namespace RealtimeStreaming
                     return;
                 }
 
-                this.textureWidth = width;
-                this.textureHeight = height;
+                this.TextureWidth = width;
+                this.TextureHeight = height;
                 IntPtr nativeTexturePtr_L = IntPtr.Zero;
                 IntPtr nativeTexturePtr_UV = IntPtr.Zero;
 
@@ -332,20 +333,20 @@ namespace RealtimeStreaming
                 // https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering
 
                 // Get pointers to the Luma/Chroma textures being used by MediaFoundation in the native plugin
-                Plugin.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.playerHandle,
-                    this.textureWidth, this.textureHeight,
+                PluginUtils.CheckHResult(PlayerPlugin.exCreateExternalTexture(this.playerHandle,
+                    this.TextureWidth, this.TextureHeight,
                     out nativeTexturePtr_L, out nativeTexturePtr_UV), 
                     "RealtimeVideoPlayer::exCreateExternalTexture");
 
-                this.Texture_Luma = Texture2D.CreateExternalTexture((int)this.textureWidth,
-                    (int)this.textureHeight,
+                this.Texture_Luma = Texture2D.CreateExternalTexture((int)this.TextureWidth,
+                    (int)this.TextureHeight,
                     TextureFormat.RG16,
                     false, 
                     true,
                     nativeTexturePtr_L);
 
-                this.Texture_Chroma = Texture2D.CreateExternalTexture((int)this.textureWidth,
-                    (int)this.textureHeight,
+                this.Texture_Chroma = Texture2D.CreateExternalTexture((int)this.TextureWidth,
+                    (int)this.TextureHeight,
                     TextureFormat.R8,
                     false,
                     true,
@@ -367,7 +368,7 @@ namespace RealtimeStreaming
             // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
             Task task = new Task(() =>
             {
-                Plugin.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
+                PluginUtils.CheckHResult(PlayerPlugin.exPlay(this.playerHandle), "RealTimePlayer::exPlay");
                 this.plugin.QueueAction(() => this.PlayerState = PlaybackState.Playing);
             });
             task.Start();
@@ -382,7 +383,7 @@ namespace RealtimeStreaming
             // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
             Task task = new Task(() =>
             {
-                Plugin.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
+                PluginUtils.CheckHResult(PlayerPlugin.exPause(this.playerHandle), "RealTimePlayer::exPause");
                 this.plugin.QueueAction(() => this.PlayerState = PlaybackState.Paused);
             });
             task.Start();
@@ -397,7 +398,7 @@ namespace RealtimeStreaming
             // Run plugin command on background thread and not UI thread. Weird bug where MF locks the thread
             Task task = new Task(() =>
             {
-                Plugin.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
+                PluginUtils.CheckHResult(PlayerPlugin.exStop(this.playerHandle), "RealTimePlayer::exStop");
                 this.plugin.QueueAction(() => this.PlayerState = PlaybackState.Ended);
             });
             task.Start();
@@ -422,7 +423,7 @@ namespace RealtimeStreaming
                         Debug.Log("Media Opened: " + description.ToString());
                         break;
                     case PlayerPlugin.StateType.Failed:
-                        Plugin.CheckHResult(args.hresult, "RealtimeVideoPlayer::OnStateChanged");
+                        PluginUtils.CheckHResult(args.hresult, "RealtimeVideoPlayer::OnStateChanged");
                         break;
                     default:
                         break;
@@ -520,9 +521,9 @@ namespace RealtimeStreaming
             [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.PlayerCreatedCallback))]
             internal static void OnCreated_Callback(IntPtr senderPtr, long result, uint width, uint height)
             {
-                var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
+                var thisObj = PluginUtils.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
                 
-                Plugin.ExecuteOnUnityThread(() => {
+                PluginUtils.ExecuteOnUnityThread(() => {
                     Debug.Log("Player_PluginCallbackWrapper::OnCreated_Callback " + width + " x " + height);
 
                     thisObj.OnCreated(result, width, height);
@@ -532,9 +533,9 @@ namespace RealtimeStreaming
             [AOT.MonoPInvokeCallback(typeof(PlayerPlugin.StateChangedCallback))]
             internal static void OnStateChanged_Callback(IntPtr senderPtr, PlayerPlugin.PLAYBACK_STATE args)
             {
-                var thisObj = Plugin.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
+                var thisObj = PluginUtils.GetSenderObject<RealtimeVideoPlayer>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {
+                PluginUtils.ExecuteOnUnityThread(() => {
                     thisObj.OnStateChanged(args);
                 });
             }

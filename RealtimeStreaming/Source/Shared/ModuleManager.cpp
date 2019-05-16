@@ -5,7 +5,8 @@
 #include "ModuleManager.h"
 
 using namespace winrt;
-using namespace RealtimeStreaming::Plugin::implementation;
+using namespace Windows::Foundation;
+using namespace RealtimeStreaming::Plugin;
 
 _Use_decl_annotations_
 ModuleManager::~ModuleManager() 
@@ -24,8 +25,7 @@ void ModuleManager::ClearModules()
 }
 
 _Use_decl_annotations_
-ModuleHandle ModuleManager::AddModule(
-    RealtimeStreaming::Plugin::IRTModule newModule)
+ModuleHandle ModuleManager::AddModule(IInspectable newModule)
 {
     slim_lock_guard guard(m_lock);
 
@@ -50,7 +50,7 @@ ModuleHandle ModuleManager::AddModule(
 }
 
 _Use_decl_annotations_
-RealtimeStreaming::Plugin::IRTModule ModuleManager::GetModule(ModuleHandle moduleHandle)
+Windows::Foundation::IInspectable ModuleManager::GetModule(ModuleHandle moduleHandle)
 {
     if (moduleHandle <= MODULE_HANDLE_INVALID)
     {

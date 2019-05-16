@@ -2,17 +2,20 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #pragma once
 import "Connection.idl";
-import "ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
 {
     [default_interface]
-    runtimeclass Connector : RealtimeStreaming.Plugin.IRTModule
+    runtimeclass Connector
     {
+        Connector();
+
         Windows.Foundation.IAsyncOperation<Connection> ConnectAsync(Windows.Networking.HostName hostAddress, UInt16 port);
         
         Windows.Foundation.IAsyncOperation<Connection> DiscoverAsync();
 
         event Windows.Foundation.EventHandler<Boolean> Closed;
+
+        void Close();
     };
 }

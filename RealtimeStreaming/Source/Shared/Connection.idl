@@ -4,7 +4,6 @@
 import "RealtimeStreaming.idl";
 import "DataBundle.idl";
 import "DataBundleArgs.idl";
-import "ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
 {
@@ -14,7 +13,7 @@ namespace RealtimeStreaming.Network
     [threading(both)]
     [version(1.0)]
     [default_interface]
-    runtimeclass Connection : RealtimeStreaming.Plugin.IRTModule
+    runtimeclass Connection
     {
         Connection();
         Connection(Windows.Networking.Sockets.StreamSocket streamSocket);
@@ -24,6 +23,8 @@ namespace RealtimeStreaming.Network
 
         Boolean IsConnected{ get; };
         Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo{ get; };
+
+        void Close();
 
         event DisconnectedDelegate Disconnected;
         event Windows.Foundation.EventHandler<DataBundleArgs > Received;

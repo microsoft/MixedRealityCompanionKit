@@ -4,6 +4,7 @@
 using RealtimeStreaming;
 using System;
 using UnityEngine;
+using TMPro;
 
 public class PlayerControl : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class PlayerControl : MonoBehaviour
     public RealtimeVideoPlayer rtPlayer;
     public MeshRenderer ConnectionIndicator;
     public MeshRenderer target;
+    public TextMeshPro ResolutionLabel;
 
     private void Start()
     {
@@ -58,6 +60,9 @@ public class PlayerControl : MonoBehaviour
             switch (e.CurrentState)
             {
                 case RealtimeVideoPlayer.PlaybackState.Connecting:
+                    c = Color.cyan;
+                    break;
+                case RealtimeVideoPlayer.PlaybackState.Paused:
                     c = Color.yellow;
                     break;
                 case RealtimeVideoPlayer.PlaybackState.Playing:
@@ -72,11 +77,15 @@ public class PlayerControl : MonoBehaviour
 
         if (e.CurrentState == RealtimeVideoPlayer.PlaybackState.Playing)
         {
-            // TODO: Check that shader is expected
             if (this.target != null)
             {
                 this.target.material.SetTexture("_MainTex_Luma", rtPlayer.Texture_Luma);
                 this.target.material.SetTexture("_MainTex_Chroma", rtPlayer.Texture_Chroma);
+            }
+
+            if (ResolutionLabel != null)
+            {
+                ResolutionLabel.text = rtPlayer.TextureWidth + "x" + rtPlayer.TextureHeight;
             }
         }
     }

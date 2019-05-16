@@ -94,7 +94,9 @@ _Use_decl_annotations_
 void RealtimeServer::WriteFrame(uint32_t bufferSize, 
     array_view<uint8_t const> bufferArrayView)
 {
-	Log(Log_Level_Verbose, L"RealtimeServer::WriteFrame() - BufferSize=%d \n", bufferSize);
+    Log(Log_Level_Verbose, L"RealtimeServer::WriteFrame() - BufferSize=%d \n", bufferSize);
+
+    NULL_THROW(m_spSinkWriter);
 
     const byte* pBuffer = bufferArrayView.data();
     NULL_THROW(pBuffer);

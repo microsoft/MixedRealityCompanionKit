@@ -18,8 +18,7 @@ _Use_decl_annotations_
 Connector::~Connector()
 {
     Log(Log_Level_Info, L"Connector::~Connector()\n");
-
-    //Close();
+    Close();
 }
 
 // IConnector
@@ -224,6 +223,12 @@ _Use_decl_annotations_
 void Connector::Close()
 {
     Log(Log_Level_Info, L"Connector::Close()\n");
+
+    if (m_streamSocket == nullptr && m_clientDatagramSocket == nullptr)
+    {
+        // Already closed connector
+        return;
+    }
 
     if (m_udpMulticastSignalTimer != nullptr)
     {

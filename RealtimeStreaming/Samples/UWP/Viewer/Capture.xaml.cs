@@ -48,7 +48,7 @@ namespace Viewer
             {
                 this.listener = new Listener(port);
 
-                this.connection = await this.listener.ListenAsync();
+                this.connection = await this.listener.ListenAsync(true);
                 if (this.connection != null)
                 {
                     this.connection.Disconnected += Connection_Disconnected;

@@ -55,7 +55,7 @@ static UnityGfxRenderer s_deviceType = kUnityGfxRendererNull;
 static IUnityInterfaces* s_unityInterfaces = nullptr;
 static IUnityGraphics* s_unityGraphics = nullptr;
 
-static ModuleManager  s_moduleManager{ nullptr };
+static std::shared_ptr<IModuleManager> s_moduleManager;
 
 static std::vector<byte> s_bundleData;
 
@@ -64,7 +64,7 @@ static T GetModule(_In_ ModuleHandle handle)
 {
     if (s_moduleManager != nullptr)
     {
-        return s_moduleManager.GetModule(handle).as<T>();
+        return s_moduleManager->GetModule(handle).as<T>();
     }
 
     return nullptr;
@@ -120,11 +120,11 @@ RTDLL_(void) UnityPluginLoad(_In_ IUnityInterfaces* unityInterfaces)
 
     if (s_moduleManager == nullptr)
     {
-        s_moduleManager = winrt::make<RealtimeStreaming::Plugin::implementation::ModuleManager>();
+        s_moduleManager = std::make_shared<ModuleManager>(); //winrt::make<RealtimeStreaming::Plugin::implementation::ModuleManager>();
     }
     else
     {
-        s_moduleManager.ClearModules();
+        s_moduleManager->ClearModules();
     }
 
     s_unityInterfaces = unityInterfaces;
@@ -186,7 +186,7 @@ void ListenAsync(Listener listener,
             return;
         }
 
-        ModuleHandle handle = s_moduleManager.AddModule(connection);
+        ModuleHandle handle = s_moduleManager->AddModule(connection);
         CompletePluginCallback(callback, pManagedCallbackObject, handle, S_OK);
     });
 }
@@ -210,7 +210,7 @@ RTDLL ListenerCreateAndStart(
         Listener listener = winrt::make<winrt::RealtimeStreaming::Network::implementation::Listener>(port);
 
         // Save handle of newly created listener to output
-        *listenerHandle = s_moduleManager.AddModule(listener);
+        *listenerHandle = s_moduleManager->AddModule(listener);
 
         ListenAsync(listener, callback, pManagedCallbackObject);
     }
@@ -229,7 +229,7 @@ RTDLL ListenerStopAndClose(
 
     NULL_CHK(s_moduleManager);
 
-    s_moduleManager.ReleaseModule(handle);
+    s_moduleManager->ReleaseModule(handle);
 
     return S_OK;
 }
@@ -252,7 +252,7 @@ void OnConnectAsyncCompleted(_In_ Connector connector,
             return;
         }
 
-        ModuleHandle handle = s_moduleManager.AddModule(connection);
+        ModuleHandle handle = s_moduleManager->AddModule(connection);
         CompletePluginCallback(callback, pManagedCallbackObject, handle, S_OK);
     });
 }
@@ -274,7 +274,7 @@ RTDLL ConnectorCreateAndStart(
     try
     {
         Connector connector = winrt::make<RealtimeStreaming::Network::implementation::Connector>();
-        *connectorHandle = s_moduleManager.AddModule(connector);
+        *connectorHandle = s_moduleManager->AddModule(connector);
 
         std::wstring wsUri = address;
         Uri uri{ wsUri };
@@ -306,7 +306,7 @@ RTDLL ConnectorCreateAndDiscover(
     try
     {
         Connector connector = winrt::make<RealtimeStreaming::Network::implementation::Connector>();
-        *connectorHandle = s_moduleManager.AddModule(connector);
+        *connectorHandle = s_moduleManager->AddModule(connector);
 
         auto connectAsync = connector.DiscoverAsync();
         OnConnectAsyncCompleted(connector, connectAsync, callback, pManagedCallbackObject);
@@ -326,7 +326,7 @@ RTDLL ConnectorStopAndClose(
 
     NULL_CHK(s_moduleManager);
 
-    s_moduleManager.ReleaseModule(handle);
+    s_moduleManager->ReleaseModule(handle);
 }
 
 RTDLL ConnectionAddDisconnected(
@@ -351,7 +351,7 @@ RTDLL ConnectionAddDisconnected(
     *tokenValue = disconnectedToken.value;
 
     // track the token
-    s_moduleManager.StoreToken(handle, disconnectedToken);
+    s_moduleManager->StoreToken(handle, disconnectedToken);
 
     return S_OK;
 }
@@ -363,7 +363,7 @@ RTDLL ConnectionRemoveDisconnected(
     Log(Log_Level_Info, L"Plugin::ConnectionRemoveReceived()\n");
 
     // get the token stored in the event list
-    winrt::event_token removeToken = s_moduleManager.RemoveToken(handle, tokenValue);
+    winrt::event_token removeToken = s_moduleManager->RemoveToken(handle, tokenValue);
 
     // unsubscribe from the event
     Connection connection = GetModule<Connection>(handle);
@@ -434,7 +434,7 @@ RTDLL ConnectionAddReceived(
     *tokenValue = evtReceivedToken.value;
 
     // track the token
-    s_moduleManager.StoreToken(handle, evtReceivedToken);
+    s_moduleManager->StoreToken(handle, evtReceivedToken);
 
     return S_OK;
 }
@@ -446,7 +446,7 @@ RTDLL ConnectionRemoveReceived(
     Log(Log_Level_Info, L"Plugin::ConnectionRemoveReceived()\n");
 
     // get the token stored in the event list
-    winrt::event_token removeToken = s_moduleManager.RemoveToken(handle, tokenValue);
+    winrt::event_token removeToken = s_moduleManager->RemoveToken(handle, tokenValue);
 
     // unsubscribe from the event
     Connection connection = GetModule<Connection>(handle);
@@ -464,7 +464,7 @@ RTDLL ConnectionClose(
     {
         Connection connection = GetModule<Connection>(connectionHandle);
 
-        auto moduleManagerImpl = s_moduleManager.as<RealtimeStreaming::Plugin::implementation::ModuleManager>();
+        auto moduleManagerImpl = s_moduleManager;//.as<RealtimeStreaming::Plugin::implementation::ModuleManager>();
 
         // find any tokens register to this handle
         auto eventTokens = moduleManagerImpl->RemoveTokens(connectionHandle);
@@ -475,7 +475,7 @@ RTDLL ConnectionClose(
         }
 
         // unregister from the connection
-        s_moduleManager.ReleaseModule(connectionHandle);
+        s_moduleManager->ReleaseModule(connectionHandle);
     }
     catch (winrt::hresult_error const& ex)
     {
@@ -517,7 +517,7 @@ RTDLL CreateRealtimeStreamingServer(
 
     ModuleHandle handle = MODULE_HANDLE_INVALID;
     NULL_CHK(s_moduleManager);
-    handle = s_moduleManager.AddModule(rtServer);
+    handle = s_moduleManager->AddModule(rtServer);
     *serverHandle = handle;
 
     return S_OK;
@@ -548,7 +548,7 @@ RTDLL RealtimeStreamingShutdown(
     auto rtServer = GetModule<RealtimeServer>(serverHandle);
     rtServer.Shutdown();
 
-    s_moduleManager.ReleaseModule(serverHandle);
+    s_moduleManager->ReleaseModule(serverHandle);
 
     return S_OK;
 }
@@ -618,7 +618,7 @@ RTDLL CreateRealtimePlayer(
     ModuleHandle handle = MODULE_HANDLE_INVALID;
     NULL_CHK(s_moduleManager);
 
-    handle = s_moduleManager.AddModule(rtPlayer);
+    handle = s_moduleManager->AddModule(rtPlayer);
     *serverHandle = handle;
 
     InitPlayerAsync(rtPlayer, connection, createdCallback, pManagedCallbackObject);
@@ -634,7 +634,7 @@ RTDLL ReleaseRealtimePlayer(
     auto rtPlayer = GetModule<RealtimeMediaPlayer>(playerHandle);
     rtPlayer.Shutdown();
 
-    s_moduleManager.ReleaseModule(playerHandle);
+    s_moduleManager->ReleaseModule(playerHandle);
 
     return S_OK;
 }

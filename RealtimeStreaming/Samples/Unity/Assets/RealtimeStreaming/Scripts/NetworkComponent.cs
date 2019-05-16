@@ -44,7 +44,7 @@ namespace RealtimeStreaming
         private void OnConnected(uint handle, long result, string message)
         {
             bool failed = true;
-            if (handle != Plugin.InvalidHandle)
+            if (handle != PluginUtils.InvalidHandle)
             {
                 // create Connection and pass ownership to it
                 var connection = Connection.CreateConnection(handle);
@@ -67,7 +67,7 @@ namespace RealtimeStreaming
                 }
                 else
                 {
-                    Plugin.CheckHResult(result, "NetworkComponent.Connected()");
+                    PluginUtils.CheckHResult(result, "NetworkComponent.Connected()");
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace RealtimeStreaming
                 }
                 else
                 {
-                    Plugin.CheckHResult(result, "NetworkComponent.Connected()");
+                    PluginUtils.CheckHResult(result, "NetworkComponent.Connected()");
                 }
                 return;
             }
@@ -140,9 +140,9 @@ namespace RealtimeStreaming
             [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
             internal static void OnConnected_Callback(uint handle, IntPtr senderPtr, long result)
             {
-                var thisObj = Plugin.GetSenderObject<NetworkComponent>(senderPtr);
+                var thisObj = PluginUtils.GetSenderObject<NetworkComponent>(senderPtr);
 
-                Plugin.ExecuteOnUnityThread(() => {
+                PluginUtils.ExecuteOnUnityThread(() => {
                     thisObj.OnConnected(handle, result, string.Empty);
                 });
             }

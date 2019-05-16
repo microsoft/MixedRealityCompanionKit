@@ -11,7 +11,6 @@
 #include "DataBuffer.h"
 #include "DataBundleArgs.h"
 #include "Listener.h"
-#include "ModuleManager.h"
 
 int32_t WINRT_CALL WINRT_CanUnloadNow() noexcept
 {
@@ -102,12 +101,6 @@ int32_t WINRT_CALL WINRT_GetActivationFactory(void* classId, void** factory) noe
         if (requal(name, L"RealtimeStreaming.Network.Listener"))
         {
             *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::Network::factory_implementation::Listener>());
-            return 0;
-        }
-
-        if (requal(name, L"RealtimeStreaming.Plugin.ModuleManager"))
-        {
-            *factory = winrt::detach_abi(winrt::make<winrt::RealtimeStreaming::Plugin::factory_implementation::ModuleManager>());
             return 0;
         }
 

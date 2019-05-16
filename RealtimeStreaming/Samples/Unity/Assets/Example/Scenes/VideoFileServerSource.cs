@@ -1,26 +1,32 @@
-﻿using RealtimeStreaming;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using RealtimeStreaming;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
-public class VideoFileServerSource : MonoBehaviour
+public class VideoFileServerSource : RealtimeServerSource
 {
-    public RealtimeVideoServer server;
     public VideoPlayer videoPlayer;
     public RawImage debugImg;
     public Texture2D videoFrame;
+
     private Color32[] webcam_interop;
     private byte[] frameBuffer;
+    private Stopwatch stopwatch = new Stopwatch();
 
     private void Start()
     {
-        if (server == null)
+        if (Server == null)
         {
-            server = GetComponent<RealtimeVideoServer>();
+            Server = GetComponent<RealtimeVideoServer>();
         }
-        this.server.ServerStateChanged += this.OnServerStateChanged;
-        this.server.StartListening();
+
+        this.Server.ServerStateChanged += this.OnServerStateChanged;
+        this.Server.StartListening();
 
         if (videoPlayer == null)
         {
@@ -36,14 +42,16 @@ public class VideoFileServerSource : MonoBehaviour
 
     private void OnServerStateChanged(object sender, StateChangedEventArgs<RealtimeVideoServer.ServerState> e)
     {
-        Plugin.ExecuteOnUnityThread(() =>
+        PluginUtils.ExecuteOnUnityThread(() =>
         {
             if (e.CurrentState == RealtimeVideoServer.ServerState.Ready)
             {
-                UnityEngine.Debug.Log("Server State changed to Ready - Starting WebCam");
+                UnityEngine.Debug.Log("Server State changed to Ready - Starting Unity VideoPlayer");
 
                 videoPlayer.Play();
                 videoPlayer.Prepare();
+
+                stopwatch.Start();
             }
         });
     }
@@ -54,8 +62,8 @@ public class VideoFileServerSource : MonoBehaviour
         frameBuffer = new byte[source.width * source.height * 4];
         videoFrame = new Texture2D((int)source.width, (int)source.height);
 
-        server.OutputWidth = source.width;
-        server.OutputHeight = source.height;
+        Server.OutputWidth = source.width;
+        Server.OutputHeight = source.height;
         debugImg.texture = videoFrame;
     }
 
@@ -63,12 +71,14 @@ public class VideoFileServerSource : MonoBehaviour
     {
         // Texture is on GPU
         RenderTexture renderTexture = source.texture as RenderTexture;
-        
-        // TODO: Handle this error case as streaming not supported
+
         if (videoFrame.width != renderTexture.width || videoFrame.height != renderTexture.height)
         {
-            Debug.Log("resize");
-            videoFrame.Resize(renderTexture.width, renderTexture.height);
+            UnityEngine.Debug.LogError("VideoPlayer texture changed resolution. Streaming does not support resize. Shutting down...");
+            stopwatch.Stop();
+            videoPlayer.Stop();
+            Server.Shutdown();
+            return;
         }
 
         RenderTexture.active = renderTexture;
@@ -78,7 +88,7 @@ public class VideoFileServerSource : MonoBehaviour
 
         webcam_interop = videoFrame.GetPixels32();
 
-        // Parraelize copy of Colo32 webcam data into framebuffer
+        // Parraelize copy of Color32 webcam data into framebuffer
         Parallel.For(0, webcam_interop.Length,
             index =>
             {
@@ -91,6 +101,11 @@ public class VideoFileServerSource : MonoBehaviour
                 frameBuffer[byteIdx + 3] = c.a;
             });
 
-        this.server.WriteFrame(this.frameBuffer);
+        this.Server.WriteFrame(this.frameBuffer);
+
+        stopwatch.Stop();
+        this.FrameRate =  1000.0f / stopwatch.ElapsedMilliseconds;
+        stopwatch.Reset();
+        stopwatch.Start();
     }
 }

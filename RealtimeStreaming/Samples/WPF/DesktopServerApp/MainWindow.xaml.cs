@@ -13,12 +13,12 @@ namespace DesktopServerApp
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public SampleManager Manager
+        public ServerManager Manager
         {
             get => _Manager;
             set => this.SetProperty(ref this._Manager, value);
         }
-        private SampleManager _Manager;
+        private ServerManager _Manager;
 
         public MainWindow()
         {
@@ -31,7 +31,7 @@ namespace DesktopServerApp
         {
             this.DataContext = this;
 
-            this._Manager = new SampleManager(this.Dispatcher);
+            this._Manager = new ServerManager(this.Dispatcher);
         }
 
         public void OnStartButtonClick(object sender, RoutedEventArgs e)

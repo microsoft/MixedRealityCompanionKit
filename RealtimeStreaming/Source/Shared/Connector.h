@@ -22,10 +22,9 @@ namespace winrt::RealtimeStreaming::Network::implementation
             event_token Connector::Closed(Windows::Foundation::EventHandler<bool> const& handler);
             void Connector::Closed(winrt::event_token const& token);
 
-            void Shutdown() {};
-        private:
             void Close();
 
+        private:
             void Connector::OnTimer(Windows::System::Threading::ThreadPoolTimer const& timer);
             Windows::Foundation::IAsyncAction SendUDPDiscovery();
 

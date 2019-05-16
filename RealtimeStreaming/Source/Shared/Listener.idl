@@ -4,17 +4,18 @@
 #pragma once
 
 import "Connection.idl";
-import "ModuleManager.idl";
 
 namespace RealtimeStreaming.Network
 {
     [default_interface]
-    runtimeclass Listener : RealtimeStreaming.Plugin.IRTModule
+    runtimeclass Listener
     {
         Listener(UInt16 port);
 
         Windows.Foundation.IAsyncOperation<Connection> ListenAsync(Boolean listenForMulticast);
 
         event Windows.Foundation.EventHandler<Boolean> Closed;
+
+        void Close();
     };
 }

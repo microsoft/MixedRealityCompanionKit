@@ -34,11 +34,12 @@ namespace Viewer
                     this.txAddress.Text = this.txAddress.PlaceholderText;
                 }
                 Windows.Networking.HostName host = new Windows.Networking.HostName(this.txAddress.Text);
-                this.connector = new Connector(host, port);
+                new Connector();
+                this.connector = new Connector();
 
                 if (this.connector != null)
                 {
-                    this.connection = await this.connector.ConnectAsync();
+                    this.connection = await this.connector.ConnectAsync(host, port);
                     if(this.connection != null)
                     {
                         this.bnConnect.IsEnabled = false;
