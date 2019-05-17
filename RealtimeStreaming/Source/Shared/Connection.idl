@@ -15,7 +15,6 @@ namespace RealtimeStreaming.Network
     [default_interface]
     runtimeclass Connection
     {
-        Connection();
         Connection(Windows.Networking.Sockets.StreamSocket streamSocket);
 
         Windows.Foundation.IAsyncAction SendPayloadTypeAsync(RealtimeStreaming.Common.PayloadType type);

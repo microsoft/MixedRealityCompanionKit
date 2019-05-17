@@ -14,7 +14,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             _In_ RealtimeStreaming::Common::PayloadType payloadType,
             _In_ UINT32 cbPayloadSize);
 
-        Connection() = default; 
+        Connection() = default;
         Connection(_In_ Windows::Networking::Sockets::StreamSocket const socket);
         ~Connection();
 
