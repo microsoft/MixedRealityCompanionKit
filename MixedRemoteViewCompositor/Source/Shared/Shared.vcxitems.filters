@@ -94,6 +94,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\Media.h">
       <Filter>Media</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.h">
+      <Filter>Media</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.h">
       <Filter>Media</Filter>
     </ClInclude>
@@ -111,11 +117,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.h">
       <Filter>Media</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)StreamingMediaSource.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)MediaUtils.h">
-      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +167,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\Media.cpp">
       <Filter>Media</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.cpp">
       <Filter>Media</Filter>
     </ClCompile>
@@ -184,8 +191,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\SchemeHandler.cpp">
       <Filter>Media</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)StreamingMediaSource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.idl" />

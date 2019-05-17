@@ -9,8 +9,6 @@
 #define WIN32_LEAN_AND_MEAN     // Exclude rarely-used stuff from Windows headers
 #endif
 
-#define LOG_LEVEL Log_Level_All
-
 // Standard C++ first
 #include <assert.h>
 #include <list>
@@ -18,7 +16,6 @@
 #include <unordered_set>
 #include <memory>
 #include <future>
-#include <random>
 
 // Windows
 #include <initguid.h>
@@ -59,7 +56,7 @@
 #include <mferror.h>
 #include <mfapi.h>
 #include <mfobjects.h>
-//#include <mfmediacapture.h>
+#include <mfmediacapture.h>
 #include <mfmediaengine.h>
 #include <mfreadwrite.h>
 #pragma comment(lib, "mf")
@@ -78,8 +75,7 @@
 #endif
 
 // mf guids for pulling sample data
-// TODO: Troy disabling to fix build and no longer needed?
-//EXTERN_GUID(MFSampleExtension_PinholeCameraIntrinsics, 0x4ee3b6c5, 0x6a15, 0x4e72, 0x97, 0x61, 0x70, 0xc1, 0xdb, 0x8b, 0x9f, 0xe3);
+EXTERN_GUID(MFSampleExtension_PinholeCameraIntrinsics, 0x4ee3b6c5, 0x6a15, 0x4e72, 0x97, 0x61, 0x70, 0xc1, 0xdb, 0x8b, 0x9f, 0xe3);
 #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 EXTERN_GUID(MFSampleExtension_Spatial_CameraCoordinateSystem, 0x9d13c82f, 0x2199, 0x4e67, 0x91, 0xcd, 0xd1, 0xa4, 0x18, 0x1f, 0x25, 0x34);
 EXTERN_GUID(MFSampleExtension_Spatial_CameraViewTransform, 0x4e251fa4, 0x830f, 0x4770, 0x85, 0x9a, 0x4b, 0x8d, 0x99, 0xaa, 0x80, 0x9b);
@@ -138,7 +134,6 @@ using namespace ABI::Windows::System::Threading;
 #include "ErrorHandling.h"
 #include "AsyncOperations.h"
 #include "LinkList.h"
-#include "MediaUtils.h"
 
 #include "MixedRemoteViewCompositor.h"
 using namespace ABI::MixedRemoteViewCompositor;
@@ -150,8 +145,6 @@ using namespace ABI::MixedRemoteViewCompositor::Media;
 #include "ModuleManager.h"
 #include "ModuleManagerStatics.h"
 #include "DirectXManager.h"
-#include "StreamingMediaSource.h"
-#include "StreamingMediaPlayer.h"
 #include "PluginManager.h"
 #include "PluginManagerStatics.h"
 #include "DataBuffer.h"
@@ -163,13 +156,12 @@ using namespace ABI::MixedRemoteViewCompositor::Media;
 #include "Marker.h"
 #include "NetworkMediaSinkStream.h"
 #include "NetworkMediaSink.h"
-//#include "MrcAudioEffectDefinition.h"
-//#include "MrcVideoEffectDefinition.h"
+#include "MrcAudioEffectDefinition.h"
+#include "MrcVideoEffectDefinition.h"
 #include "CaptureEngine.h"
 #include "NetworkMediaSourceStream.h"
 #include "NetworkMediaSource.h"
 #include "PlaybackEngine.h"
-
 
 using namespace MixedRemoteViewCompositor::Plugin;
 using namespace MixedRemoteViewCompositor::Network;

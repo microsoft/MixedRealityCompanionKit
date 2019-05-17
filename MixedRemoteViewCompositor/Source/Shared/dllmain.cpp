@@ -85,18 +85,12 @@ MRVCDLL_(void) MrvcSetTime(_In_ float t)
 MRVCDLL MrvcListenerCreateAndStart(
     _In_ UINT16 port, 
     _Inout_ UINT32* listenerHandle,
-    _In_ PluginCallback callback,
-	_In_ void* managedObject)
+    _In_ PluginCallback callback)
 {
-	if (managedObject == nullptr)
-	{
-		return E_INVALIDARG;
-	}
-
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->ListenerCreateAndStart(port, listenerHandle, callback, managedObject);
+        return instance->ListenerCreateAndStart(port, listenerHandle, callback);
     }
 
     return RPC_E_WRONG_THREAD;
@@ -116,18 +110,12 @@ MRVCDLL MrvcListenerStopAndClose(
 MRVCDLL MrvcConnectorCreateAndStart(
     _In_ LPCWSTR address, 
     _Inout_ UINT32* connectorHandle,
-    _In_ PluginCallback callback,
-	_In_ void* managedObject)
+    _In_ PluginCallback callback)
 {
-	if (managedObject == nullptr)
-	{
-		return E_INVALIDARG;
-	}
-
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->ConnectorCreateAndStart(address, connectorHandle, callback, managedObject);
+        return instance->ConnectorCreateAndStart(address, connectorHandle, callback);
     }
 
     return RPC_E_WRONG_THREAD;
@@ -147,21 +135,14 @@ MRVCDLL MrvcConnectorStopAndClose(
 MRVCDLL MrvcConnectionAddDisconnected(
     _In_ UINT32 handle,
     _In_ PluginCallback callback,
-	_In_ void* managedObject,
     _Out_ INT64* tokenValue)
 {
-	if (managedObject == nullptr)
-	{
-		return E_INVALIDARG;
-	}
-
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
         return instance->ConnectionAddDisconnected(
             static_cast<ModuleHandle>(handle),
             callback,
-			managedObject,
             tokenValue);
     }
 
@@ -182,7 +163,6 @@ MRVCDLL MrvcConnectionRemoveDisconnected(
 MRVCDLL MrvcConnectionAddReceived(
     _In_ UINT32 handle,
     _In_ DataReceivedHandler callback,
-	_In_ void* managedObject,
     _Out_ INT64* tokenValue)
 {
     auto instance = PluginManagerStaticsImpl::GetInstance();
@@ -191,7 +171,6 @@ MRVCDLL MrvcConnectionAddReceived(
         return instance->ConnectionAddReceived(
             static_cast<ModuleHandle>(handle),
             callback,
-			managedObject,
             tokenValue);
     }
 
@@ -235,171 +214,110 @@ MRVCDLL MrvcConnectionClose(
     return RPC_E_WRONG_THREAD;
 }
 
-MRVCDLL CreateStreamCaptureEngine(
-	_Inout_ UINT32* captureHandle)
+MRVCDLL MrvcCaptureCreate(
+    _In_ bool enableAudio, 
+    _In_ PluginCallback callback)
 {
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->CaptureCreate(captureHandle);
+        return instance->CaptureCreateAsync(enableAudio, callback);
     }
 
     return RPC_E_WRONG_THREAD;
 }
 
-MRVCDLL MrvcCaptureInit(
-	_In_ bool enableAudio,
-    _In_ UINT32 captureHandle, 
-    _In_ UINT32 connectionHandle)
+MRVCDLL MrvcCaptureAddClosed(
+    _In_ UINT32 handle,
+    _In_ PluginCallback callback,
+    _Out_ INT64* tokenValue)
 {
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->CaptureInit(enableAudio, captureHandle, connectionHandle);
+        return instance->CaptureAddClosed(
+            static_cast<ModuleHandle>(handle),
+            callback,
+            tokenValue);
+    }
+
+    return RPC_E_WRONG_THREAD;
+}
+MRVCDLL MrvcCaptureRemoveClosed(
+    _In_ UINT32 handle,
+    _In_ INT64 tokenValue)
+{
+    auto instance = PluginManagerStaticsImpl::GetInstance();
+    if (nullptr != instance)
+    {
+        return instance->ConnectionRemoveReceived(handle, tokenValue);
+    }
+
+    return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL MrvcCaptureStart(
+    _In_ UINT32 captureHandle, 
+    _In_ UINT32 connectionHandle, 
+    _In_ bool enableMrc, 
+    _In_ IUnknown* pUnkSpatial,
+    _In_ PluginCallback callback)
+{
+    auto instance = PluginManagerStaticsImpl::GetInstance();
+    if (nullptr != instance)
+    {
+        return instance->CaptureStartAsync(captureHandle, connectionHandle, enableMrc, pUnkSpatial, callback);
     }
 
     return RPC_E_WRONG_THREAD;
 }
 
 MRVCDLL MrvcCaptureStop(
-    _In_ UINT32 captureHandle)
+    _In_ UINT32 captureHandle, 
+    _In_ PluginCallback callback)
 {
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->CaptureShutdown(captureHandle);
+        return instance->CaptureStopAsync(captureHandle, callback);
     }
 
     return RPC_E_WRONG_THREAD;
 }
 
-MRVCDLL MrvcCaptureWrite(
-	_In_ UINT32 captureHandle)
+MRVCDLL MrvcCaptureSetSpatial(
+    _In_ ModuleHandle captureHandle, 
+    _In_ IUnknown* pUnkSpatial)
 {
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->CaptureWriteFrame(captureHandle);
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-MRVCDLL MrvcCaptureWriteData(
-	_In_ UINT32 captureHandle,
-	__in_ecount(bufferSize) byte* pBuffer,
-	_In_ UINT32 bufferSize)
-{
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->CaptureWriteFrameData(captureHandle, pBuffer, bufferSize);
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-// StreamingPlayer
-
-// TODO: Clean up -> Use module manager?
-//static ComPtr<IStreamingMediaPlayer> s_spStreamingPlayer;
-
-MRVCDLL CreateStreamingPlayer(
-	_In_ ModuleHandle connectionHandle,
-	_In_ StateChangedCallback fnCallback,
-	_In_ PluginCallback callback,
-	_In_ void* managedObject)
-{
-
-	if (managedObject == nullptr)
-	{
-		return E_INVALIDARG;
-	}
-
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->CreateStreamPlayer(connectionHandle, 
-			//fnCallback, 
-			callback, 
-			managedObject);
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-MRVCDLL ReleaseMediaPlayback()
-{
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->ReleaseMediaPlayback();
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-MRVCDLL CreateStreamingTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture)
-{
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->CreateStreamingTexture(width, height, ppvTexture);
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-MRVCDLL StreamingPlay()
-{
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->StreamingPlay();
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-MRVCDLL StreamingPause()
-{
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->StreamingPause();
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-MRVCDLL StreamingStop()
-{
-	auto instance = PluginManagerStaticsImpl::GetInstance();
-	if (nullptr != instance)
-	{
-		return instance->StreamingStop();
-	}
-
-	return RPC_E_WRONG_THREAD;
-}
-
-
-// PlaybackEngine
-
-MRVCDLL MrvcPlaybackCreate(
-    _In_ ModuleHandle connectionHandle,
-	_In_ PluginCallback callback,
-	_In_ void* managedObject)
-{
-	if (managedObject == nullptr)
-	{
-		return E_INVALIDARG;
-	}
-
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->PlaybackCreate(connectionHandle, callback, managedObject);
+        return instance->SetSpatialCoordinateSystem(captureHandle, pUnkSpatial);
+    }
+
+    return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL MrvcCaptureClose(
+    _In_ UINT32 captureHandle)
+{
+    auto instance = PluginManagerStaticsImpl::GetInstance();
+    if (nullptr != instance)
+    {
+        return instance->CaptureClose(captureHandle);
+    }
+
+    return RPC_E_WRONG_THREAD;
+}
+
+MRVCDLL MrvcPlaybackCreate(
+    _In_ ModuleHandle connectionHandle,
+    _In_ PluginCallback callback)
+{
+    auto instance = PluginManagerStaticsImpl::GetInstance();
+    if (nullptr != instance)
+    {
+        return instance->PlaybackCreate(connectionHandle, callback);
     }
 
     return RPC_E_WRONG_THREAD;
@@ -408,13 +326,12 @@ MRVCDLL MrvcPlaybackCreate(
 MRVCDLL MrvcPlaybackAddSizeChanged(
     _In_ ModuleHandle handle,
     _In_ FrameSizeChanged callback,
-	_In_ void* managedObject,
     _Out_ INT64* tokenValue)
 {
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->PlaybackAddSizeChanged(handle, callback, managedObject, tokenValue);
+        return instance->PlaybackAddSizeChanged(handle, callback, tokenValue);
     }
 
     return RPC_E_WRONG_THREAD;
@@ -435,13 +352,12 @@ MRVCDLL MrvcPlaybackRemoveSizeChanged(
 MRVCDLL MrvcPlaybackAddSampleUpdated(
     _In_ ModuleHandle handle,
     _In_ SampleUpdated callback,
-	_In_ void* managedObject,
     _Out_ INT64* tokenValue) 
 {
     auto instance = PluginManagerStaticsImpl::GetInstance();
     if (nullptr != instance)
     {
-        return instance->PlaybackAddSampleUpdated(handle, callback, managedObject, tokenValue);
+        return instance->PlaybackAddSampleUpdated(handle, callback, tokenValue);
     }
 
     return RPC_E_WRONG_THREAD;

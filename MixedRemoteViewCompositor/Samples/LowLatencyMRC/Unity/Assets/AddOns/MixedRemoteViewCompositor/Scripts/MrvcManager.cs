@@ -126,7 +126,7 @@ namespace MixedRemoteViewCompositor
         {
             this.isStarted = true;
 
-            if (SelectedListener == SelectedListener.CaptureDevice)
+            if (Plugin.IsHoloLens && SelectedListener == SelectedListener.CaptureDevice)
             {
                 StartListener();
             }
@@ -194,7 +194,6 @@ namespace MixedRemoteViewCompositor
                 this.StartCaptureNetworkComponent();
             }
         }
-
         public void StopCapture()
         {
             this.ManagerState = ManagerState.CaptureStop;
@@ -282,7 +281,6 @@ namespace MixedRemoteViewCompositor
 
         private void StartListener()
         {
-            Debug.Log("StartListener()");
             // we own the listener so we can just stop if needed
             StopListener();
 

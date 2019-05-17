@@ -14,7 +14,7 @@ namespace MixedRemoteViewCompositor
     public enum NetworkMode { Listener, Connector }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, int result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
+    public delegate void PluginCallbackHandler(uint handle, int result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
 
     public class FailedEventArgs : EventArgs
     {
@@ -74,7 +74,6 @@ namespace MixedRemoteViewCompositor
             GL.IssuePluginEvent(Wrapper.exGetPluginEventFunction(), (int)PluginEvent.Flush);
         }
 
-        // TODO: Deprecate this in favor of execute on other thread
         private void Update()
         {
             this.GetActionsToProcess();
@@ -129,50 +128,6 @@ namespace MixedRemoteViewCompositor
             {
                 Debug.LogError(fnName + ": 0x" + result.ToString("X", NumberFormatInfo.InvariantInfo));
             }
-        }
-
-
-        public static T GetSenderObject<T>(IntPtr senderPtr) where T : class
-        {
-            if (senderPtr == IntPtr.Zero)
-            {
-                // TODO: Fix debugging
-                //Debug.LogError("Plugin_Callback: requires thisObjectPtr.");
-                return null;
-            }
-
-            GCHandle handle = GCHandle.FromIntPtr(senderPtr);
-
-            var thisObject = handle.Target as T;
-            if (thisObject == null)
-            {
-                // TODO: Fix debugging
-                //Debug.LogError("Plugin_Callback: thisObjectPtr is not null, but seems invalid.");
-                return null;
-            }
-
-            return thisObject;
-        }
-
-        public static void ExecuteOnUnityThread(Action exec)
-        {
-#if UNITY_WSA_10_0
-            if (!UnityEngine.WSA.Application.RunningOnAppThread())
-            {
-                UnityEngine.WSA.Application.InvokeOnAppThread(() =>
-                {
-                    exec.Invoke();
-                }, false);
-            }
-            else
-            {
-                exec.Invoke();
-            }
-#else
-                // there is still a chance the callback is on a non AppThread(callbacks genereated from WaitForEndOfFrame are not)
-                // this will process the callback on AppThread on a FixedUpdate
-                exec.Invoke();
-#endif
         }
 
         private static class Wrapper

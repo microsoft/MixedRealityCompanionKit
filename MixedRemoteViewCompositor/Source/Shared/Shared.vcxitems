@@ -18,6 +18,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\CaptureEngine.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\Marker.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\Media.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSource.cpp" />
@@ -38,8 +40,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)StreamingMediaSource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)MixedRemoteViewCompositor.def" />
@@ -53,10 +53,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\ErrorHandling.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\LinkList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Common\OpQueue.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)MediaUtils.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\CaptureEngine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\Marker.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\Media.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcAudioEffectDefinition.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Media\MrcVideoEffectDefinition.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSink.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSinkStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Media\NetworkMediaSource.h" />
@@ -75,8 +76,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\ModuleManagerStatics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Plugin\PluginManagerStatics.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)StreamingMediaPlayer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)StreamingMediaSource.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h" />

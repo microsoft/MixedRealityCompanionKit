@@ -26,8 +26,7 @@ namespace MixedRemoteViewCompositor
 
         public override void StartAsync()
         {
-            IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
-            var result = Wrapper.exOpenConnection(this.ConnectionUrl, ref this.handle, this.connectedHandler, thisObjectPtr);
+            var result = Wrapper.exOpenConnection(this.ConnectionUrl, ref this.handle, this.connectedHandler);
 
             Plugin.CheckResult(result, "Connector.StartAsync()");
 
@@ -44,7 +43,7 @@ namespace MixedRemoteViewCompositor
         private static class Wrapper
         {
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectorCreateAndStart")]
-            internal static extern int exOpenConnection([MarshalAsAttribute(UnmanagedType.LPWStr)]string serverUrl, ref uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler ConnectionOpenedCallback, IntPtr senderObject);
+            internal static extern int exOpenConnection([MarshalAsAttribute(UnmanagedType.LPWStr)]string serverUrl, ref uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler ConnectionOpenedCallback);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcConnectorStopAndClose")]
             internal static extern int exCloseConnector(uint handle);

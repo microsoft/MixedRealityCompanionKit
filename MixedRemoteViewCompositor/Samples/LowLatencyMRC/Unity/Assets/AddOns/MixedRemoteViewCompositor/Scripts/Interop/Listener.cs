@@ -26,8 +26,7 @@ namespace MixedRemoteViewCompositor
 
         public override void StartAsync()
         {
-            IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
-            var result = Wrapper.exStartListener(this.Port, ref this.handle, this.connectedHandler, thisObjectPtr);
+            var result = Wrapper.exStartListener(this.Port, ref this.handle, this.connectedHandler);
 
             Plugin.CheckResult(result, "Listener.StartAsync()");
 
@@ -41,19 +40,13 @@ namespace MixedRemoteViewCompositor
             Wrapper.exStopListener(this.handle);
         }
 
-        private void OnStarted()
-        {
-
-        }
-
         private static class Wrapper
         {
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcListenerCreateAndStart")]
-            internal static extern int exStartListener(ushort port, ref uint listenerHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler StartedHandler, IntPtr senderObject);
+            internal static extern int exStartListener(ushort port, ref uint listenerHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler StartedHandler);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcListenerStopAndClose")]
             internal static extern int exStopListener(uint listenerHandle);
         };
-
     }
 }

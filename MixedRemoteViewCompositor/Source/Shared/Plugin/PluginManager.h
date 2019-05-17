@@ -8,29 +8,25 @@ namespace MixedRemoteViewCompositor
     namespace Plugin
     {
         using namespace ABI::MixedRemoteViewCompositor;
-		using namespace ABI::MixedRemoteViewCompositor::Media;
         using namespace ABI::MixedRemoteViewCompositor::Plugin;
 
         using namespace ABI::Windows::Foundation;
         using namespace ABI::Windows::System::Threading;
 
         extern "C" typedef void(UNITY_INTERFACE_API *PluginCallback)(
-            _In_ ModuleHandle handle,
-			_In_ void* pCallbackObject,
+            _In_ ModuleHandle handle, 
             _In_ HRESULT result, 
             _In_ LPCWSTR pszMessage);
 
         extern "C" typedef void(UNITY_INTERFACE_API *DataReceivedHandler)(
             _In_ ModuleHandle handle, 
-			_In_ void* pCallbackObject,
             _In_ UINT16 opertion,
             _In_ UINT32 bufferSize, 
             _In_ const byte* buffer);
 
         extern "C" typedef void(UNITY_INTERFACE_API *FrameSizeChanged)(
             _In_ UINT32 width, 
-            _In_ UINT32 height,
-			_In_ void* pCallbackObject);
+            _In_ UINT32 height);
 
         extern "C" struct MediaSampleArgs
         {
@@ -45,8 +41,7 @@ namespace MixedRemoteViewCompositor
         };
 
         extern "C" typedef void(UNITY_INTERFACE_API *SampleUpdated)(
-            _In_ MediaSampleArgs *args,
-			_In_ void* pCallbackObject);
+            _In_ MediaSampleArgs *args);
 
         typedef std::function<void(_In_ float deltaTime, _In_ float relativeTime)> UpdateAction;
         typedef std::function<void()> RenderAction;
@@ -89,23 +84,20 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP ListenerCreateAndStart(
                 _In_ UINT16 port, 
                 _Inout_ ModuleHandle* listenerHandle,
-                _In_ PluginCallback callback,
-				_In_ void* pCallbackObject);
+                _In_ PluginCallback callback);
             STDMETHODIMP ListenerStopAndClose(
                 _In_ ModuleHandle listenerHandle);
 
             STDMETHODIMP ConnectorCreateAndStart(
                 _In_ LPCWSTR address,
                 _Inout_ ModuleHandle* connectorHandle,
-                _In_ PluginCallback callback,
-				_In_ void* pCallbackObject);
+                _In_ PluginCallback callback);
             STDMETHODIMP ConnectorStopAndClose(
                 _In_ ModuleHandle connectorHandle);
 
             STDMETHODIMP ConnectionAddDisconnected(
                 _In_ ModuleHandle connectionHandle,
                 _In_ PluginCallback callback,
-				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP ConnectionRemoveDisconnected(
                 _In_ ModuleHandle connectionHandle,
@@ -113,7 +105,6 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP ConnectionAddReceived(
                 _In_ ModuleHandle connectionHandle,
                 _In_ DataReceivedHandler callback,
-				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP ConnectionRemoveReceived(
                 _In_ ModuleHandle connectionHandle,
@@ -125,37 +116,38 @@ namespace MixedRemoteViewCompositor
                 _In_ UINT32 bufferSize);
             STDMETHODIMP ConnectionClose(
                 _In_ ModuleHandle connectionHandle);
-
-
-
-            STDMETHODIMP CaptureCreate(
-				_Inout_ ModuleHandle* captureHandle);
-
-			STDMETHODIMP CaptureInit(
-				_In_ bool enableAudio,
-				_In_ ModuleHandle captureHandle,
-				_In_ ModuleHandle connectionHandle);
-
-			STDMETHODIMP CaptureShutdown(
-				_In_ ModuleHandle captureHandle);
-
-            STDMETHODIMP CaptureWriteFrame(
+            
+            STDMETHODIMP CaptureCreateAsync( 
+                _In_ bool enableAudio, 
+                _In_ PluginCallback callback);
+            STDMETHODIMP CaptureAddClosed(
+                _In_ ModuleHandle playbackEngineHandle,
+                _In_ PluginCallback callback,
+                _Out_ INT64* tokenValue);
+            STDMETHODIMP CaptureRemoveClosed(
+                _In_ ModuleHandle playbackEngineHandle,
+                _Out_ INT64 tokenValue);
+            STDMETHODIMP CaptureStartAsync(
+                _In_ ModuleHandle captureHandle,
+                _In_ ModuleHandle connectionHandle,
+                _In_ bool enableMrc,
+                _In_ IUnknown* pUnkSpatial,
+                _In_ PluginCallback callback);
+            STDMETHODIMP CaptureStopAsync(
+                _In_ ModuleHandle captureHandle, 
+                _In_ PluginCallback callback);
+            STDMETHODIMP CaptureClose(
                 _In_ ModuleHandle captureHandle);
-
-			
-			STDMETHODIMP CaptureWriteFrameData(
-				_In_ ModuleHandle captureHandle,
-				__in_ecount(bufferSize) byte* pBuffer,
-				_In_ UINT32 bufferSize);
+            STDMETHODIMP SetSpatialCoordinateSystem(
+                _In_ ModuleHandle captureHandle, 
+                _In_ IUnknown* pUnkSpatial);
 
             STDMETHODIMP PlaybackCreate(
                 _In_ ModuleHandle connectionHandle,
-                _In_ PluginCallback createdCallback,
-				_In_ void* pCallbackObject);
+                _In_ PluginCallback createdCallback);
             STDMETHODIMP PlaybackAddClosed(
                 _In_ ModuleHandle playbackEngineHandle,
                 _In_ PluginCallback callback,
-				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP PlaybackRemoveClosed(
                 _In_ ModuleHandle playbackEngineHandle,
@@ -163,7 +155,6 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP PlaybackAddSizeChanged(
                 _In_ ModuleHandle playbackEngineHandle,
                 _In_ FrameSizeChanged callback,
-				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP PlaybackRemoveSizeChanged(
                 _In_ ModuleHandle playbackEngineHandle,
@@ -171,7 +162,6 @@ namespace MixedRemoteViewCompositor
             STDMETHODIMP PlaybackAddSampleUpdated(
                 _In_ ModuleHandle playbackEngineHandle,
                 _In_ SampleUpdated callback,
-				_In_ void* pCallbackObject,
                 _Out_ INT64* tokenValue);
             STDMETHODIMP PlaybackRemoveSampleUpdated(
                 _In_ ModuleHandle playbackEngineHandle,
@@ -186,30 +176,11 @@ namespace MixedRemoteViewCompositor
                 _In_ ModuleHandle handle,
                 _Inout_ MediaSampleArgs* pSampleArgs);
 
-			STDMETHODIMP GetUnityObjects(
-				_Out_ IUnityInterfaces** unityInterfaces,
-				_Out_ UnityGfxRenderer* unityGraphics);
-
-			STDMETHODIMP CreateStreamPlayer(
-				_In_ ModuleHandle connectionHandle,
-				//_In_ StateChangedCallback fnCallback,
-				_In_ PluginCallback createdCallback,
-				_In_ void* pCallbackObject
-			);
-				//_COM_Outptr_opt_result_maybenull_ StreamingMediaPlayerImpl** ppStreamingPlayer);
-			
-			STDMETHODIMP ReleaseMediaPlayback();
-			STDMETHODIMP CreateStreamingTexture(_In_ UINT32 width, _In_ UINT32 height, _COM_Outptr_ void** ppvTexture);
-			STDMETHODIMP StreamingPlay();
-			STDMETHODIMP StreamingPause();
-			STDMETHODIMP StreamingStop();
-
         private:
             STDMETHODIMP_(void) Uninitialize();
 
             STDMETHODIMP_(void) CompletePluginCallback(
                 _In_ PluginCallback callback, 
-				_In_ void* pCallbackObject,
                 _In_ ModuleHandle handle,
                 _In_ HRESULT hr);
 

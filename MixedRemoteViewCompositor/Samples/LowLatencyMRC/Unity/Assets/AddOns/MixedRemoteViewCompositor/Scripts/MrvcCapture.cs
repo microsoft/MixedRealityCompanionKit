@@ -3,7 +3,7 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.XR.WSA;
+using UnityEngine.VR.WSA;
 
 namespace MixedRemoteViewCompositor
 {
@@ -96,13 +96,20 @@ namespace MixedRemoteViewCompositor
         private void Start()
         {
             this.isStarted = true;
-        }
 
-        private void Update()
-        {
-            if (this.captureState == CaptureState.Started)
+            // on HoloLens gets the instance of the spatial coordinate system, to be used in Mixed Media Rendering
+            if (Plugin.IsHoloLens)
             {
-                this.captureEngine.WriteFrame();
+                WorldManager.OnPositionalLocatorStateChanged += (oldState, newState) =>
+                {
+                    Debug.Log("WorldManager.OnPositionalLocatorStateChanged, updating any capture in progress");
+
+                    this.spatialCoordinateSystemPtr = WorldManager.GetNativeISpatialCoordinateSystemPtr();
+                    if (this.captureEngine != null)
+                    {
+                        this.captureEngine.SetSpatialCoordinateSystem(this.spatialCoordinateSystemPtr);
+                    }
+                };
             }
         }
 
@@ -122,11 +129,11 @@ namespace MixedRemoteViewCompositor
 
             if (this.isPaused)
             {
-                this.StopCapture();
+                this.CaptureStop();
             }
             else
             {
-                //this.InitCaptureEngine(this.networkConnection);
+                this.CaptureInitialize(this.networkConnection);
             }
         }
 
@@ -149,13 +156,13 @@ namespace MixedRemoteViewCompositor
             this.ConnectionState = ConnectionState.Idle;
             this.CaptureState = CaptureState.Idle;
 
-            this.InitCaptureEngine(connection);
+            this.CaptureInitialize(connection);
         }
         public void Shutdown()
         {
             if (this.captureEngine != null && this.CaptureState != CaptureState.Failed)
             {
-                this.StopCapture();
+                this.CaptureStop();
             }
             else
             {
@@ -163,7 +170,7 @@ namespace MixedRemoteViewCompositor
             }
         }
 
-        private void InitCaptureEngine(Connection connection)
+        private void CaptureInitialize(Connection connection)
         {
             if (connection == null)
             {
@@ -175,9 +182,24 @@ namespace MixedRemoteViewCompositor
             this.networkConnection.Closed += this.OnConnectionClosed;
             this.ConnectionState = ConnectionState.Connected;
 
-            // Initialize capture engine
-            this.captureEngine = new CaptureEngine();
-            this.StartCapture();
+            if (CaptureEngine.Create(this.OnCaptureInitialized))
+            {
+                this.CaptureState = CaptureState.Initializing;
+            }
+            else
+            {
+                this.CaptureState = CaptureState.Failed;
+
+                Shutdown();
+            }
+        }
+        private void CaptureInitialized(CaptureEngine engine)
+        {
+            this.captureEngine = engine;
+            if (this.captureEngine != null)
+            {
+                this.CaptureStart();
+            }
 
             if (this.captureState != CaptureState.Starting)
             {
@@ -187,21 +209,20 @@ namespace MixedRemoteViewCompositor
             }
         }
 
-        private void StartCapture()
+        private void CaptureStart()
         {
             if (this.captureEngine == null)
             {
                 return;
             }
 
-            this.CaptureState = CaptureState.Starting;
-
             this.captureEngine.Started += this.OnCaptureStarted;
             this.captureEngine.Stopped += this.OnCaptureStopped;
             this.captureEngine.Closed += this.OnCaptureClosed;
             this.captureEngine.Failed += this.OnCaptureFailed;
+            this.captureEngine.Start(this.networkConnection, this.EnableMRC, this.spatialCoordinateSystemPtr);
 
-            this.captureEngine.Start(this.networkConnection);
+            this.CaptureState = CaptureState.Starting;
         }
         private void CaptureStarted()
         {
@@ -213,7 +234,7 @@ namespace MixedRemoteViewCompositor
             }
         }
 
-        private void StopCapture()
+        private void CaptureStop()
         {
             if (this.captureEngine != null)
             {
@@ -301,7 +322,7 @@ namespace MixedRemoteViewCompositor
             {
                 this.CaptureState = CaptureState.Initialized;
 
-                //CaptureInitialized(engine);
+                CaptureInitialized(engine);
             });
         }
         private void OnCaptureStarted(object sender, EventArgs e)

@@ -21,7 +21,7 @@ namespace MixedRemoteViewCompositor
 
         // native managed callback
         protected PluginCallbackHandler connectedHandler;
-        protected GCHandle thisObject = default(GCHandle);
+        protected GCHandle connectedCallbackHandle;
 
         private bool disposedValue;
 
@@ -31,6 +31,7 @@ namespace MixedRemoteViewCompositor
         protected NetworkComponent()
         {
             this.connectedHandler = null;
+            this.connectedCallbackHandle = default(GCHandle);
 
             this.disposedValue = false;
         }
@@ -38,35 +39,37 @@ namespace MixedRemoteViewCompositor
         protected bool Initialize()
         {
             // define the native/managed handler
-            this.connectedHandler = new PluginCallbackHandler(NetworkComponent_PluginCallbackWrapper.OnConnected_Callback);
-            thisObject = GCHandle.Alloc(this, GCHandleType.Normal);
-
-            return true;
-        }
-
-        private void OnConnected(uint handle, int result, string message)
-        {
-            // create Connection and pass ownership to it
-            var connection = Connection.CreateConnection(handle);
-
-            if (connection != null)
+            this.connectedHandler = (handle, result, message) =>
             {
-                this.Connected?.Invoke(this, connection);
-            }
-            else
-            {
-                if (this.Failed != null)
+                // create Connection and pass ownership to it
+                var connection = Connection.CreateConnection(handle);
+
+                if (connection != null)
                 {
-                    this.Failed(this,
-                        new FailedEventArgs(result,
-                            string.Format("NetworkComponent.Connected(): result: 0x{0} - {1}",
-                                result.ToString("X", NumberFormatInfo.InvariantInfo), message)));
+                    if (this.Connected != null)
+                    {
+                        this.Connected(this, connection);
+                    }
                 }
                 else
                 {
-                    Plugin.CheckResult(result, "NetworkComponent.Connected()");
+                    if (this.Failed != null)
+                    {
+                        this.Failed(this,
+                            new FailedEventArgs(result,
+                                string.Format("NetworkComponent.Connected(): result: 0x{0} - {1}",
+                                    result.ToString("X", NumberFormatInfo.InvariantInfo), message)));
+                    }
+                    else
+                    {
+                        Plugin.CheckResult(result, "NetworkComponent.Connected()");
+                    }
                 }
-            }
+            };
+
+            this.connectedCallbackHandle = GCHandle.Alloc(this.connectedHandler);
+
+            return true;
         }
 
         public abstract void StartAsync();
@@ -126,27 +129,12 @@ namespace MixedRemoteViewCompositor
             {
                 this.Close();
 
-                // free unmanaged resources (unmanaged objects) and override a finalizer below.
-                if (thisObject.IsAllocated)
+                if (this.connectedCallbackHandle.IsAllocated)
                 {
-                    thisObject.Free();
-                    thisObject = default(GCHandle);
+                    this.connectedCallbackHandle.Free();
                 }
 
                 this.disposedValue = true;
-            }
-        }
-
-        internal static class NetworkComponent_PluginCallbackWrapper
-        {
-            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnConnected_Callback(uint handle, IntPtr senderPtr, int result, string message)
-            {
-                var thisObj = Plugin.GetSenderObject<NetworkComponent>(senderPtr);
-
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
-                    thisObj.OnConnected(handle, result, message);
-                });
             }
         }
     }

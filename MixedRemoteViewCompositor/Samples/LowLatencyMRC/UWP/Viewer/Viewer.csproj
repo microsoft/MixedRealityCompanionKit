@@ -97,7 +97,7 @@
   <ItemGroup>
     <Reference Include="MixedRemoteViewCompositor, Version=255.255.255.255, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Build\Debug\Plugins\WSA\x86\MixedRemoteViewCompositor.winmd</HintPath>
+      <HintPath>$(SolutionDir)..\..\..\Build\$(Configuration)\Plugins\WSA\$(PlatformName)\MixedRemoteViewCompositor.winmd</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

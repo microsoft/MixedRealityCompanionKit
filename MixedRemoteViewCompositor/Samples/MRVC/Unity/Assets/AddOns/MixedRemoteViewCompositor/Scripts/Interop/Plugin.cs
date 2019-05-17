@@ -14,7 +14,7 @@ namespace MixedRemoteViewCompositor
     public enum NetworkMode { Listener, Connector }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void PluginCallbackHandler(uint handle, IntPtr senderPtr, int result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
+    public delegate void PluginCallbackHandler(uint handle, int result, [MarshalAsAttribute(UnmanagedType.LPWStr)]string message);
 
     public class FailedEventArgs : EventArgs
     {

@@ -446,7 +446,7 @@ HRESULT PlaybackEngineImpl::StopPlayback()
 _Use_decl_annotations_
 HRESULT PlaybackEngineImpl::CompleteAsyncAction(HRESULT hr)
 {
-    Log(Log_Level_Info, L"PlaybackEngineImpl::CompleteAsyncAction()\n");
+    Log(Log_Level_Info, L"::CompleteAsyncAction()\n");
 
     ABI::Windows::Foundation::AsyncStatus status;
     IFC(get_Status(&status));
@@ -629,12 +629,12 @@ done:
 
 _Use_decl_annotations_
 HRESULT PlaybackEngineStaticsImpl::Create(
-	IConnection* pConnection,
-	IPlaybackEngine** ppPlaybackEngine)
+    IConnection* pConnection, 
+    IPlaybackEngine** ppPlaybackEngine)
 {
-	NULL_CHK(pConnection);
-	NULL_CHK(ppPlaybackEngine);
+    NULL_CHK(pConnection);
+    NULL_CHK(ppPlaybackEngine);
 
-	ComPtr<IConnection> spConnection(pConnection);
-	return MakeAndInitialize<PlaybackEngineImpl>(ppPlaybackEngine, spConnection.Get());
+    ComPtr<IConnection> spConnection(pConnection);
+    return MakeAndInitialize<PlaybackEngineImpl>(ppPlaybackEngine, spConnection.Get());
 }

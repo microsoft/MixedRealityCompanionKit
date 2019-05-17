@@ -6,7 +6,6 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using MixedRemoteViewCompositor.Media;
 using MixedRemoteViewCompositor.Network;
-using System.Threading;
 
 namespace Viewer
 {
@@ -18,8 +17,6 @@ namespace Viewer
         private Listener listener = null;
         private Connection connection = null;
         private CaptureEngine captureEngine = null;
-
-        private Timer writeFrameTimer;
 
         public Capture()
         {
@@ -49,25 +46,12 @@ namespace Viewer
             }
         }
 
-        private void StartCapture()
+        private async void StartCapture()
         {
-            captureEngine = CaptureEngine.Create();
+            captureEngine = await CaptureEngine.CreateAsync(false);
             if (this.captureEngine != null)
             {
-                this.captureEngine.Init(true, this.connection);
-
-                writeFrameTimer = null;
-
-                var autoEvent = new AutoResetEvent(false);
-                writeFrameTimer = new Timer(OnDraw, autoEvent, 0, 1000 / 30);
-            }
-        }
-
-        private void OnDraw(object state)
-        {
-            if (this.captureEngine != null)
-            {
-                this.captureEngine.WriteFrame();
+                await this.captureEngine.StartAsync(false, this.connection);
             }
         }
 
@@ -90,7 +74,7 @@ namespace Viewer
         {
             if (this.captureEngine != null)
             {
-                this.captureEngine.Shutdown();
+                await this.captureEngine.StopAsync();
                 this.captureEngine.Uninitialize();
                 this.captureEngine = null;
             }

@@ -17,35 +17,40 @@ namespace MixedRemoteViewCompositor
 
         private uint Handle { get; set; }
 
-        /*
-        private GCHandle thisObject = default(GCHandle);
         private PluginCallbackHandler createdHandler;
+        private GCHandle createdCallbackHandle;
+
         private PluginCallbackHandler startedHandler;
+        private GCHandle startedCallbackHandle;
+
         private PluginCallbackHandler stoppedHandler;
-        */
+        private GCHandle stoppedCallbackHandle;
 
         // IDisposable
         private bool disposedValue = false;
 
-        public CaptureEngine()
+        public static bool Create(Action<CaptureEngine> created)
         {
-            this.Handle = Plugin.InvalidHandle;
+            if(created == null)
+            {
+                return false;
+            }
 
-            this.Started = null;
-            this.Stopped = null;
-            this.Closed = null;
-            this.Failed = null;
+            CaptureEngine engine = new CaptureEngine();
+            if (engine == null)
+            {
+                return false;
+            }
 
-            /*
-            this.createdHandler = null;
-            this.startedHandler = null;
-            this.stoppedHandler = null;
-            */
+            if (!engine.Initialize(created, engine))
+            {
+                return false;
+            }
 
-            this.Initialize();
+            return true;
         }
 
-        public void Start(Connection connection)
+        public void Start(Connection connection, bool enableMRC, IntPtr spatialCoordinateSystemPtr)
         {
             int result = 0;
 
@@ -65,13 +70,9 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            //IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.thisObject);
-            result = Wrapper.exInit(false, this.Handle, connection.Handle);
-            uint resultu = (uint)result;
-            //result = Wrapper.exStart(this.Handle, connection.Handle, enableMRC, spatialCoordinateSystemPtr, this.startedHandler, thisObjectPtr);
+            result = Wrapper.exStart(this.Handle, connection.Handle, enableMRC, spatialCoordinateSystemPtr, this.startedHandler);
             if (result != 0)
             {
-                string test = result.ToString("X", NumberFormatInfo.InvariantInfo);
                 if (this.Failed != null)
                 {
                     this.Failed(this, new FailedEventArgs(result, string.Format("CaptureEngine.Stop(): result: 0x{0}", result.ToString("X", NumberFormatInfo.InvariantInfo))));
@@ -81,33 +82,11 @@ namespace MixedRemoteViewCompositor
                     Plugin.CheckResult(result, "CaptureEngine.Start()");
                 }
             }
-
-            this.Started?.Invoke(this, EventArgs.Empty);
-        }
-
-        public void WriteFrame()
-        {
-            int result = Wrapper.exWrite(this.Handle);
-            if (result != 0)
-            {
-                if (this.Failed != null)
-                {
-                    this.Failed(this, new FailedEventArgs(result, string.Format("CaptureEngine.Stop(): result: 0x{0}", result.ToString("X", NumberFormatInfo.InvariantInfo))));
-                }
-                else
-                {
-                    Plugin.CheckResult(result, "CaptureEngine.Stop()");
-                }
-
-                return;
-            }
         }
 
         public void Stop()
         {
-            //IntPtr thisObjectPtr = GCHandle.ToIntPtr(this.tisObject);
-            //int result = Wrapper.exStop(this.Handle, this.stoppedHandler, thisObjectPtr);
-            int result = Wrapper.exStop(this.Handle);
+            int result = Wrapper.exStop(this.Handle, this.stoppedHandler);
             if (result != 0)
             {
                 if (this.Failed != null)
@@ -122,7 +101,10 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            this.Stopped?.Invoke(this, EventArgs.Empty);
+            if (this.Stopped != null)
+            {
+                this.Stopped(this, EventArgs.Empty);
+            }
         }
 
         public void Close()
@@ -132,17 +114,48 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            /*
-             * TODO: Figure out how to porperly close memory here
             int result = Wrapper.exClose(this.Handle);
             if (result != 0)
             {
                 Plugin.CheckResult(result, "CaptureEngine.Close()");
-            }*/
+            }
 
-            this.Closed?.Invoke(this, EventArgs.Empty);
+            if (this.Closed != null)
+            {
+                this.Closed(this, EventArgs.Empty);
+            }
 
             this.Handle = Plugin.InvalidHandle;
+        }
+
+        public void SetSpatialCoordinateSystem(IntPtr spatialCoordinateSystemPtr)
+        {
+            if (this.Handle == Plugin.InvalidHandle)
+            {
+                return;
+            }
+
+            Wrapper.exSetSpatialCoordinateSystemPtr(this.Handle, spatialCoordinateSystemPtr);
+        }
+
+
+        private CaptureEngine()
+        {
+            this.Handle = Plugin.InvalidHandle;
+
+            this.Started = null;
+            this.Stopped = null;
+            this.Closed = null;
+            this.Failed = null;
+
+            this.createdHandler = null;
+            this.createdCallbackHandle = default(GCHandle);
+
+            this.startedHandler = null;
+            this.startedCallbackHandle = default(GCHandle);
+
+            this.stoppedHandler = null;
+            this.stoppedCallbackHandle = default(GCHandle);
         }
 
         ~CaptureEngine()
@@ -169,55 +182,50 @@ namespace MixedRemoteViewCompositor
             this.Close();
 
             // free unmanaged resources (unmanaged objects) and override a finalizer below.
-            /*
-            if (thisObject.IsAllocated)
+            if (this.createdCallbackHandle.IsAllocated)
             {
-                thisObject.Free();
-                thisObject = default(GCHandle);
-            }*/
+                this.createdCallbackHandle.Free();
+            }
+
+            if (this.startedCallbackHandle.IsAllocated)
+            {
+                this.startedCallbackHandle.Free();
+            }
+
+            if (this.stoppedCallbackHandle.IsAllocated)
+            {
+                this.stoppedCallbackHandle.Free();
+            }
 
             this.disposedValue = true;
         }
 
-        private bool Initialize()
+        private bool Initialize(Action<CaptureEngine> created, CaptureEngine engine)
         {
-            try
+            this.createdHandler = (handle, result, message) => 
             {
-                uint handle = Plugin.InvalidHandle;
-                var result = Wrapper.exCreate(ref handle);
-
-                if (handle == Plugin.InvalidHandle)
-                    return false;
-
                 this.Handle = handle;
-            }
-            catch(Exception ex)
-            {
-                return false;
-            }
 
-            return true;            
+                if (this.Handle == Plugin.InvalidHandle)
+                {
+                    engine.Close();
+                    engine.Dispose();
+                    engine = null;
+                }
+
+                created(engine);
+            };
+            this.createdCallbackHandle = GCHandle.Alloc(this.createdHandler);
+
+            this.startedHandler = this.OnStarted;
+            this.startedCallbackHandle = GCHandle.Alloc(this.startedHandler);
+
+            this.stoppedHandler = this.OnStopped;
+            this.stoppedCallbackHandle = GCHandle.Alloc(this.stoppedHandler);
+
+            return (Wrapper.exCreate(false, this.createdHandler) == 0);
         }
 
-        /*
-        internal void OnCreated(uint handle, int result, string message)
-        {
-            this.Handle = handle;
-
-            if (this.Handle == Plugin.InvalidHandle)
-            {
-                // TODO: Look at fixing this code***
-                this.enginePtr.Close();
-                this.enginePtr.Dispose();
-                this.enginePtr = null;
-            }
-
-            this.createdCallback?.Invoke(this.enginePtr);
-
-            // Release references
-            this.createdCallback = null;
-            this.enginePtr = null;
-        }
 
         private void OnStarted(uint handle, int result, string message)
         {
@@ -235,7 +243,10 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            this.Started?.Invoke(this, EventArgs.Empty);            
+            if (this.Started != null)
+            {
+                this.Started(this, EventArgs.Empty);
+            }
         }
 
         private void OnStopped(uint handle, int result, string message)
@@ -254,74 +265,34 @@ namespace MixedRemoteViewCompositor
                 return;
             }
 
-            this.Stopped?.Invoke(this, EventArgs.Empty);
+            if (this.Stopped != null)
+            {
+                this.Stopped(this, EventArgs.Empty);
+            }
         }
-        */
 
         private static class Wrapper
         {
-            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "CreateStreamCaptureEngine")]
-            //internal static extern int exCreate(bool enableAudio, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, IntPtr senderObject);
-            internal static extern int exCreate(ref uint captureHandle);
-
-            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureInit")]
-            internal static extern int exInit(bool enableAudio, uint captureHandle, uint connectionHandle);
-
-            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureStop")]
-            internal static extern int exStop(uint captureHandle);
-
-            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureWrite")]
-            internal static extern int exWrite(uint captureHandle);
-
-            /*
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureCreate")]
-            //internal static extern int exCreate(bool enableAudio, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback, IntPtr senderObject);
-            internal static extern int exCreate(bool enableAudio);
+            internal static extern int exCreate(bool enableAudio, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler createdCallback);
+
+            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureAddClosed")]
+            internal static extern int exAddClosed(uint handle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler closedCallback, ref UInt64 tokenValue);
+
+            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureRemoveClosed")]
+            internal static extern int exRemoveClosed(uint handle, UInt64 tokenValue);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureStart")]
-            internal static extern int exStart(bool enableAudio, uint captureHandle, uint connectionHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler startedCallback, IntPtr senderObject);
+            internal static extern int exStart(uint captureHandle, uint connectionHandle, bool enableMrc, IntPtr spatialPtr, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler startedCallback);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureStop")]
-            internal static extern int exStop(uint captureHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler stoppedCallback, IntPtr senderObject);
+            internal static extern int exStop(uint captureHandle, [MarshalAs(UnmanagedType.FunctionPtr)]PluginCallbackHandler stoppedCallback);
+
+            [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureSetSpatial")]
+            internal static extern int exSetSpatialCoordinateSystemPtr(uint captureHandle, IntPtr spatialCoordinateSystemPtr);
 
             [DllImport("MixedRemoteViewCompositor", CallingConvention = CallingConvention.StdCall, EntryPoint = "MrvcCaptureClose")]
             internal static extern int exClose(uint captureHandle);
-            */
         };
-
-        /*
-        internal static class CaptureEngine_PluginCallbackWrapper
-        {
-            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnCreated_Callback(uint handle, IntPtr senderPtr, int result, string message)
-            {
-                var thisObj = Plugin.GetSenderObject<CaptureEngine>(senderPtr);
-
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
-                    thisObj.OnCreated(handle, result, message);
-                });
-            }
-
-            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnStarted_Callback(uint handle, IntPtr senderPtr, int result, string message)
-            {
-                var thisObj = Plugin.GetSenderObject<CaptureEngine>(senderPtr);
-
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
-                    thisObj.OnStarted(handle, result, message);
-                });
-            }
-
-            [AOT.MonoPInvokeCallback(typeof(PluginCallbackHandler))]
-            internal static void OnStopped_Callback(uint handle, IntPtr senderPtr, int result, string message)
-            {
-                var thisObj = Plugin.GetSenderObject<CaptureEngine>(senderPtr);
-
-                Plugin.ExecuteOnUnityThread(() => {//(thisObj, handle, result, message) => {
-                    thisObj.OnStopped(handle, result, message);
-                });
-            }
-        }
-        */
     }
 }
