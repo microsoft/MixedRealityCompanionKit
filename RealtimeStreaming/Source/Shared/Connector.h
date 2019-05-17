@@ -57,3 +57,10 @@ namespace winrt::RealtimeStreaming::Network::implementation
             winrt::event<Windows::Foundation::EventHandler<bool> > m_evtClosed;
     };
 }
+
+namespace winrt::RealtimeStreaming::Network::factory_implementation
+{
+    struct Connector : ConnectorT<Connector, implementation::Connector>
+    {
+    };
+}

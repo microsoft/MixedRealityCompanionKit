@@ -5,13 +5,16 @@ import "Connection.idl";
 
 namespace RealtimeStreaming.Network
 {
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
     [default_interface]
     runtimeclass Connector
     {
         Connector();
 
         Windows.Foundation.IAsyncOperation<Connection> ConnectAsync(Windows.Networking.HostName hostAddress, UInt16 port);
-        
+
         Windows.Foundation.IAsyncOperation<Connection> DiscoverAsync();
 
         event Windows.Foundation.EventHandler<Boolean> Closed;

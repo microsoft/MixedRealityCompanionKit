@@ -14,7 +14,7 @@ namespace winrt::RealtimeStreaming::Network::implementation
             _In_ RealtimeStreaming::Common::PayloadType payloadType,
             _In_ UINT32 cbPayloadSize);
 
-        Connection() = default; // TODO: Clean this up design. Need ability to break waitforheader loop and re-bind connection?
+        Connection() = default; 
         Connection(_In_ Windows::Networking::Sockets::StreamSocket const socket);
         ~Connection();
 

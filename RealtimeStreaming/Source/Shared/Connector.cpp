@@ -3,7 +3,6 @@
 
 #include "pch.h"
 #include "Connector.h"
-
 #include "Connection.h"
 
 using namespace winrt;

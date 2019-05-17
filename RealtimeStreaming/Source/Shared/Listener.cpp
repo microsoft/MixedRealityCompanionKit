@@ -23,9 +23,7 @@ Listener::Listener(UINT16 port)
 Listener::~Listener()
 {
     Log(Log_Level_Info, L"Listener::~Listener() - Port=%d\n", m_port);
-
-    // TODO: Close like original?
-    // Close();
+    Close();
 }
 
 // IListener
