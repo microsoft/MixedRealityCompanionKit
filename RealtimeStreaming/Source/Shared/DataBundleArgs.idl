@@ -1,0 +1,22 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+
+import "RealtimeStreaming.idl";
+import "Connection.idl";
+import "DataBundle.idl";
+
+namespace RealtimeStreaming.Network
+{
+    runtimeclass DataBundleArgs
+    {
+        DataBundleArgs(
+            RealtimeStreaming.Common.PayloadType type,
+            RealtimeStreaming.Network.Connection connection,
+            RealtimeStreaming.Network.DataBundle dataBundle);
+
+        RealtimeStreaming.Common.PayloadType PayloadType{ get; };
+        RealtimeStreaming.Network.Connection DataConnection{ get; };
+        RealtimeStreaming.Network.DataBundle Bundle{ get; };
+    };
+}

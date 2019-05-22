@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Unity">
+      <UniqueIdentifier>{6b62d866-c305-47d0-8385-32d96fdce6e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{55a9e3e1-5e2a-4145-ab04-e6b74b972b5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{23f87c4d-d61d-4827-81d4-9db2edf58bc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{0fff1335-0d45-4b58-8e4b-c031a4766196}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Media">
+      <UniqueIdentifier>{a4f70e92-cd80-453a-b7d2-024d05f78489}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D9.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityInterface.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\PlatformBase.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\RenderingPlugin.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\UnityDeviceResource.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AsyncBase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ErrorHandling.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)OpQueue.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Marker.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MediaUtils.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeServer.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RTSchemeHandler.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Connection.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Connector.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBuffer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBundle.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBundleArgs.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Listener.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSink.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.h">
+      <Filter>Media</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ModuleManager.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Marker.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)MediaUtils.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeServer.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RTSchemeHandler.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Connection.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Connector.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBuffer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBundle.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBundleArgs.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Listener.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSink.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.cpp">
+      <Filter>Media</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ModuleManager.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp">
+      <Filter>Unity</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeServer.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Connection.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Connector.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBuffer.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundle.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundleArgs.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)Listener.idl">
+      <Filter>Network</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl">
+      <Filter>Media</Filter>
+    </Midl>
+    <Midl Include="$(MSBuildThisFileDirectory)RTSchemeHandler.idl">
+      <Filter>Media</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)packages.config" />
+    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def">
+      <Filter>Plugin</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{a48613d5-d087-4864-80b2-a9482a52f766}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AsyncBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Connection.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Connector.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBundle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DataBundleArgs.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ErrorHandling.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Listener.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Marker.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MediaUtils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ModuleManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSink.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)OpQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RTSchemeHandler.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphics.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D11.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D12.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityGraphicsD3D9.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\IUnityInterface.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\PlatformBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\RenderingPlugin.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Unity\UnityDeviceResource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Connection.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Connector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)D3D11DeviceResources.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBundle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)DataBundleArgs.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeStreaming_DLL.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Listener.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Marker.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)MediaUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ModuleManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSink.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RealtimeServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RTSchemeHandler.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)UnityDeviceResource.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="$(MSBuildThisFileDirectory)Connection.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)Connector.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DataBuffer.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundle.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)DataBundleArgs.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)Listener.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSink.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)NetworkMediaSinkStream.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaPlayer.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeMediaSource.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeServer.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RealtimeStreaming.idl" />
+    <Midl Include="$(MSBuildThisFileDirectory)RTSchemeHandler.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)packages.config" />
+    <None Include="$(MSBuildThisFileDirectory)RealtimeStreaming.def" />
+  </ItemGroup>
+</Project>

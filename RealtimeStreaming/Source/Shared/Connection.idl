@@ -1,0 +1,31 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+import "RealtimeStreaming.idl";
+import "DataBundle.idl";
+import "DataBundleArgs.idl";
+
+namespace RealtimeStreaming.Network
+{
+    delegate void DisconnectedDelegate();
+
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    [default_interface]
+    runtimeclass Connection
+    {
+        Connection(Windows.Networking.Sockets.StreamSocket streamSocket);
+
+        Windows.Foundation.IAsyncAction SendPayloadTypeAsync(RealtimeStreaming.Common.PayloadType type);
+        Windows.Foundation.IAsyncAction SendBundleAsync(DataBundle dataBundle);
+
+        Boolean IsConnected{ get; };
+        Windows.Networking.Sockets.StreamSocketInformation ConnectionInfo{ get; };
+
+        void Close();
+
+        event DisconnectedDelegate Disconnected;
+        event Windows.Foundation.EventHandler<DataBundleArgs > Received;
+    };
+}

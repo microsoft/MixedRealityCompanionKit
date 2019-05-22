@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.539
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Viewer", "Viewer\Viewer.csproj", "{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Debug|x64.ActiveCfg = Debug|x64
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Debug|x64.Build.0 = Debug|x64
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Debug|x64.Deploy.0 = Debug|x64
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Debug|x86.ActiveCfg = Debug|x86
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Debug|x86.Build.0 = Debug|x86
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Debug|x86.Deploy.0 = Debug|x86
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Release|x64.ActiveCfg = Release|x64
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Release|x64.Build.0 = Release|x64
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Release|x64.Deploy.0 = Release|x64
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Release|x86.ActiveCfg = Release|x86
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Release|x86.Build.0 = Release|x86
+		{0A431D1B-5756-40E7-8DA5-C8A934D08CE0}.Release|x86.Deploy.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8AC157CF-D084-439C-B3DD-3087375719D9}
+	EndGlobalSection
+EndGlobal

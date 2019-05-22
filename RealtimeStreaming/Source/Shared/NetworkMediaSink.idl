@@ -1,0 +1,21 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+
+import "Connection.idl";
+
+namespace RealtimeStreaming.Media
+{
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    [version(1.0)]
+    [default_interface]
+    runtimeclass NetworkMediaSink : Windows.Media.IMediaExtension
+    {
+        NetworkMediaSink(RealtimeStreaming.Network.Connection connection);
+
+        void StartNetwork();
+        void StopNetwork();
+        event Windows.Foundation.EventHandler<Boolean> Closed;
+    };
+}

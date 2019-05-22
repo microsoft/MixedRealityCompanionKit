@@ -1,0 +1,26 @@
+﻿EXPORTS
+DllCanUnloadNow = WINRT_CanUnloadNow                    PRIVATE
+DllGetActivationFactory = WINRT_GetActivationFactory    PRIVATE
+    UnityPluginLoad
+    UnityPluginUnload
+    GetPluginEventFunc
+    ListenerCreateAndStart
+    ListenerStopAndClose
+    ConnectorCreateAndStart
+    ConnectorCreateAndDiscover
+    ConnectorStopAndClose
+    ConnectionAddDisconnected
+    ConnectionRemoveDisconnected
+    ConnectionAddReceived
+    ConnectionRemoveReceived
+    ConnectionClose
+    CreateRealtimeStreamingServer
+    RealtimeStreamingWrite
+    RealtimeStreamingShutdown
+    CreateRealtimePlayer
+    ReleaseRealtimePlayer
+    GetPlayerStreamResolution
+    CreateRealtimePlayerTexture
+    RealtimePlayerPlay
+    RealtimePlayerPause
+    RealtimePlayerStop

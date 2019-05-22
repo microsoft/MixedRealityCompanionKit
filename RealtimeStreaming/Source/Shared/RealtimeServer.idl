@@ -1,0 +1,23 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+#pragma once
+import "Connection.idl";
+
+namespace RealtimeStreaming.Media
+{
+    [version(1.0)]
+    [marshaling_behavior(agile)]
+    [threading(both)]
+    runtimeclass RealtimeServer
+    {
+        RealtimeServer(RealtimeStreaming.Network.Connection connection,
+                Guid inputMediaType,
+                Windows.Media.MediaProperties.MediaEncodingProfile mediaEncodingProperties);
+
+        void WriteFrame(UInt32 bufferSize, UInt8[] pBuffer);
+
+        Windows.Media.MediaProperties.VideoEncodingProperties VideoProperties{ get; };
+
+        void Shutdown();
+    };
+}
