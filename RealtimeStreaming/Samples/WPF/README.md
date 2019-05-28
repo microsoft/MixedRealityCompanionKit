@@ -1,31 +1,29 @@
-## Plugin Source files
-This folder contatins all source files required to compile the Win32 and UWP component libraries(.dll). Any changes made to these files will require that both Debug **and** Release configurations are built to ensure all files are updated and deployed appropriately. 
 
-### Project Files
-**Shared** - contains all the source files used in the Win32/WSA projects
+# Real-time Streaming WPF Server Sample
 
-**Win32** - Win32 build used for Unity Editor and other Win32 desktop applications.
+## Overview
 
-**WSA** - UWP build used for HoloLens and other Windows 10 applications.
+This code shows how to utilize the plugin in a non-UWP environment by leveraging the [Desktop Bridge](https://docs.microsoft.com/en-us/windows/msix/desktop/desktop-to-uwp-root). Further, this is done by creating a sample server application that generates a solid color image that lerps to a new color over time. The user is able to change the target framerate, port number, UDP discovery, and the output resolution.  
 
-### Build Instructions
-Load the MixedRemoteViewCompositor.sln file from the MixedRemoteViewCompositor/PluginSource folder. There should be three projects listed in the Solution Explorer. 
+Once the server WPF application is running, select the desired properties for the server and click *Start Server*.
 
-![](../images/Solution.png)
+![SampleApp.PNG](SampleApp.PNG)
 
-Be sure Release is selected from the Configuration Manager: 
+## Project Structure
 
-![](../images/Build.png)
+There are three projects in the Visual Studio Solution: 
 
-From the menu, select Build > Rebuild Solution to start the build process. This will ensure a clean build and the post-build scripts are executed.
+- *DesktopAppPackaging* - This is the target project to build. It wraps the other two applications into one.
+- *DesktopServerApp* - This is the primary logic of the sample application & UI. The classes here leverages the plugin DLL classes directly in C#.
+- *DummyUwpAppForPackagingOnly* - This is just a dummy app project to be able to interface with the necessary UWP APIs. It is a mostly empty stub project.
 
-Review the Output window to ensure the build was successful, and the files were copied to the folder specified in the build settings.
+The UI can be modified in the [MainWindow.xaml](DesktopServerApp\MainWindow.xaml) and the resulting controller logic is mostly within the [ServerManager.cs](DesktopServerApp\ServerManager.cs)
 
-![](../images/Output.png)
+## Building
 
-Win32 and WSA projects will compile binaries to the Build/$(Configuration)/Plugins{/WSA}/$(PlatformShortName) folder. 
-  + $(Configuration) = Debug/Release
-  + $(PlatformShortName) = x86
-  When the build is successful, there are post build event scripts that will then copy the .dll's to the Unity sample folders.
+After opening the *RealtimeStreaming.sln* under the WPF folder, you can build the WPF application on your local machine. The *DesktopAppPackaging* project should be the set as the StartUp project and ideally build against *Release* and *x64*.
 
-***Note:** When deploying a Unity HoloLens application, use the **Release x86** build of .dll*
+You may have to re-reference the Windows winmd. Under the *DesktopServerApp* project, expand *References*, if there is a warning icon for the *Windows* item then you need to find your local copy. Right-click *References*, and then *Add Reference*, then select the *Browse* tab and then the *Browse* button on the bottom. Navigate to the appropriate *Windows.winmd* file for your installed Windows SDK environment. The path will be comparable to this: **"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.18306.0\Windows.winmd"**.
+
+## More Information
+- [Desktop Bridge](https://docs.microsoft.com/en-us/windows/msix/desktop/desktop-to-uwp-root)
