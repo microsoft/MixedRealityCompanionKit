@@ -16,7 +16,7 @@ Under the **RealtimeStreaming** folder, there are three key folders:
 
 ## Client Sample
 
-**NOTE: INSERT Photo**
+![Unity Client Scene](UnityClientScene.PNG)
 
 The client makes use of three key components:
 1) The screen - output render of stream
@@ -60,9 +60,11 @@ The player is instructed to initiate a connection via discovery or connect direc
 
 If the player disconnects from the server for various reasons (i.e server shutdowns, etc), then wrapper will initiate an auto-shutdown to the plugin native code and fire a state change event for disconnection.
 
+**NOTE:** Keyboard input for the IP Address and Port number in the client unity sample does not currently work properly at the moment.
+
 ## Server Sample
 
-**NOTE: INSERT Photo**
+![Unity Server Scene](UnityServerScene.PNG)
 
 The server example does not require much UI (only a debug output of the webcam) as it just auto-initializes on start. The server must be initialized before the client and this occurs by calling *RealtimeServer.StartListening()*. Terminating the server can be done via *RealtimeServer.StopListening()* which acts as a sort of pause or *RealtimeServer.Shutdown()*.
 
@@ -109,7 +111,7 @@ When the server is in the ready state, it is connected to a client and available
     }
 ```
 
-The current server examples utilize the webcam through Unity APIs as the server video sources. The **WebcamServerSource.cs** class demonstrates this functionality.
+The current server examples utilize the webcam through Unity APIs as the server video sources. The **WebcamServerSource.cs** class demonstrates this functionality. Further, the **VideoFileServerSource.cs** illustrates how to send frames from a local video file but it should be noted this is only an example. Accessing Unity's VideoPlayer.frameReady callback is quite expensive.
 
 ## Building
 

@@ -116,6 +116,8 @@ Open the *Build Settings* dialog in Unity, select the Universal Web Platform env
 
 With the client running, select the *Discover* button in the demo app which should automatically discover & connect the two device endpoints and begin streaming.
 
+![Unity Client Example](Samples/Unity/UnityClientScene.PNG)
+
 ## Troubleshooting
 This section reviews the most common issues for failed streaming scenarios.
 
