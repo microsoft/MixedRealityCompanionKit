@@ -3,7 +3,7 @@
 ## Overview
 
 This folder provides multiple example scenes demonstrating how to create client and server UWP applications using Unity. There are two sets of primary content: 
-1) the core Unity plugin source that provides wrappers around the component functionality to work within Unity.
+1) The core Unity plugin source that provides wrappers around the component functionality to work within Unity.
 2) Example-specific code and assets to demonstrate the real-time streaming component
 
 Under the **Assets** Unity folder, the **RealtimeStreaming** folder contains the C# wrappers and DLLs for the real-time streaming component while the **Example** folder provides the Unity scenes, classes & functionality specific to these demos. Further, it should be noted that the Unity folder also has the [Mixed Reality Toolkit for Unity](https://github.com/microsoft/MixedRealityToolkit-Unity) to support input & UI interactions on Mixed Reality devices for the provided **Example** scenes. MRTK is not necessary for the core **RealtimeStreaming** interops & plugins to function.
@@ -56,7 +56,7 @@ Here is some key example code of leverage the RealtimeVideoPlayer.cs class.
     }
 ```
 
-The player is instructed to initiate a connection via discovery or connect directly via IP/port and the app listens for the appropriate state changes. To optimize streaming, the output texture of the player is YUV and thus actually contains two textures for Luma and Chroma. These are processed by a special shader, **RealtimeStreamingShader.shader**, to correctly render the output in RGB for a given MeshRenderer or similar type. 
+The player is instructed to initiate a connection via discovery or connect directly via IP/port and the app listens for the appropriate state changes. To optimize streaming, the output texture of the player is YUV and thus actually contains two textures for Luma and Chroma. These are processed by a special shader, **RealtimeStreamingShader.shader**, to correctly render the output in RGB for a given MeshRenderer or similar type.
 
 If the player disconnects from the server for various reasons (i.e server shutdowns, etc), then wrapper will initiate an auto-shutdown to the plugin native code and fire a state change event for disconnection.
 

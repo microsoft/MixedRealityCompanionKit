@@ -1,27 +1,27 @@
 # Real-time Streaming
 
 ## Overview
-This component provides client/server infrastructure to support real-time streaming (video only) between two device endpoints with particular support for Unity/HoloLens applications. The foundation of this component utilizes the [Media Foundation](https://docs.microsoft.com/en-us/windows/desktop/medfound/microsoft-media-foundation-sdk) and [Universal Windows Platform](https://docs.microsoft.com/en-us/uwp/) APIs to stream encoded video across a TCP-based connection. As such, this component will only function on Windows-based platforms.
+This component provides client/server infrastructure to enable real-time streaming (video only) between two device endpoints with particular support for Unity/HoloLens applications. The foundation of this component utilizes the [Media Foundation](https://docs.microsoft.com/en-us/windows/desktop/medfound/microsoft-media-foundation-sdk) and [Universal Windows Platform](https://docs.microsoft.com/en-us/uwp/) APIs to stream encoded video across a TCP-based connection. As such, this component will only function on Windows-based platforms.
 
 ## Architecture
 
 ![architecture-diagram.PNG](architecture-diagram.PNG)
 
-The architecture of this component is designed to support two stages during runtime: 1) establish connection and 2) stream video. Further, the architecture can be split along code to support encoding video (i.e server code) and decoding video (i.e client code).
+The architecture of this component is designed to support two stages during runtime: 1) establish connection and 2) stream video. Further, the code design can be split into classes that run on server (i.e support encoding video) and that run on the client (i.e decoding video).
 
 ### 1) Establishing a connection
 The [**Connector**](source/shared/connector.h) and [**Listener**](source/shared/Listener.h) classes function to establish a connection between the two device endpoints either via a targeted IP address or via UDP discovery. A **Listener** object should run on the server waiting for an incoming connection with a client. The client should create a **Connector** object when it wishes to start a connection. The **Listener** object should be started before the **Connector** object. Once a TCP connection is established, a resulting **Connection** class object is created by both the Listener and **Connector** classes. This [**Connection**](source/shared/connection.h) object is utilized in the next stage by both client & server code instances.
 
 ### 2) Client & server
-Once a **Connection** object is created, a [**RealtimeMediaPlayer**](source/shared/realtimemediaplayer.h) and a [**RealtimeServer**]((source/shared/realtimeserver.h) object are created on the client and server devices respectively and initialized with the created **Connection**. The **RealtimeMediaPlayer** creates the necessary MediaFoundation components, in particular [MediaPlayer](https://docs.microsoft.com/en-us/uwp/api/windows.media.playback.mediaplayer) and [MediaStreamSource](https://docs.microsoft.com/en-us/uwp/api/windows.media.core.mediastreamsource), to support receiving and decoding video frames from the server which are written to a shared DirectX texture. The **RealtimeServer** likewise initializes Media Foundation components, in particular [IMFSinkWriter](https://docs.microsoft.com/en-us/windows/desktop/medfound/tutorial--using-the-sink-writer-to-encode-video), [IMFMediaSink](https://docs.microsoft.com/en-us/windows/desktop/api/mfidl/nn-mfidl-imfmediasink), and [IMFStreamSink](https://docs.microsoft.com/en-us/windows/desktop/api/mfidl/nn-mfidl-imfstreamsink), to support the sending of encoded frames to the client over the TCP connection.
+Once a **Connection** object is created, a [**RealtimeMediaPlayer**](source/shared/realtimemediaplayer.h) and a [**RealtimeServer**](source/shared/realtimeserver.h) object are created on the client and server devices respectively both of which are initialized with the created **Connection** object. The **RealtimeMediaPlayer** creates the necessary MediaFoundation components, in particular [MediaPlayer](https://docs.microsoft.com/en-us/uwp/api/windows.media.playback.mediaplayer) and [MediaStreamSource](https://docs.microsoft.com/en-us/uwp/api/windows.media.core.mediastreamsource), to support receiving and decoding video frames from the server which are written to a shared DirectX texture. The **RealtimeServer** likewise initializes Media Foundation components, in particular [IMFSinkWriter](https://docs.microsoft.com/en-us/windows/desktop/medfound/tutorial--using-the-sink-writer-to-encode-video), [IMFMediaSink](https://docs.microsoft.com/en-us/windows/desktop/api/mfidl/nn-mfidl-imfmediasink), and [IMFStreamSink](https://docs.microsoft.com/en-us/windows/desktop/api/mfidl/nn-mfidl-imfstreamsink), to support the sending of encoded frames to the client over the TCP connection.
 
 ### Important considerations
 
-This component is primarily built to support streaming to a HoloLens Unity application and thus there is an additional interop layer to function between Unity and the objects above. In the Unity samples provided, there are additional C# classes to wrap calls into the C++ plugin classes above. The important difference is that the **RealtimeVideoPlayer.cs** and **RealtimeVideoServer** classes incorporate both stages, establishing a connection and streaming video, above to simplify interop.
+This component is primarily built to support streaming to a HoloLens Unity application and thus there is an additional interop layer to function between Unity and the objects above. In the Unity samples provided, there are additional C# classes to wrap calls into the C++ plugin classes. 
 
-Finally, it is important to note that the only currently supported output texture format on the client is [DXGI_FORMAT_NV12](https://docs.microsoft.com/en-us/windows/desktop/api/dxgiformat/ne-dxgiformat-dxgi_format) or also known as YUV 4:2:0. This is to ensure performant video decoding to support the real-time playback, especially on the mobile HoloLens device.
+It is important to note that the only currently supported output texture format on the client is [DXGI_FORMAT_NV12](https://docs.microsoft.com/en-us/windows/desktop/api/dxgiformat/ne-dxgiformat-dxgi_format) or also known as YUV 4:2:0. This is to ensure performant video decoding to support the real-time playback, especially on the mobile HoloLens device.
 
-Further, only client playback in the Unity app environment is currently supported at the moment. Custom shaders to support rendering of the **YUV 4:2:0** texture format are available under *Samples/Unity/Assets/RealtimeStreaming/Shaders*.
+Further, client playback is only currently supported in the Unity app environment at the moment. Custom shaders to support rendering of the **YUV 4:2:0** texture format are available under *Samples/Unity/Assets/RealtimeStreaming/Shaders*.
 
 For more information concerning YUV video formats: 
 - [Recommened 8-bit YUV formats for Video Rendering](https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering)
@@ -57,13 +57,15 @@ The C++ source is the code for the core plugin including the Unity plug-in wrapp
 
 The source code can be viewed by opening the **RealtimeStreaming.sln**. This solution is supported in Visual Studio 2017 and requires support for [C++/WinRT](https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/intro-to-using-cpp-with-winrt). Instructions for the C++/WinRT Visual studio extension support and install can be found [here](https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/intro-to-using-cpp-with-winrt#visual-studio-support-for-cwinrt-xaml-the-vsix-extension-and-the-nuget-package). 
 
-The source is built into a **RealtimeStreaming.winmd** file and related DLLs that can be ingested in either a Unity application, a UWP application, or a bridged-WPF application (to support UWP). The samples provide example app code to utilize the core plugin (winmd & dll files) in both a client or server device endpoint.
+The source is compiled into a **RealtimeStreaming.winmd** file and related DLLs that can be ingested in either a Unity application, a UWP application, or a bridged-WPF application (to support UWP). The samples provide example app code to utilize the core plugin (winmd & dll files) in both a client or server device endpoint.
 
 **NOTE:** When building the Source **RealtimeStreaming.sln**, the visual studio projects have been pre-configured to auto-place the compiled binaries into the appropriate folders for each sample folder based on the architecture being built (i.e ARM, x86, x64).
 
 ### Samples
 
-This folder showcases some example apps functioning as a server or client on various application platforms. NOTE: At the moment, client functionality is only supported in Unity.
+This folder showcases some example apps functioning as a server or client on various application platforms. 
+
+**NOTE:** At the moment, client functionality is only supported in Unity. This is due to a bug with the **Connector** class COM registeration.
 
 #### Unity
 
@@ -75,7 +77,7 @@ Under the Unity Assets folder provided, there are two key folders: the **Example
 
 Further, it should be noted that the Unity folder also has the [Mixed Reality Toolkit for Unity](https://github.com/microsoft/MixedRealityToolkit-Unity) to support input & UI interactions on Mixed Reality devices. 
 
-**NOTE:** Building for a Mixed Reality application or using MRTK are NOT considered mandatory for utilizing this real-time streaming component.
+**NOTE:** Building for a Mixed Reality application or using MRTK are NOT mandatory for utilizing this real-time streaming component.
 
 #### WPF
 
