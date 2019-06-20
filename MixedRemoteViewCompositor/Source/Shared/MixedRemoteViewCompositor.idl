@@ -293,7 +293,7 @@ namespace MixedRemoteViewCompositor {
         Windows.Foundation.Numerics.Matrix4x4 worldToCameraMatrix;
         Windows.Foundation.Numerics.Matrix4x4 cameraProjectionTransform;
         Windows.Foundation.Numerics.Matrix4x4 cameraViewTransform;
-        MFPinholeCameraIntrinsics cameraIntrinsics;
+		MFPinholeCameraIntrinsics cameraIntrinsics;
     };
 
     [version(1.0)]
