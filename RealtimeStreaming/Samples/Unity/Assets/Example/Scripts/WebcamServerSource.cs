@@ -60,6 +60,14 @@ public class WebcamServerSource : RealtimeServerSource
 
         UnityEngine.Debug.Log("Webcam Playing at " + webcam.width + " x " + webcam.height);
 
+        if (webcam.width != Server.OutputWidth || webcam.height != Server.OutputHeight)
+        {
+            UnityEngine.Debug.LogWarning("Requested webcam resolution (" + webcam.width + " x " + webcam.height + ") does not match server output " + "(" + Server.OutputWidth + " x " + Server.OutputHeight + ")");
+            UnityEngine.Debug.LogWarning("Updating server to match it...");
+            Server.OutputWidth = (uint)webcam.width;
+            Server.OutputHeight = (uint)webcam.height;
+        }
+
         webcam_interop = new Color32[webcam.width * webcam.height];
         frameBuffer = new byte[webcam.width * webcam.height * 4];
 
