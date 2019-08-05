@@ -1,3 +1,5 @@
+># NOTE: The Spectator View code within this repository has been deprecated. To use Spectator View, migrate to the [MixedReality-SpectatorView repository](https://github.com/microsoft/MixedReality-SpectatorView).
+
 # README
 
 Spectator view has been updated to use a standalone application *SpectatorViewPoseProvider* on the spectator view HoloLens rather than building the Unity game for that HoloLens as was done in previous versions.
